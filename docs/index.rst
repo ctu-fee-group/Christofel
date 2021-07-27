@@ -10,3 +10,11 @@ This is documentation of some of the code specifics of Christofel bot.
 It can be useful for anyone working on the bot.
 
 Feature list is also included.
+
+.. toctree::
+   :caption: Base
+   :maxdepth: 2
+
+   base/index
+   base/configuration
+
