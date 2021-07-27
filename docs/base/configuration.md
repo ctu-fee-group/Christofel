@@ -1,4 +1,4 @@
-## Configuration of Christofel
+## Configuration
 Configuration is just basic key value mapping.
 It is done using json and database at the same time.
 First value is looked up in json (higher priority) and then database is checked
