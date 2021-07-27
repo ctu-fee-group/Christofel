@@ -36,12 +36,7 @@ namespace Christofel.BaseLib
         /// Service for registering and resolving permissions
         /// </summary>
         public IPermissionService Permissions { get; }
-        
-        /// <summary>
-        /// Token source for the main task. The application quits on Cancel
-        /// </summary>
-        public CancellationTokenSource ApplicationRunning { get; }
-        
+
         // TODO: add logger
     }
 }
