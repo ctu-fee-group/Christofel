@@ -1,4 +1,3 @@
-(base_configuration=)
 ## Configuration of Christofel
 Configuration is just basic key value mapping.
 It is done using json and database at the same time.
