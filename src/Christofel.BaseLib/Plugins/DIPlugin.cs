@@ -14,7 +14,7 @@ namespace Christofel.BaseLib.Plugins
         protected IServiceProvider? Services { get; set; }
 
         protected abstract IServiceCollection ConfigureServices(IServiceCollection serviceCollection);
-        protected abstract Task<bool> InitializeServices(IServiceProvider services);
+        protected abstract Task InitializeServices(IServiceProvider services);
 
         protected virtual IServiceProvider BuildServices(IServiceCollection serviceCollection)
         {
