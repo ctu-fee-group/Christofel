@@ -6,6 +6,7 @@ using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
+using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
 using Discord;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ namespace Christofel.Application
         public ChristofelApp()
         {
             _jsonConfig = new JsonConfig(JsonConfigPath);
+            _jsonConfig.AddConvertConverters();
         }
 
         public override string Name => "Application";
@@ -47,6 +49,9 @@ namespace Christofel.Application
 
         protected override Task InitializeServices(IServiceProvider services)
         {
+            IConfig config = services.GetRequiredService<IConfig>();
+            config.AddConvertConverters();
+            
             IBot bot = services.GetRequiredService<IBot>();
 
             bot.Client.Ready += HandleReady;
