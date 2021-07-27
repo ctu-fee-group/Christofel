@@ -34,7 +34,7 @@ namespace Christofel.BaseLib.Configuration
                 {
                     return await readable.GetAsync<T>(name);
                 }
-                catch (ConfigValueNotFoundException e)
+                catch (ConfigValueNotFoundException)
                 {
                     // continue reading another one
                 }
