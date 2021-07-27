@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.CommandsLib", "C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{05930E47-11FB-41BE-BEBB-5CD09C29117C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Application", "Christofel.Application\Christofel.Application.csproj", "{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,7 @@ Global
 		{B8630DDB-0533-4BDE-84DA-3BF5D18968B8} = {76148150-3CBB-4409-AA7F-FD3D4448DE35}
 		{6314DE1E-DE6D-4990-8B19-A50DD3E23D27} = {76148150-3CBB-4409-AA7F-FD3D4448DE35}
 		{22D192D0-55FD-4D71-B28A-F5F7465A6E82} = {CDA54591-9A27-4DAE-95C5-D4D7784F74EB}
+		{BB88CD74-9A15-4C58-B4DC-E554FF38D01A} = {05930E47-11FB-41BE-BEBB-5CD09C29117C}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0C798625-3BD0-40A1-8921-08292D0445A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -42,5 +45,9 @@ Global
 		{22D192D0-55FD-4D71-B28A-F5F7465A6E82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{22D192D0-55FD-4D71-B28A-F5F7465A6E82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{22D192D0-55FD-4D71-B28A-F5F7465A6E82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
