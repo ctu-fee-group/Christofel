@@ -16,13 +16,18 @@ namespace Christofel.Application
     public class ChristofelApp : DIPlugin
     {
         public static string JsonConfigPath => "config.json";
-        
+
+        private IReadableConfig _jsonConfig;
+
+        public ChristofelApp()
+        {
+            _jsonConfig = new JsonConfig(JsonConfigPath);
+        }
+
         public override string Name => "Application";
         public override string Description => "Base application with module commands managing their lifecycle";
         public override string Version => "v0.0.1";
 
-        private IReadableConfig _jsonConfig;
-        
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
@@ -51,7 +56,6 @@ namespace Christofel.Application
 
         public new Task InitAsync()
         {
-            _jsonConfig = new JsonConfig(JsonConfigPath);
             return base.InitAsync();
         }
 
