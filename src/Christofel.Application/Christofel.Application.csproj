@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="Plugins" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Discord.Net.Labs" Version="2.4.9" />
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
+    </ItemGroup>
+
+</Project>
