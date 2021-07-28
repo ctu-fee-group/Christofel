@@ -67,23 +67,13 @@ namespace Christofel.Application
         public override async Task DestroyAsync()
         {
             await base.DestroyAsync();
-            
-            if (Services == null)
-            {
-                throw new InvalidOperationException("Services are supposed to be initialized before destroying the application");
-            }
-            
+
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             await bot.StopBot();
         }
 
         public async Task RunAsync()
         {
-            if (Services == null)
-            {
-                throw new InvalidOperationException("Services are supposed to be initialized before running the application");
-            }
-            
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
 
             await bot.StartBotAsync();

@@ -6,12 +6,40 @@ namespace Christofel.BaseLib.Plugins
 {
     public abstract class DIPlugin : IPlugin
     {
+        private IServiceProvider? _services;
+        private IChristofelState? _state;
+        
         public abstract string Name { get; }
         public abstract string Description { get; }
         public abstract string Version { get; }
 
-        protected IChristofelState State { get; set; } = null!;
-        protected IServiceProvider? Services { get; set; }
+        protected IChristofelState State
+        {
+            get
+            {
+                if (_state == null)
+                {
+                    throw new InvalidOperationException("State is null");
+                }
+                
+                return _state;
+            }
+            set => _state = value;
+        }
+        
+        protected IServiceProvider Services
+        {
+            get
+            {
+                if (_services == null)
+                {
+                    throw new InvalidOperationException("Services is null");
+                }
+                
+                return _services;
+            }
+            set => _services = value;
+        }
 
         protected abstract IServiceCollection ConfigureServices(IServiceCollection serviceCollection);
         protected abstract Task InitializeServices(IServiceProvider services);
