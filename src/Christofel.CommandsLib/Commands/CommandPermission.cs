@@ -3,7 +3,7 @@ using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
-namespace Christofel.CommandsLib
+namespace Christofel.CommandsLib.Commands
 {
     public sealed class CommandPermission : IPermission
     {

@@ -1,6 +1,6 @@
 using Discord;
 
-namespace Christofel.CommandsLib
+namespace Christofel.CommandsLib.Commands
 {
     public class SlashCommandBuilderInfo : SlashCommandBuilder
     {

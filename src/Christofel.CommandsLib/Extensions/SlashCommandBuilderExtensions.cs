@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Christofel.CommandsLib.Commands;
 using Discord;
 
 namespace Christofel.CommandsLib.Extensions
