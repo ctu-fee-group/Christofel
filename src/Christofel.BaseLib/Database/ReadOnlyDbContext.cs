@@ -6,16 +6,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.BaseLib.Database
 {
-    public class ReadOnlyDbContext : IDisposable, IAsyncDisposable
     /// <summary>
     /// Context-like class that allows only reading of DbSets.
     /// Should be used everywhere where only read from db is needed
     /// </summary>
+    public class ReadOnlyDbContext : IDisposable, IAsyncDisposable, IReadableDbContext
     {
-        private DbContext _dbContext;
+        private IReadableDbContext _dbContext;
         private bool _ownsContext;
 
-        public ReadOnlyDbContext(DbContext dbContext, bool ownsContext = true)
+        public ReadOnlyDbContext(IReadableDbContext dbContext, bool ownsContext = true)
         {
             _dbContext = dbContext;
             _ownsContext = ownsContext;

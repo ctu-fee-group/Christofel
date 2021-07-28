@@ -1,9 +1,10 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.BaseLib.Database
 {
     public class ReadonlyDbContextFactory<TContext>
-        where TContext : DbContext
+        where TContext : DbContext, IReadableDbContext
     {
         protected readonly IDbContextFactory<TContext> _dbContextFactory;
         

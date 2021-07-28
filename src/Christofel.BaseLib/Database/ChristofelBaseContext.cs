@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.BaseLib.Database
 {
-    public sealed class ChristofelBaseContext : DbContext
+    public sealed class ChristofelBaseContext : DbContext, IReadableDbContext
     {
         public ChristofelBaseContext(DbContextOptions<ChristofelBaseContext> options)
             : base(options)
@@ -41,5 +42,10 @@ namespace Christofel.BaseLib.Database
         public DbSet<ProgrammeRoleAssignment> ProgrammeRoleAssignments => Set<ProgrammeRoleAssignment>();
         public DbSet<UsermapRoleAssignment> UsermapRoleAssignments => Set<UsermapRoleAssignment>();
         public DbSet<TitleRoleAssignment> TitleRoleAssignment => Set<TitleRoleAssignment>();
+        
+        IQueryable<TEntity> IReadableDbContext.Set<TEntity>() where TEntity : class
+        {
+            return Set<TEntity>().AsNoTracking();
+        }
     }
 }
