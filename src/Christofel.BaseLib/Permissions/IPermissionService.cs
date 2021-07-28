@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace Christofel.BaseLib.Permissions
 {
+    /// <summary>
+    /// Service for registering permissions including permissions resolver
+    /// </summary>
     public interface IPermissionService
     {
         public IPermissionsResolver Resolver { get; }

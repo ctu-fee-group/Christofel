@@ -6,6 +6,9 @@ using Christofel.BaseLib.Exceptions;
 
 namespace Christofel.BaseLib.Configuration
 {
+    /// <summary>
+    /// Abstract class to use for converters to make registering converters easier
+    /// </summary>
     public abstract class ConvertersConfig : IConfig
     {
         private readonly List<IConfigConverter> _converters;

@@ -1,13 +1,24 @@
 namespace Christofel.BaseLib.User
 {
-    public interface IDiscordUser
+    public interface IDiscordUser : IUser
     {
-        public ulong DiscordId { get; set; }
+        public ulong DiscordId { get; }
     }
     
-    public interface ICtuUser
+    /// <summary>
+    /// Ctu user should be used everywhere where only Ctu information are needed
+    /// </summary>
+    public interface ICtuUser : IUser
     {
-        public string CtuUsername { get; set; }
+        public string CtuUsername { get; }
+    }
+
+    /// <summary>
+    /// User with user id only - to link to database
+    /// </summary>
+    public interface IUser
+    {
+        public int UserId { get; }
     }
 
     /// <summary>
@@ -15,6 +26,5 @@ namespace Christofel.BaseLib.User
     /// </summary>
     public interface ILinkUser : ICtuUser, IDiscordUser
     {
-        
     }
 }

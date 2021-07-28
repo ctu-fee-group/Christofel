@@ -6,6 +6,11 @@ namespace Christofel.BaseLib.Extensions
 {
     public static class ConfigExtensions
     {
+        /// <summary>
+        /// Add common converters to the config using ConvertConfigConverter
+        /// The types that are added: bool, byte, char, decimal, float, dlouble, short, int, long, ushort, uint, ulong and string
+        /// </summary>
+        /// <param name="config"></param>
         public static void AddConvertConverters(this IConfig config)
         {
             config.RegisterConverter(new ConvertConfigConverter<bool>());

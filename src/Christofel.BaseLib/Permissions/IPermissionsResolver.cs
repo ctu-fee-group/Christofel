@@ -39,7 +39,20 @@ namespace Christofel.BaseLib.Permissions
         /// <returns>Whether the target has the permission</returns>
         public Task<bool> HasPermissionAsync(IPermission permission, DiscordTarget target);
         
+        /// <summary>
+        /// Return whether any of the specified targets has the permission needed
+        /// </summary>
+        /// <param name="permissionName"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public Task<bool> AnyHasPermissionAsync(string permissionName, IEnumerable<DiscordTarget> target);
+        
+        /// <summary>
+        /// Return whether any of the specified targets has the permission needed
+        /// </summary>
+        /// <param name="permission"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
         public Task<bool> AnyHasPermissionAsync(IPermission permission, IEnumerable<DiscordTarget> target);
     }
 }

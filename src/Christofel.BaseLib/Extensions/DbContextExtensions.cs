@@ -10,6 +10,11 @@ namespace Christofel.BaseLib.Extensions
 {
     public static class DbContextExtensions
     {
+        /// <summary>
+        /// This method should be called from SaveChanges and (or) SaveChangesAsync
+        /// Add support for ITimestampsEntity automatically setting CreatedAt and UpdatedAt
+        /// </summary>
+        /// <param name="context"></param>
         public static void AddTimestamps(this DbContext context)
         {
             var entries = context.ChangeTracker
