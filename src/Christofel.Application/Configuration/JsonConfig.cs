@@ -1,11 +1,15 @@
 using System.Threading.Tasks;
+using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Configuration.Converters;
 using Christofel.BaseLib.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Christofel.BaseLib.Configuration
+namespace Christofel.Application.Configuration
 {
+    /// <summary>
+    /// Readable config loaded from json
+    /// </summary>
     public sealed class JsonConfig : ConvertersConfig, IReadableConfig
     {
         private JObject? _jObject;

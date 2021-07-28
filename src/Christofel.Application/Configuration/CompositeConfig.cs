@@ -1,15 +1,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Configuration.Converters;
 using Christofel.BaseLib.Exceptions;
 
-namespace Christofel.BaseLib.Configuration
+namespace Christofel.Application.Configuration
 {
     /// <summary>
-    /// Config combining two configs, load data from first one and then from second one, if data weren't found in the first one
+    /// Config combining multiple configs
+    /// Priority of reading depends on the order in the ienumerable
+    /// Only one config that can be written to can be used
     /// </summary>
-    public sealed class CompositeConfig : IConfig, IWRConfig
+    public sealed class CompositeConfig : IWRConfig
     {
         public CompositeConfig(IEnumerable<IReadableConfig> read, IWritableConfig write)
         {

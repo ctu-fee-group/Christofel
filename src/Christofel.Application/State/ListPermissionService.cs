@@ -1,19 +1,23 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Christofel.BaseLib.Permissions;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Christofel.BaseLib.Permissions
+namespace Christofel.Application.State
 {
-    public sealed class PermissionService : IPermissionService
+    public sealed class ListPermissionService : IPermissionService
     {
         private List<IPermission> _permissions;
+        private IServiceProvider _provider;
         
-        public PermissionService(IPermissionsResolver resolver)
+        public ListPermissionService(IServiceProvider provider)
         {
-            Resolver = resolver;
+            _provider = provider;
             _permissions = new List<IPermission>();
         }
-        
-        public IPermissionsResolver Resolver { get; }
+
+        public IPermissionsResolver Resolver => _provider.GetRequiredService<IPermissionsResolver>();
 
         public IEnumerable<IPermission> Permissions => _permissions.AsReadOnly();
 

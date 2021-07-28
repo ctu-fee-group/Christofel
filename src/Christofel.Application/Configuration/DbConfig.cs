@@ -1,12 +1,17 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Christofel.BaseLib.Configuration
+namespace Christofel.Application.Configuration
 {
+    /// <summary>
+    /// Config from database table with Name, Value columns
+    /// It can be written to and read from
+    /// </summary>
     public sealed class DbConfig : ConvertersConfig, IWRConfig
     {
         private IDbContextFactory<ChristofelBaseContext> _dbContextFactory;

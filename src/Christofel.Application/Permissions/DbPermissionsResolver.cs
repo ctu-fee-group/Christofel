@@ -5,10 +5,15 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
+using Christofel.BaseLib.Permissions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Christofel.BaseLib.Permissions
+namespace Christofel.Application.Permissions
 {
+    /// <summary>
+    /// Resolver of permissions using database.
+    /// Table with PermissionName, DiscordTarget is used
+    /// </summary>
     public sealed class DbPermissionsResolver : IPermissionsResolver
     {
         private ReadonlyDbContextFactory<ChristofelBaseContext> _readOnlyDbContextFactory;
