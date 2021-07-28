@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +20,10 @@ namespace Christofel.BaseLib.Plugins
         public abstract string Name { get; }
         public abstract string Description { get; }
         public abstract string Version { get; }
+        
+        protected abstract IEnumerable<IRefreshable> Refreshable { get; }
+        protected abstract IEnumerable<IStoppable> Stoppable { get; }
+        protected abstract IEnumerable<IStartable> Startable { get; }
 
         protected IChristofelState State
         {
@@ -60,10 +66,6 @@ namespace Christofel.BaseLib.Plugins
         /// <param name="services"></param>
         /// <returns></returns>
         protected abstract Task InitializeServices(IServiceProvider services);
-        
-        public abstract Task RunAsync();
-
-        public abstract Task StopAsync();
 
         /// <summary>
         /// Build ServiceProvider itself from ServiceCollection
@@ -102,10 +104,29 @@ namespace Christofel.BaseLib.Plugins
             State = state;
             return InitAsync();
         }
-
-        public virtual Task RefreshAsync()
+        
+        public virtual async Task RunAsync()
         {
-            return Task.CompletedTask;
+            foreach (IStartable startable in Startable)
+            {
+                await startable.StartAsync();
+            }
+        }
+
+        public virtual async Task StopAsync()
+        {
+            foreach (IStoppable stoppable in Stoppable)
+            {
+                await stoppable.StopAsync();
+            }
+        }
+
+        public virtual async Task RefreshAsync()
+        {
+            foreach (IRefreshable refreshable in Refreshable)
+            {
+                await refreshable.RefreshAsync();
+            }
         }
 
         public virtual Task DestroyAsync()
