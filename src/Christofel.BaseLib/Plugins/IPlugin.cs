@@ -9,6 +9,7 @@ namespace Christofel.BaseLib.Plugins
         public string Version { get; }
 
         public Task InitAsync(IChristofelState state);
+        public Task RefreshAsync();
         public Task DestroyAsync();
     }
 }

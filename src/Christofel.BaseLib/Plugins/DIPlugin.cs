@@ -45,6 +45,11 @@ namespace Christofel.BaseLib.Plugins
             return InitAsync();
         }
 
+        public virtual Task RefreshAsync()
+        {
+            return Task.CompletedTask;
+        }
+
         public virtual Task DestroyAsync()
         {
             return DestroyServices(Services);
