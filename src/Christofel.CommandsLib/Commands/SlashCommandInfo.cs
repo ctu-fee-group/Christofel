@@ -55,7 +55,7 @@ namespace Christofel.CommandsLib.Commands
             return resolver.HasPermissionAsync(Permission, DiscordTarget.Everyone);
         }
 
-        public Task RefreshCommandAndPermissions()
+        public Task RefreshCommandAndPermissionsAsync()
         {
             throw new NotImplementedException();
         }

@@ -1,64 +1,56 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Permissions;
+using Christofel.BaseLib.Plugins;
+using Christofel.CommandsLib.Commands;
+using Christofel.CommandsLib.Extensions;
 using Discord;
+using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 
 namespace Christofel.CommandsLib
 {
-    public abstract class CommandHandler : IAsyncDisposable, IDisposable
+    public abstract class CommandHandler : IStartable, IRefreshable, IStoppable
     {
         protected readonly DiscordSocketClient _client;
-        protected readonly List<RestApplicationCommand> _commands;
+        protected readonly List<SlashCommandInfo> _commands;
+        protected readonly IPermissionService _permissions;
         
-        public CommandHandler(DiscordSocketClient client)
+        public CommandHandler(DiscordSocketClient client, IPermissionService permissions)
         {
             _client = client;
-            _commands = new List<RestApplicationCommand>();
+            _permissions = permissions;
+            _commands = new List<SlashCommandInfo>();
         }
         
         public abstract Task SetupCommandsAsync();
-        protected abstract Task HandleCommand(SocketSlashCommand command);
 
-        public async Task InitAsync()
+        public async Task RefreshAsync()
         {
-            await SetupCommandsAsync();
-            SetupEvents();
-        }
-        
-        public async ValueTask DisposeAsync()
-        {
-            await UnregisterCommandsAsync();
-        }
-        
-        public void Dispose()
-        {
-            DisposeAsync().GetAwaiter().GetResult();
+            foreach (SlashCommandInfo command in _commands)
+            {
+                await command.RefreshCommandAndPermissionsAsync();
+            }
         }
 
-        protected async Task<RestGlobalCommand> RegisterGlobalCommandAsync(SlashCommandBuilder builder)
+        protected async Task<SlashCommandInfo> RegisterCommandAsync(SlashCommandBuilder builder)
         {
-            RestGlobalCommand command = await _client.Rest.CreateGlobalCommand(builder.Build());
+            SlashCommandInfo info = builder.BuildAndGetInfo();
+            await info.RegisterCommandAsync(_client.Rest, _permissions.Resolver);
+            await info.RegisterPermissionsAsync(_client.Rest, _permissions);
 
-            _commands.Add(command);
-            return command;
+            _commands.Add(info);
+            return info;
         }
-        
-        protected async Task<RestGuildCommand> RegisterGuildCommandAsync(ulong guildId, SlashCommandBuilder builder)
-        {
-            RestGuildCommand command = await _client.Rest.CreateGuildCommand(builder.Build(), guildId);
-
-            _commands.Add(command);
-            return command;
-        }
-
 
         protected virtual async Task UnregisterCommandsAsync()
         {
-            foreach (RestApplicationCommand command in _commands)
+            foreach (SlashCommandInfo info in _commands)
             {
-                await command.DeleteAsync();
+                await info.UnregisterCommand(_permissions);
             }
             
             _commands.Clear();
@@ -69,12 +61,28 @@ namespace Christofel.CommandsLib
             _client.InteractionCreated += HandleInteractionCreated;
         }
 
-        protected virtual async Task HandleInteractionCreated(SocketInteraction arg)
+        protected virtual Task HandleInteractionCreated(SocketInteraction arg)
         {
             if (arg is SocketSlashCommand command)
             {
-                await HandleCommand(command);
+                string name = command.Data.Name;
+                SlashCommandInfo? info = _commands.FirstOrDefault(x => x.Builder.Name == name);
+
+                return info?.Handler(command) ?? Task.CompletedTask;
             }
+
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync()
+        {
+            return UnregisterCommandsAsync();
+        }
+
+        public async Task StartAsync()
+        {
+            await SetupCommandsAsync();
+            SetupEvents();
         }
     }
 }
