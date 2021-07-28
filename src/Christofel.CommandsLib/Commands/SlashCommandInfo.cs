@@ -84,8 +84,21 @@ namespace Christofel.CommandsLib.Commands
             return Command;
         }
 
-        public async Task RegisterPermissionsAsync(DiscordRestClient client, IPermissionsResolver resolver)
+        public async Task UnregisterCommand(IPermissionService permissions)
         {
+            permissions.RegisterPermission(Permission);
+
+            if (Command != null)
+            {
+                await Command.DeleteAsync();
+            }
+        }
+
+        public async Task RegisterPermissionsAsync(DiscordRestClient client, IPermissionService permissions)
+        {
+            IPermissionsResolver resolver = permissions.Resolver;
+            
+            permissions.RegisterPermission(Permission);
             await RegisterCommandAsync(client, resolver);
             
             if (Command is RestGlobalCommand)
