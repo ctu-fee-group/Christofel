@@ -11,10 +11,11 @@ namespace Christofel.BaseLib.Database.Models
         [MaxLength(512)]
         public string UsermapRole { get; set; } = null!;
         
-        public bool Contain { get; set; }
-
+        public bool RegexMatch { get; set; }
+        
         public int AssignmentId { get; set; }
         
         [ForeignKey("AssignmentId")]
-        public RoleAssignment Assignment { get; set; } = null!;    }
+        public RoleAssignment Assignment { get; set; } = null!;
+    }
 }
