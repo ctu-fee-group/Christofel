@@ -4,6 +4,7 @@ using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Permissions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Christofel.BaseLib
 {
@@ -37,6 +38,9 @@ namespace Christofel.BaseLib
         /// </summary>
         public IPermissionService Permissions { get; }
 
-        // TODO: add logger
+        /// <summary>
+        /// Logger factory
+        /// </summary>
+        public ILoggerFactory LoggerFactory { get; }
     }
 }
