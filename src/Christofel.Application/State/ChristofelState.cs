@@ -5,7 +5,7 @@ using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Permissions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Christofel.Application
+namespace Christofel.Application.State
 {
     public class ChristofelState : IChristofelState
     {

@@ -6,7 +6,7 @@ using Christofel.BaseLib.Discord;
 using Discord;
 using Discord.WebSocket;
 
-namespace Christofel.Application
+namespace Christofel.Application.State
 {
     public class DiscordBot : IBot
     {
