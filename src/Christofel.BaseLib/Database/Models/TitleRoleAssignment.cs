@@ -14,9 +14,12 @@ namespace Christofel.BaseLib.Database.Models
         public bool Post { get; set; }
         
         public bool Pre { get; set; }
+        
+        public uint Priority { get; set; }
 
         public int AssignmentId { get; set; }
         
         [ForeignKey("AssignmentId")]
-        public RoleAssignment Assignment { get; set; } = null!;    }
+        public RoleAssignment Assignment { get; set; } = null!;
+    }
 }
