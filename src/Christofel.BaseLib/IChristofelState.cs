@@ -4,6 +4,7 @@ using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Permissions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.BaseLib
@@ -31,7 +32,7 @@ namespace Christofel.BaseLib
         /// <summary>
         /// Shared configuration linking name/key to value 
         /// </summary>
-        public IReadableConfig Configuration { get; }
+        public IConfiguration Configuration { get; }
         
         /// <summary>
         /// Service for registering and resolving permissions
