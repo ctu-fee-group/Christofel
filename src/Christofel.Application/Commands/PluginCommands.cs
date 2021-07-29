@@ -1,26 +1,44 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.Application.Plugins;
+using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Permissions;
+using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.Extensions;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.Commands
 {
     public class PluginCommands : CommandHandler
     {
-        private IReadableConfig _config;
+        private readonly IReadableConfig _config;
+        private readonly PluginService _plugins;
+        private readonly IChristofelState _state;
+        private readonly ILogger<PluginCommands> _logger;
         
         // Plugin command
         // attach, detach, reattach, list subcommands
-        public PluginCommands(DiscordSocketClient client, IPermissionService permissions, IReadableConfig config)
+        public PluginCommands(
+            DiscordSocketClient client,
+            IPermissionService permissions,
+            IReadableConfig config,
+            IChristofelState state,
+            PluginService plugins,
+            ILogger<PluginCommands> logger
+            )
             : base(client, permissions)
         {
+            _state = state;
+            _plugins = plugins;
             _config = config;
+            _logger = logger;
         }
 
         public override async Task SetupCommandsAsync()
@@ -86,33 +104,92 @@ namespace Christofel.Application.Commands
             }
         }
 
-        private string GetModuleName(SocketSlashCommand command)
+        private string GetPluginName(SocketSlashCommand command)
         {
             return (string)command.Data.Options.First().Options.First().Value;
         }
         
-        private Task HandleAttach(SocketSlashCommand command)
+        private async Task HandleAttach(SocketSlashCommand command)
         {
-            string module = GetModuleName(command);
-            return Task.CompletedTask;
+            string pluginName = GetPluginName(command);
+            
+            _logger.LogDebug("Handling command /plugin attach");
+
+            bool attach = true;
+            if (!_plugins.Exists(pluginName))
+            {
+                attach = false;
+                await command.RespondAsync("The plugin was not found", ephemeral: true);
+            }
+
+            if (_plugins.IsAttached(pluginName))
+            {
+                attach = false;
+                await command.RespondAsync(
+                    "Plugin with the same name is already attached. Did you mean to reattach it?",
+                    ephemeral: true);
+            }
+
+            if (attach)
+            {
+                IHasPluginInfo plugin = await _plugins.AttachAsync(_state, pluginName);
+                await command.RespondAsync(
+                    $@"Plugin {plugin} was attached");
+            }
         }
         
-        private Task HandleDetach(SocketSlashCommand command)
+        private async Task HandleDetach(SocketSlashCommand command)
         {
-            string module = GetModuleName(command);
-            return Task.CompletedTask;
+            _logger.LogDebug("Handling command /module detach");
+            
+            string pluginName = GetPluginName(command);
+
+            bool detach = true;
+            if (!_plugins.IsAttached(pluginName))
+            {
+                detach = false;
+                await command.RespondAsync(
+                    "Could not find attached plugin with this name",
+                    ephemeral: true
+                );
+            }
+            
+            if (detach)
+            {
+                IHasPluginInfo plugin = await _plugins.DetachAsync(pluginName);
+                await command.RespondAsync(
+                    $@"Plugin {plugin} was detached");
+            }
         }
         
-        private Task HandleReattach(SocketSlashCommand command)
+        private async Task HandleReattach(SocketSlashCommand command)
         {
-            string module = GetModuleName(command);
-            return Task.CompletedTask;
+            string pluginName = GetPluginName(command);
+
+            bool reattach = true;
+            if (!_plugins.IsAttached(pluginName))
+            {
+                reattach = false;
+                await command.RespondAsync(
+                    "Could not find attached plugin with this name",
+                    ephemeral: true
+                );
+            }
+
+            if (reattach)
+            {
+                IHasPluginInfo plugin = await _plugins.ReattachAsync(_state, pluginName);
+                await command.RespondAsync(
+                    $@"Plugin {plugin} was detached");
+            }
         }
         
         private Task HandleList(SocketSlashCommand command)
         {
-            string module = GetModuleName(command);
-            return Task.CompletedTask;
+            IEnumerable<string> plugins = _plugins.AttachedPlugins.Select(x => $@"{x.Name} ({x.Version}) - {x.Description}");
+            string pluginMessage = "List of attached plugins:" + string.Join("\n", plugins);
+            
+            return command.RespondAsync(pluginMessage);
         }
     }
 }
