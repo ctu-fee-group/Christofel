@@ -14,7 +14,8 @@ namespace Christofel.Application.Configuration
     {
         private JObject? _jObject;
         
-        public JsonConfig(string file)
+        public JsonConfig(string file, IConfigConverterResolver resolver)
+            : base(resolver)
         {
             File = file;
         }

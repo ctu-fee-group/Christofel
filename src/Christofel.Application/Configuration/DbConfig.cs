@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
+using Christofel.BaseLib.Configuration.Converters;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Exceptions;
@@ -16,7 +17,8 @@ namespace Christofel.Application.Configuration
     {
         private IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
         
-        public DbConfig(IDbContextFactory<ChristofelBaseContext> dbContextFactory)
+        public DbConfig(IDbContextFactory<ChristofelBaseContext> dbContextFactory, IConfigConverterResolver resolver)
+            : base(resolver)
         {
             _dbContextFactory = dbContextFactory;
         }

@@ -14,10 +14,11 @@ namespace Christofel.Application.Configuration
     /// </summary>
     public sealed class CompositeConfig : IWRConfig
     {
-        public CompositeConfig(IEnumerable<IReadableConfig> read, IWritableConfig write)
+        public CompositeConfig(IEnumerable<IReadableConfig> read, IWritableConfig write, IConfigConverterResolver resolver)
         {
             ReadConfigs = read.ToList();
             WriteConfig = write;
+            ExternalResolver = resolver;
         }
         
         public List<IReadableConfig> ReadConfigs { get; }
@@ -45,15 +46,7 @@ namespace Christofel.Application.Configuration
 
             throw new ConfigValueNotFoundException(name);
         }
-
-        public void RegisterConverter(IConfigConverter converter)
-        {
-            foreach (IReadableConfig readableConfig in ReadConfigs)
-            {
-                readableConfig.RegisterConverter(converter);
-            }
-            
-            WriteConfig.RegisterConverter(converter);
-        }
+        
+        public IConfigConverterResolver ExternalResolver { get; }
     }
 }

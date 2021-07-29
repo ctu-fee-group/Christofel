@@ -1,4 +1,5 @@
 using System;
+using Christofel.BaseLib.Exceptions;
 
 namespace Christofel.BaseLib.Configuration.Converters
 {
@@ -7,14 +8,16 @@ namespace Christofel.BaseLib.Configuration.Converters
     /// </summary>
     public interface IConfigConverter
     {
-        public object? Convert(string value);
+        public object? Convert(string value, IConfigConverterResolver resolver);
+        public string? GetString(object? value, IConfigConverterResolver resolver);
         
         public Type ConvertType { get; }
     }
     
     public interface IConfigConverter<T> : IConfigConverter
     {
-        public new T Convert(string value);
+        public new T Convert(string value, IConfigConverterResolver resolver);
+        public new string? GetString(T value, IConfigConverterResolver resolver);
     }
 
     /// <summary>
@@ -24,12 +27,24 @@ namespace Christofel.BaseLib.Configuration.Converters
     /// <typeparam name="T"></typeparam>
     public abstract class ConfigConverter<T> : IConfigConverter<T>
     {
-        object? IConfigConverter.Convert(string value)
+        object? IConfigConverter.Convert(string value, IConfigConverterResolver resolver)
         {
-            return Convert(value);
+            return Convert(value, resolver);
+        }
+        
+        string? IConfigConverter.GetString(object? value, IConfigConverterResolver resolver)
+        {
+            if (value?.GetType().IsAssignableFrom(typeof(T)) ?? false)
+            {
+                return GetString((T)value, resolver);
+            }
+
+            throw new ConverterException("Could not assign to T", typeof(ConfigConverter<T>));
         }
 
-        public abstract T Convert(string value);
+        public abstract string? GetString(T value, IConfigConverterResolver resolver);
+
+        public abstract T Convert(string value, IConfigConverterResolver resolver);
 
         public Type ConvertType => typeof(T);
     }

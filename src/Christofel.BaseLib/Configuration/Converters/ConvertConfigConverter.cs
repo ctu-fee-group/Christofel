@@ -10,7 +10,12 @@ namespace Christofel.BaseLib.Configuration.Converters
     /// <typeparam name="T"></typeparam>
     public class ConvertConfigConverter<T> : ConfigConverter<T>
     {
-        public override T Convert(string value)
+        public override string? GetString(T value, IConfigConverterResolver resolver)
+        {
+            return System.Convert.ToString(value);
+        }
+
+        public override T Convert(string value, IConfigConverterResolver resolver)
         {
             try
             {

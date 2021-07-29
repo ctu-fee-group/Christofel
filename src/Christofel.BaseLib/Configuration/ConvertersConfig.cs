@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration.Converters;
 using Christofel.BaseLib.Exceptions;
+using Christofel.BaseLib.Extensions;
 
 namespace Christofel.BaseLib.Configuration
 {
@@ -11,27 +12,29 @@ namespace Christofel.BaseLib.Configuration
     /// </summary>
     public abstract class ConvertersConfig : IConfig
     {
-        private readonly List<IConfigConverter> _converters;
-
-        protected ConvertersConfig()
+        protected ConvertersConfig(IConfigConverterResolver resolver)
         {
-            _converters = new List<IConfigConverter>();
+            ExternalResolver = resolver;
         }
 
-        public void RegisterConverter(IConfigConverter converter)
+        protected string GetString<T>(T value)
         {
-            _converters.Add(converter);
+            IConfigConverter converter = ExternalResolver.GetConverter<T>();
+
+            string? converted = converter.GetString(value, ExternalResolver);
+            if (converted == null)
+            {
+                throw new ConverterException("Could not get string", converter.GetType());
+            }
+            
+            return converted;
         }
 
         protected T Convert<T>(string value)
         {
-            IConfigConverter? converter = _converters.FirstOrDefault(x => x.ConvertType == typeof(T));
-            if (converter == null)
-            {
-                throw new ConverterNotFoundException(typeof(T));
-            }
+            IConfigConverter converter = ExternalResolver.GetConverter<T>();
 
-            object? converted = converter.Convert(value);
+            object? converted = converter.Convert(value, ExternalResolver);
             if (converted == null)
             {
                 throw new ConverterException(value, converter.GetType());
@@ -39,5 +42,7 @@ namespace Christofel.BaseLib.Configuration
             
             return (T)converted;
         }
+
+        public IConfigConverterResolver ExternalResolver { get; }
     }
 }

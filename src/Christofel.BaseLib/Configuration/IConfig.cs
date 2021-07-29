@@ -10,10 +10,8 @@ namespace Christofel.BaseLib.Configuration
     {
         /// <summary>
         /// Register type converter to correctly convert to specified type
-        /// Default converters are used for common types, custom can be added
         /// </summary>
-        /// <param name="converter"></param>
-        public void RegisterConverter(IConfigConverter converter);
+        public IConfigConverterResolver ExternalResolver { get; }
     }
     
     public interface IReadableConfig : IConfig
