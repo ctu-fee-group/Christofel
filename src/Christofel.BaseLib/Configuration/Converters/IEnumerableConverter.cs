@@ -6,7 +6,12 @@ namespace Christofel.BaseLib.Configuration.Converters
 {
     public class IEnumerableConverter<TElement> : ConfigConverter<IEnumerable<TElement>>
     {
-        public const string Separator = ",";
+        public IEnumerableConverter(string separator = ";")
+        {
+            Separator = separator;
+        }
+        
+        public string Separator { get; }
         
         public override string? GetString(IEnumerable<TElement> value, IConfigConverterResolver resolver)
         {
