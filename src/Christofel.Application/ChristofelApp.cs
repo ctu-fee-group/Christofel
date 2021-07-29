@@ -31,24 +31,27 @@ namespace Christofel.Application
     
     public class ChristofelApp : DIPlugin
     {
-        public static string JsonConfigPath => "config.json";
-
         private ILogger<ChristofelApp>? _logger;
         private IConfiguration _configuration;
 
-        public ChristofelApp(string[] args)
+        public static IConfiguration CreateConfiguration(string[] commandArgs)
         {
             string environment = Environment.GetEnvironmentVariable("ENV") ?? "production";
             
-            _configuration = new ConfigurationBuilder()
-                .AddJsonFile("config.json")
-                .AddJsonFile($@"config.{environment}.json")
+            return new ConfigurationBuilder()
+                .AddJsonFile("config.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($@"config.{environment}.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables()
-                .AddCommandLine(args)
+                .AddCommandLine(commandArgs)
                 .Build();
         }
 
-        public override string Name => "Application";
+        public ChristofelApp(string[] commandArgs)
+        {
+            _configuration = CreateConfiguration(commandArgs);
+        }
+
+        public override string Name => "Christofel.Application";
         public override string Description => "Base application with module commands managing their lifecycle";
         public override string Version => "v0.0.1";
 
@@ -92,9 +95,12 @@ namespace Christofel.Application
                 // bot
                 .AddSingleton<IBot, DiscordBot>()
                 // db
-                .AddDbContextFactory<ChristofelBaseContext>(async options => 
+                .AddDbContextFactory<ChristofelBaseContext>(options => 
                     options
-                        .UseMySql(_configuration["Db:ConnectionString"], ServerVersion.AutoDetect(_configuration["Db:ConnectionString"]))
+                        .UseMySql(
+                            _configuration.GetConnectionString("ChristofelBase"),
+                            ServerVersion.AutoDetect(_configuration.GetConnectionString("ChristofelBase")
+                            ))
                     )
                 .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
                 // permissions
@@ -102,7 +108,7 @@ namespace Christofel.Application
                 .AddTransient<IPermissionsResolver, DbPermissionsResolver>()
                 // plugins
                 .AddSingleton<PluginService>()
-                // logging
+                // loggings
                 .AddLogging(builder =>
                 {
                     builder
