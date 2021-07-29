@@ -7,16 +7,17 @@ namespace Christofel.Application.Logging.Discord
 {
     public class DiscordLoggerProcessor : IDisposable
     {
-        private const int _maxQueuedMessages = 1024;
-
-        private readonly BlockingCollection<DiscordLogMessage> _messageQueue = new BlockingCollection<DiscordLogMessage>(_maxQueuedMessages);
+        private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
 
         private readonly IBot _bot;
 
-        public DiscordLoggerProcessor(IBot bot)
+        public DiscordLoggerProcessor(IBot bot, DiscordLoggerOptions options)
         {
             _bot = bot;
+            Options = options;
+            _messageQueue = new BlockingCollection<DiscordLogMessage>((int)Options.MaxQueueSize);
+            
             _outputThread = new Thread(ProcessLogQueue)
             {
                 IsBackground = true,
@@ -24,6 +25,8 @@ namespace Christofel.Application.Logging.Discord
             };
             _outputThread.Start();
         }
+        
+        public DiscordLoggerOptions Options { get; set; }
 
         public virtual void EnqueueMessage(DiscordLogMessage message)
         {

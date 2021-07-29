@@ -19,7 +19,7 @@ namespace Christofel.Application.Logging.Discord
         {
             _config = config.CurrentValue;
             _loggers = new ConcurrentDictionary<string, DiscordLogger>();
-            _queueProcessor = new DiscordLoggerProcessor(bot);
+            _queueProcessor = new DiscordLoggerProcessor(bot, config.CurrentValue);
             
             _onChangeToken = config.OnChange(HandleConfigChanged);
         }
@@ -39,6 +39,7 @@ namespace Christofel.Application.Logging.Discord
         private void HandleConfigChanged(DiscordLoggerOptions config)
         {
             _config = config;
+            _queueProcessor.Options = _config;
 
             foreach (DiscordLogger logger in _loggers.Values)
             {

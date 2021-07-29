@@ -15,6 +15,8 @@ namespace Christofel.Application.Logging.Discord
     
     public class DiscordLoggerOptions
     {
+        public uint MaxQueueSize { get; set; } = 1024;
+        
         public DiscordLoggerChannelOptions[] Channels { get; set; } = null!;
     }
 }
