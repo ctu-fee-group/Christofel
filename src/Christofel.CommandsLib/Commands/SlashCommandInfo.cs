@@ -97,7 +97,7 @@ namespace Christofel.CommandsLib.Commands
 
         public async Task UnregisterCommand(IPermissionService permissions)
         {
-            permissions.RegisterPermission(Permission);
+            permissions.UnregisterPermission(Permission);
 
             if (Command != null)
             {
