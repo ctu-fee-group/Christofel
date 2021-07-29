@@ -14,8 +14,10 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.Plugins
 {
-    public class PluginService : IDisposable, IStoppable
+    public class PluginService : IDisposable, IStoppable, IRefreshable
     {
+        private object _runLock = new object();
+        
         public static string ModuleNameRegex => "^[a-zA-Z0-9\\.]+$";
 
         private IDisposable _onOptionsChange;
@@ -125,7 +127,10 @@ namespace Christofel.Application.Plugins
             await rawPlugin.RunAsync();
 
             AttachedPlugin plugin = new AttachedPlugin(rawPlugin, info);
-            _plugins.Add(plugin);
+            lock (_runLock)
+            {
+                _plugins.Add(plugin);
+            }
 
             _logger.LogInformation($@"Plugin {plugin} was attached successfully");
 
@@ -139,7 +144,10 @@ namespace Christofel.Application.Plugins
             await plugin.Plugin.DestroyAsync();
             
             plugin.PluginAssembly.Detach();
-            _plugins.Remove(plugin);
+            lock (_runLock)
+            {
+                _plugins.Remove(plugin);
+            }
         }
 
         private async Task<IHasPluginInfo> ReattachAsync(IChristofelState state, AttachedPlugin plugin)
@@ -162,6 +170,13 @@ namespace Christofel.Application.Plugins
         public Task StopAsync()
         {
             return DetachAllAsync();
+        }
+
+        public Task RefreshAsync()
+        {
+            return Task.WhenAll(
+                _plugins.Select(x => x.Plugin.RefreshAsync())
+                );
         }
     }
 }
