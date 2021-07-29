@@ -13,32 +13,33 @@ using Christofel.CommandsLib.Extensions;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.Commands
 {
     public class PluginCommands : CommandHandler
     {
-        private readonly IReadableConfig _config;
         private readonly PluginService _plugins;
         private readonly IChristofelState _state;
         private readonly ILogger<PluginCommands> _logger;
+        private readonly BotOptions _options;
         
         // Plugin command
         // attach, detach, reattach, list subcommands
         public PluginCommands(
             DiscordSocketClient client,
             IPermissionService permissions,
-            IReadableConfig config,
             IChristofelState state,
             PluginService plugins,
+            IOptions<BotOptions> options,
             ILogger<PluginCommands> logger
             )
             : base(client, permissions)
         {
             _state = state;
             _plugins = plugins;
-            _config = config;
             _logger = logger;
+            _options = options.Value;
         }
 
         public override async Task SetupCommandsAsync()
@@ -47,7 +48,7 @@ namespace Christofel.Application.Commands
                 .WithName("plugin")
                 .WithDescription("Control attached plugins")
                 .WithPermission("application.modules.control")
-                .WithGuild(await _config.GetAsync<ulong>("discord.bot.guild"))
+                .WithGuild(_options.GuildId)
                 .WithHandler(HandlePluginCommand)
                 .AddOption(new SlashCommandOptionBuilder()
                     .WithName("attach")

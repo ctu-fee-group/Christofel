@@ -8,7 +8,7 @@ namespace Christofel.Application
     {
         public static async Task Main(string[] args)
         {
-            ChristofelApp application = new ChristofelApp();
+            ChristofelApp application = new ChristofelApp(args);
 
             // App lifetime cycle
             await application.InitAsync();

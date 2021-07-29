@@ -1,18 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using Christofel.Application.Commands;
-using Christofel.Application.Configuration;
 using Christofel.Application.Logging.Discord;
 using Christofel.Application.Permissions;
 using Christofel.Application.Plugins;
 using Christofel.Application.State;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Configuration.Converters;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Extensions;
@@ -21,28 +20,32 @@ using Christofel.BaseLib.Plugins;
 using Discord;
 using Karambolo.Extensions.Logging.File;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Christofel.Application
 {
+    public delegate Task RefreshChristofel();
+    
     public class ChristofelApp : DIPlugin
     {
         public static string JsonConfigPath => "config.json";
 
-        private IReadableConfig _jsonConfig;
-        private IConfigConverterResolver _converterResolver;
         private ILogger<ChristofelApp>? _logger;
+        private IConfiguration _configuration;
 
-        public ChristofelApp()
+        public ChristofelApp(string[] args)
         {
-            _converterResolver = new ThreadSafeConverterResolver();
-            _converterResolver.AddConvertConverters();
-            _converterResolver.AddEnumConverter<LogLevel>();
-            _converterResolver.AddIEnumerableConverter<string>();
+            string environment = Environment.GetEnvironmentVariable("ENV") ?? "production";
             
-            _jsonConfig = new JsonConfig(JsonConfigPath, _converterResolver);
-            _jsonConfig.ExternalResolver.AddConvertConverters();
+            _configuration = new ConfigurationBuilder()
+                .AddJsonFile("config.json")
+                .AddJsonFile($@"config.{environment}.json")
+                .AddEnvironmentVariables()
+                .AddCommandLine(args)
+                .Build();
         }
 
         public override string Name => "Application";
@@ -53,9 +56,7 @@ namespace Christofel.Application
         {
             get
             {
-                // TODO: modules state
-                // TODO: logger
-                
+                yield return Services.GetRequiredService<PluginService>();
                 yield return Services.GetRequiredService<ControlCommands>();
                 yield return Services.GetRequiredService<PluginCommands>();
             }
@@ -83,76 +84,38 @@ namespace Christofel.Application
         {
             return serviceCollection
                 .AddSingleton<IChristofelState, ChristofelState>()
+                // config
+                .AddSingleton<IConfiguration>(_configuration)
+                .Configure<BotOptions>(_configuration.GetSection("Bot"))
+                .Configure<DiscordBotOptions>(_configuration.GetSection("Bot"))
+                .Configure<PluginServiceOptions>(_configuration.GetSection("Plugins"))
                 // bot
                 .AddSingleton<IBot, DiscordBot>()
                 // db
-                .AddDbContextFactory<ChristofelBaseContext>(async options => options.
-                    UseMySql(await _jsonConfig.GetAsync<string>("db.connectionstring"), ServerVersion.AutoDetect(await _jsonConfig.GetAsync<string>("db.connectionstring"))))
+                .AddDbContextFactory<ChristofelBaseContext>(async options => 
+                    options
+                        .UseMySql(_configuration["Db:ConnectionString"], ServerVersion.AutoDetect(_configuration["Db:ConnectionString"]))
+                    )
                 .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
                 // permissions
                 .AddSingleton<IPermissionService, ListPermissionService>()
                 .AddTransient<IPermissionsResolver, DbPermissionsResolver>()
                 // plugins
-                .AddSingleton<PluginService>() // TODO: add options
-                // config
-                .AddSingleton<IConfigConverterResolver>(_converterResolver)
-                .AddSingleton<DbConfig>()
-                .AddSingleton(_jsonConfig)
-                .AddSingleton<IWRConfig, CompositeConfig>(services =>
-                {
-                    return new CompositeConfig(
-                        new IReadableConfig[]
-                        {
-                            services.GetRequiredService<JsonConfig>(),
-                            services.GetRequiredService<DbConfig>()
-                        },
-                        services.GetRequiredService<DbConfig>(),
-                        services.GetRequiredService<IConfigConverterResolver>()
-                        );
-                })
-                .AddSingleton<IReadableConfig>(s => s.GetRequiredService<IWRConfig>())
-                .AddSingleton<IWritableConfig>(s => s.GetRequiredService<IWRConfig>())
+                .AddSingleton<PluginService>()
                 // logging
-                .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
-                .AddSingleton<ILoggerFactory>(services =>
+                .AddLogging(builder =>
                 {
-                    IReadableConfig appConfig = services.GetRequiredService<IReadableConfig>();
-
-                    return LoggerFactory.Create(config =>
-                    {
-                        // TODO: use Json config instead
-                        config
-                            .ClearProviders()
-                            .AddConsole()
-                            .AddFile(config =>
-                            {
-                                config.BasePath = "logs";
-                                
-                                config.Files = new[]
-                                {
-                                    new LogFileOptions
-                                    {
-                                        Path = "default-<counter>.log",
-                                        MaxFileSize = 10 * 1024 * 1024 // 10 MB
-                                    }
-                                };
-                            })
-                            .AddDiscordLogger(config =>
-                            {
-                                config.ChannelId = appConfig.GetAsync<ulong>("discord.logging.warning").GetAwaiter().GetResult();
-                                config.MinLevel = LogLevel.Warning;
-                            })
-                            .AddDiscordLogger(config =>
-                            {
-                                config.ChannelId = appConfig.GetAsync<ulong>("discord.logging.info").GetAwaiter().GetResult();
-                                config.MinLevel = LogLevel.Trace; // TODO: change depending on debug, in config maybe?
-                            });
-                    });
+                    builder
+                        .AddConfiguration(_configuration.GetSection("Logging"))
+                        .ClearProviders()
+                        .AddFile()
+                        .AddConsole()
+                        .AddDiscordLogger();
                 })
                 // commands
                 .AddSingleton<ControlCommands>()
                 .AddSingleton<PluginCommands>()
-                .AddSingleton(this);
+                .AddSingleton<RefreshChristofel>(this.RefreshAsync);
         }
 
         protected override Task InitializeServices(IServiceProvider services)
@@ -168,6 +131,7 @@ namespace Christofel.Application
 
         public override async Task RunAsync()
         {
+            _logger.LogInformation("Starting Christofel");
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             bot.Client.Ready += HandleReady;
 
@@ -177,8 +141,15 @@ namespace Christofel.Application
                 // that has RunAsync blocking as it's the base entry point.
         }
 
+        public override Task RefreshAsync()
+        {
+            _logger.LogInformation("Refreshing Christofel");
+            return base.RefreshAsync();
+        }
+
         public override async Task StopAsync()
         {
+            _logger.LogInformation("Stopping Christofel");
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             bot.Client.Ready -= HandleReady;
 
@@ -192,7 +163,7 @@ namespace Christofel.Application
             // TODO: register initial modules that were in previous run of the application
             //   - if one module fails, just skip it
             
-            _logger?.LogInformation("Christofel is ready!");
+            _logger.LogInformation("Christofel is ready!");
             return  base.RunAsync();
         }
     }

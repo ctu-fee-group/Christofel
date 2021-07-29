@@ -42,7 +42,10 @@ namespace Christofel.Application.Logging.Discord
             {
                 WriteMessage(message);
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+                
+            }
         }
 
         private void WriteMessage(DiscordLogMessage entry)

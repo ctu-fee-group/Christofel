@@ -14,14 +14,14 @@ namespace Christofel.Application.Logging.Discord
             builder.AddConfiguration();
 
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, DiscordLoggerProvider>());
-            LoggerProviderOptions.RegisterProviderOptions<DiscordLoggerCofiguration, DiscordLoggerProvider>(builder.Services);
+            LoggerProviderOptions.RegisterProviderOptions<DiscordLoggerOptions, DiscordLoggerProvider>(builder.Services);
 
             return builder;
         }
         
         public static ILoggingBuilder AddDiscordLogger(
             this ILoggingBuilder builder,
-            Action<DiscordLoggerCofiguration> configure)
+            Action<DiscordLoggerOptions> configure)
         {
             builder.AddDiscordLogger();
             builder.Services.Configure(configure);

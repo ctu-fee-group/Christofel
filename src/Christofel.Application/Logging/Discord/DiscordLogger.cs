@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Christofel.BaseLib.Discord;
 using Discord;
@@ -15,7 +16,7 @@ namespace Christofel.Application.Logging.Discord
         private IExternalScopeProvider _scopeProvider;
         private readonly DiscordLoggerProcessor _queueProcessor;
 
-        public DiscordLogger(DiscordLoggerCofiguration config, DiscordLoggerProcessor queueProcessor, string categoryName)
+        public DiscordLogger(DiscordLoggerOptions config, DiscordLoggerProcessor queueProcessor, string categoryName)
         {
             _categoryName = categoryName;
             Config = config;
@@ -23,7 +24,7 @@ namespace Christofel.Application.Logging.Discord
             _queueProcessor = queueProcessor;
         }
         
-        public DiscordLoggerCofiguration Config { get; set; }
+        public DiscordLoggerOptions Config { get; set; }
 
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
@@ -38,12 +39,15 @@ namespace Christofel.Application.Logging.Discord
 
             string message = header + "\n" + messageContent;
             
-            _queueProcessor.EnqueueMessage(new DiscordLogMessage(Config.GuildId, Config.ChannelId, message));
+            foreach (DiscordLoggerChannelOptions channel in Config.Channels.Where(x => x.MinLevel >= logLevel))
+            {
+                _queueProcessor.EnqueueMessage(new DiscordLogMessage(channel.GuildId, channel.ChannelId, message));
+            }
         }
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return logLevel >= Config.MinLevel;
+            return logLevel != LogLevel.None;
         }
 
         public IDisposable BeginScope<TState>(TState state)

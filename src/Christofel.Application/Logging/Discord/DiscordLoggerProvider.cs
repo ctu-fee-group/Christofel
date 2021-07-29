@@ -7,14 +7,15 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.Logging.Discord
 {
+    [ProviderAlias("Discord")]
     public class DiscordLoggerProvider : ILoggerProvider
     {
         private readonly IDisposable _onChangeToken;
         private readonly ConcurrentDictionary<string, DiscordLogger> _loggers;
         private readonly DiscordLoggerProcessor _queueProcessor;
-        private DiscordLoggerCofiguration _config;
+        private DiscordLoggerOptions _config;
 
-        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerCofiguration> config, IBot bot)
+        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, IBot bot)
         {
             _config = config.CurrentValue;
             _loggers = new ConcurrentDictionary<string, DiscordLogger>();
@@ -35,7 +36,7 @@ namespace Christofel.Application.Logging.Discord
             return _loggers.GetOrAdd(categoryName, category => new DiscordLogger(_config, _queueProcessor, categoryName));
         }
 
-        private void HandleConfigChanged(DiscordLoggerCofiguration config)
+        private void HandleConfigChanged(DiscordLoggerOptions config)
         {
             _config = config;
 

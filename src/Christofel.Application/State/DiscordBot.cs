@@ -12,14 +12,14 @@ namespace Christofel.Application.State
     public class DiscordBot : IBot
     {
         private DiscordSocketClient? _client;
-        private IReadableConfig _config;
         private ILogger<DiscordBot> _logger;
         private CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
+        private DiscordBotOptions _options;
 
-        public DiscordBot(IReadableConfig config, ILogger<DiscordBot> logger)
+        public DiscordBot(DiscordBotOptions options, ILogger<DiscordBot> logger)
         {
             _logger = logger;
-            _config = config;
+            _options = options;
         }
 
         public DiscordSocketClient Client
@@ -67,7 +67,7 @@ namespace Christofel.Application.State
                 AlwaysAcknowledgeInteractions = false
             });
 
-            await _client.LoginAsync(TokenType.Bot, await _config.GetAsync<string>("discord.bot.token"));
+            await _client.LoginAsync(TokenType.Bot, _options.Token);
             await _client.StartAsync();
 
             return _client;
