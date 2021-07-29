@@ -5,6 +5,7 @@ using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Discord;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.State
 {
@@ -12,10 +13,12 @@ namespace Christofel.Application.State
     {
         private DiscordSocketClient? _client;
         private IReadableConfig _config;
+        private ILogger<DiscordBot> _logger;
         private CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
 
-        public DiscordBot(IReadableConfig config)
+        public DiscordBot(IReadableConfig config, ILogger<DiscordBot> logger)
         {
+            _logger = logger;
             _config = config;
         }
 
@@ -39,6 +42,7 @@ namespace Christofel.Application.State
 
         public async Task RunApplication()
         {
+            _logger.LogInformation("Running application");
             try
             {
                 await Task.Delay(-1, _applicationRunningToken.Token);
@@ -57,6 +61,7 @@ namespace Christofel.Application.State
 
         public async Task<DiscordSocketClient> StartBotAsync()
         {
+            _logger.LogInformation("Starting bot");
             _client = new DiscordSocketClient(new DiscordSocketConfig()
             {
                 AlwaysAcknowledgeInteractions = false

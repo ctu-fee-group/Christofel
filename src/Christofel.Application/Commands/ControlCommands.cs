@@ -7,6 +7,7 @@ using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.Extensions;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.Commands
 {
@@ -15,10 +16,19 @@ namespace Christofel.Application.Commands
         private IReadableConfig _config;
         private IBot _bot;
         private ChristofelApp _app;
+        private ILogger<ControlCommands> _logger;
 
         // Quit, Refresh
-        public ControlCommands(DiscordSocketClient client, IPermissionService permissions, IReadableConfig config, IBot bot, ChristofelApp app) : base(client, permissions)
+        public ControlCommands(
+            DiscordSocketClient client,
+            IPermissionService permissions,
+            IReadableConfig config,
+            IBot bot,
+            ChristofelApp app,
+            ILogger<ControlCommands> logger
+            ) : base(client, permissions)
         {
+            _logger = logger;
             _bot = bot;
             _app = app;
             _config = config;
@@ -46,11 +56,13 @@ namespace Christofel.Application.Commands
 
         private Task HandleRefreshCommand(SocketSlashCommand command)
         {
+            _logger.LogInformation("Handling command /refresh");
             return _app.RefreshAsync();
         }
 
         private Task HandleQuitCommand(SocketSlashCommand command)
         {
+            _logger.LogInformation("Handling command /quit");
             _bot.QuitBot();
             return Task.CompletedTask;
         }
