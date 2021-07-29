@@ -17,7 +17,7 @@ namespace Christofel.BaseLib.Configuration.Converters
     public interface IConfigConverter<T> : IConfigConverter
     {
         public new T Convert(string value, IConfigConverterResolver resolver);
-        public new string? GetString(T value, IConfigConverterResolver resolver);
+        public string? GetString(T value, IConfigConverterResolver resolver);
     }
 
     /// <summary>
