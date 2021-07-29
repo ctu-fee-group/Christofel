@@ -55,9 +55,20 @@ namespace Christofel.CommandsLib.Commands
             return resolver.HasPermissionAsync(Permission, DiscordTarget.Everyone);
         }
 
-        public Task RefreshCommandAndPermissionsAsync()
+        public async Task RefreshCommandAndPermissionsAsync(IPermissionsResolver resolver)
         {
-            throw new NotImplementedException();
+            if (BuiltCommand == null)
+            {
+                throw new InvalidOperationException("Cannot refresh without the command built");
+            }
+
+            if (Command == null)
+            {
+                throw new InvalidOperationException("Cannot refresh without the command registered");
+            }
+            
+            await SetDefaultPermissionAsync(BuiltCommand, resolver);
+            await RefreshPermissions(resolver);
         }
 
         public async Task<IApplicationCommand> RegisterCommandAsync(DiscordRestClient client, IPermissionsResolver resolver)
@@ -100,19 +111,41 @@ namespace Christofel.CommandsLib.Commands
             
             permissions.RegisterPermission(Permission);
             await RegisterCommandAsync(client, resolver);
-            
-            if (Command is RestGlobalCommand)
+
+            await RefreshPermissions(resolver);
+        }
+        
+        private async Task ModifyCommand(IPermissionsResolver resolver)
+        {
+            if (Command is RestGlobalCommand globalCommand)
             {
-                return; // Global commands cannot have permissions (at least not in Discord.NET yet)
+                await globalCommand.ModifyAsync(props => ModifyDefaultPermissionAsync(props, resolver).GetAwaiter().GetResult());
             }
-            
-            if (Command is RestGuildCommand guildCommand)
+            else if (Command is RestGuildCommand guildCommand)
             {
                 await guildCommand.ModifyCommandPermissions(await resolver.GetSlashCommandPermissionsAsync(Permission));
             }
         }
 
+        private async Task RefreshPermissions(IPermissionsResolver resolver)
+        {
+            if (Command is RestGlobalCommand)
+            {
+                return; // Global commands cannot have permissions (at least not in Discord.NET yet)
+            }
+            else if (Command is RestGuildCommand guildCommand)
+            {
+                await guildCommand.ModifyCommandPermissions(await resolver.GetSlashCommandPermissionsAsync(Permission));
+            }
+        }
+        
         private async Task<SlashCommandCreationProperties> SetDefaultPermissionAsync(SlashCommandCreationProperties command, IPermissionsResolver resolver)
+        {
+            command.DefaultPermission = await IsForEveryoneAsync(resolver);
+            return command;
+        }
+
+        private async Task<ApplicationCommandProperties> ModifyDefaultPermissionAsync(ApplicationCommandProperties command, IPermissionsResolver resolver)
         {
             command.DefaultPermission = await IsForEveryoneAsync(resolver);
             return command;

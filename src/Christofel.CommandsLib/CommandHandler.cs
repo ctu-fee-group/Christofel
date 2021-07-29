@@ -32,7 +32,7 @@ namespace Christofel.CommandsLib
         {
             foreach (SlashCommandInfo command in _commands)
             {
-                await command.RefreshCommandAndPermissionsAsync();
+                await command.RefreshCommandAndPermissionsAsync(_permissions.Resolver);
             }
         }
 
