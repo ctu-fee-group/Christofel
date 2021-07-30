@@ -10,8 +10,10 @@ namespace Christofel.BaseLib.Database.Models
         
         public string Programme { get; set; } = null!;
 
+        [ForeignKey("Assignment")]
         public int AssignmentId { get; set; }
         
-        [ForeignKey("AssignmentId")]
-        public RoleAssignment Assignment { get; set; } = null!;    }
+        [InverseProperty("ProgrammeRoleAssignments")]
+        public RoleAssignment Assignment { get; set; } = null!;
+    }
 }

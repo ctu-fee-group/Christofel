@@ -13,9 +13,10 @@ namespace Christofel.BaseLib.Database.Models
         
         public bool RegexMatch { get; set; }
         
+        [ForeignKey("Assignment")]
         public int AssignmentId { get; set; }
         
-        [ForeignKey("AssignmentId")]
+        [InverseProperty("UsermapRoleAssignments")]
         public RoleAssignment Assignment { get; set; } = null!;
     }
 }

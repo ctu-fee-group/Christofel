@@ -18,16 +18,9 @@ namespace Christofel.BaseLib.Database.Models
 
         public RoleType RoleType { get; set; }
 
-        [ForeignKey("AssignmentId")]
         public virtual ICollection<YearRoleAssignment>? YearRoleAssignments { get; set; }
-
-        [ForeignKey("AssignmentId")]
         public virtual ICollection<ProgrammeRoleAssignment>? ProgrammeRoleAssignments { get; set; }
-
-        [ForeignKey("AssignmentId")]
         public virtual ICollection<TitleRoleAssignment>? TitleRoleAssignments { get; set; }
-
-        [ForeignKey("AssignmentId")]
         public virtual ICollection<UsermapRoleAssignment>? UsermapRoleAssignments { get; set; }
     }
 }
