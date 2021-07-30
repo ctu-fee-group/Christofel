@@ -35,7 +35,8 @@ namespace Christofel.CommandsLib
             _permissions = permissions;
             _commands = new List<SlashCommandInfo>();
         }
-        
+
+        protected bool AutoDefer { get; set; } = true;
         protected RunMode RunMode = RunMode.NewThread;
 
         public abstract Task SetupCommandsAsync(CancellationToken token = new CancellationToken());
@@ -92,14 +93,21 @@ namespace Christofel.CommandsLib
             return Task.CompletedTask;
         }
 
-        protected virtual Task HandleCommand(SlashCommandInfo info, SocketSlashCommand command)
+        protected virtual async Task HandleCommand(SlashCommandInfo info, SocketSlashCommand command)
         {
+            if (AutoDefer)
+            {
+                await command.FollowupAsync();
+            }
+            
             if (RunMode == RunMode.SameThread)
             {
-                return info.Handler(command, _commandsTokenSource.Token);
+                await info.Handler(command, _commandsTokenSource.Token);
             }
 
+#pragma warning disable 4014
             Task.Run(async () =>
+#pragma warning restore 4014
             {
                 try
                 {
@@ -113,8 +121,6 @@ namespace Christofel.CommandsLib
                     _logger.LogError(0, e, "Command handler thrown while running in thread");
                 }
             });
-
-            return Task.CompletedTask;
         }
 
         public async Task StopAsync(CancellationToken token = new CancellationToken())

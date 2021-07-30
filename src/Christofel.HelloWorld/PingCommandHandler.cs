@@ -22,6 +22,7 @@ namespace Christofel.HelloWorld
             _options = options.Value;
 
             RunMode = RunMode.SameThread;
+            AutoDefer = false;
         }
 
         public override Task SetupCommandsAsync(CancellationToken token = new CancellationToken())

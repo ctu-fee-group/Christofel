@@ -34,6 +34,8 @@ namespace Christofel.Application.Commands
             _bot = bot;
             _refresh = refresh;
             _options = options.Value;
+
+            AutoDefer = true;
         }
 
         public override async Task SetupCommandsAsync(CancellationToken token = new CancellationToken())
