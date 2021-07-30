@@ -77,11 +77,11 @@ namespace Christofel.Application.Assemblies
                 return LoadFromStreamFile(assemblyPath);
             }
 
-            /*assemblyPath = Path.Combine(_pluginLoadDirectory, assemblyName.Name + ".dll");
+            assemblyPath = Path.Combine(_pluginLoadDirectory, assemblyName.Name + ".dll");
             if (File.Exists(assemblyPath))
             {
                 return LoadFromStreamFile(assemblyPath);
-            }*/
+            }
 
             return null;
         }
