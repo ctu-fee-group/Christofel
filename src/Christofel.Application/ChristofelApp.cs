@@ -35,6 +35,7 @@ namespace Christofel.Application
     {
         private ILogger<ChristofelApp>? _logger;
         private IConfigurationRoot _configuration;
+        private bool _running;
 
         public static IConfigurationRoot CreateConfiguration(string[] commandArgs)
         {
@@ -180,10 +181,15 @@ namespace Christofel.Application
             await bot.StopBot();
         }
 
-        protected Task HandleReady()
+        protected async Task HandleReady()
         {
             _logger.LogInformation("Christofel is ready!");
-            return base.RunAsync();
+
+            if (!_running)
+            {
+                await base.RunAsync();
+                _running = true;
+            }
         }
     }
 }
