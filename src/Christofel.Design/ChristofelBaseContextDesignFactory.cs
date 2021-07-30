@@ -1,9 +1,10 @@
+using Christofel.Application;
 using Christofel.BaseLib.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace Christofel.Application.Design
+namespace Christofel.Design
 {
     public class ChristofelBaseContextDesignFactory : IDesignTimeDbContextFactory<ChristofelBaseContext>
     {

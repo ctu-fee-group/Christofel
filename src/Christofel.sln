@@ -10,6 +10,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{0593
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Application", "Christofel.Application\Christofel.Application.csproj", "{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{D33A91F8-89B1-4848-8F18-FABAED600392}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Design", "Christofel.Design\Christofel.Design.csproj", "{6DD00AB6-68A9-4A3E-98BD-DA5409263540}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,6 +22,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{0C798625-3BD0-40A1-8921-08292D0445A7} = {CDA54591-9A27-4DAE-95C5-D4D7784F74EB}
 		{22D192D0-55FD-4D71-B28A-F5F7465A6E82} = {CDA54591-9A27-4DAE-95C5-D4D7784F74EB}
+		{6DD00AB6-68A9-4A3E-98BD-DA5409263540} = {D33A91F8-89B1-4848-8F18-FABAED600392}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0C798625-3BD0-40A1-8921-08292D0445A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -40,5 +45,9 @@ Global
 		{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB88CD74-9A15-4C58-B4DC-E554FF38D01A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DD00AB6-68A9-4A3E-98BD-DA5409263540}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DD00AB6-68A9-4A3E-98BD-DA5409263540}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DD00AB6-68A9-4A3E-98BD-DA5409263540}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DD00AB6-68A9-4A3E-98BD-DA5409263540}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
