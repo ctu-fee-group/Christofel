@@ -19,6 +19,7 @@ namespace Christofel.BaseLib.Extensions
                 .AddSingleton(state.Permissions.Resolver)
                 .AddSingleton(state.Configuration)
                 .AddSingleton(state.Bot)
+                .AddSingleton(state.Bot.Client)
                 .AddSingleton(state.LoggerFactory)
                 .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
                 .AddSingleton(state.Permissions);
