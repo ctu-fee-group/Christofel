@@ -1,40 +1,95 @@
 using System;
+using System.Collections;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
 namespace Christofel.Application.Assemblies
 {
+    // @see https://www.fatalerrors.org/a/0tl11jo.html
     public class ReferencesLoadContext : AssemblyLoadContext
     {
-        private AssemblyDependencyResolver resolver;
+        private readonly string _pluginLoadDirectory;
+        private readonly AssemblyDependencyResolver _resolver;
+        private readonly string[] _sharedAssemblies = new[]
+        {
+            // Base lib
+            "Christofel.BaseLib",
+            // Discord
+            "Discord.Net",
+            "Discord.Net.Webhook",
+            "Discord.Net.Core", 
+            "Discord.Net.Rest", 
+            "Discord.Net.WebSocket",
+            "Discord.Net.Labs",
+            "Discord.Net.Labs.Webhook",
+            "Discord.Net.Labs.Core", 
+            "Discord.Net.Labs.Rest", 
+            "Discord.Net.Labs.WebSocket",
+            // MS
+            // Configuration
+            "Microsoft.Extensions.Configuration",
+            "Microsoft.Extensions.Configuration.Abstractions",
+            "Microsoft.Extensions.Primitives",
+            // Logging
+            "Microsoft.Extensions.Logging",
+            // DI
+            "Microsoft.Extensions.DependencyInjection",
+            "Microsoft.Extensions.DependencyInjection.Abstractions",
+            // EF Core
+            "Microsoft.EntityFrameworkCore",
+            "Microsoft.EntityFrameworkCore.Relational",
+            "Microsoft.EntityFrameworkCore.Abstractions",
+        };
 
-        public ReferencesLoadContext(string modulePath)
+        public ReferencesLoadContext(string pluginPath)
             : base(null, true)
         {
-            resolver = new AssemblyDependencyResolver(modulePath);
-        }
-        
-        
-        protected override Assembly? Load(AssemblyName assemblyName)
-        {
-            string? assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
-            if (assemblyPath != null)
-            {
-                return LoadFromAssemblyPath(assemblyPath);
-            }
+            _pluginLoadDirectory = Path.GetDirectoryName(pluginPath) ?? "";
+            _resolver = new AssemblyDependencyResolver(_pluginLoadDirectory);
 
-            return null;
+            Resolving += HandleResolving;
+            ResolvingUnmanagedDll += HandleUnmanagedResolving;
         }
 
-        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+        protected IntPtr HandleUnmanagedResolving(Assembly assembly, string unmanagedDllName)
         {
-            string? libraryPath = resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
             if (libraryPath != null)
             {
                 return LoadUnmanagedDllFromPath(libraryPath);
             }
 
             return IntPtr.Zero;
+        }
+
+        protected Assembly? HandleResolving(AssemblyLoadContext context, AssemblyName assemblyName)
+        {
+            if (_sharedAssemblies.Contains(assemblyName.Name))
+            {
+                return null;
+            }
+            
+            string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
+            if (assemblyPath != null)
+            {
+                return LoadFromStreamFile(assemblyPath);
+            }
+
+            /*assemblyPath = Path.Combine(_pluginLoadDirectory, assemblyName.Name + ".dll");
+            if (File.Exists(assemblyPath))
+            {
+                return LoadFromStreamFile(assemblyPath);
+            }*/
+
+            return null;
+        }
+
+        protected Assembly LoadFromStreamFile(string assemblyPath)
+        {
+            using FileStream stream = File.OpenRead(assemblyPath);
+            return LoadFromStream(stream);
         }
     }
 }
