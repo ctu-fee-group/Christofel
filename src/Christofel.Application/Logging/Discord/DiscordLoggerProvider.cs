@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using Christofel.BaseLib.Discord;
+using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -15,7 +16,7 @@ namespace Christofel.Application.Logging.Discord
         private readonly DiscordLoggerProcessor _queueProcessor;
         private DiscordLoggerOptions _config;
 
-        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, IBot bot)
+        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, DiscordSocketClient bot)
         {
             _config = config.CurrentValue;
             _loggers = new ConcurrentDictionary<string, DiscordLogger>();

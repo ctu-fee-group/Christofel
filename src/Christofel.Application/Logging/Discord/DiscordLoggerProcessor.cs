@@ -1,20 +1,30 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 using Christofel.BaseLib.Discord;
+using Discord;
+using Discord.WebSocket;
 
 namespace Christofel.Application.Logging.Discord
 {
     public class DiscordLoggerProcessor : IDisposable
     {
+        // TODO: how to log exceptions from here?
+        
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
 
-        private readonly IBot _bot;
+        private readonly DiscordSocketClient _bot;
 
-        public DiscordLoggerProcessor(IBot bot, DiscordLoggerOptions options)
+        private bool _canProcess;
+
+        public DiscordLoggerProcessor(DiscordSocketClient bot, DiscordLoggerOptions options)
         {
+            _canProcess = false;
             _bot = bot;
+            _bot.Ready += HandleBotReady;
+
             Options = options;
             _messageQueue = new BlockingCollection<DiscordLogMessage>((int)Options.MaxQueueSize);
             
@@ -45,18 +55,26 @@ namespace Christofel.Application.Logging.Discord
             {
                 WriteMessage(message);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                
+                Console.WriteLine(e);
             }
         }
 
         private void WriteMessage(DiscordLogMessage entry)
         {
-            _bot.Client
+            var channel = _bot
                 .GetGuild(entry.GuildId)
-                .GetTextChannel(entry.ChannelId)
-                .SendMessageAsync(entry.Message).GetAwaiter().GetResult();
+                .GetTextChannel(entry.ChannelId);
+
+            if (channel != null)
+            {
+                channel.SendMessageAsync(entry.Message).GetAwaiter().GetResult();
+            }
+            else
+            {
+                Console.WriteLine("Could not find log channel");
+            }
         }
 
         private void ProcessLogQueue()
@@ -65,7 +83,20 @@ namespace Christofel.Application.Logging.Discord
             {
                 foreach (DiscordLogMessage message in _messageQueue.GetConsumingEnumerable())
                 {
-                    WriteMessage(message);
+                    while (!_canProcess)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    
+                    try
+                    {
+                        WriteMessage(message);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        EnqueueMessage(message);
+                    }
                 }
             }
             catch
@@ -87,6 +118,12 @@ namespace Christofel.Application.Logging.Discord
                 _outputThread.Join(1500);
             }
             catch (ThreadStateException) { }
+        }
+
+        protected Task HandleBotReady()
+        {
+            _canProcess = true;
+            return Task.CompletedTask;
         }
     }
 }
