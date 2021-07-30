@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Permissions;
@@ -14,17 +15,20 @@ namespace Christofel.HelloWorld
     public class PingCommandHandler : CommandHandler
     {
         private readonly BotOptions _options;
-        private readonly ILogger<PingCommandHandler> _logger;
         
         public PingCommandHandler(IOptions<BotOptions> options, DiscordSocketClient client, IPermissionService permissions, ILogger<PingCommandHandler> logger)
-            : base(client, permissions)
+            : base(client, permissions, logger)
         {
             _options = options.Value;
-            _logger = logger;
+
+            RunMode = RunMode.SameThread;
+            AutoDefer = false;
         }
 
-        public override Task SetupCommandsAsync()
+        public override Task SetupCommandsAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
+
             SlashCommandBuilder pingBuilder = new SlashCommandBuilderInfo()
                 .WithName("ping")
                 .WithDescription("Ping the bot")
@@ -32,13 +36,13 @@ namespace Christofel.HelloWorld
                 .WithGuild(_options.GuildId)
                 .WithHandler(HandlePing);
 
-            return RegisterCommandAsync(pingBuilder);
+            return RegisterCommandAsync(pingBuilder, token);
         }
 
-        public Task HandlePing(SocketSlashCommand command)
+        public Task HandlePing(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling /ping command");
-            return command.RespondAsync("Pong!");
+            return command.RespondAsync("Pong!", options: new RequestOptions { CancelToken = token });
         }
     }
 }

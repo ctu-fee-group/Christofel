@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Discord;
@@ -18,7 +19,6 @@ namespace Christofel.Application.Commands
     {
         private IBot _bot;
         private RefreshChristofel _refresh;
-        private ILogger<ControlCommands> _logger;
         private readonly BotOptions _options;
 
         // Quit, Refresh
@@ -29,16 +29,19 @@ namespace Christofel.Application.Commands
             RefreshChristofel refresh,
             IOptions<BotOptions> options,
             ILogger<ControlCommands> logger
-            ) : base(client, permissions)
+            ) : base(client, permissions, logger)
         {
-            _logger = logger;
             _bot = bot;
             _refresh = refresh;
             _options = options.Value;
+
+            AutoDefer = true;
         }
 
-        public override async Task SetupCommandsAsync()
+        public override async Task SetupCommandsAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
+
             SlashCommandBuilder quitBuilder = new SlashCommandBuilderInfo()
                 .WithName("quit")
                 .WithDescription("Quit the bot")
@@ -53,26 +56,24 @@ namespace Christofel.Application.Commands
                 .WithGuild(_options.GuildId)
                 .WithHandler(HandleRefreshCommand);
 
-            await RegisterCommandAsync(quitBuilder);
-            await RegisterCommandAsync(refreshBuilder);
+            await RegisterCommandAsync(quitBuilder, token);
+            await RegisterCommandAsync(refreshBuilder, token);
         }
 
-        private async Task HandleRefreshCommand(SocketSlashCommand command)
+        private async Task HandleRefreshCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /refresh");
-            await command.DeferAsync();
-            await _refresh();
+            await _refresh(token);
             _logger.LogInformation("Refreshed successfully");
 
-            RestInteractionMessage originalResponse = await command.GetOriginalResponseAsync();
-            await originalResponse.ModifyAsync(props => props.Content = "Refreshed");
+            await command.FollowupAsync("Refreshed");
         }
 
-        private Task HandleQuitCommand(SocketSlashCommand command)
+        private Task HandleQuitCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /quit");
             _bot.QuitBot();
-            return command.RespondAsync("Goodbye");
+            return command.FollowupAsync("Goodbye", options: new RequestOptions() { CancelToken = token});
         }
     }
 }

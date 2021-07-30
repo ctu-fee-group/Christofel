@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Plugins;
@@ -25,7 +26,7 @@ namespace Christofel.Application.Plugins
             _logger = logger;
         }
         
-        public async Task StartAsync()
+        public async Task StartAsync(CancellationToken token = new CancellationToken())
         {
             if (_options.AutoLoad == null)
             {
@@ -36,7 +37,7 @@ namespace Christofel.Application.Plugins
             {
                 try
                 {
-                    await _plugins.AttachAsync(_state, module);
+                    await _plugins.AttachAsync(_state, module, token);
                 }
                 catch (Exception e)
                 {

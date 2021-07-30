@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
@@ -11,6 +12,7 @@ using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 
 namespace Christofel.CommandsLib
 {
@@ -19,43 +21,53 @@ namespace Christofel.CommandsLib
         protected readonly DiscordSocketClient _client;
         protected readonly List<SlashCommandInfo> _commands;
         protected readonly IPermissionService _permissions;
+
+        protected readonly CancellationTokenSource _commandsTokenSource;
+        protected bool _stopping;
+
+        protected readonly ILogger _logger;
         
-        public CommandHandler(DiscordSocketClient client, IPermissionService permissions)
+        public CommandHandler(DiscordSocketClient client, IPermissionService permissions, ILogger logger)
         {
+            _logger = logger;
+            _commandsTokenSource = new CancellationTokenSource();
             _client = client;
             _permissions = permissions;
             _commands = new List<SlashCommandInfo>();
         }
-        
-        public abstract Task SetupCommandsAsync();
 
-        public async Task RefreshAsync()
+        protected bool AutoDefer { get; set; } = true;
+        protected RunMode RunMode = RunMode.NewThread;
+
+        public abstract Task SetupCommandsAsync(CancellationToken token = new CancellationToken());
+
+        public async Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
             foreach (SlashCommandInfo command in _commands)
             {
-                await command.RefreshCommandAndPermissionsAsync(_permissions.Resolver);
+                await command.RefreshCommandAndPermissionsAsync(_permissions.Resolver, token);
             }
         }
 
-        protected async Task<SlashCommandInfo> RegisterCommandAsync(SlashCommandBuilder builder)
+        protected async Task<SlashCommandInfo> RegisterCommandAsync(SlashCommandBuilder builder, CancellationToken token = new CancellationToken())
         {
             SlashCommandInfo info = builder.BuildAndGetInfo();
-            await info.RegisterCommandAsync(_client.Rest, _permissions.Resolver);
-            await info.RegisterPermissionsAsync(_client.Rest, _permissions);
+            await info.RegisterCommandAsync(_client.Rest, _permissions.Resolver, token);
+            await info.RegisterPermissionsAsync(_client.Rest, _permissions, token);
 
             _commands.Add(info);
             return info;
         }
 
-        protected virtual async Task UnregisterCommandsAsync()
+        protected virtual async Task UnregisterCommandsAsync(CancellationToken token = new CancellationToken())
         {
             foreach (SlashCommandInfo info in _commands)
             {
-                await info.UnregisterCommand(_permissions);
+                token.ThrowIfCancellationRequested();
+                await info.UnregisterCommandAsync(_permissions, token);
             }
             
             _commands.Clear();
-            _client.InteractionCreated -= HandleInteractionCreated;
         }
 
         protected virtual void SetupEvents()
@@ -70,20 +82,63 @@ namespace Christofel.CommandsLib
                 string name = command.Data.Name;
                 SlashCommandInfo? info = _commands.FirstOrDefault(x => x.Builder.Name == name);
 
-                return info?.Handler(command) ?? Task.CompletedTask;
+                if (info != null)
+                {
+                    return HandleCommand(info, command);
+                }
+
+                return Task.CompletedTask;
             }
 
             return Task.CompletedTask;
         }
 
-        public Task StopAsync()
+        protected virtual async Task HandleCommand(SlashCommandInfo info, SocketSlashCommand command)
         {
-            return UnregisterCommandsAsync();
+            if (AutoDefer)
+            {
+                await command.DeferAsync();
+            }
+            
+            if (RunMode == RunMode.SameThread)
+            {
+                await info.Handler(command, _commandsTokenSource.Token);
+            }
+
+#pragma warning disable 4014
+            Task.Run(async () =>
+#pragma warning restore 4014
+            {
+                try
+                {
+                    await info.Handler(command, _commandsTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(0, e, "Command handler thrown while running in thread");
+                }
+            });
         }
 
-        public async Task StartAsync()
+        public async Task StopAsync(CancellationToken token = new CancellationToken())
         {
-            await SetupCommandsAsync();
+            _client.InteractionCreated -= HandleInteractionCreated;
+
+            _stopping = true;
+            _commandsTokenSource.Cancel();
+            
+            token.ThrowIfCancellationRequested();
+
+            await UnregisterCommandsAsync(token);
+        }
+
+        public async Task StartAsync(CancellationToken token = new CancellationToken())
+        {
+            await SetupCommandsAsync(token);
+            token.ThrowIfCancellationRequested();
             SetupEvents();
         }
     }

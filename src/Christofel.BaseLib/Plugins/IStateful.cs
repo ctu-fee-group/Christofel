@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Christofel.BaseLib.Plugins
@@ -7,7 +8,7 @@ namespace Christofel.BaseLib.Plugins
     /// </summary>
     public interface IRefreshable
     {
-        public Task RefreshAsync();
+        public Task RefreshAsync(CancellationToken token = new CancellationToken());
     }
     
     /// <summary>
@@ -15,7 +16,7 @@ namespace Christofel.BaseLib.Plugins
     /// </summary>
     public interface IStoppable
     {
-        public Task StopAsync();
+        public Task StopAsync(CancellationToken token = new CancellationToken());
     }
     
     /// <summary>
@@ -23,6 +24,6 @@ namespace Christofel.BaseLib.Plugins
     /// </summary>
     public interface IStartable
     {
-        public Task StartAsync();
+        public Task StartAsync(CancellationToken token = new CancellationToken());
     }
 }
