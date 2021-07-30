@@ -97,6 +97,9 @@ namespace Christofel.Application
                 .Configure<PluginServiceOptions>(_configuration.GetSection("Plugins"))
                 .Configure<DiscordSocketConfig>(_configuration.GetSection("Bot:DiscordNet"))
                 // bot
+                .AddSingleton<DiscordSocketConfig>(
+                    s => s.GetRequiredService<IOptions<DiscordSocketConfig>>().Value
+                    )
                 .AddSingleton<DiscordSocketClient>()
                 .AddSingleton<IBot, DiscordBot>()
                 // db
