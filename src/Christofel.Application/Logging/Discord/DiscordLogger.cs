@@ -35,9 +35,9 @@ namespace Christofel.Application.Logging.Discord
             }
             
             string messageContent = formatter(state, exception);
-            string header = "**" + GetLevelText(logLevel) + $@"** {_categoryName}[{eventId}] {GetScopeMessage()}";
+            string header = "**" + GetLevelText(logLevel) + $@" {_categoryName}[{eventId}]** {GetScopeMessage()}";
 
-            string message = header + "\n" + messageContent;
+            string message = header + "\n```" + messageContent + "```";
             
             foreach (DiscordLoggerChannelOptions channel in Config.Channels.Where(x => logLevel >= x.MinLevel))
             {
