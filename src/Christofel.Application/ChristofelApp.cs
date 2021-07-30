@@ -78,6 +78,7 @@ namespace Christofel.Application
         {
             get
             {
+                yield return Services.GetRequiredService<PluginAutoloader>();
                 yield return Services.GetRequiredService<ControlCommands>();
                 yield return Services.GetRequiredService<PluginCommands>();
             }
@@ -110,6 +111,7 @@ namespace Christofel.Application
                 .AddTransient<IPermissionsResolver, DbPermissionsResolver>()
                 // plugins
                 .AddSingleton<PluginService>()
+                .AddSingleton<PluginAutoloader>()
                 // loggings
                 .AddLogging(builder =>
                 {
