@@ -141,6 +141,10 @@ namespace Christofel.Application
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             bot.Client.Ready += HandleReady;
 
+            DiscordNetLog loggerForward = Services.GetRequiredService<DiscordNetLog>();
+            loggerForward.RegisterEvents(bot.Client);
+            loggerForward.RegisterEvents(bot.Client.Rest);
+            
             await bot.StartBotAsync();
             await bot.RunApplication(); 
                 // Blocking, ChristofelApp is the only exception
