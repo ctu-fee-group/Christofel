@@ -21,15 +21,22 @@ namespace Christofel.CommandsLib
         protected readonly DiscordSocketClient _client;
         protected readonly List<SlashCommandInfo> _commands;
         protected readonly IPermissionService _permissions;
+
+        protected readonly CancellationTokenSource _commandsTokenSource;
+        protected bool _stopping;
+
+        protected readonly ILogger _logger;
         
-        public CommandHandler(DiscordSocketClient client, IPermissionService permissions)
+        public CommandHandler(DiscordSocketClient client, IPermissionService permissions, ILogger logger)
         {
+            _logger = logger;
+            _commandsTokenSource = new CancellationTokenSource();
             _client = client;
             _permissions = permissions;
             _commands = new List<SlashCommandInfo>();
         }
         
-        public abstract Task SetupCommandsAsync();
+        protected RunMode RunMode = RunMode.NewThread;
 
         public abstract Task SetupCommandsAsync(CancellationToken token = new CancellationToken());
 
@@ -60,7 +67,6 @@ namespace Christofel.CommandsLib
             }
             
             _commands.Clear();
-            _client.InteractionCreated -= HandleInteractionCreated;
         }
 
         protected virtual void SetupEvents()
@@ -75,16 +81,50 @@ namespace Christofel.CommandsLib
                 string name = command.Data.Name;
                 SlashCommandInfo? info = _commands.FirstOrDefault(x => x.Builder.Name == name);
 
-                return info?.Handler(command) ?? Task.CompletedTask;
+                if (info != null)
+                {
+                    return HandleCommand(info, command);
+                }
+
+                return Task.CompletedTask;
             }
 
             return Task.CompletedTask;
         }
 
-        public Task StopAsync()
+        protected virtual Task HandleCommand(SlashCommandInfo info, SocketSlashCommand command)
+        {
+            if (RunMode == RunMode.SameThread)
+            {
+                return info.Handler(command, _commandsTokenSource.Token);
+            }
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await info.Handler(command, _commandsTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(0, e, "Command handler thrown while running in thread");
+                }
+            });
+
+            return Task.CompletedTask;
+        }
 
         public async Task StopAsync(CancellationToken token = new CancellationToken())
         {
+            _client.InteractionCreated -= HandleInteractionCreated;
+
+            _stopping = true;
+            _commandsTokenSource.Cancel();
+            
+            token.ThrowIfCancellationRequested();
 
             await UnregisterCommandsAsync(token);
         }
