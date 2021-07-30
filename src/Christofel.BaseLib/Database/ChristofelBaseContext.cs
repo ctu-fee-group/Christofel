@@ -34,8 +34,6 @@ namespace Christofel.BaseLib.Database
 
         public DbSet<DbUser> Users => Set<DbUser>();
         public DbSet<PermissionAssignment> Permissions => Set<PermissionAssignment>();
-        public DbSet<ConfigurationEntry> Configuration => Set<ConfigurationEntry>();
-        
         public DbSet<RoleAssignment> RoleAssignments => Set<RoleAssignment>();
         
         public DbSet<YearRoleAssignment> YearRoleAssignments => Set<YearRoleAssignment>();
