@@ -6,6 +6,7 @@ using Christofel.BaseLib.Discord;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.State
 {
@@ -15,11 +16,11 @@ namespace Christofel.Application.State
         private CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
         private DiscordBotOptions _options;
 
-        public DiscordBot(DiscordSocketClient client, DiscordBotOptions options, ILogger<DiscordBot> logger)
+        public DiscordBot(DiscordSocketClient client, IOptions<DiscordBotOptions> options, ILogger<DiscordBot> logger)
         {
             Client = client;
             _logger = logger;
-            _options = options;
+            _options = options.Value;
         }
 
         public DiscordSocketClient Client { get; }
