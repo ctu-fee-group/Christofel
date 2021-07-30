@@ -150,8 +150,8 @@ namespace Christofel.Application.Commands
                 }
                 catch (Exception e)
                 {
+                    _logger.LogError(0, e, "Error loading plugin");
                     await command.RespondAsync("There was an error. Check the log.", ephemeral: true);
-                    throw;
                 }
             }
         }
