@@ -97,7 +97,7 @@ namespace Christofel.CommandsLib
         {
             if (AutoDefer)
             {
-                await command.FollowupAsync();
+                await command.DeferAsync();
             }
             
             if (RunMode == RunMode.SameThread)
