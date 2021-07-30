@@ -134,9 +134,17 @@ namespace Christofel.Application.Commands
 
             if (attach)
             {
-                IHasPluginInfo plugin = await _plugins.AttachAsync(_state, pluginName);
-                await command.RespondAsync(
-                    $@"Plugin {plugin} was attached");
+                try
+                {
+                    IHasPluginInfo plugin = await _plugins.AttachAsync(_state, pluginName);
+                    await command.RespondAsync(
+                        $@"Plugin {plugin} was attached", ephemeral: true);
+                }
+                catch (Exception e)
+                {
+                    await command.RespondAsync("There was an error. Check the log.", ephemeral: true);
+                    throw;
+                }
             }
         }
         
@@ -160,7 +168,7 @@ namespace Christofel.Application.Commands
             {
                 IHasPluginInfo plugin = await _plugins.DetachAsync(pluginName);
                 await command.RespondAsync(
-                    $@"Plugin {plugin} was detached");
+                    $@"Plugin {plugin} was detached", ephemeral: true);
             }
         }
         
@@ -182,16 +190,16 @@ namespace Christofel.Application.Commands
             {
                 IHasPluginInfo plugin = await _plugins.ReattachAsync(_state, pluginName);
                 await command.RespondAsync(
-                    $@"Plugin {plugin} was detached");
+                    $@"Plugin {plugin} was detached", ephemeral: true);
             }
         }
         
         private Task HandleList(SocketSlashCommand command)
         {
-            IEnumerable<string> plugins = _plugins.AttachedPlugins.Select(x => $@"{x.Name} ({x.Version}) - {x.Description}");
-            string pluginMessage = "List of attached plugins:" + string.Join("\n", plugins);
+            IEnumerable<string> plugins = _plugins.AttachedPlugins.Select(x => $@"**{x.Name}** ({x.Version}) - {x.Description}");
+            string pluginMessage = "List of attached plugins:\n  " + string.Join("\n  ", plugins);
             
-            return command.RespondAsync(pluginMessage);
+            return command.RespondAsync(pluginMessage, ephemeral: true);
         }
     }
 }
