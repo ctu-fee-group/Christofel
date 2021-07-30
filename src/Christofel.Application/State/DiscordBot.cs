@@ -11,29 +11,18 @@ namespace Christofel.Application.State
 {
     public class DiscordBot : IBot
     {
-        private DiscordSocketClient? _client;
         private ILogger<DiscordBot> _logger;
         private CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
         private DiscordBotOptions _options;
 
-        public DiscordBot(DiscordBotOptions options, ILogger<DiscordBot> logger)
+        public DiscordBot(DiscordSocketClient client, DiscordBotOptions options, ILogger<DiscordBot> logger)
         {
+            Client = client;
             _logger = logger;
             _options = options;
         }
 
-        public DiscordSocketClient Client
-        {
-            get
-            {
-                if (_client == null)
-                {
-                    throw new InvalidOperationException("Client is not initialized");
-                }
-
-                return _client;
-            }
-        }
+        public DiscordSocketClient Client { get; }
 
         public void QuitBot()
         {
@@ -62,15 +51,11 @@ namespace Christofel.Application.State
         public async Task<DiscordSocketClient> StartBotAsync()
         {
             _logger.LogInformation("Starting bot");
-            _client = new DiscordSocketClient(new DiscordSocketConfig()
-            {
-                AlwaysAcknowledgeInteractions = false
-            });
 
-            await _client.LoginAsync(TokenType.Bot, _options.Token);
-            await _client.StartAsync();
+            await Client.LoginAsync(TokenType.Bot, _options.Token);
+            await Client.StartAsync();
 
-            return _client;
+            return Client;
         }
     }
 }

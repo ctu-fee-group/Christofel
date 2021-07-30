@@ -92,7 +92,9 @@ namespace Christofel.Application
                 .Configure<BotOptions>(_configuration.GetSection("Bot"))
                 .Configure<DiscordBotOptions>(_configuration.GetSection("Bot"))
                 .Configure<PluginServiceOptions>(_configuration.GetSection("Plugins"))
+                .Configure<DiscordSocketConfig>(_configuration.GetSection("Bot:DiscordNet"))
                 // bot
+                .AddSingleton<DiscordSocketClient>()
                 .AddSingleton<IBot, DiscordBot>()
                 // db
                 .AddDbContextFactory<ChristofelBaseContext>(options => 
@@ -118,6 +120,7 @@ namespace Christofel.Application
                         .AddConsole()
                         .AddDiscordLogger();
                 })
+                .AddSingleton<DiscordNetLog>()
                 // commands
                 .AddSingleton<ControlCommands>()
                 .AddSingleton<PluginCommands>()
