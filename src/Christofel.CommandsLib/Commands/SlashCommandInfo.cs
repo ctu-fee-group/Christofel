@@ -138,23 +138,20 @@ namespace Christofel.CommandsLib.Commands
                 ApplicationCommandPermission[] permissions = await resolver.GetSlashCommandPermissionsAsync(Permission);
                 if (permissions.Length > 0)
                 {
-                    // Temporary until Discord.NET labs bug is fixed on nuget (waiting for new release, PR already merged)
-                    //await guildCommand.ModifyCommandPermissions(permissions);
+                    await guildCommand.ModifyCommandPermissions(permissions);
                 }
             }
         }
         
         private async Task<SlashCommandCreationProperties> SetDefaultPermissionAsync(SlashCommandCreationProperties command, IPermissionsResolver resolver)
         {
-            // Temporary until Discord.NET labs bug is fixed on nuget (waiting for new release, PR already merged)
-            //command.DefaultPermission = await IsForEveryoneAsync(resolver);
-            command.DefaultPermission = true;
+            command.DefaultPermission = await IsForEveryoneAsync(resolver);
             return command;
         }
 
         private async Task<ApplicationCommandProperties> ModifyDefaultPermissionAsync(ApplicationCommandProperties command, IPermissionsResolver resolver)
         {
-            //command.DefaultPermission = await IsForEveryoneAsync(resolver);
+            command.DefaultPermission = await IsForEveryoneAsync(resolver);
             return command;
         }
     }
