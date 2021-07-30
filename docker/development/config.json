@@ -1,0 +1,59 @@
+{
+    "ConnectionStrings": {
+        "ChristofelBase": "Server=localhost;Database=christofel_local;Uid=root;Pwd=root;"
+    },
+    "Bot": {
+        "GuildId": <MainGuildId>,
+        "Token": "<DiscordBotToken>",
+        "DiscordNet": {
+            "AlwaysAcknowledgeInteractions": false
+        }
+    },
+    "Plugins": {
+        "Folder": "./Plugins"
+    },
+    "Logging": {
+        "LogLevel": {
+            "Default": "Trace"
+        },
+        "File": {
+          "BasePath": "Logs",
+          "FileAccessMode": "KeepOpenAndAutoFlush",
+          "FileEncodingName": "utf-8",
+          "DateFormat": "yyyy-MM-dd",
+          "CounterFormat": "000",
+          "MaxFileSize": 10485760,
+          "LogLevel": {
+            "Default": "Debug"
+          },
+          "IncludeScopes": true,
+          "MaxQueueSize": 100,
+          "Files": [
+            {
+              "Path": "default-<counter>.log"
+            },
+            {
+              "Path": "error-<counter>.log",
+              "MinLevel": {
+                "Default": "Error"
+              }
+            }
+          ]
+        },
+        "Discord": {
+          "Channels": [
+            {
+              "GuildId": <LogGuildId>,
+              "ChannelId": <InfoLogChannelId>,
+              "MinLevel": "Information"
+            },
+            {
+              "GuildId": <LogGuildId>,
+              "ChannelId": <WarningLogChannelId>,
+              "MinLevel": "Warning"
+            }
+
+          ]
+        }
+    }
+}
