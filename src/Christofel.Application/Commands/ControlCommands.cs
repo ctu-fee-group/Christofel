@@ -6,6 +6,7 @@ using Christofel.CommandsLib;
 using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.Extensions;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,6 @@ namespace Christofel.Application.Commands
 
         public override async Task SetupCommandsAsync()
         {
-            // TODO: change to options instead of accessing configuration directly
             SlashCommandBuilder quitBuilder = new SlashCommandBuilderInfo()
                 .WithName("quit")
                 .WithDescription("Quit the bot")
@@ -57,17 +57,22 @@ namespace Christofel.Application.Commands
             await RegisterCommandAsync(refreshBuilder);
         }
 
-        private Task HandleRefreshCommand(SocketSlashCommand command)
+        private async Task HandleRefreshCommand(SocketSlashCommand command)
         {
             _logger.LogInformation("Handling command /refresh");
-            return _refresh();
+            await command.AcknowledgeAsync();
+            await _refresh();
+            _logger.LogInformation("Refreshed successfully");
+            
+            RestInteractionMessage originalResponse = await command.GetOriginalResponseAsync();
+            await originalResponse.ModifyAsync(props => props.Content = "Refreshed");
         }
 
         private Task HandleQuitCommand(SocketSlashCommand command)
         {
             _logger.LogInformation("Handling command /quit");
             _bot.QuitBot();
-            return Task.CompletedTask;
+            return command.RespondAsync("Goodbye");
         }
     }
 }
