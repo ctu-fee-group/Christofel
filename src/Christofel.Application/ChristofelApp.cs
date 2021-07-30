@@ -184,11 +184,13 @@ namespace Christofel.Application
 
         protected async Task HandleReady()
         {
-            _logger.LogInformation("Christofel is ready!");
-
             if (!_running)
             {
-                await base.RunAsync();
+                Task.Run(async () =>
+                {
+                    await base.RunAsync();
+                    _logger.LogInformation("Christofel is ready!");
+                });
                 _running = true;
             }
         }
