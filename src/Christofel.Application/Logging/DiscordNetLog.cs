@@ -24,7 +24,14 @@ namespace Christofel.Application.Logging
         {
             using (_logger.BeginScope(message.Source))
             {
-                _logger.Log(FromLogSeverity(message.Severity), message.Exception, message.Message);
+                LogLevel logLevel = FromLogSeverity(message.Severity);
+
+                if (message.Exception != null && logLevel < LogLevel.Error)
+                {
+                    logLevel = LogLevel.Error;
+                }
+                
+                _logger.Log(logLevel, message.Exception, message.Message);
             }
             
             return Task.CompletedTask;
