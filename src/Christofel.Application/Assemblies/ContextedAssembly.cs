@@ -1,6 +1,8 @@
 using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Christofel.Application.Assemblies
@@ -41,13 +43,17 @@ namespace Christofel.Application.Assemblies
                 return _assembly;
             }
         }
-
-        public void Detach()
+        
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public WeakReference Detach()
         {
+            WeakReference weakReference = new WeakReference(Context);
             Context.Unload();
             
-            _assembly = null!;
-            _context = null!;
+            _assembly = null;
+            _context = null;
+
+            return weakReference;
         }
     }
 }
