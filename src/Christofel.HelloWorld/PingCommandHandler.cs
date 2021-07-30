@@ -6,18 +6,21 @@ using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.Extensions;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Christofel.HelloWorld
 {
     public class PingCommandHandler : CommandHandler
     {
-        private readonly BotOptions _options;        
+        private readonly BotOptions _options;
+        private readonly ILogger<PingCommandHandler> _logger;
         
-        public PingCommandHandler(IOptions<BotOptions> options, DiscordSocketClient client, IPermissionService permissions)
+        public PingCommandHandler(IOptions<BotOptions> options, DiscordSocketClient client, IPermissionService permissions, ILogger<PingCommandHandler> logger)
             : base(client, permissions)
         {
             _options = options.Value;
+            _logger = logger;
         }
 
         public override Task SetupCommandsAsync()
@@ -34,6 +37,7 @@ namespace Christofel.HelloWorld
 
         public Task HandlePing(SocketSlashCommand command)
         {
+            _logger.LogInformation("Handling /ping command");
             return command.RespondAsync("Pong!");
         }
     }
