@@ -143,7 +143,7 @@ namespace Christofel.Application
             return Task.CompletedTask;
         }
 
-        public new Task InitAsync()
+        public Task InitAsync()
         {
             return base.InitAsync(new CancellationToken());
         }
@@ -182,7 +182,7 @@ namespace Christofel.Application
             await bot.StopBot(token);
         }
 
-        protected async Task HandleReady()
+        protected Task HandleReady()
         {
             if (!_running)
             {
@@ -193,6 +193,8 @@ namespace Christofel.Application
                 });
                 _running = true;
             }
+            
+            return Task.CompletedTask;
         }
     }
 }
