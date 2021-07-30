@@ -37,6 +37,7 @@ namespace Christofel.CommandsLib
         }
 
         protected bool AutoDefer { get; set; } = true;
+        protected string DeferMessage { get; set; } = "I am thinking...";
         protected RunMode RunMode = RunMode.NewThread;
 
         public abstract Task SetupCommandsAsync(CancellationToken token = new CancellationToken());
@@ -97,7 +98,7 @@ namespace Christofel.CommandsLib
         {
             if (AutoDefer)
             {
-                await command.DeferAsync();
+                await command.RespondAsync(DeferMessage, ephemeral: true);
             }
             
             if (RunMode == RunMode.SameThread)
