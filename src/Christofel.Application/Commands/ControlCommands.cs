@@ -60,10 +60,10 @@ namespace Christofel.Application.Commands
         private async Task HandleRefreshCommand(SocketSlashCommand command)
         {
             _logger.LogInformation("Handling command /refresh");
-            await command.AcknowledgeAsync();
+            await command.DeferAsync();
             await _refresh();
             _logger.LogInformation("Refreshed successfully");
-            
+
             RestInteractionMessage originalResponse = await command.GetOriginalResponseAsync();
             await originalResponse.ModifyAsync(props => props.Content = "Refreshed");
         }
