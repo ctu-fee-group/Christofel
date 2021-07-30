@@ -23,6 +23,7 @@ namespace Christofel.Application.Plugins
         private IDisposable _onOptionsChange;
 
         private List<AttachedPlugin> _plugins;
+        private List<DetachedPlugin> _detachedPlugins;
         private PluginServiceOptions _options;
 
         private ILogger<PluginService> _logger;
@@ -30,6 +31,7 @@ namespace Christofel.Application.Plugins
         public PluginService(IOptionsMonitor<PluginServiceOptions> options, ILogger<PluginService> logger)
         {
             _plugins = new List<AttachedPlugin>();
+            _detachedPlugins = new List<DetachedPlugin>();
             _logger = logger;
 
             _options = options.CurrentValue;
@@ -77,11 +79,10 @@ namespace Christofel.Application.Plugins
             return InternalAttachAsync(state, name);
         }
 
-        public async Task<IHasPluginInfo> DetachAsync(string name)
+        public Task<IHasPluginInfo> DetachAsync(string name)
         {
             AttachedPlugin plugin = _plugins.First(x => x.Name == name);
-            await DetachAsync(plugin);
-            return new DetachedPlugin(plugin);
+            return DetachAsync(plugin);
         }
 
         public Task<IHasPluginInfo> ReattachAsync(IChristofelState state, string name)
@@ -137,17 +138,28 @@ namespace Christofel.Application.Plugins
             return plugin;
         }
         
-        private async Task DetachAsync(AttachedPlugin plugin)
+        private async Task<IHasPluginInfo> DetachAsync(AttachedPlugin plugin)
         {
+            DetachedPlugin detached = new DetachedPlugin(plugin);
             _logger.LogInformation($@"Detaching module {plugin}");
             await plugin.Plugin.StopAsync();
             await plugin.Plugin.DestroyAsync();
             
-            plugin.PluginAssembly.Detach();
+            WeakReference reference = plugin.Detach();
+            detached.AssemblyContextReference = reference;
+            
             lock (_runLock)
             {
+                _detachedPlugins.Add(detached);
                 _plugins.Remove(plugin);
             }
+            
+            if (reference.IsAlive)
+            {
+                _logger.LogWarning("The assembly was not detached successfully");
+            }
+
+            return detached;
         }
 
         private async Task<IHasPluginInfo> ReattachAsync(IChristofelState state, AttachedPlugin plugin)
