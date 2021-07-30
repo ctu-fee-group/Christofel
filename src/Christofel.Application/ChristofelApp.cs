@@ -6,6 +6,7 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using Christofel.Application.Commands;
+using Christofel.Application.Logging;
 using Christofel.Application.Logging.Discord;
 using Christofel.Application.Permissions;
 using Christofel.Application.Plugins;
@@ -18,6 +19,7 @@ using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Discord;
+using Discord.WebSocket;
 using Karambolo.Extensions.Logging.File;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,9 +34,9 @@ namespace Christofel.Application
     public class ChristofelApp : DIPlugin
     {
         private ILogger<ChristofelApp>? _logger;
-        private IConfiguration _configuration;
+        private IConfigurationRoot _configuration;
 
-        public static IConfiguration CreateConfiguration(string[] commandArgs)
+        public static IConfigurationRoot CreateConfiguration(string[] commandArgs)
         {
             string environment = Environment.GetEnvironmentVariable("ENV") ?? "production";
             
@@ -144,6 +146,7 @@ namespace Christofel.Application
         {
             _logger.LogInformation("Starting Christofel");
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
+            
             bot.Client.Ready += HandleReady;
 
             DiscordNetLog loggerForward = Services.GetRequiredService<DiscordNetLog>();
@@ -159,6 +162,7 @@ namespace Christofel.Application
         public override Task RefreshAsync()
         {
             _logger.LogInformation("Refreshing Christofel");
+            _configuration.Reload();
             return base.RefreshAsync();
         }
 
