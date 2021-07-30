@@ -15,13 +15,13 @@ namespace Christofel.HelloWorld
     public class PingCommandHandler : CommandHandler
     {
         private readonly BotOptions _options;
-        private readonly ILogger<PingCommandHandler> _logger;
         
         public PingCommandHandler(IOptions<BotOptions> options, DiscordSocketClient client, IPermissionService permissions, ILogger<PingCommandHandler> logger)
-            : base(client, permissions)
+            : base(client, permissions, logger)
         {
             _options = options.Value;
-            _logger = logger;
+
+            RunMode = RunMode.SameThread;
         }
 
         public override Task SetupCommandsAsync(CancellationToken token = new CancellationToken())
