@@ -39,7 +39,7 @@ namespace Christofel.Application.Logging.Discord
 
             string message = header + "\n" + messageContent;
             
-            foreach (DiscordLoggerChannelOptions channel in Config.Channels.Where(x => x.MinLevel >= logLevel))
+            foreach (DiscordLoggerChannelOptions channel in Config.Channels.Where(x => logLevel >= x.MinLevel))
             {
                 _queueProcessor.EnqueueMessage(new DiscordLogMessage(channel.GuildId, channel.ChannelId, message));
             }
