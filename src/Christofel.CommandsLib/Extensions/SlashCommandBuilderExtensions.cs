@@ -21,7 +21,7 @@ namespace Christofel.CommandsLib.Extensions
 
                 SlashCommandInfo info = new SlashCommandInfo(builder, statefulBuilder.Permission, statefulBuilder.Handler);
                 info.Global = statefulBuilder.Global;
-                info.GuildId = info.GuildId;
+                info.GuildId = statefulBuilder.GuildId;
                 info.Build();
 
                 return info;
