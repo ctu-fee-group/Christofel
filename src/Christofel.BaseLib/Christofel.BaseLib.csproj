@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Discord.Net.Labs" Version="2.4.9" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.8" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.8" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
@@ -17,6 +16,12 @@
 
     <ItemGroup>
       <Folder Include="Options" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Core\Discord.Net.Core.csproj" />
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Rest\Discord.Net.Rest.csproj" />
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj" />
     </ItemGroup>
 
 </Project>

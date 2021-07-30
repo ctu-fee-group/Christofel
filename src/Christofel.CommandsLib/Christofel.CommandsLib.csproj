@@ -7,11 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Core\Discord.Net.Core.csproj" />
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Rest\Discord.Net.Rest.csproj" />
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Discord.Net.Labs" Version="2.4.9" />
     </ItemGroup>
 
 </Project>
