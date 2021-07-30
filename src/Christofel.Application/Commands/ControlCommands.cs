@@ -63,17 +63,19 @@ namespace Christofel.Application.Commands
         private async Task HandleRefreshCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /refresh");
+            await command.DeferAsync(new RequestOptions { CancelToken = token });
             await _refresh(token);
             _logger.LogInformation("Refreshed successfully");
 
-            await command.EditResponseAsync("Refreshed!");
+            RestInteractionMessage originalResponse = await command.GetOriginalResponseAsync();
+            await originalResponse.ModifyAsync(props => props.Content = "Refreshed", options: new RequestOptions() { CancelToken = token});
         }
 
         private Task HandleQuitCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /quit");
             _bot.QuitBot();
-            return command.EditResponseAsync("Goodbye", options: new RequestOptions() { CancelToken = token});
+            return command.RespondAsync("Goodbye", options: new RequestOptions() { CancelToken = token});
         }
     }
 }
