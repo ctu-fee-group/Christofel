@@ -23,6 +23,7 @@ namespace Christofel.Application.Plugins
         private IDisposable _onOptionsChange;
 
         private List<AttachedPlugin> _plugins;
+        private List<DetachedPlugin> _detachedPlugins;
         private PluginServiceOptions _options;
 
         private ILogger<PluginService> _logger;
@@ -30,6 +31,7 @@ namespace Christofel.Application.Plugins
         public PluginService(IOptionsMonitor<PluginServiceOptions> options, ILogger<PluginService> logger)
         {
             _plugins = new List<AttachedPlugin>();
+            _detachedPlugins = new List<DetachedPlugin>();
             _logger = logger;
 
             _options = options.CurrentValue;
@@ -77,11 +79,10 @@ namespace Christofel.Application.Plugins
             return InternalAttachAsync(state, name);
         }
 
-        public async Task<IHasPluginInfo> DetachAsync(string name)
+        public Task<IHasPluginInfo> DetachAsync(string name)
         {
             AttachedPlugin plugin = _plugins.First(x => x.Name == name);
-            await DetachAsync(plugin);
-            return new DetachedPlugin(plugin);
+            return DetachAsync(plugin);
         }
 
         public Task<IHasPluginInfo> ReattachAsync(IChristofelState state, string name)
@@ -113,6 +114,7 @@ namespace Christofel.Application.Plugins
 
                 if (rawPlugin.Name != name)
                 {
+                    info.Detach();
                     throw new InvalidOperationException("Plugin names do not match");
                 }
 
@@ -136,18 +138,57 @@ namespace Christofel.Application.Plugins
 
             return plugin;
         }
-        
-        private async Task DetachAsync(AttachedPlugin plugin)
+
+        public void CheckDetached()
         {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            
+            bool remove = false;
+            foreach (DetachedPlugin plugin in _detachedPlugins)
+            {
+                if (plugin.AssemblyContextReference?.IsAlive ?? false)
+                {
+                    _logger.LogError($@"Plugin {plugin} was not unloaded correctly yet");
+                }
+                else
+                {
+                    remove = true;
+                    _logger.LogInformation($@"{plugin} was finally unloaded");
+                }
+            }
+
+            if (remove)
+            {
+                lock (_runLock)
+                {
+                    _detachedPlugins.RemoveAll(x => (!x.AssemblyContextReference?.IsAlive) ?? true);
+                }
+            }
+        }
+        
+        private async Task<IHasPluginInfo> DetachAsync(AttachedPlugin plugin)
+        {
+            DetachedPlugin detached = new DetachedPlugin(plugin);
             _logger.LogInformation($@"Detaching module {plugin}");
             await plugin.Plugin.StopAsync();
             await plugin.Plugin.DestroyAsync();
             
-            plugin.PluginAssembly.Detach();
+            WeakReference reference = plugin.Detach();
+            detached.AssemblyContextReference = reference;
+            
             lock (_runLock)
             {
+                _detachedPlugins.Add(detached);
                 _plugins.Remove(plugin);
             }
+            
+            if (reference.IsAlive)
+            {
+                _logger.LogWarning("The assembly was not detached successfully");
+            }
+
+            return detached;
         }
 
         private async Task<IHasPluginInfo> ReattachAsync(IChristofelState state, AttachedPlugin plugin)
@@ -164,7 +205,7 @@ namespace Christofel.Application.Plugins
 
         private string GetModulePath(string name)
         {
-            return Path.Join(Path.GetFullPath(_options.Folder), name + ".dll");
+            return Path.Join(Path.GetFullPath(_options.Folder), name, name + ".dll");
         }
 
         public Task StopAsync()

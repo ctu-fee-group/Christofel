@@ -1,3 +1,4 @@
+using System;
 using Christofel.BaseLib.Plugins;
 
 namespace Christofel.Application.Plugins
@@ -10,6 +11,8 @@ namespace Christofel.Application.Plugins
             Description = plugin.Description;
             Version = plugin.Version;
         }
+        
+        public WeakReference? AssemblyContextReference { get; internal set; }
 
         public string Name { get; }
         public string Description { get; }
