@@ -79,7 +79,8 @@ namespace Christofel.Application.Commands
                     )
                 ).AddOption(new SlashCommandOptionBuilder()
                     .WithName("list")
-                    .WithDescription("Print list of attached plugins"));
+                    .WithDescription("Print list of attached plugins")
+                    .WithType(ApplicationCommandOptionType.SubCommand));
 
             await RegisterCommandAsync(pluginBuilder);
         }
