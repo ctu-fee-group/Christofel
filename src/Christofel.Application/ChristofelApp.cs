@@ -71,6 +71,7 @@ namespace Christofel.Application
         {
             get
             {
+                yield return Services.GetRequiredService<PluginService>();
                 yield return Services.GetRequiredService<ControlCommands>();
                 yield return Services.GetRequiredService<PluginCommands>();
             }
@@ -175,8 +176,8 @@ namespace Christofel.Application
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             bot.Client.Ready -= HandleReady;
 
-            await bot.StopBot();
             await base.StopAsync();
+            await bot.StopBot();
         }
 
         protected Task HandleReady()
