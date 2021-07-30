@@ -34,11 +34,15 @@ namespace Christofel.CommandsLib
             _client = client;
             _permissions = permissions;
             _commands = new List<SlashCommandInfo>();
+
+            AutoDefer = true;
+            RunMode = RunMode.NewThread;
+            DeferMessage = "I am thinking ...";
         }
 
-        protected bool AutoDefer { get; set; } = true;
-        protected string DeferMessage { get; set; } = "I am thinking...";
-        protected RunMode RunMode = RunMode.NewThread;
+        protected bool AutoDefer { get; set; }
+        protected string DeferMessage { get; set; }
+        protected RunMode RunMode { get; set; }
 
         public abstract Task SetupCommandsAsync(CancellationToken token = new CancellationToken());
 
