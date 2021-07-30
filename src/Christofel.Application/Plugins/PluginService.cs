@@ -114,6 +114,7 @@ namespace Christofel.Application.Plugins
 
                 if (rawPlugin.Name != name)
                 {
+                    info.Detach();
                     throw new InvalidOperationException("Plugin names do not match");
                 }
 
@@ -136,6 +137,34 @@ namespace Christofel.Application.Plugins
             _logger.LogInformation($@"Plugin {plugin} was attached successfully");
 
             return plugin;
+        }
+
+        public void CheckDetached()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            
+            bool remove = false;
+            foreach (DetachedPlugin plugin in _detachedPlugins)
+            {
+                if (plugin.AssemblyContextReference?.IsAlive ?? false)
+                {
+                    _logger.LogError($@"Plugin {plugin} was not unloaded correctly yet");
+                }
+                else
+                {
+                    remove = true;
+                    _logger.LogInformation($@"{plugin} was finally unloaded");
+                }
+            }
+
+            if (remove)
+            {
+                lock (_runLock)
+                {
+                    _detachedPlugins.RemoveAll(x => (!x.AssemblyContextReference?.IsAlive) ?? true);
+                }
+            }
         }
         
         private async Task<IHasPluginInfo> DetachAsync(AttachedPlugin plugin)

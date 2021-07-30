@@ -77,6 +77,11 @@ namespace Christofel.Application.Commands
                         .WithDescription("Name of the module")
                         .WithType(ApplicationCommandOptionType.String)
                     )
+                )
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("check")
+                    .WithDescription("Checks memory for any detached modules still left")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
                 ).AddOption(new SlashCommandOptionBuilder()
                     .WithName("list")
                     .WithDescription("Print list of attached plugins")
@@ -102,6 +107,9 @@ namespace Christofel.Application.Commands
                     break;
                 case "list":
                     await HandleList(command);
+                    break;
+                case "check":
+                    await Check(command);
                     break;
             }
         }
@@ -200,6 +208,12 @@ namespace Christofel.Application.Commands
             string pluginMessage = "List of attached plugins:\n  " + string.Join("\n  ", plugins);
             
             return command.RespondAsync(pluginMessage, ephemeral: true);
+        }
+
+        private Task Check(SocketSlashCommand command)
+        {
+            _plugins.CheckDetached();
+            return command.RespondAsync("Check log for result");
         }
     }
 }
