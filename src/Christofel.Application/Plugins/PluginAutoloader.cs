@@ -27,6 +27,11 @@ namespace Christofel.Application.Plugins
         
         public async Task StartAsync()
         {
+            if (_options.AutoLoad == null)
+            {
+                return;
+            }
+            
             foreach (string module in _options.AutoLoad)
             {
                 try

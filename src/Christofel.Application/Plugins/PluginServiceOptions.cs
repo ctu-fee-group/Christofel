@@ -7,6 +7,6 @@ namespace Christofel.Application.Plugins
     {
         public string Folder { get; set; } = null!;
 
-        public string[] AutoLoad { get; set; } = null!;
+        public string[]? AutoLoad { get; set; } = null!;
     }
 }
