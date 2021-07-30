@@ -178,12 +178,8 @@ namespace Christofel.Application
 
         protected Task HandleReady()
         {
-            // TODO: register commands
-            // TODO: register initial modules that were in previous run of the application
-            //   - if one module fails, just skip it
-            
             _logger.LogInformation("Christofel is ready!");
-            return  base.RunAsync();
+            return base.RunAsync();
         }
     }
 }
