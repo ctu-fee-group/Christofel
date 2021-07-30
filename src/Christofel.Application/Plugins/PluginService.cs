@@ -205,7 +205,7 @@ namespace Christofel.Application.Plugins
 
         private string GetModulePath(string name)
         {
-            return Path.Join(Path.GetFullPath(_options.Folder), name + ".dll");
+            return Path.Join(Path.GetFullPath(_options.Folder), name, name + ".dll");
         }
 
         public Task StopAsync()
