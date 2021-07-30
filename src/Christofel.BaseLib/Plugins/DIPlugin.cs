@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -65,7 +66,7 @@ namespace Christofel.BaseLib.Plugins
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        protected abstract Task InitializeServices(IServiceProvider services);
+        protected abstract Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken());
 
         /// <summary>
         /// Build ServiceProvider itself from ServiceCollection
@@ -81,57 +82,63 @@ namespace Christofel.BaseLib.Plugins
         /// Dispose service provider disposing all IDisposable objects in it
         /// </summary>
         /// <param name="services"></param>
-        protected virtual async Task DestroyServices(IServiceProvider? services)
+        protected virtual async Task DestroyServices(IServiceProvider? services, CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             if (services is ServiceProvider provider)
             {
                 await provider.DisposeAsync();
             }
         }
 
-        protected virtual Task InitAsync()
+        protected virtual Task InitAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             IServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection = ConfigureServices(serviceCollection);
 
             Services = BuildServices(serviceCollection);
 
-            return InitializeServices(Services);
+            return InitializeServices(Services, token);
         }
 
-        public virtual Task InitAsync(IChristofelState state)
+        public virtual Task InitAsync(IChristofelState state, CancellationToken token = new CancellationToken())
         {
             State = state;
-            return InitAsync();
+            return InitAsync(token);
         }
         
-        public virtual async Task RunAsync()
+        public virtual async Task RunAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             foreach (IStartable startable in Startable)
             {
-                await startable.StartAsync();
+                await startable.StartAsync(token);
             }
         }
 
-        public virtual async Task StopAsync()
+        public virtual async Task StopAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             foreach (IStoppable stoppable in Stoppable)
             {
-                await stoppable.StopAsync();
+                await stoppable.StopAsync(token);
             }
         }
 
-        public virtual async Task RefreshAsync()
+        public virtual async Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             foreach (IRefreshable refreshable in Refreshable)
             {
-                await refreshable.RefreshAsync();
+                await refreshable.RefreshAsync(token);
             }
         }
 
-        public virtual Task DestroyAsync()
+        public virtual Task DestroyAsync(CancellationToken token = new CancellationToken())
         {
-            return DestroyServices(Services);
+            token.ThrowIfCancellationRequested();
+            return DestroyServices(Services, token);
         }
     }
 }

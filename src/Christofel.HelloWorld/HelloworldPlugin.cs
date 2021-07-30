@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Plugins;
@@ -47,8 +48,9 @@ namespace Christofel.HelloWorld
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
         
-        protected override Task InitializeServices(IServiceProvider services)
+        protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             return Task.CompletedTask;
         }
     }

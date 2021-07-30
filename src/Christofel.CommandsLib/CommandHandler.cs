@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
@@ -11,6 +12,7 @@ using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 
 namespace Christofel.CommandsLib
 {
@@ -29,29 +31,32 @@ namespace Christofel.CommandsLib
         
         public abstract Task SetupCommandsAsync();
 
-        public async Task RefreshAsync()
+        public abstract Task SetupCommandsAsync(CancellationToken token = new CancellationToken());
+
+        public async Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
             foreach (SlashCommandInfo command in _commands)
             {
-                await command.RefreshCommandAndPermissionsAsync(_permissions.Resolver);
+                await command.RefreshCommandAndPermissionsAsync(_permissions.Resolver, token);
             }
         }
 
-        protected async Task<SlashCommandInfo> RegisterCommandAsync(SlashCommandBuilder builder)
+        protected async Task<SlashCommandInfo> RegisterCommandAsync(SlashCommandBuilder builder, CancellationToken token = new CancellationToken())
         {
             SlashCommandInfo info = builder.BuildAndGetInfo();
-            await info.RegisterCommandAsync(_client.Rest, _permissions.Resolver);
-            await info.RegisterPermissionsAsync(_client.Rest, _permissions);
+            await info.RegisterCommandAsync(_client.Rest, _permissions.Resolver, token);
+            await info.RegisterPermissionsAsync(_client.Rest, _permissions, token);
 
             _commands.Add(info);
             return info;
         }
 
-        protected virtual async Task UnregisterCommandsAsync()
+        protected virtual async Task UnregisterCommandsAsync(CancellationToken token = new CancellationToken())
         {
             foreach (SlashCommandInfo info in _commands)
             {
-                await info.UnregisterCommand(_permissions);
+                token.ThrowIfCancellationRequested();
+                await info.UnregisterCommandAsync(_permissions, token);
             }
             
             _commands.Clear();
@@ -77,13 +82,17 @@ namespace Christofel.CommandsLib
         }
 
         public Task StopAsync()
+
+        public async Task StopAsync(CancellationToken token = new CancellationToken())
         {
-            return UnregisterCommandsAsync();
+
+            await UnregisterCommandsAsync(token);
         }
 
-        public async Task StartAsync()
+        public async Task StartAsync(CancellationToken token = new CancellationToken())
         {
-            await SetupCommandsAsync();
+            await SetupCommandsAsync(token);
+            token.ThrowIfCancellationRequested();
             SetupEvents();
         }
     }

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Discord;
@@ -37,8 +38,10 @@ namespace Christofel.Application.Commands
             _options = options.Value;
         }
 
-        public override async Task SetupCommandsAsync()
+        public override async Task SetupCommandsAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
+
             SlashCommandBuilder quitBuilder = new SlashCommandBuilderInfo()
                 .WithName("quit")
                 .WithDescription("Quit the bot")
@@ -53,26 +56,26 @@ namespace Christofel.Application.Commands
                 .WithGuild(_options.GuildId)
                 .WithHandler(HandleRefreshCommand);
 
-            await RegisterCommandAsync(quitBuilder);
-            await RegisterCommandAsync(refreshBuilder);
+            await RegisterCommandAsync(quitBuilder, token);
+            await RegisterCommandAsync(refreshBuilder, token);
         }
 
-        private async Task HandleRefreshCommand(SocketSlashCommand command)
+        private async Task HandleRefreshCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /refresh");
-            await command.DeferAsync();
-            await _refresh();
+            await command.DeferAsync(new RequestOptions { CancelToken = token });
+            await _refresh(token);
             _logger.LogInformation("Refreshed successfully");
 
             RestInteractionMessage originalResponse = await command.GetOriginalResponseAsync();
-            await originalResponse.ModifyAsync(props => props.Content = "Refreshed");
+            await originalResponse.ModifyAsync(props => props.Content = "Refreshed", options: new RequestOptions() { CancelToken = token});
         }
 
-        private Task HandleQuitCommand(SocketSlashCommand command)
+        private Task HandleQuitCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /quit");
             _bot.QuitBot();
-            return command.RespondAsync("Goodbye");
+            return command.RespondAsync("Goodbye", options: new RequestOptions() { CancelToken = token});
         }
     }
 }

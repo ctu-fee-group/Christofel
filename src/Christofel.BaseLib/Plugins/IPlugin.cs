@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Christofel.BaseLib.Plugins
@@ -17,7 +18,7 @@ namespace Christofel.BaseLib.Plugins
         /// </summary>
         /// <param name="state">Shared application state</param>
         /// <returns></returns>
-        public Task InitAsync(IChristofelState state);
+        public Task InitAsync(IChristofelState state, CancellationToken token = new CancellationToken());
 
         /// <summary>
         /// Run should register the plugin to the application by assigning its handlers and starting its purpose 
@@ -26,25 +27,25 @@ namespace Christofel.BaseLib.Plugins
         /// If the run operation is going to block, it is heavy, it should create a new thread.
         /// </summary>
         /// <returns></returns>
-        public Task RunAsync();
+        public Task RunAsync(CancellationToken token = new CancellationToken());
         
         /// <summary>
         /// Should stop the running operation.
         /// The plugin should stop handling any operations associated with it and be prepared for destroy.
         /// </summary>
         /// <returns></returns>
-        public Task StopAsync();
+        public Task StopAsync(CancellationToken token = new CancellationToken());
 
         /// <summary>
         /// Refresh should reload the configuration where needed.
         /// </summary>
         /// <returns></returns>
-        public Task RefreshAsync();
+        public Task RefreshAsync(CancellationToken token = new CancellationToken());
         
         /// <summary>
         /// Destroys all the services, the plugin is unusable after destroying
         /// </summary>
         /// <returns></returns>
-        public Task DestroyAsync();
+        public Task DestroyAsync(CancellationToken token = new CancellationToken());
     }
 }

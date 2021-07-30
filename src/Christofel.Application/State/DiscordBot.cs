@@ -30,18 +30,21 @@ namespace Christofel.Application.State
             _applicationRunningToken.Cancel();
         }
 
-        public async Task RunApplication()
+        public async Task RunApplication(CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Running application");
             try
             {
-                await Task.Delay(-1, _applicationRunningToken.Token);
+                CancellationTokenSource tokenSource = 
+                    CancellationTokenSource.CreateLinkedTokenSource(_applicationRunningToken.Token, token);
+                await Task.Delay(-1, tokenSource.Token);
             }
             catch (TaskCanceledException) {}
         }
 
-        public async Task StopBot()
+        public async Task StopBot(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             if (Client.ConnectionState == ConnectionState.Connected)
             {
                 await Client.StopAsync();
@@ -49,11 +52,13 @@ namespace Christofel.Application.State
             }
         }
 
-        public async Task<DiscordSocketClient> StartBotAsync()
+        public async Task<DiscordSocketClient> StartBotAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             _logger.LogInformation("Starting bot");
 
             await Client.LoginAsync(TokenType.Bot, _options.Token);
+            token.ThrowIfCancellationRequested();
             await Client.StartAsync();
 
             return Client;

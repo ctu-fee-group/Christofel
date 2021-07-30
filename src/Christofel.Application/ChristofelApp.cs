@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Commands;
 using Christofel.Application.Logging;
@@ -29,7 +30,7 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Application
 {
-    public delegate Task RefreshChristofel();
+    public delegate Task RefreshChristofel(CancellationToken token);
     
     public class ChristofelApp : DIPlugin
     {
@@ -136,7 +137,7 @@ namespace Christofel.Application
                 .AddSingleton<RefreshChristofel>(this.RefreshAsync);
         }
 
-        protected override Task InitializeServices(IServiceProvider services)
+        protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<ChristofelApp>>();
             return Task.CompletedTask;
@@ -144,10 +145,10 @@ namespace Christofel.Application
 
         public new Task InitAsync()
         {
-            return base.InitAsync();
+            return base.InitAsync(new CancellationToken());
         }
 
-        public override async Task RunAsync()
+        public override async Task RunAsync(CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Starting Christofel");
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
@@ -158,27 +159,27 @@ namespace Christofel.Application
             loggerForward.RegisterEvents(bot.Client);
             loggerForward.RegisterEvents(bot.Client.Rest);
             
-            await bot.StartBotAsync();
-            await bot.RunApplication(); 
+            await bot.StartBotAsync(token);
+            await bot.RunApplication(token); 
                 // Blocking, ChristofelApp is the only exception
                 // that has RunAsync blocking as it's the base entry point.
         }
 
-        public override Task RefreshAsync()
+        public override Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Refreshing Christofel");
             _configuration.Reload();
-            return base.RefreshAsync();
+            return base.RefreshAsync(token);
         }
 
-        public override async Task StopAsync()
+        public override async Task StopAsync(CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Stopping Christofel");
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             bot.Client.Ready -= HandleReady;
 
-            await base.StopAsync();
-            await bot.StopBot();
+            await base.StopAsync(token);
+            await bot.StopBot(token);
         }
 
         protected async Task HandleReady()
