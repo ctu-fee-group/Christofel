@@ -22,7 +22,6 @@ namespace Christofel.Application.Commands
     {
         private readonly PluginService _plugins;
         private readonly IChristofelState _state;
-        private readonly ILogger<PluginCommands> _logger;
         private readonly BotOptions _options;
         
         // Plugin command
@@ -35,11 +34,10 @@ namespace Christofel.Application.Commands
             IOptions<BotOptions> options,
             ILogger<PluginCommands> logger
             )
-            : base(client, permissions)
+            : base(client, permissions, logger)
         {
             _state = state;
             _plugins = plugins;
-            _logger = logger;
             _options = options.Value;
         }
 

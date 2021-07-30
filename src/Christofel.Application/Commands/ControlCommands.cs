@@ -19,7 +19,6 @@ namespace Christofel.Application.Commands
     {
         private IBot _bot;
         private RefreshChristofel _refresh;
-        private ILogger<ControlCommands> _logger;
         private readonly BotOptions _options;
 
         // Quit, Refresh
@@ -30,9 +29,8 @@ namespace Christofel.Application.Commands
             RefreshChristofel refresh,
             IOptions<BotOptions> options,
             ILogger<ControlCommands> logger
-            ) : base(client, permissions)
+            ) : base(client, permissions, logger)
         {
-            _logger = logger;
             _bot = bot;
             _refresh = refresh;
             _options = options.Value;
