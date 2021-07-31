@@ -1,39 +1,44 @@
-## Configuration
-Configuration is just basic key value mapping.
-It is done using json and database at the same time.
-First value is looked up in json (higher priority) and then database is checked
-if the value is not found.
+# Configuration
+For configuration, `Microsoft.Extensions.Configuration` is used.
+The configuration is stored in `config.json` and `config.{environment}.json`
+in the same directory where executable is. Variable `environment` is retrieved
+from environment variable `ENV`.
 
-Generally everything should be stored in database except for fields
-that are needed to start the bot. Bot token has to be in json file for example.
+Support for changing the configuration at runtime should be added where it's possible.
+This support is not added for changing the main guild id or bot token.
 
-### Json
-Json configuration is stored in file `config.json` in the same path where main executable is.
+## Usage in code
+In plugins, where DI is used, the configuration can be added using
+`Configure` extension methods for `IServiceCollection`. The
+configuration that should be used is located in `IChristofelState.Configuration`.
+More information about how options work can be found here: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0
 
-### Database
-Database configuration is just basic table having name and value string fields.
-It is located in base database and default table name is `Configuration`.
-
-### Usage in code
-Interfaces `IReadableConfig`, `IWritableConfig` can be used to distinguish
-between configs that do only read or write, `IWRConfig` is made for saying it
-supports both.
-
-Configs have Converters that convert string to specified type.
-Converters can be registered using `RegisterConverter` method.
-
-Other methods should be self-explanatory.
-
-### Documented Fields
+## Documented Fields
 Access to nested levels is achieved using dots in between level names.
 
-- `modules`
-  - `path` to the folder containing modules
-- `discord` contains everything associated with discord itself
-  - `bot`
-    - `token` of the bot
-  - `guild` id of the guild the bot is used in
-  - `log` channels
-    - `warning` channel id
-    - `error` channel id
-    - `info` channel id
+- `ConnectionStrings`
+  - `ChristofelBase` - Connection string for `ChristofelBaseContext`
+- `Bot`
+  - `GuildId` - main guild id where the bot should be used
+  - `Token` - application token
+  `DiscordNet` - direct configuration of `DiscordSocketClientOptions`
+    - see `DiscordSocketClientOptions` in Discord.NET
+    - if ephemeral responses are needed, `AlwaysAcknowledgeInteractions` have to be `false`.
+- `Plugins`
+  - `Folder` - folder relative to the executable where plugins reside
+    - `AutoLoad` - array of strings that controls what plugins will be loaded on startup automatically.
+- `Logging`
+  - this is a configuration of `Microsoft.Extensions.Logging`, for more information try this: https://docs.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line
+  - `File`
+    - Configuration of `Karambolo.Extensions.Logging.File` provider
+    - documentation https://github.com/adams85/filelogger
+  - `Console`
+    - default `Console` logger provider configuration
+  - `Discord`
+    - custom Discord logger provider
+    - `MaxQueueSize` - maximum number of messages in queue for processing
+    - `Channels` - specifies array of channels that the bot should log into
+      - entry example
+        - `GuildId` - specifies in which guild the channel is located
+        - `ChannelId` - specifies which channel to log into
+        - `MinLevel` - minimal log level, can be used to separate channels for logging info and only errors
