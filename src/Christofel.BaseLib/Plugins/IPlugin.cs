@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Lifetime;
 
 namespace Christofel.BaseLib.Plugins
 {
@@ -13,6 +14,8 @@ namespace Christofel.BaseLib.Plugins
     /// </summary>
     public interface IPlugin : IHasPluginInfo
     {
+        public ILifetime Lifetime { get; }
+
         /// <summary>
         /// Used for initializing the module services
         /// </summary>
@@ -29,23 +32,11 @@ namespace Christofel.BaseLib.Plugins
         /// <returns></returns>
         public Task RunAsync(CancellationToken token = new CancellationToken());
         
-        /// <summary>
-        /// Should stop the running operation.
-        /// The plugin should stop handling any operations associated with it and be prepared for destroy.
-        /// </summary>
-        /// <returns></returns>
-        public Task StopAsync(CancellationToken token = new CancellationToken());
 
         /// <summary>
         /// Refresh should reload the configuration where needed.
         /// </summary>
         /// <returns></returns>
         public Task RefreshAsync(CancellationToken token = new CancellationToken());
-        
-        /// <summary>
-        /// Destroys all the services, the plugin is unusable after destroying
-        /// </summary>
-        /// <returns></returns>
-        public Task DestroyAsync(CancellationToken token = new CancellationToken());
     }
 }

@@ -1,7 +1,7 @@
 using System.Threading;
-using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
+using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -43,5 +43,7 @@ namespace Christofel.BaseLib
         /// Logger factory
         /// </summary>
         public ILoggerFactory LoggerFactory { get; }
+        
+        public IApplicationLifetime Lifetime { get; }
     }
 }
