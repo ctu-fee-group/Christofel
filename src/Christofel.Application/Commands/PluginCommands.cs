@@ -51,7 +51,7 @@ namespace Christofel.Application.Commands
             SlashCommandBuilder pluginBuilder = new SlashCommandBuilderInfo()
                 .WithName("plugin")
                 .WithDescription("Control attached plugins")
-                .WithPermission("application.modules.control")
+                .WithPermission("application.plugins.control")
                 .WithGuild(_options.GuildId)
                 .WithHandler(HandlePluginCommand)
                 .AddOption(new SlashCommandOptionBuilder()
