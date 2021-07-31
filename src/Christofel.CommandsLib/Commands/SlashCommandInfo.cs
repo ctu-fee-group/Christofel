@@ -1,8 +1,12 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
+using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib.Extensions;
 using Discord;
@@ -96,27 +100,69 @@ namespace Christofel.CommandsLib.Commands
                 
                 if (Global)
                 {
-                    Command = await client.CreateGlobalCommand(command, new RequestOptions()
-                    {
-                        CancelToken = token
-                    });
+                    Command = await CreateGlobalCommand(client, command, token);
                 }
                 else
                 {
-                    if (GuildId == null)
-                    {
-                        throw new ArgumentException("GuildId cannot be null for guild commands");
-                    }
-                    
-                    Command = await client.CreateGuildCommand(command, (ulong)GuildId, new RequestOptions()
-                    {
-                        CancelToken = token
-                    });
+                    Command = await CreateGuildCommand(client, command, token);
                 }
             }
 
             Registered = true;
             return Command;
+        }
+
+        private async Task<RestApplicationCommand> CreateGlobalCommand(DiscordRestClient client, SlashCommandCreationProperties command, CancellationToken token = new CancellationToken())
+        {
+            RestApplication application = await client.GetApplicationInfoAsync();
+            RestGlobalCommand? globalCommand = (await client.GetGlobalApplicationCommands(new RequestOptions() {CancelToken = token}))
+                .FirstOrDefault(x => x.Name == command.Name && x.ApplicationId == application.Id);
+
+            if (globalCommand != null)
+            {
+                await globalCommand.ModifyAsync(props =>
+                {
+                    props.Description = command.Description;
+                    props.Options = command.Options;
+                    props.DefaultPermission = command.DefaultPermission;
+                });
+            }
+            
+            globalCommand ??= await client.CreateGlobalCommand(command, new RequestOptions()
+            {
+                CancelToken = token
+            });
+
+            return globalCommand;
+        }
+        
+        private async Task<RestApplicationCommand> CreateGuildCommand(DiscordRestClient client, SlashCommandCreationProperties command, CancellationToken token = new CancellationToken())
+        {
+            if (GuildId == null)
+            {
+                throw new ArgumentException("GuildId cannot be null for guild commands");
+            }
+
+            RestApplication application = await client.GetApplicationInfoAsync();
+            RestGuildCommand? guildCommand = (await client.GetGuildApplicationCommands(GuildId.Value, new RequestOptions() {CancelToken = token}))
+                .FirstOrDefault(x => x.Name == command.Name && x.ApplicationId == application.Id);
+
+            if (guildCommand != null)
+            {
+                await guildCommand.ModifyAsync(props =>
+                {
+                    props.Description = command.Description;
+                    props.Options = command.Options;
+                    props.DefaultPermission = command.DefaultPermission;
+                });
+            }
+            
+            guildCommand ??= await client.CreateGuildCommand(command, GuildId.Value, new RequestOptions()
+            {
+                CancelToken = token
+            });
+
+            return guildCommand;
         }
 
         public async Task UnregisterCommandAsync(IPermissionService permissions, CancellationToken token = new CancellationToken())
