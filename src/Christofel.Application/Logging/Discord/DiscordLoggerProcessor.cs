@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Discord;
@@ -60,6 +62,10 @@ namespace Christofel.Application.Logging.Discord
                 Console.WriteLine(e);
             }
         }
+        
+        static IEnumerable<string> Split(string str, int chunkSize) =>
+            Enumerable.Range(0, str.Length / chunkSize)
+                .Select(i => str.Substring(i * chunkSize, chunkSize));
 
         private void WriteMessage(DiscordLogMessage entry)
         {
@@ -69,7 +75,10 @@ namespace Christofel.Application.Logging.Discord
 
             if (channel != null)
             {
-                channel.SendMessageAsync(entry.Message).GetAwaiter().GetResult();
+                foreach (string part in Split(entry.Message, 2000))
+                {
+                    channel.SendMessageAsync(part).GetAwaiter().GetResult();
+                }
             }
             else
             {
