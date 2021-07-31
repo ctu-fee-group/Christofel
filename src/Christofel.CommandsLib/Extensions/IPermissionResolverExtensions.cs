@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
+using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Discord;
 
@@ -12,7 +13,7 @@ namespace Christofel.CommandsLib.Extensions
     public static class IPermissionResolverExtensions
     {
         public static async Task<ApplicationCommandPermission[]> GetSlashCommandPermissionsAsync(this IPermissionsResolver resolver, IPermission permission, CancellationToken token = new CancellationToken())
-        { 
+        {
             IEnumerable<DiscordTarget> allowedDiscordTargets = await resolver
                 .GetPermissionTargetsAsync(permission, token);
 
