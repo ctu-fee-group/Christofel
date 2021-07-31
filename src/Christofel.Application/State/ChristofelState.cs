@@ -2,6 +2,7 @@ using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
+using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +14,7 @@ namespace Christofel.Application.State
     {
         public ChristofelState(IBot bot, IDbContextFactory<ChristofelBaseContext> factory,
             ReadonlyDbContextFactory<ChristofelBaseContext> readOnlyDatabaseFactory, IConfiguration config,
-            IPermissionService permissions, ILoggerFactory loggerFactory)
+            IPermissionService permissions, ILoggerFactory loggerFactory, IApplicationLifetime lifetime)
         {
             Bot = bot;
             DatabaseFactory = factory;
@@ -21,6 +22,7 @@ namespace Christofel.Application.State
             Permissions = permissions;
             ReadOnlyDatabaseFactory = readOnlyDatabaseFactory;
             LoggerFactory = loggerFactory;
+            Lifetime = lifetime;
         }
         
         public IBot Bot { get; }
@@ -30,5 +32,7 @@ namespace Christofel.Application.State
         public IPermissionService Permissions { get; }
         
         public ILoggerFactory LoggerFactory { get; }
+        
+        public IApplicationLifetime Lifetime { get; }
     }
 }

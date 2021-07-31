@@ -13,8 +13,6 @@ namespace Christofel.Application
             // App lifetime cycle
             await application.InitAsync();
             await application.RunAsync(); // blocks until Bot.QuitBot is called
-            await application.StopAsync();
-            await application.DestroyAsync();
             
             Console.WriteLine("Goodbye!");
         }

@@ -17,6 +17,7 @@ using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Extensions;
+using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Discord;
@@ -37,6 +38,7 @@ namespace Christofel.Application
         private ILogger<ChristofelApp>? _logger;
         private IConfigurationRoot _configuration;
         private bool _running;
+        private ChristofelLifetimeHandler _lifetimeHandler;
 
         public static IConfigurationRoot CreateConfiguration(string[] commandArgs)
         {
@@ -52,6 +54,7 @@ namespace Christofel.Application
 
         public ChristofelApp(string[] commandArgs)
         {
+            _lifetimeHandler = new ChristofelLifetimeHandler(DefaultHandleError(() => _logger), this);
             _configuration = CreateConfiguration(commandArgs);
         }
 
@@ -89,10 +92,13 @@ namespace Christofel.Application
             }
         }
 
+        protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
+
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
                 .AddSingleton<IChristofelState, ChristofelState>()
+                .AddSingleton<IApplicationLifetime>(_lifetimeHandler.LifetimeSpecific)
                 // config
                 .AddSingleton<IConfiguration>(_configuration)
                 .Configure<BotOptions>(_configuration.GetSection("Bot"))
@@ -119,6 +125,8 @@ namespace Christofel.Application
                 .AddTransient<IPermissionsResolver, DbPermissionsResolver>()
                 // plugins
                 .AddSingleton<PluginService>()
+                .AddSingleton<PluginStorage>()
+                .AddSingleton<PluginLifetimeService>()
                 .AddSingleton<PluginAutoloader>()
                 // loggings
                 .AddLogging(builder =>
@@ -159,8 +167,11 @@ namespace Christofel.Application
             loggerForward.RegisterEvents(bot.Client);
             loggerForward.RegisterEvents(bot.Client.Rest);
             
+            
             await bot.StartBotAsync(token);
-            await bot.RunApplication(token); 
+            await bot.RunApplication(
+                CancellationTokenSource
+                    .CreateLinkedTokenSource(Lifetime.Stopped, token).Token); 
                 // Blocking, ChristofelApp is the only exception
                 // that has RunAsync blocking as it's the base entry point.
         }
@@ -196,6 +207,7 @@ namespace Christofel.Application
                     catch (Exception e)
                     {
                         _logger.LogCritical(0, e, "Christofel threw an exception when Starting");
+                        LifetimeHandler.MoveToError(e);
                     }
                 });
                 _running = true;
