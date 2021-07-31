@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading;
@@ -17,7 +18,7 @@ namespace Christofel.Application.Permissions
     /// </summary>
     public sealed class DbPermissionsResolver : IPermissionsResolver
     {
-        private ReadonlyDbContextFactory<ChristofelBaseContext> _readOnlyDbContextFactory;
+        private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _readOnlyDbContextFactory;
 
         public DbPermissionsResolver(ReadonlyDbContextFactory<ChristofelBaseContext> readOnlyDbContextFactory)
         {
@@ -26,44 +27,35 @@ namespace Christofel.Application.Permissions
 
         public async Task<IEnumerable<DiscordTarget>> GetPermissionTargetsAsync(string permissionName, CancellationToken token = new CancellationToken())
         {
-            await using var readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
+            await using ReadOnlyDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
             return await readOnlyContext.Set<PermissionAssignment>()
                 .Where(x => GetPossiblePermissions(permissionName).Contains(x.PermissionName))
                 .Select(x => x.Target)
                 .ToListAsync(token);
         }
 
-        public Task<IEnumerable<DiscordTarget>> GetPermissionTargetsAsync(IPermission permission, CancellationToken token = new CancellationToken())
-        {
-            return GetPermissionTargetsAsync(permission.Name, token);
-        }
-
         public async Task<bool> HasPermissionAsync(string permissionName, DiscordTarget target, CancellationToken token = new CancellationToken())
         {
-            await using var readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
+            await using ReadOnlyDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
             return await readOnlyContext.Set<PermissionAssignment>()
                 .Where(x => GetPossiblePermissions(permissionName).Contains(x.PermissionName))
                 .AnyAsync(x =>  x.Target.TargetType == TargetType.Everyone || 
                                 (x.Target.DiscordId == target.DiscordId && x.Target.TargetType == target.TargetType), token);
         }
 
-        public Task<bool> HasPermissionAsync(IPermission permission, DiscordTarget target, CancellationToken token = new CancellationToken())
+        public async Task<bool> AnyHasPermissionAsync(string permissionName, IEnumerable<DiscordTarget> targets, CancellationToken token = new CancellationToken())
         {
-            return HasPermissionAsync(permission.Name, target, token);
-        }
+            var discordTargets = targets as DiscordTarget[] ?? targets.ToArray();
+            IEnumerable<ulong> roles = discordTargets.Where(x => x.TargetType == TargetType.Role).Select(x => x.DiscordId);
+            IEnumerable<ulong> users = discordTargets.Where(x => x.TargetType == TargetType.User).Select(x => x.DiscordId);
 
-        public async Task<bool> AnyHasPermissionAsync(string permissionName, IEnumerable<DiscordTarget> target, CancellationToken token = new CancellationToken())
-        {
-            await using var readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
+            await using ReadOnlyDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
             return await readOnlyContext.Set<PermissionAssignment>()
                 .Where(x => GetPossiblePermissions(permissionName).Contains(x.PermissionName))
-                .AnyAsync(x =>  x.Target.TargetType == TargetType.Everyone || 
-                                (target.Any(y => x.Target.DiscordId == y.DiscordId && x.Target.TargetType == y.TargetType)), token);
-        }
-
-        public Task<bool> AnyHasPermissionAsync(IPermission permission, IEnumerable<DiscordTarget> target, CancellationToken token = new CancellationToken())
-        {
-            return AnyHasPermissionAsync(permission.Name, target, token);
+                .AnyAsync(x =>
+                    x.Target.TargetType == TargetType.Everyone ||
+                    (x.Target.TargetType == TargetType.User && users.Contains(x.Target.DiscordId)) ||
+                    (x.Target.TargetType == TargetType.Role && roles.Contains(x.Target.DiscordId)));
         }
 
         private IEnumerable<string> GetPossiblePermissions(string permissionName)
