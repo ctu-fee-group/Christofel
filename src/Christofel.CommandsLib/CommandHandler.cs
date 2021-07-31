@@ -113,23 +113,25 @@ namespace Christofel.CommandsLib
             {
                 await info.Handler(command, _commandsTokenSource.Token);
             }
-
-#pragma warning disable 4014
-            Task.Run(async () =>
-#pragma warning restore 4014
+            else
             {
-                try
+                #pragma warning disable 4014
+                Task.Run(async () => 
+                #pragma warning restore 4014
                 {
-                    await info.Handler(command, _commandsTokenSource.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(0, e, "Command handler thrown while running in thread");
-                }
-            });
+                    try
+                    {
+                        await info.Handler(command, _commandsTokenSource.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(0, e, "Command handler has thrown an exception while running in thread");
+                    }
+                });
+            }
         }
 
         public async Task StopAsync(CancellationToken token = new CancellationToken())
