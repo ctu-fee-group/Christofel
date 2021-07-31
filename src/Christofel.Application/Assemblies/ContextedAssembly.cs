@@ -48,8 +48,11 @@ namespace Christofel.Application.Assemblies
         public WeakReference Detach()
         {
             WeakReference weakReference = new WeakReference(Context);
-            Context.Unload();
-            
+            if (Context.IsCollectible)
+            {
+                Context.Unload();
+            }
+
             _assembly = null;
             _context = null;
 
