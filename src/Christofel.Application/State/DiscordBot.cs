@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Discord;
+using Christofel.BaseLib.Lifetime;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
@@ -12,13 +13,15 @@ namespace Christofel.Application.State
 {
     public class DiscordBot : IBot
     {
-        private ILogger<DiscordBot> _logger;
-        private CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
-        private DiscordBotOptions _options;
+        private readonly ILogger<DiscordBot> _logger;
+        private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
+        private readonly DiscordBotOptions _options;
+        private readonly IApplicationLifetime _lifetime;
 
-        public DiscordBot(DiscordSocketClient client, IOptions<DiscordBotOptions> options, ILogger<DiscordBot> logger)
+        public DiscordBot(DiscordSocketClient client, IOptions<DiscordBotOptions> options, ILogger<DiscordBot> logger, IApplicationLifetime lifetime)
         {
             Client = client;
+            _lifetime = lifetime;
             _logger = logger;
             _options = options.Value;
         }
@@ -39,7 +42,17 @@ namespace Christofel.Application.State
                     CancellationTokenSource.CreateLinkedTokenSource(_applicationRunningToken.Token, token);
                 await Task.Delay(-1, tokenSource.Token);
             }
-            catch (TaskCanceledException) {}
+            catch (OperationCanceledException) {}
+            
+            _lifetime.RequestStop();
+            if (_lifetime.State < LifetimeState.Destroyed)
+            {
+                _logger.LogInformation("Going to wait for Christofel to stop. If the app hangs, just kill it");
+                CancellationTokenSource tokenSource = new CancellationTokenSource();
+                await _lifetime.WaitForAsync(LifetimeState.Destroyed, tokenSource.Token);
+                    // Await destroyed at all costs
+                    // If the application is not exiting, the user can just kill it
+            }
         }
 
         public async Task StopBot(CancellationToken token = new CancellationToken())
