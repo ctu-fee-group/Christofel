@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Discord;
+using Christofel.BaseLib.Extensions;
 using Discord;
 using Discord.WebSocket;
 
@@ -57,19 +58,10 @@ namespace Christofel.Application.Logging.Discord
             {
                 WriteMessage(message);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Console.WriteLine(e);
             }
         }
-        
-        static IEnumerable<string> Split(string? str, int chunkSize) =>
-            !string.IsNullOrEmpty(str) ?
-            Enumerable.Range(0, (int)Math.Ceiling(((double)str.Length) / chunkSize))
-                .Select(i => str
-                    .Substring(i * chunkSize,
-                        (i * chunkSize + chunkSize <= str.Length) ? chunkSize : str.Length - i * chunkSize))
-            : Enumerable.Empty<string>();
 
         private void WriteMessage(DiscordLogMessage entry)
         {
@@ -85,7 +77,7 @@ namespace Christofel.Application.Logging.Discord
 
             if (channel != null)
             {
-                foreach (string part in Split(entry.Message, 2000))
+                foreach (string part in entry.Message.Chunk(2000))
                 {
                     channel.SendMessageAsync(part).GetAwaiter().GetResult();
                 }
@@ -111,9 +103,8 @@ namespace Christofel.Application.Logging.Discord
                     {
                         WriteMessage(message);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
-                        Console.WriteLine(e);
                         EnqueueMessage(message);
                     }
                 }
