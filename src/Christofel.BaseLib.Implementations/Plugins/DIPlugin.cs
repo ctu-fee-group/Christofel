@@ -163,18 +163,23 @@ namespace Christofel.BaseLib.Plugins
             }
             
             token.ThrowIfCancellationRequested();
-
-            try
+            List<Exception> exceptions = new List<Exception>();
+            foreach (IStoppable stoppable in Stoppable)
             {
-                foreach (IStoppable stoppable in Stoppable)
+                try
                 {
                     await stoppable.StopAsync(token);
                 }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                    LifetimeHandler.MoveToError(e);
+                }
             }
-            catch (Exception e)
+
+            if (exceptions.Count > 0)
             {
-                LifetimeHandler.MoveToError(e);
-                throw;
+                throw new AggregateException(exceptions);
             }
 
             VerifyStateAndIncrement(LifetimeState.Stopping);
