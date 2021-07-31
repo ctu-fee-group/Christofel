@@ -84,8 +84,7 @@ namespace Christofel.CommandsLib
         {
             if (arg is SocketSlashCommand command)
             {
-                string name = command.Data.Name;
-                SlashCommandInfo? info = _commands.FirstOrDefault(x => x.Builder.Name == name);
+                SlashCommandInfo? info = _commands.FirstOrDefault(x => x.Builder.Name == command.Data.Name);
 
                 if (info != null)
                 {
@@ -100,6 +99,11 @@ namespace Christofel.CommandsLib
 
         protected virtual async Task HandleCommand(SlashCommandInfo info, SocketSlashCommand command)
         {
+            if (!await info.HasPermissionAsync(command.User, _permissions.Resolver))
+            {
+                return;
+            }
+            
             if (AutoDefer)
             {
                 await command.RespondAsync(DeferMessage, ephemeral: true);
