@@ -63,9 +63,13 @@ namespace Christofel.Application.Logging.Discord
             }
         }
         
-        static IEnumerable<string> Split(string str, int chunkSize) =>
-            Enumerable.Range(0, str.Length / chunkSize)
-                .Select(i => str.Substring(i * chunkSize, chunkSize));
+        static IEnumerable<string> Split(string? str, int chunkSize) =>
+            !string.IsNullOrEmpty(str) ?
+            Enumerable.Range(0, (int)Math.Ceiling(((double)str.Length) / chunkSize))
+                .Select(i => str
+                    .Substring(i * chunkSize,
+                        (i * chunkSize + chunkSize <= str.Length) ? chunkSize : str.Length - i * chunkSize))
+            : Enumerable.Empty<string>();
 
         private void WriteMessage(DiscordLogMessage entry)
         {
