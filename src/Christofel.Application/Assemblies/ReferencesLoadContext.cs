@@ -7,7 +7,6 @@ using System.Runtime.Loader;
 
 namespace Christofel.Application.Assemblies
 {
-    // @see https://www.fatalerrors.org/a/0tl11jo.html
     public class ReferencesLoadContext : AssemblyLoadContext
     {
         private readonly string _pluginLoadDirectory;
@@ -48,23 +47,9 @@ namespace Christofel.Application.Assemblies
         {
             _pluginLoadDirectory = Path.GetDirectoryName(pluginPath) ?? "";
             _resolver = new AssemblyDependencyResolver(_pluginLoadDirectory);
-
-            Resolving += HandleResolving;
-            ResolvingUnmanagedDll += HandleUnmanagedResolving;
         }
 
-        protected IntPtr HandleUnmanagedResolving(Assembly assembly, string unmanagedDllName)
-        {
-            string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
-            if (libraryPath != null)
-            {
-                return LoadUnmanagedDllFromPath(libraryPath);
-            }
-
-            return IntPtr.Zero;
-        }
-
-        protected Assembly? HandleResolving(AssemblyLoadContext context, AssemblyName assemblyName)
+        protected override Assembly? Load(AssemblyName assemblyName)
         {
             if (_sharedAssemblies.Contains(assemblyName.Name))
             {
@@ -74,22 +59,27 @@ namespace Christofel.Application.Assemblies
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
-                return LoadFromStreamFile(assemblyPath);
+                return LoadFromAssemblyPath(assemblyPath);
             }
 
             assemblyPath = Path.Combine(_pluginLoadDirectory, assemblyName.Name + ".dll");
             if (File.Exists(assemblyPath))
             {
-                return LoadFromStreamFile(assemblyPath);
+                return LoadFromAssemblyPath(assemblyPath);
             }
 
             return null;
         }
 
-        protected Assembly LoadFromStreamFile(string assemblyPath)
+        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
         {
-            using FileStream stream = File.OpenRead(assemblyPath);
-            return LoadFromStream(stream);
+            string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
+            if (libraryPath != null)
+            {
+                return LoadUnmanagedDllFromPath(libraryPath);
+            }
+
+            return IntPtr.Zero;
         }
     }
 }
