@@ -23,6 +23,7 @@ namespace Christofel.Application.Commands
         private readonly PluginService _plugins;
         private readonly IChristofelState _state;
         private readonly BotOptions _options;
+        private readonly PluginStorage _storage;
         
         // Plugin command
         // attach, detach, reattach, list subcommands
@@ -32,10 +33,12 @@ namespace Christofel.Application.Commands
             IChristofelState state,
             PluginService plugins,
             IOptions<BotOptions> options,
+            PluginStorage storage,
             ILogger<PluginCommands> logger
             )
             : base(client, permissions, logger)
         {
+            _storage = storage;
             _state = state;
             _plugins = plugins;
             _options = options.Value;
@@ -224,7 +227,8 @@ namespace Christofel.Application.Commands
         
         private Task HandleList(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
-            IEnumerable<string> plugins = _plugins.AttachedPlugins.Select(x => $@"**{x.Name}** ({x.Version}) - {x.Description}");
+            IEnumerable<string> plugins = _storage.AttachedPlugins
+                .Select(x => $@"**{x.Name}** ({x.Version}) - {x.Description}");
             string pluginMessage = "List of attached plugins:\n  " + string.Join("\n  ", plugins);
             
             return command.FollowupAsync(

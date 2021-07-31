@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -13,11 +12,6 @@ namespace Christofel.BaseLib.Database
         public ChristofelBaseContext(DbContextOptions<ChristofelBaseContext> options)
             : base(options)
         {
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
         }
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = new CancellationToken())
