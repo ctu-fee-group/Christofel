@@ -5,7 +5,9 @@ namespace Christofel.BaseLib.Permissions
     /// </summary>
     public interface IPermission
     {
-        public string Name { get; }
+        public string PermissionName { get; }
+        
+        public string DisplayName { get; }
         
         public string Description { get; }
     }

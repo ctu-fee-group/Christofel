@@ -12,23 +12,27 @@ namespace Christofel.CommandsLib.Commands
         
         public CommandPermission(SlashCommandBuilder builder, string permissionName)
         {
-            _commandName = permissionName;
+            PermissionName = permissionName;
+            _commandName = builder.Name;
             _commandDescription = builder.Description;
         }
         
         public CommandPermission(SlashCommandCreationProperties commandProperties, string permissionName)
         {
-            _commandName = permissionName;
+            PermissionName = permissionName;
+            _commandName = commandProperties.Name;
             _commandDescription = commandProperties.Description;
         }
 
         public CommandPermission(IApplicationCommand command, string permissionName)
         {
-            _commandName = permissionName;
+            PermissionName = permissionName;
+            _commandName = command.Name;
             _commandDescription = command.Description;
         }
 
-        public string Name => @$"Slash command /{_commandName}";
+        public string PermissionName { get; }
+        public string DisplayName => @$"Slash command /{_commandName}";
         public string Description => $@"This is a permission for slash command. {_commandDescription}";
     }
 }

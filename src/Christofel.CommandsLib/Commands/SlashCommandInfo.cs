@@ -52,6 +52,20 @@ namespace Christofel.CommandsLib.Commands
 
             return BuiltCommand;
         }
+
+        public Task<bool> HasPermissionAsync(SocketUser user, IPermissionsResolver resolver, CancellationToken cancellationToken = new CancellationToken())
+        {
+            List<DiscordTarget> targets = new List<DiscordTarget>();
+            
+            if (user is SocketGuildUser guildUser)
+            {
+                targets.AddRange(guildUser.Roles.Select(x => x.ToDiscordTarget()));
+            }
+            
+            targets.Add(user.ToDiscordTarget());
+
+            return resolver.AnyHasPermissionAsync(Permission, targets, cancellationToken);
+        }
         
         public Task<bool> IsForEveryoneAsync(IPermissionsResolver resolver, CancellationToken token = new CancellationToken())
         {

@@ -32,7 +32,7 @@ namespace Christofel.Application.State
         {
             lock (_threadLock)
             {
-                if (_permissions.All(x => x.Name != permission.Name))
+                if (_permissions.All(x => x.PermissionName != permission.PermissionName))
                 {
                     _permissions.Add(permission);
                 }
@@ -51,7 +51,7 @@ namespace Christofel.Application.State
         {
             lock (_threadLock)
             {
-                _permissions.RemoveAll(x => x.Name == permissionName);
+                _permissions.RemoveAll(x => x.PermissionName == permissionName);
             }
         }
     }
