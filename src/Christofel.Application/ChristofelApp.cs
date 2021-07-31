@@ -149,8 +149,6 @@ namespace Christofel.Application
 
         protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
-            services.GetRequiredService<PluginStorage>()
-                .AddAttachedPlugin(new AttachedPlugin(this, new ContextedAssembly(AssemblyLoadContext.Default, typeof(ChristofelApp).Assembly)));
             _logger = services.GetRequiredService<ILogger<ChristofelApp>>();
             return Task.CompletedTask;
         }
