@@ -12,6 +12,7 @@ namespace Christofel.Application.Plugins
         {
             _plugin = plugin;
             PluginAssembly = assembly;
+            Id = Guid.NewGuid();
         }
 
         public IPlugin Plugin
@@ -26,6 +27,10 @@ namespace Christofel.Application.Plugins
                 return _plugin;
             }
         }
+        
+        public DetachedPlugin? DetachedPlugin { get; set; }
+        
+        public Guid Id { get; }
         
         public ContextedAssembly PluginAssembly { get; }
 

@@ -9,41 +9,43 @@ using System.Threading.Tasks;
 using Christofel.Application.Assemblies;
 using Christofel.Application.Extensions;
 using Christofel.BaseLib;
+using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Serialization;
 
 namespace Christofel.Application.Plugins
 {
     public class PluginService : IDisposable, IStoppable, IRefreshable
     {
-        private object _runLock = new object();
-        
         public static string ModuleNameRegex => "^[a-zA-Z0-9\\.]+$";
 
-        private IDisposable _onOptionsChange;
+        private readonly IDisposable _onOptionsChange;
 
-        private List<AttachedPlugin> _plugins;
-        private List<DetachedPlugin> _detachedPlugins;
         private PluginServiceOptions _options;
 
-        private ILogger<PluginService> _logger;
+        private readonly ILogger<PluginService> _logger;
+        private readonly PluginStorage _storage;
+        private readonly PluginLifetimeService _lifetimeService;
 
-        public PluginService(IOptionsMonitor<PluginServiceOptions> options, ILogger<PluginService> logger)
+        public PluginService(
+            IOptionsMonitor<PluginServiceOptions> options,
+            PluginLifetimeService lifetimeService,
+            PluginStorage storage,
+            ILogger<PluginService> logger)
         {
-            _plugins = new List<AttachedPlugin>();
-            _detachedPlugins = new List<DetachedPlugin>();
+            _storage = storage;
             _logger = logger;
+            _lifetimeService = lifetimeService;
 
             _options = options.CurrentValue;
             _onOptionsChange = options.OnChange(o => _options = o);
         }
-
-        public IEnumerable<IHasPluginInfo> AttachedPlugins => _plugins.AsReadOnly();
-
+        
         public bool IsAttached(string name)
         {
-            return _plugins.Any(x => x.Name == name);
+            return _storage.IsAttached(name);
         }
 
         public bool Exists(string name)
@@ -55,7 +57,9 @@ namespace Christofel.Application.Plugins
         {
             token.ThrowIfCancellationRequested();
             _logger.LogInformation("Detaching all plugins");
-            return Task.WhenAll(_plugins.Select(x => DetachAsync(x, token)));
+            return Task.WhenAll(_storage.AttachedPlugins
+                .ToList()
+                .Select(x => InternalDetachAsync(x, token)));
         }
 
         public Task<IHasPluginInfo> AttachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
@@ -82,76 +86,46 @@ namespace Christofel.Application.Plugins
 
         public Task<IHasPluginInfo> DetachAsync(string name, CancellationToken token = new CancellationToken())
         {
+            if (!IsAttached(name))
+            {
+                throw new InvalidOperationException("This plugin is not attached");
+            }
+
             token.ThrowIfCancellationRequested();
-            AttachedPlugin plugin = _plugins.First(x => x.Name == name);
-            return DetachAsync(plugin, token);
+            AttachedPlugin plugin = _storage.GetAttachedPlugin(name);
+            return InternalDetachAsync(plugin, token);
         }
 
         public Task<IHasPluginInfo> ReattachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
         {
+            if (!IsAttached(name))
+            {
+                throw new InvalidOperationException("This plugin is not attached");
+            }
+
             token.ThrowIfCancellationRequested();
-            return ReattachAsync(state, _plugins.First(x => x.Name == name), token);
+            return InternalReattachAsync(state, _storage.GetAttachedPlugin(name), token);
         }
 
-        private Task<IHasPluginInfo> InternalAttachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
+        private async Task<IHasPluginInfo> InternalAttachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();
             using (_logger.BeginScope(@$"Attaching {name} plugin"))
             {
                 _logger.LogInformation($@"Attaching {name} plugin");
 
-                string path = GetModulePath(name);
-                _logger.LogDebug($@"Loading assembly");
-                ContextedAssembly info = AssemblyLoader.Load(path);
-                _logger.LogDebug($@"Assembly loaded");
-                
-                _logger.LogDebug($@"Finding IModule");
-                Type pluginType = info.Assembly.GetTypeImplementing<IPlugin>();
-                _logger.LogDebug($@"Found IModule");
-                if (token.IsCancellationRequested)
-                {
-                    info.Detach();
-                    token.ThrowIfCancellationRequested();
-                }
-                
-                IPlugin? rawPlugin = (IPlugin?)Activator.CreateInstance(pluginType);
-
-                if (rawPlugin == null)
-                {
-                    _logger.LogDebug($@"Plugin could not be initialized");
-                    throw new InvalidOperationException("Could not initialize the plugin");
-                }
+                ContextedAssembly assembly = await _lifetimeService.AttachAssemblyAsync(GetModulePath(name));
+                IPlugin rawPlugin = await _lifetimeService.CreateRawPluginAsync(assembly);
 
                 if (rawPlugin.Name != name)
                 {
-                    info.Detach();
+                    assembly.Detach();
+                    rawPlugin.Lifetime.RequestStop();
                     throw new InvalidOperationException("Plugin names do not match");
                 }
 
-                return InitializePluginAsync(rawPlugin, info, state, token);
+                return await _lifetimeService.InitializePluginAsync(rawPlugin, assembly, state, token);
             }
-        }
-
-        private async Task<IHasPluginInfo> InitializePluginAsync(IPlugin rawPlugin, ContextedAssembly info, IChristofelState state, CancellationToken token = new CancellationToken())
-        {
-            _logger.LogDebug($@"Initialization started");
-            await rawPlugin.InitAsync(state, token);
-            if (token.IsCancellationRequested)
-            {
-                info.Detach();
-                token.ThrowIfCancellationRequested();
-            }
-            await rawPlugin.RunAsync(token);
-
-            AttachedPlugin plugin = new AttachedPlugin(rawPlugin, info);
-            lock (_runLock)
-            {
-                _plugins.Add(plugin);
-            }
-
-            _logger.LogInformation($@"Plugin {plugin} was attached successfully");
-
-            return plugin;
         }
 
         public void CheckDetached()
@@ -159,8 +133,7 @@ namespace Christofel.Application.Plugins
             GC.Collect();
             GC.WaitForPendingFinalizers();
             
-            bool remove = false;
-            foreach (DetachedPlugin plugin in _detachedPlugins)
+            foreach (DetachedPlugin plugin in _storage.DetachedPlugins.ToList())
             {
                 if (plugin.AssemblyContextReference?.IsAlive ?? false)
                 {
@@ -168,49 +141,41 @@ namespace Christofel.Application.Plugins
                 }
                 else
                 {
-                    remove = true;
+                    _storage.RemoveDetachedPlugin(plugin);
                     _logger.LogInformation($@"{plugin} was finally unloaded");
-                }
-            }
-
-            if (remove)
-            {
-                lock (_runLock)
-                {
-                    _detachedPlugins.RemoveAll(x => (!x.AssemblyContextReference?.IsAlive) ?? true);
                 }
             }
         }
         
-        private async Task<IHasPluginInfo> DetachAsync(AttachedPlugin plugin, CancellationToken token = new CancellationToken())
+        private async Task<IHasPluginInfo> InternalDetachAsync(AttachedPlugin plugin, CancellationToken token = new CancellationToken())
         {
             DetachedPlugin detached = new DetachedPlugin(plugin);
-            _logger.LogInformation($@"Detaching module {plugin}");
-            await plugin.Plugin.StopAsync(token);
-            await plugin.Plugin.DestroyAsync(token);
+            
+            if (plugin.DetachedPlugin != null)
+            {
+                return plugin.DetachedPlugin;
+            }
 
-            WeakReference reference = plugin.Detach();
-            detached.AssemblyContextReference = reference;
-            
-            lock (_runLock)
-            {
-                _detachedPlugins.Add(detached);
-                _plugins.Remove(plugin);
-            }
-            
-            if (reference.IsAlive)
-            {
-                _logger.LogWarning("The assembly was not detached successfully");
-            }
+            plugin.DetachedPlugin = detached;
+            _storage.DetachAttachedPlugin(plugin);
+
+            await _lifetimeService.DetachPluginAsync(plugin, detached);
 
             return detached;
         }
-
-        private async Task<IHasPluginInfo> ReattachAsync(IChristofelState state, AttachedPlugin plugin, CancellationToken token = new CancellationToken())
+        
+        private async Task<IHasPluginInfo> InternalReattachAsync(IChristofelState state, AttachedPlugin plugin, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation($@"Reattaching plugin {plugin}");
-            await DetachAsync(plugin, token);
+            DetachedPlugin detached = (DetachedPlugin)await InternalDetachAsync(plugin, token);
             token.ThrowIfCancellationRequested();
+
+            if (!detached.Destroyed)
+            {
+                _logger.LogError("Cannot finish reattach as the plugin did not stop in time");
+                throw new InvalidOperationException("Could not detach the plugin in time, aborting reattach");
+            }
+            
             return await AttachAsync(state, plugin.Name, token);
         }
 
@@ -232,8 +197,7 @@ namespace Christofel.Application.Plugins
         public Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
             return Task.WhenAll(
-                _plugins.Select(x => x.Plugin.RefreshAsync(token))
-                );
+                _storage.AttachedPlugins.Select(x => x.Plugin.RefreshAsync(token)));
         }
     }
 }
