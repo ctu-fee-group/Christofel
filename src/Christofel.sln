@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Discord.Net.WebSocket", "..
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.HelloWorld", "Christofel.HelloWorld\Christofel.HelloWorld.csproj", "{8A6F3A67-341D-420B-8A11-E878B7F7040F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.BaseLib.Implementations", "Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj", "{7D2E96A4-98AD-4B14-9C9B-AE58A975D016}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,7 @@ Global
 		{B6FEC277-E8FF-4399-82FB-27EDACB10ABF} = {1F8A87BE-D9E4-44EF-A7EE-75A4B386BB42}
 		{E9B55BA6-BC15-4464-B752-2C9BCE7B5EF9} = {1F8A87BE-D9E4-44EF-A7EE-75A4B386BB42}
 		{8A6F3A67-341D-420B-8A11-E878B7F7040F} = {05930E47-11FB-41BE-BEBB-5CD09C29117C}
+		{7D2E96A4-98AD-4B14-9C9B-AE58A975D016} = {CDA54591-9A27-4DAE-95C5-D4D7784F74EB}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0C798625-3BD0-40A1-8921-08292D0445A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -86,5 +89,9 @@ Global
 		{8A6F3A67-341D-420B-8A11-E878B7F7040F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A6F3A67-341D-420B-8A11-E878B7F7040F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A6F3A67-341D-420B-8A11-E878B7F7040F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D2E96A4-98AD-4B14-9C9B-AE58A975D016}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D2E96A4-98AD-4B14-9C9B-AE58A975D016}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D2E96A4-98AD-4B14-9C9B-AE58A975D016}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D2E96A4-98AD-4B14-9C9B-AE58A975D016}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
