@@ -4,8 +4,10 @@ using System.Configuration;
 using System.Globalization;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Application.Assemblies;
 using Christofel.Application.Commands;
 using Christofel.Application.Logging;
 using Christofel.Application.Logging.Discord;
@@ -147,6 +149,8 @@ namespace Christofel.Application
 
         protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
+            services.GetRequiredService<PluginStorage>()
+                .AddAttachedPlugin(new AttachedPlugin(this, new ContextedAssembly(AssemblyLoadContext.Default, typeof(ChristofelApp).Assembly)));
             _logger = services.GetRequiredService<ILogger<ChristofelApp>>();
             return Task.CompletedTask;
         }
