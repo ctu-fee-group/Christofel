@@ -188,8 +188,15 @@ namespace Christofel.Application
             {
                 Task.Run(async () =>
                 {
-                    await base.RunAsync();
-                    _logger.LogInformation("Christofel is ready!");
+                    try
+                    {
+                        await base.RunAsync();
+                        _logger.LogInformation("Christofel is ready!");
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogCritical(0, e, "Christofel threw an exception when Starting");
+                    }
                 });
                 _running = true;
             }
