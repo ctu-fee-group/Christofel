@@ -73,6 +73,12 @@ namespace Christofel.Application.Logging.Discord
 
         private void WriteMessage(DiscordLogMessage entry)
         {
+            if (_bot.ConnectionState != ConnectionState.Connected)
+            {
+                _canProcess = false;
+                return;
+            }
+            
             var channel = _bot
                 .GetGuild(entry.GuildId)
                 .GetTextChannel(entry.ChannelId);
