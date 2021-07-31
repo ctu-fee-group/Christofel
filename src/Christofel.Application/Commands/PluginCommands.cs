@@ -134,7 +134,7 @@ namespace Christofel.Application.Commands
             if (!_plugins.Exists(pluginName))
             {
                 attach = false;
-                await command.FollowupAsync(
+                await command.FollowupChunkAsync(
                     "The plugin was not found",
                     ephemeral: true,
                     options: new RequestOptions() { CancelToken = token });
@@ -143,7 +143,7 @@ namespace Christofel.Application.Commands
             if (_plugins.IsAttached(pluginName))
             {
                 attach = false;
-                await command.FollowupAsync(
+                await command.FollowupChunkAsync(
                     "Plugin with the same name is already attached. Did you mean to reattach it?",
                     ephemeral: true,
                     options: new RequestOptions() { CancelToken = token });
@@ -155,7 +155,7 @@ namespace Christofel.Application.Commands
                 try
                 {
                     IHasPluginInfo plugin = await _plugins.AttachAsync(_state, pluginName, token);
-                    await command.FollowupAsync(
+                    await command.FollowupChunkAsync(
                         $@"Plugin {plugin} was attached",
                         ephemeral: true,
                         options: new RequestOptions() { CancelToken = token });
@@ -163,7 +163,7 @@ namespace Christofel.Application.Commands
                 catch (Exception e)
                 {
                     _logger.LogError(0, e, "Error loading plugin");
-                    await command.RespondAsync(
+                    await command.FollowupChunkAsync(
                         "There was an error. Check the log.",
                         ephemeral: true,
                         options: new RequestOptions() { CancelToken = token });
@@ -181,7 +181,7 @@ namespace Christofel.Application.Commands
             if (!_plugins.IsAttached(pluginName))
             {
                 detach = false;
-                await command.FollowupAsync(
+                await command.FollowupChunkAsync(
                     "Could not find attached plugin with this name",
                     ephemeral: true,
                     options: new RequestOptions() { CancelToken = token }
@@ -191,7 +191,7 @@ namespace Christofel.Application.Commands
             if (detach)
             {
                 IHasPluginInfo plugin = await _plugins.DetachAsync(pluginName, token);
-                await command.FollowupAsync(
+                await command.FollowupChunkAsync(
                     $@"Plugin {plugin} was detached",
                     ephemeral: true,
                     options: new RequestOptions() { CancelToken = token }
@@ -207,7 +207,7 @@ namespace Christofel.Application.Commands
             if (!_plugins.IsAttached(pluginName))
             {
                 reattach = false;
-                await command.FollowupAsync(
+                await command.FollowupChunkAsync(
                     "Could not find attached plugin with this name",
                     ephemeral: true,
                     options: new RequestOptions() { CancelToken = token }
@@ -217,7 +217,7 @@ namespace Christofel.Application.Commands
             if (reattach)
             {
                 IHasPluginInfo plugin = await _plugins.ReattachAsync(_state, pluginName, token);
-                await command.FollowupAsync(
+                await command.FollowupChunkAsync(
                     $@"Plugin {plugin} was detached",
                     ephemeral: true,
                     options: new RequestOptions() { CancelToken = token }
@@ -231,7 +231,7 @@ namespace Christofel.Application.Commands
                 .Select(x => $@"**{x.Name}** ({x.Version}) - {x.Description}");
             string pluginMessage = "List of attached plugins:\n  " + string.Join("\n  ", plugins);
             
-            return command.FollowupAsync(
+            return command.FollowupChunkAsync(
                 pluginMessage,
                 ephemeral: true,
                 options: new RequestOptions() { CancelToken = token });
@@ -240,7 +240,7 @@ namespace Christofel.Application.Commands
         private Task HandleCheck(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _plugins.CheckDetached();
-            return command.FollowupAsync(
+            return command.FollowupChunkAsync(
                 "Check log for result",
                 ephemeral: true,
                 options: new RequestOptions() { CancelToken = token });

@@ -106,7 +106,7 @@ namespace Christofel.CommandsLib
             
             if (AutoDefer)
             {
-                await command.RespondAsync(DeferMessage, ephemeral: true);
+                await command.RespondChunkAsync(DeferMessage, ephemeral: true);
             }
             
             if (RunMode == RunMode.SameThread)
