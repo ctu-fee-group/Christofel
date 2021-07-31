@@ -18,28 +18,13 @@ namespace Christofel.BaseLib.Permissions
         public Task<IEnumerable<DiscordTarget>> GetPermissionTargetsAsync(string permissionName, CancellationToken token = new CancellationToken());
         
         /// <summary>
-        /// Get what targets have permission with the given name
-        /// </summary>
-        /// <param name="permission">Name of the permission</param>
-        /// <returns>Collection containing all DiscordTargets</returns>
-        public Task<IEnumerable<DiscordTarget>> GetPermissionTargetsAsync(IPermission permission, CancellationToken token = new CancellationToken());
-
-        /// <summary>
         /// Check for permission on specified target
         /// </summary>
         /// <param name="permissionName"></param>
         /// <param name="target"></param>
         /// <returns>Whether the target has the permission</returns>
         public Task<bool> HasPermissionAsync(string permissionName, DiscordTarget target, CancellationToken token = new CancellationToken());
-        
-        /// <summary>
-        /// Check for permission on specified target
-        /// </summary>
-        /// <param name="permission"></param>
-        /// <param name="target"></param>
-        /// <returns>Whether the target has the permission</returns>
-        public Task<bool> HasPermissionAsync(IPermission permission, DiscordTarget target, CancellationToken token = new CancellationToken());
-        
+
         /// <summary>
         /// Return whether any of the specified targets has the permission needed
         /// </summary>
@@ -47,13 +32,5 @@ namespace Christofel.BaseLib.Permissions
         /// <param name="target"></param>
         /// <returns></returns>
         public Task<bool> AnyHasPermissionAsync(string permissionName, IEnumerable<DiscordTarget> target, CancellationToken token = new CancellationToken());
-        
-        /// <summary>
-        /// Return whether any of the specified targets has the permission needed
-        /// </summary>
-        /// <param name="permission"></param>
-        /// <param name="target"></param>
-        /// <returns></returns>
-        public Task<bool> AnyHasPermissionAsync(IPermission permission, IEnumerable<DiscordTarget> target, CancellationToken token = new CancellationToken());
     }
 }
