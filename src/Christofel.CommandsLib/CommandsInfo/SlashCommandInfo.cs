@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib.Extensions;
@@ -13,7 +11,7 @@ using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 
-namespace Christofel.CommandsLib.Commands
+namespace Christofel.CommandsLib.CommandsInfo
 {
     public delegate Task SlashCommandHandler(SocketSlashCommand command, CancellationToken token = new CancellationToken());
     

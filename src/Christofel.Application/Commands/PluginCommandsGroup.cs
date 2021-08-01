@@ -10,7 +10,11 @@ using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Commands;
+using Christofel.CommandsLib.CommandsInfo;
+using Christofel.CommandsLib.Executors;
 using Christofel.CommandsLib.Extensions;
+using Christofel.CommandsLib.HandlerCreator;
+using Christofel.CommandsLib.Handlers;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
@@ -21,40 +25,50 @@ namespace Christofel.Application.Commands
     /// <summary>
     /// Handler of /plugin attach, detach, reattach, list, check commands
     /// </summary>
-    public class PluginCommands : CommandHandler
+    public class PluginCommands : ICommandGroup
     {
+        private delegate Task PluginDelegate(SocketSlashCommand command, string pluginName, CancellationToken token);
+        
         private readonly PluginService _plugins;
         private readonly IChristofelState _state;
         private readonly BotOptions _options;
         private readonly PluginStorage _storage;
+        private readonly ILogger<PluginCommands> _logger;
+        private readonly IPermissionsResolver _resolver;
         
         public PluginCommands(
-            DiscordSocketClient client,
-            IPermissionService permissions,
+            IPermissionsResolver resolver,
             IChristofelState state,
             PluginService plugins,
             IOptions<BotOptions> options,
             PluginStorage storage,
             ILogger<PluginCommands> logger
             )
-            : base(client, permissions, logger)
         {
+            _resolver = resolver;
             _storage = storage;
             _state = state;
             _plugins = plugins;
             _options = options.Value;
+            _logger = logger;
         }
 
-        public override async Task SetupCommandsAsync(CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
         {
-            token.ThrowIfCancellationRequested();
+            ICommandHandlerCreator<string> creator = new SubCommandHandlerCreator();
+            SlashCommandHandler handler = creator.CreateHandlerForCommand(
+                ("attach", (CommandDelegate<string>)HandleAttach),
+                ("detach", (CommandDelegate<string>)HandleDetach),
+                ("reattach", (CommandDelegate<string>)HandleReattach),
+                ("list", (CommandDelegate)HandleList),
+                ("check", (CommandDelegate)HandleCheck));
             
             SlashCommandBuilder pluginBuilder = new SlashCommandBuilderInfo()
                 .WithName("plugin")
                 .WithDescription("Control attached plugins")
                 .WithPermission("application.plugins.control")
                 .WithGuild(_options.GuildId)
-                .WithHandler(HandlePluginCommand)
+                .WithHandler(handler)
                 .AddOption(new SlashCommandOptionBuilder()
                     .WithName("attach")
                     .WithDescription("Attach a plugin that is not yet attached")
@@ -92,48 +106,24 @@ namespace Christofel.Application.Commands
                     .WithDescription("Print list of attached plugins")
                     .WithType(ApplicationCommandOptionType.SubCommand));
 
-            await RegisterCommandAsync(pluginBuilder, token);
-        }
-
-        private async Task HandlePluginCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
-        {
-            string subcommand = command.Data.Options.First().Name;
-            token.ThrowIfCancellationRequested();
-
-            switch (subcommand)
-            {
-                case "attach":
-                    await HandleAttach(command, token);
-                    break;
-                case "reattach":
-                    await HandleReattach(command, token);
-                    break;
-                case "detach":
-                    await HandleDetach(command, token);
-                    break;
-                case "list":
-                    await HandleList(command, token);
-                    break;
-                case "check":
-                    await HandleCheck(command, token);
-                    break;
-            }
-        }
-
-        private string GetPluginName(SocketSlashCommand command)
-        {
-            return (string)command.Data.Options.First().Options.First().Value;
+            ICommandExecutor executor = new CommandExecutorBuilder()
+                .WithLogger(_logger)
+                .WithPermissionsCheck(_resolver)
+                .WithDeferMessage()
+                .WithThreadPool()
+                .Build();
+            
+            return holder.RegisterCommandAsync(pluginBuilder, executor, token);
         }
         
+
         /// <summary>
         /// Handle /plugin attach
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleAttach(SocketSlashCommand command, CancellationToken token = new CancellationToken())
+        private async Task HandleAttach(SocketSlashCommand command, string pluginName, CancellationToken token = new CancellationToken())
         {
-            string pluginName = GetPluginName(command);
-            
             _logger.LogDebug("Handling command /plugin attach");
 
             bool attach = true;
@@ -182,12 +172,10 @@ namespace Christofel.Application.Commands
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleDetach(SocketSlashCommand command, CancellationToken token = new CancellationToken())
+        private async Task HandleDetach(SocketSlashCommand command, string pluginName, CancellationToken token = new CancellationToken())
         {
             _logger.LogDebug("Handling command /module detach");
             
-            string pluginName = GetPluginName(command);
-
             bool detach = true;
             if (!_plugins.IsAttached(pluginName))
             {
@@ -215,10 +203,8 @@ namespace Christofel.Application.Commands
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleReattach(SocketSlashCommand command, CancellationToken token = new CancellationToken())
+        private async Task HandleReattach(SocketSlashCommand command, string pluginName, CancellationToken token = new CancellationToken())
         {
-            string pluginName = GetPluginName(command);
-
             bool reattach = true;
             if (!_plugins.IsAttached(pluginName))
             {
