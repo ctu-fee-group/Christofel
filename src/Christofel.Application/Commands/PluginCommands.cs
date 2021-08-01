@@ -216,12 +216,22 @@ namespace Christofel.Application.Commands
 
             if (reattach)
             {
-                IHasPluginInfo plugin = await _plugins.ReattachAsync(_state, pluginName, token);
-                await command.FollowupChunkAsync(
-                    $@"Plugin {plugin} was detached",
-                    ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token }
-                    );
+                try
+                {
+                    IHasPluginInfo plugin = await _plugins.ReattachAsync(_state, pluginName, token);
+                    await command.FollowupChunkAsync(
+                        $@"Plugin {plugin} was reattached",
+                        ephemeral: true,
+                        options: new RequestOptions() { CancelToken = token });
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(0, e, "Error reattaching plugin");
+                    await command.FollowupChunkAsync(
+                        "There was an error. Check the log.",
+                        ephemeral: true,
+                        options: new RequestOptions() { CancelToken = token });
+                }
             }
         }
         
