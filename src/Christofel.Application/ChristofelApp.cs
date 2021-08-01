@@ -22,7 +22,10 @@ using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
+using Christofel.CommandsLib.Extensions;
+using Christofel.CommandsLib.Handlers;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Karambolo.Extensions.Logging.File;
 using Microsoft.EntityFrameworkCore;
@@ -69,8 +72,7 @@ namespace Christofel.Application
             get
             {
                 yield return Services.GetRequiredService<PluginService>();
-                yield return Services.GetRequiredService<ControlCommands>();
-                yield return Services.GetRequiredService<PluginCommands>();
+                yield return Services.GetRequiredService<InteractionHandler>();
             }
         }
 
@@ -79,8 +81,7 @@ namespace Christofel.Application
             get
             {
                 yield return Services.GetRequiredService<PluginService>();
-                yield return Services.GetRequiredService<ControlCommands>();
-                yield return Services.GetRequiredService<PluginCommands>();
+                yield return Services.GetRequiredService<InteractionHandler>();
             }
         }
 
@@ -89,8 +90,7 @@ namespace Christofel.Application
             get
             {
                 yield return Services.GetRequiredService<PluginAutoloader>();
-                yield return Services.GetRequiredService<ControlCommands>();
-                yield return Services.GetRequiredService<PluginCommands>();
+                yield return Services.GetRequiredService<InteractionHandler>();
             }
         }
 
@@ -112,6 +112,7 @@ namespace Christofel.Application
                     s => s.GetRequiredService<IOptions<DiscordSocketConfig>>().Value
                     )
                 .AddSingleton<DiscordSocketClient>()
+                .AddSingleton<DiscordRestClient>(p => p.GetRequiredService<DiscordSocketClient>().Rest)
                 .AddSingleton<IBot, DiscordBot>()
                 // db
                 .AddDbContextFactory<ChristofelBaseContext>(options => 
@@ -142,8 +143,11 @@ namespace Christofel.Application
                 })
                 .AddSingleton<DiscordNetLog>()
                 // commands
-                .AddSingleton<ControlCommands>()
-                .AddSingleton<PluginCommands>()
+                .AddDefaultInteractionHandler(collection =>
+                    collection
+                        .AddCommandGroup<ControlCommands>()
+                        .AddCommandGroup<PluginCommands>()
+                    )
                 .AddSingleton<RefreshChristofel>(this.RefreshAsync);
         }
 
