@@ -8,6 +8,8 @@ using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
+using Christofel.CommandsLib.Extensions;
+using Christofel.CommandsLib.Handlers;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.HelloWorld
@@ -32,7 +34,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<PingCommandHandler>();
+                yield return Services.GetRequiredService<InteractionHandler>();
             }
         }
 
@@ -40,7 +42,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<PingCommandHandler>();
+                yield return Services.GetRequiredService<InteractionHandler>();
             }
         }
 
@@ -48,7 +50,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<PingCommandHandler>();
+                yield return Services.GetRequiredService<InteractionHandler>();
             }
         }
 
@@ -58,8 +60,10 @@ namespace Christofel.HelloWorld
         {
             return serviceCollection
                 .AddDiscordState(State)
+                .AddDefaultInteractionHandler(collection => 
+                    collection.AddCommandGroup<PingCommandGroup>()
+                    )
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
-                .AddSingleton<PingCommandHandler>()
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
         
