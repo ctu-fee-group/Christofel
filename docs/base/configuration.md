@@ -11,10 +11,9 @@ This support is not added for changing the main guild id or bot token.
 In plugins, where DI is used, the configuration can be added using
 `Configure` extension methods for `IServiceCollection`. The
 configuration that should be used is located in `IChristofelState.Configuration`.
-More information about how options work can be found here: https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0
+More information about how options work can be found [here](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0)
 
 ## Documented Fields
-Access to nested levels is achieved using dots in between level names.
 
 - `ConnectionStrings`
   - `ChristofelBase` - Connection string for `ChristofelBaseContext`
@@ -28,10 +27,10 @@ Access to nested levels is achieved using dots in between level names.
   - `Folder` - folder relative to the executable where plugins reside
     - `AutoLoad` - array of strings that controls what plugins will be loaded on startup automatically.
 - `Logging`
-  - this is a configuration of `Microsoft.Extensions.Logging`, for more information try this: https://docs.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line
+  - this is a configuration of `Microsoft.Extensions.Logging`, for more information try [this](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line)
   - `File`
     - Configuration of `Karambolo.Extensions.Logging.File` provider
-    - documentation https://github.com/adams85/filelogger
+    - documentation is located [here](https://github.com/adams85/filelogger)
   - `Console`
     - default `Console` logger provider configuration
   - `Discord`
