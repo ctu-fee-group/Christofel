@@ -232,10 +232,7 @@ namespace Christofel.BaseLib.Plugins
         /// <param name="token"></param>
         public virtual async Task DestroyAsync(CancellationToken token = new CancellationToken())
         {
-            if (VerifyStateAndIncrement(LifetimeState.Stopped) && !LifetimeHandler.IsErrored)
-            {
-                return;
-            }
+            VerifyStateAndIncrement(LifetimeState.Stopped);
             
             token.ThrowIfCancellationRequested();
             try
@@ -246,6 +243,21 @@ namespace Christofel.BaseLib.Plugins
             {
                 LifetimeHandler.MoveToError(e);
                 throw;
+            }
+
+            if (Lifetime.State < LifetimeState.Stopping)
+            {
+                LifetimeHandler.MoveToState(LifetimeState.Stopping);
+            }
+            
+            if (Lifetime.State < LifetimeState.Stopped)
+            {
+                LifetimeHandler.MoveToState(LifetimeState.Stopped);
+            }
+            
+            if (Lifetime.State < LifetimeState.Destroyed)
+            {
+                LifetimeHandler.MoveToState(LifetimeState.Destroyed);
             }
         }
 
