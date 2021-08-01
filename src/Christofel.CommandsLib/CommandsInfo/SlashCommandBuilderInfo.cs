@@ -1,6 +1,6 @@
 using Discord;
 
-namespace Christofel.CommandsLib.Commands
+namespace Christofel.CommandsLib.CommandsInfo
 {
     /// <summary>
     /// Builder of SlashCommandCreationProperties along with SlashCommandInfo

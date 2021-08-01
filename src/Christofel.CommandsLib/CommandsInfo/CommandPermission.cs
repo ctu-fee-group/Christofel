@@ -1,9 +1,7 @@
 using Christofel.BaseLib.Permissions;
 using Discord;
-using Discord.Rest;
-using Discord.WebSocket;
 
-namespace Christofel.CommandsLib.Commands
+namespace Christofel.CommandsLib.CommandsInfo
 {
     /// <summary>
     /// Permission for a slash command
