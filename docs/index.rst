@@ -3,6 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
 Welcome to Christofel's documentation!
 ======================================
 
@@ -11,10 +12,26 @@ It can be useful for anyone working on the bot.
 
 Feature list is also included.
 
+Project README
+===============================
+.. mdinclude:: ../../README.md
+
+Documentation
+===============================
+
 .. toctree::
    :caption: Base
    :maxdepth: 2
 
    base/index
    base/configuration
+   base/permissions
+   base/lifetime
+   base/plugins
+
+.. toctree::
+   :caption: Maintenance
+   :maxdepth: 2
+
+   maintenance/commits
 
