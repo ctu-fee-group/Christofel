@@ -28,11 +28,18 @@ namespace Christofel.Application.State
 
         public DiscordSocketClient Client { get; }
 
+        /// <summary>
+        /// Requests a quit operation
+        /// </summary>
         public void QuitBot()
         {
             _applicationRunningToken.Cancel();
         }
 
+        /// <summary>
+        /// Runs application in delay task until stop is requested using cancellation token
+        /// </summary>
+        /// <param name="token"></param>
         public async Task RunApplication(CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Running application");
@@ -55,6 +62,10 @@ namespace Christofel.Application.State
             }
         }
 
+        /// <summary>
+        /// Logouts the bot from Discord
+        /// </summary>
+        /// <param name="token"></param>
         public async Task StopBot(CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();
@@ -65,6 +76,11 @@ namespace Christofel.Application.State
             }
         }
 
+        /// <summary>
+        /// Starts the bot logging it to Discord
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task<DiscordSocketClient> StartBotAsync(CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();

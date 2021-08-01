@@ -18,6 +18,9 @@ namespace Christofel.BaseLib.User
     /// </summary>
     public interface IUser
     {
+        /// <summary>
+        /// Database primary key
+        /// </summary>
         public int UserId { get; }
     }
 

@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Christofel.BaseLib.Database.Models
 {
+    /// <summary>
+    /// Database table for assignments using year the student started studying
+    /// </summary>
     public class YearRoleAssignment
     {
         [Key]

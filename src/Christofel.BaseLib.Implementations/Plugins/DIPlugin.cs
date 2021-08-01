@@ -122,14 +122,23 @@ namespace Christofel.BaseLib.Plugins
 
             VerifyStateAndIncrement(LifetimeState.Initializing);
         }
-
-
+        
+        /// <summary>
+        /// Initializes services
+        /// </summary>
+        /// <param name="state"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public virtual Task InitAsync(IChristofelState state, CancellationToken token = new CancellationToken())
         {
             State = state;
             return InitAsync(token);
         }
         
+        /// <summary>
+        /// Runs needed services from Startable
+        /// </summary>
+        /// <param name="token"></param>
         public virtual async Task RunAsync(CancellationToken token = new CancellationToken())
         {
             if (!VerifyStateAndIncrement(LifetimeState.Initialized))
@@ -155,6 +164,11 @@ namespace Christofel.BaseLib.Plugins
             VerifyStateAndIncrement(LifetimeState.Starting);
         }
 
+        /// <summary>
+        /// Stops needed services from Stoppable
+        /// </summary>
+        /// <param name="token"></param>
+        /// <exception cref="AggregateException"></exception>
         public virtual async Task StopAsync(CancellationToken token = new CancellationToken())
         {
             if (!VerifyStateAndIncrement(LifetimeState.Running) && !LifetimeHandler.IsErrored)
@@ -185,6 +199,10 @@ namespace Christofel.BaseLib.Plugins
             VerifyStateAndIncrement(LifetimeState.Stopping);
         }
 
+        /// <summary>
+        /// Refreshes needed services from Refreshable
+        /// </summary>
+        /// <param name="token"></param>
         public virtual async Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
             if (LifetimeHandler.Lifetime.State != LifetimeState.Running)
@@ -208,6 +226,10 @@ namespace Christofel.BaseLib.Plugins
             }
         }
 
+        /// <summary>
+        /// Destroys and disposes all the services
+        /// </summary>
+        /// <param name="token"></param>
         public virtual async Task DestroyAsync(CancellationToken token = new CancellationToken())
         {
             if (VerifyStateAndIncrement(LifetimeState.Stopped) && !LifetimeHandler.IsErrored)
@@ -227,6 +249,14 @@ namespace Christofel.BaseLib.Plugins
             }
         }
 
+        /// <summary>
+        /// Verifies if the state is expected,
+        /// if it is, increments it and returns true
+        ///
+        /// If it isn't, just return false
+        /// </summary>
+        /// <param name="expected"></param>
+        /// <returns></returns>
         protected virtual bool VerifyStateAndIncrement(LifetimeState expected)
         {
             if (LifetimeHandler.Lifetime.State != expected)
@@ -238,6 +268,11 @@ namespace Christofel.BaseLib.Plugins
             return true;
         }
 
+        /// <summary>
+        /// Default handler of a stop request calling StopAsync and DestroyAsync
+        /// </summary>
+        /// <param name="requestLogger"></param>
+        /// <returns></returns>
         protected Action DefaultHandleStopRequest(Func<ILogger?> requestLogger)
         {
             return () =>
@@ -266,6 +301,11 @@ namespace Christofel.BaseLib.Plugins
             };
         }
 
+        /// <summary>
+        /// Default handler of errored state Requesting stop and logging its state usign logger
+        /// </summary>
+        /// <param name="requestLogger"></param>
+        /// <returns></returns>
         protected Action<Exception?> DefaultHandleError(Func<ILogger?> requestLogger)
         {
             return (e) =>

@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.Plugins
 {
+    /// <summary>
+    /// Service for handling plugin lifetime
+    /// </summary>
     public class PluginLifetimeService
     {
         private readonly ILogger _logger;
@@ -23,6 +26,12 @@ namespace Christofel.Application.Plugins
             _logger = logger;
         }
         
+        /// <summary>
+        /// Load plugin Assembly to memory
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public Task<ContextedAssembly> AttachAssemblyAsync(string path, CancellationToken token = new CancellationToken())
         {
             _logger.LogDebug($@"Loading assembly");
@@ -38,6 +47,12 @@ namespace Christofel.Application.Plugins
             return Task.FromResult(info);
         }
         
+        /// <summary>
+        /// Creates raw plugin instance
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public Task<IPlugin> CreateRawPluginAsync(ContextedAssembly info)
         {
             _logger.LogDebug($@"Finding IModule");
@@ -54,6 +69,14 @@ namespace Christofel.Application.Plugins
             return Task.FromResult(rawPlugin);
         }
         
+        /// <summary>
+        /// Initializes and starts a plugin along with registering lifetime callbacks
+        /// </summary>
+        /// <param name="rawPlugin"></param>
+        /// <param name="info"></param>
+        /// <param name="state"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public async Task<AttachedPlugin> InitializePluginAsync(IPlugin rawPlugin, ContextedAssembly info, IChristofelState state, CancellationToken token = new CancellationToken())
         {
             AttachedPlugin plugin = new AttachedPlugin(rawPlugin, info);
@@ -78,6 +101,13 @@ namespace Christofel.Application.Plugins
             return plugin;
         }
         
+        /// <summary>
+        /// Tries to stop plugin in time given.
+        /// If it fails, it will register callback for stop.
+        /// </summary>
+        /// <param name="detached"></param>
+        /// <param name="lifetime"></param>
+        /// <param name="timeout"></param>
         public async Task TryStopPluginAsync(DetachedPlugin detached, ILifetime lifetime, int timeout = 10000)
         {
             _logger.LogInformation($@"Requesting stop for plugin {detached}, will wait at most 10 seconds for it to stop");
@@ -103,7 +133,12 @@ namespace Christofel.Application.Plugins
             }
         }
 
-
+        /// <summary>
+        /// Registers lifetime callbacks to allow plugin detach
+        /// without calling detach from the application
+        /// </summary>
+        /// <param name="lifetime"></param>
+        /// <param name="plugin"></param>
         public void RegisterLifetimeCallbacks(ILifetime lifetime, AttachedPlugin plugin)
         {
             lifetime.Errored.Register(() =>
@@ -145,6 +180,12 @@ namespace Christofel.Application.Plugins
             });
         }
 
+        /// <summary>
+        /// Tries to detach plugin from memory, if it isn't destroyed, tries to stop it as well
+        /// </summary>
+        /// <param name="plugin"></param>
+        /// <param name="detached"></param>
+        /// <returns></returns>
         public async Task<DetachedPlugin> DetachPluginAsync(AttachedPlugin plugin, DetachedPlugin? detached)
         {
             if (detached == null)

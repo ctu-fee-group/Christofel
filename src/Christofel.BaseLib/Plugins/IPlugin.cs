@@ -14,21 +14,25 @@ namespace Christofel.BaseLib.Plugins
     /// </summary>
     public interface IPlugin : IHasPluginInfo
     {
+        /// <summary>
+        /// Lifetime of the plugin allowing to stop the plugin
+        /// and check its state.
+        /// </summary>
         public ILifetime Lifetime { get; }
 
         /// <summary>
         /// Used for initializing the module services
         /// </summary>
-        /// <param name="state">Shared application state</param>
         /// <returns></returns>
         public Task InitAsync(IChristofelState state, CancellationToken token = new CancellationToken());
 
         /// <summary>
         /// Run should register the plugin to the application by assigning its handlers and starting its purpose 
-        /// 
+        /// </summary>
+        /// <remarks>
         /// WARNING: Run is expected not to block for long time.
         /// If the run operation is going to block, it is heavy, it should create a new thread.
-        /// </summary>
+        /// </remarks>
         /// <returns></returns>
         public Task RunAsync(CancellationToken token = new CancellationToken());
         

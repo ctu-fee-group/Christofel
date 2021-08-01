@@ -8,19 +8,31 @@ namespace Christofel.BaseLib.Database
 {
     /// <summary>
     /// Context-like class that allows only reading of DbSets.
-    /// Should be used everywhere where only read from db is needed
     /// </summary>
+    /// <remarks>
+    /// Should be used everywhere where only reading from db is needed.
+    /// </remarks>
     public class ReadOnlyDbContext : IDisposable, IAsyncDisposable, IReadableDbContext
     {
         private IReadableDbContext _dbContext;
         private bool _ownsContext;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="dbContext">Underlying context that may be writable or not</param>
+        /// <param name="ownsContext">If true, disposes the underlying context on dispose of this object</param>
         public ReadOnlyDbContext(IReadableDbContext dbContext, bool ownsContext = true)
         {
             _dbContext = dbContext;
             _ownsContext = ownsContext;
         }
 
+        /// <summary>
+        /// Get set from underlying database
+        /// </summary>
+        /// <typeparam name="TEntity">Type of the entity specifies table</typeparam>
+        /// <returns>Queryable readonly set</returns>
         public IQueryable<TEntity> Set<TEntity>()
             where TEntity : class
         {

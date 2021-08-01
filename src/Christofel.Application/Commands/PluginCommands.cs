@@ -18,6 +18,9 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.Commands
 {
+    /// <summary>
+    /// Handler of /plugin attach, detach, reattach, list, check commands
+    /// </summary>
     public class PluginCommands : CommandHandler
     {
         private readonly PluginService _plugins;
@@ -25,8 +28,6 @@ namespace Christofel.Application.Commands
         private readonly BotOptions _options;
         private readonly PluginStorage _storage;
         
-        // Plugin command
-        // attach, detach, reattach, list subcommands
         public PluginCommands(
             DiscordSocketClient client,
             IPermissionService permissions,
@@ -124,6 +125,11 @@ namespace Christofel.Application.Commands
             return (string)command.Data.Options.First().Options.First().Value;
         }
         
+        /// <summary>
+        /// Handle /plugin attach
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="token"></param>
         private async Task HandleAttach(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             string pluginName = GetPluginName(command);
@@ -171,6 +177,11 @@ namespace Christofel.Application.Commands
             }
         }
         
+        /// <summary>
+        /// Handle /plugin detach
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="token"></param>
         private async Task HandleDetach(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogDebug("Handling command /module detach");
@@ -199,6 +210,11 @@ namespace Christofel.Application.Commands
             }
         }
         
+        /// <summary>
+        /// Handle /plugin reattach
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="token"></param>
         private async Task HandleReattach(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             string pluginName = GetPluginName(command);
@@ -235,6 +251,12 @@ namespace Christofel.Application.Commands
             }
         }
         
+        /// <summary>
+        /// Handle /plugin list
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         private Task HandleList(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             IEnumerable<string> plugins = _storage.AttachedPlugins
@@ -247,6 +269,12 @@ namespace Christofel.Application.Commands
                 options: new RequestOptions() { CancelToken = token });
         }
 
+        /// <summary>
+        /// Handle /plugin check
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         private Task HandleCheck(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _plugins.CheckDetached();

@@ -8,6 +8,10 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.Plugins
 {
+    /// <summary>
+    /// Auto loads plugins specified in configuration
+    /// on startup
+    /// </summary>
     public class PluginAutoloader : IStartable
     {
         private readonly PluginServiceOptions _options;

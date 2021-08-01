@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Christofel.Application.Plugins
 {
+    /// <summary>
+    /// Stores attached and detached plugins thread-safely
+    /// </summary>
     public class PluginStorage
     {
         private List<AttachedPlugin> _attachedPlugins;
@@ -20,6 +23,11 @@ namespace Christofel.Application.Plugins
         public IReadOnlyCollection<AttachedPlugin> AttachedPlugins => _attachedPlugins.AsReadOnly();
         public IReadOnlyCollection<DetachedPlugin> DetachedPlugins => _detachedPlugins.AsReadOnly();
 
+        /// <summary>
+        /// Whether plugin with given name is attached
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public bool IsAttached(string name)
         {
             lock (_pluginsLock)
@@ -28,6 +36,11 @@ namespace Christofel.Application.Plugins
             }
         }
 
+        /// <summary>
+        /// Returns attached plugin or throws an exception if it is not found
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public AttachedPlugin GetAttachedPlugin(string name)
         {
             lock (_pluginsLock)
@@ -36,6 +49,10 @@ namespace Christofel.Application.Plugins
             }
         }
 
+        /// <summary>
+        /// Adds attached plugin
+        /// </summary>
+        /// <param name="plugin"></param>
         public void AddAttachedPlugin(AttachedPlugin plugin)
         {
             lock (_pluginsLock)
@@ -44,6 +61,14 @@ namespace Christofel.Application.Plugins
             }
         }
 
+        /// <summary>
+        /// Puts AttachedPlugin to detached plugins and removes it from attached plugins
+        /// </summary>
+        /// <remarks>
+        /// Looks up Detached plugin in plugin.DetachedPlugin property, it has to be set
+        /// </remarks>
+        /// <param name="plugin"></param>
+        /// <exception cref="InvalidOperationException"></exception>
         public void DetachAttachedPlugin(AttachedPlugin plugin)
         {
             if (plugin.DetachedPlugin == null)
@@ -65,6 +90,10 @@ namespace Christofel.Application.Plugins
             }
         }
 
+        /// <summary>
+        /// Removes detached plugin after it's not needed anymore
+        /// </summary>
+        /// <param name="plugin"></param>
         public void RemoveDetachedPlugin(DetachedPlugin plugin)
         {
             lock (_pluginsLock)

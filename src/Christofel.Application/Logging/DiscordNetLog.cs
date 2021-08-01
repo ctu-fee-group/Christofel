@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.Logging
 {
+    /// <summary>
+    /// Forwards log from Discord.NET library to MEL
+    /// </summary>
     public class DiscordNetLog
     {
         private readonly ILogger<DiscordNetLog> _logger;
@@ -15,11 +18,20 @@ namespace Christofel.Application.Logging
             _logger = logger;
         }
 
+        /// <summary>
+        /// Registers Log event
+        /// </summary>
+        /// <param name="client"></param>
         public void RegisterEvents(BaseDiscordClient client)
         {
             client.Log += ForwardLog;
         }
 
+        /// <summary>
+        /// Forwards log message
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         public Task ForwardLog(LogMessage message)
         {
             using (_logger.BeginScope(message.Source))

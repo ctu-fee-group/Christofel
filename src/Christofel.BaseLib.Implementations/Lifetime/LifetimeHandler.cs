@@ -3,12 +3,16 @@ using System.Threading;
 
 namespace Christofel.BaseLib.Lifetime
 {
+    /// <summary>
+    /// LifetimeHandler for using some common methods that Lifetime needs to have
+    /// </summary>
     public abstract class LifetimeHandler
     {
         protected readonly CancellationTokenSource _started, _stopped, _stopping, _errored;
         protected readonly Action<Exception?> _errorAction;
         protected object _nextStateLock = new object();
-
+        
+        /// <param name="errorAction">Action to be executed in case of an error</param>
         protected LifetimeHandler(Action<Exception?> errorAction)
         {
             _errorAction = errorAction;
@@ -22,10 +26,20 @@ namespace Christofel.BaseLib.Lifetime
 
         public abstract ILifetime Lifetime { get; }
 
+        /// <summary>
+        /// Moves to given state
+        /// </summary>
+        /// <param name="state">State to move to</param>
         public abstract void MoveToState(LifetimeState state);
 
+        /// <summary>
+        /// Requests stop
+        /// </summary>
         public abstract void RequestStop();
 
+        /// <summary>
+        /// Move to next state from the current one
+        /// </summary>
         public virtual void NextState()
         {
             LifetimeState next;
@@ -43,6 +57,14 @@ namespace Christofel.BaseLib.Lifetime
             
         }
 
+        /// <summary>
+        /// Triggers actions for given state.
+        /// </summary>
+        /// <remarks>
+        /// Cancels Started, Stopping, Stopped, Error if needed
+        /// </remarks>
+        /// <param name="previous"></param>
+        /// <param name="next"></param>
         protected void TriggerStateActions(LifetimeState previous, LifetimeState next)
         {
             if (previous == next)
@@ -67,6 +89,10 @@ namespace Christofel.BaseLib.Lifetime
             }
         }
 
+        /// <summary>
+        /// Immediatelly moves to error state
+        /// </summary>
+        /// <param name="e"></param>
         public virtual void MoveToError(Exception? e)
         {
             _errorAction(e);
@@ -74,22 +100,22 @@ namespace Christofel.BaseLib.Lifetime
             MoveToState(LifetimeState.Error);
         }
         
-        public void HandleErrored()
+        protected void HandleErrored()
         {
             _errored.Cancel(false);
         }
 
-        public void HandleStarted()
+        protected void HandleStarted()
         {
             _started.Cancel(false);
         }
 
-        public void HandleStopping()
+        protected void HandleStopping()
         {
             _stopping.Cancel(false);
         }
 
-        public void HandleStopped()
+        protected void HandleStopped()
         {
             _stopped.Cancel(false);
         }

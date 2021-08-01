@@ -7,6 +7,12 @@ namespace Christofel.CommandsLib.Extensions
 {
     public static class TargetTypeExtensions
     {
+        /// <summary>
+        /// Cast TargetType to ApplicationCommandPermissionTarget
+        /// </summary>
+        /// <param name="targetType"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static ApplicationCommandPermissionTarget AsApplicationCommandPermission(this TargetType targetType)
         {
             switch (targetType)

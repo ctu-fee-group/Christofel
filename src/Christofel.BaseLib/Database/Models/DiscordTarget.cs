@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.BaseLib.Database.Models
 {
+    /// <summary>
+    /// Represents discord user or role
+    /// TargetType.Everyone is for representing every user and role
+    /// </summary>
     [Owned]
     public class DiscordTarget
     {
