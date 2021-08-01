@@ -1,6 +1,6 @@
 # Committing policy
 
-Conventional commits MUST be used, see reference https://www.conventionalcommits.org/en/v1.0.0/
+Conventional commits **MUST** be used, see [reference of v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
 
 Generally scope should be added as well depending on what library or plugin the change was made at.
 It should be named like the plugin/lib.
