@@ -27,6 +27,11 @@ namespace Christofel.CommandsLib.Reflection
         {
             _func = func;
         }
+
+        public Delegate AsDelegate()
+        {
+            return _func;
+        }
         
         public static Func<object[], object> ForConstructor(ConstructorInfo constructor)
         {
