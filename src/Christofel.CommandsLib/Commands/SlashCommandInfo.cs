@@ -88,7 +88,7 @@ namespace Christofel.CommandsLib.Commands
                 throw new InvalidOperationException("Cannot refresh without the command registered");
             }
             
-            await SetDefaultPermissionAsync(BuiltCommand, resolver, token);
+            await ModifyCommand(resolver, token);
             await RefreshPermissions(resolver, token);
         }
 
