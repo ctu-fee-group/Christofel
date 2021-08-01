@@ -13,7 +13,7 @@ automatic detach sequence will be initiated and the plugin
 will be unloaded from memory.
 ```
 
-For assembly to be counted as Plugin in must only
+For assembly to be counted as Plugin it must
 have public class that implements `IPlugin` interface
 from `Christofel.BaseLib`. Implementation of this plugin
 can be whatever the programmer wants. Christofel contains
@@ -34,7 +34,7 @@ Working plugin class is presented below along with some comments
 to better explain the code.
 
 ```{code-block} csharp
-:lineno-start: 10
+:lineno-start: 1
 public class MyPlugin : DIPlugin
 {
     // LifetimeHandler stores lifetime and exposes
@@ -115,9 +115,9 @@ are observed.
 1. InitAsync and RunAsync should not do anything heavy and should end as soon as possible. If heavy operation is needed, just spin it in a new thread
 2. Plugin must react to stop request and destroy its resources if it's possible
 3. Name must match assembly name (or rather name of the dll)
-4. 
 
 ```{code-block} csharp
+:lineno-start: 1
 public class CustomPlugin : IPlugin
 {
     private readonly PluginLifetimeHandler _lifetimeHandler;
