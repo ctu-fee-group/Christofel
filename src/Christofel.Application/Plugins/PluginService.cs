@@ -17,6 +17,9 @@ using Newtonsoft.Json.Serialization;
 
 namespace Christofel.Application.Plugins
 {
+    /// <summary>
+    /// Service used for attaching and detaching plugins
+    /// </summary>
     public class PluginService : IDisposable, IStoppable, IRefreshable
     {
         public static string ModuleNameRegex => "^[a-zA-Z0-9\\.]+$";
@@ -43,16 +46,31 @@ namespace Christofel.Application.Plugins
             _onOptionsChange = options.OnChange(o => _options = o);
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>If plugin with given name is attached</returns>
         public bool IsAttached(string name)
         {
             return _storage.IsAttached(name);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>If plugin file exists</returns>
         public bool Exists(string name)
         {
             return File.Exists(GetModulePath(name));
         }
 
+        /// <summary>
+        /// Detached all attached plugins
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public Task DetachAllAsync(CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();
@@ -62,6 +80,15 @@ namespace Christofel.Application.Plugins
                 .Select(x => InternalDetachAsync(x, token)));
         }
 
+        /// <summary>
+        /// Attaches plugin given by name
+        /// </summary>
+        /// <param name="state">State to initialize the plugin with</param>
+        /// <param name="name">Name of the plugin to search for</param>
+        /// <param name="token">Cancel token</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        /// <exception cref="FileNotFoundException"></exception>
         public Task<IHasPluginInfo> AttachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();
@@ -84,6 +111,13 @@ namespace Christofel.Application.Plugins
             return InternalAttachAsync(state, name, token);
         }
 
+        /// <summary>
+        /// Tries to detach plugin given by name
+        /// </summary>
+        /// <param name="name">Name of the plugin</param>
+        /// <param name="token">Cancel token</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public Task<IHasPluginInfo> DetachAsync(string name, CancellationToken token = new CancellationToken())
         {
             if (!IsAttached(name))
@@ -96,6 +130,17 @@ namespace Christofel.Application.Plugins
             return InternalDetachAsync(plugin, token);
         }
 
+        /// <summary>
+        /// Tries to detach and then attach a plugin given by name
+        /// </summary>
+        /// <remarks>
+        /// If the plugin fails to detach in time, InvalidOperationException is thrown
+        /// </remarks>
+        /// <param name="state">State to initialize new plugin with</param>
+        /// <param name="name"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public Task<IHasPluginInfo> ReattachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
         {
             if (!IsAttached(name))
@@ -128,6 +173,9 @@ namespace Christofel.Application.Plugins
             }
         }
 
+        /// <summary>
+        /// Checks memory used by detached plugins, reports using logging only
+        /// </summary>
         public void CheckDetached()
         {
             GC.Collect();
@@ -189,11 +237,21 @@ namespace Christofel.Application.Plugins
             return Path.Join(Path.GetFullPath(_options.Folder), name, name + ".dll");
         }
 
+        /// <summary>
+        /// Detaches all plugins
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public Task StopAsync(CancellationToken token = new CancellationToken())
         {
             return DetachAllAsync(token);
         }
 
+        /// <summary>
+        /// Refreshes all plugins
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
             return Task.WhenAll(

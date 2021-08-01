@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Christofel.BaseLib.Database.Models
 {
+    /// <summary>
+    /// Database table for assignment based on titles in their name
+    /// </summary>
     public class TitleRoleAssignment
     {
         [Key]

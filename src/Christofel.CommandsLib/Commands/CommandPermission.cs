@@ -5,6 +5,9 @@ using Discord.WebSocket;
 
 namespace Christofel.CommandsLib.Commands
 {
+    /// <summary>
+    /// Permission for a slash command
+    /// </summary>
     public sealed class CommandPermission : IPermission
     {
         private string _commandDescription;

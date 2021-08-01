@@ -1,5 +1,8 @@
 namespace Christofel.BaseLib.Configuration
 {
+    /// <summary>
+    /// Default options for the bot
+    /// </summary>
     public class BotOptions
     {
         /// <summary>

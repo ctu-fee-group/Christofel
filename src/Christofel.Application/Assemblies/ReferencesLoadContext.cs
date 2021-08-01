@@ -7,6 +7,14 @@ using System.Runtime.Loader;
 
 namespace Christofel.Application.Assemblies
 {
+    /// <summary>
+    /// AssemblyLoadContext with awareness of correct references.
+    /// </summary>
+    /// <remarks>
+    /// Holds information about dlls that should be shared in the whole application.
+    /// Tries to load references using AssemblyDependencyResolver,
+    /// if that fails, tries to look for a dll in directory of the assembly
+    /// </remarks>
     public class ReferencesLoadContext : AssemblyLoadContext
     {
         private readonly string _pluginLoadDirectory;

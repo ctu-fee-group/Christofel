@@ -5,6 +5,12 @@ namespace Christofel.Application.Assemblies
 {
     public class AssemblyLoader
     {
+        /// <summary>
+        /// Load assembly in custom AssemblyLoadContext
+        /// along with correct references handling
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static ContextedAssembly Load(string path)
         {

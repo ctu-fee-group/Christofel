@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Christofel.Application.Assemblies
 {
+    /// <summary>
+    /// Class for holding loaded assembly in AssemblyLoadContext
+    /// </summary>
     public class ContextedAssembly
     {
         private Assembly? _assembly;
@@ -44,6 +47,10 @@ namespace Christofel.Application.Assemblies
             }
         }
         
+        /// <summary>
+        /// Unloads AssemblyLoadContext and throws away it's reference
+        /// </summary>
+        /// <returns>Weak reference to AssemblyLoadContext so it can be checked whether the AssemblyLoadContext was destroyed</returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public WeakReference Detach()
         {

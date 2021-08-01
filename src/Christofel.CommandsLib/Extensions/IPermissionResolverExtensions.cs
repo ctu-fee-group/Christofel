@@ -12,6 +12,13 @@ namespace Christofel.CommandsLib.Extensions
 {
     public static class IPermissionResolverExtensions
     {
+        /// <summary>
+        /// Get assigned permissions for a slash command
+        /// </summary>
+        /// <param name="resolver"></param>
+        /// <param name="permission"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         public static async Task<ApplicationCommandPermission[]> GetSlashCommandPermissionsAsync(this IPermissionsResolver resolver, IPermission permission, CancellationToken token = new CancellationToken())
         {
             IEnumerable<DiscordTarget> allowedDiscordTargets = await resolver

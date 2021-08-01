@@ -16,6 +16,9 @@ namespace Christofel.BaseLib.Database.Models
         /// </summary>
         public ulong RoleId { get; set; }
 
+        /// <summary>
+        /// Type of the role for special behaviors
+        /// </summary>
         public RoleType RoleType { get; set; }
 
         public virtual ICollection<YearRoleAssignment>? YearRoleAssignments { get; set; }

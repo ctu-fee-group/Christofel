@@ -169,7 +169,6 @@ namespace Christofel.Application
             loggerForward.RegisterEvents(bot.Client);
             loggerForward.RegisterEvents(bot.Client.Rest);
             
-            
             await bot.StartBotAsync(token);
             await bot.RunApplication(
                 CancellationTokenSource

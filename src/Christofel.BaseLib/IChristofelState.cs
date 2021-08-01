@@ -44,6 +44,10 @@ namespace Christofel.BaseLib
         /// </summary>
         public ILoggerFactory LoggerFactory { get; }
         
+        /// <summary>
+        /// Lifetime of the application that may be used
+        /// to stop the application
+        /// </summary>
         public IApplicationLifetime Lifetime { get; }
     }
 }

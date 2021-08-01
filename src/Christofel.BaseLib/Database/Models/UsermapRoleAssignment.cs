@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Christofel.BaseLib.Database.Models
 {
+    /// <summary>
+    /// Database table for assginments using Usermap roles
+    /// </summary>
     public class UsermapRoleAssignment
     {
         [Key]
@@ -11,6 +14,10 @@ namespace Christofel.BaseLib.Database.Models
         [MaxLength(512)]
         public string UsermapRole { get; set; } = null!;
         
+        /// <summary>
+        /// If true, match by regex.
+        /// If false, match the whole string.
+        /// </summary>
         public bool RegexMatch { get; set; }
         
         [ForeignKey("Assignment")]

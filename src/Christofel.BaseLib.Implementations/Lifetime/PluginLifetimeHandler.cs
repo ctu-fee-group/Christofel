@@ -4,6 +4,9 @@ using Christofel.BaseLib.Plugins;
 
 namespace Christofel.BaseLib.Lifetime
 {
+    /// <summary>
+    /// LifetimeHandler for a plugin
+    /// </summary>
     public class PluginLifetimeHandler : LifetimeHandler<ICurrentPluginLifetime>
     {
         private readonly Action _handleStopRequest;

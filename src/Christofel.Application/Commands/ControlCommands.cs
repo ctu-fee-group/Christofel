@@ -15,6 +15,9 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.Commands
 {
+    /// <summary>
+    /// Handler of /refresh and /quit commands
+    /// </summary>
     public class ControlCommands : CommandHandler
     {
         private IBot _bot;

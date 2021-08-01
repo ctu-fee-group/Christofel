@@ -5,6 +5,13 @@ namespace Christofel.Application.Extensions
 {
     public static class AssemblyExtensions
     {
+        /// <summary>
+        /// Obtain class implementing given interface
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static Type GetTypeImplementing<T>(this Assembly assembly)
         {
             foreach (Type type in assembly.ExportedTypes)

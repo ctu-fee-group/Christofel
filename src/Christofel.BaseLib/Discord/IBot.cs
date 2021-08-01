@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 
@@ -16,6 +17,10 @@ namespace Christofel.BaseLib.Discord
         /// <summary>
         /// Method to tell the application to quit
         /// </summary>
+        /// <remarks>
+        /// In the end does the same thing as calling RequestStop on IApplicationLifetime
+        /// </remarks>
+        [Obsolete]
         public void QuitBot();
     }
 }

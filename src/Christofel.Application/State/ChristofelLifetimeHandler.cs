@@ -8,6 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.State
 {
+    /// <summary>
+    /// Handles lifetime of the application
+    /// </summary>
     public class ChristofelLifetimeHandler : LifetimeHandler<IApplicationLifetime>
     {
         private ApplicationLifetime? _lifetime;
