@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,7 +56,7 @@ namespace Christofel.Application.Commands
 
         public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
         {
-            ICommandHandlerCreator<string> creator = new SubCommandHandlerCreator();
+            SubCommandHandlerCreator creator = new SubCommandHandlerCreator();
             SlashCommandHandler handler = creator.CreateHandlerForCommand(
                 ("attach", (CommandDelegate<string>)HandleAttach),
                 ("detach", (CommandDelegate<string>)HandleDetach),
@@ -74,7 +75,8 @@ namespace Christofel.Application.Commands
                     .WithDescription("Attach a plugin that is not yet attached")
                     .WithType(ApplicationCommandOptionType.SubCommand)
                     .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("name")
+                        .WithName("pluginname")
+                        .WithRequired(true)
                         .WithDescription("Name of the module")
                         .WithType(ApplicationCommandOptionType.String)
                     )
@@ -83,7 +85,8 @@ namespace Christofel.Application.Commands
                     .WithDescription("Detach a plugin that is already attached")
                     .WithType(ApplicationCommandOptionType.SubCommand)
                     .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("name")
+                        .WithName("pluginname")
+                        .WithRequired(true)
                         .WithDescription("Name of the module")
                         .WithType(ApplicationCommandOptionType.String)
                     )
@@ -92,7 +95,8 @@ namespace Christofel.Application.Commands
                     .WithDescription("Reattach a plugin that is attached")
                     .WithType(ApplicationCommandOptionType.SubCommand)
                     .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("name")
+                        .WithName("pluginname")
+                        .WithRequired(true)
                         .WithDescription("Name of the module")
                         .WithType(ApplicationCommandOptionType.String)
                     )
