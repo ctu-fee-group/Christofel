@@ -50,7 +50,8 @@ namespace Christofel.HelloWorld
                 .WithGuild(_options.GuildId)
                 .WithHandler(HandlePing);
 
-            return holder.RegisterCommandAsync(pingBuilder, executor, token);
+            holder.AddCommand(pingBuilder, executor, token);
+            return Task.CompletedTask;
         }
     }
 }
