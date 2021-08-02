@@ -84,9 +84,9 @@ namespace Christofel.Application.Commands
                 .WithThreadPool()
                 .Build();
 
-            return Task.WhenAll(
-                holder.RegisterCommandAsync(quitBuilder, executor, token),
-                holder.RegisterCommandAsync(refreshBuilder, executor, token));
+            holder.AddCommand(quitBuilder, executor, token);
+            holder.AddCommand(refreshBuilder, executor, token);
+            return Task.CompletedTask;
         }
     }
 }

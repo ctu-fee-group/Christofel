@@ -113,7 +113,8 @@ namespace Christofel.Application.Commands
                 .WithThreadPool()
                 .Build();
             
-            return holder.RegisterCommandAsync(pluginBuilder, executor, token);
+            holder.AddCommand(pluginBuilder, executor, token);
+            return Task.CompletedTask;
         }
         
 
