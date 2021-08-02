@@ -15,7 +15,7 @@ namespace Christofel.CommandsLib.Extensions
         /// <param name="deleg">Delegate to execute with the command</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static SlashCommandHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
+        public static SlashCommandHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T, Delegate> creator,
             Delegate deleg)
         {
             return creator
@@ -30,7 +30,7 @@ namespace Christofel.CommandsLib.Extensions
         /// <param name="matchers"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static SlashCommandHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator, params (Func<T, bool>, Delegate)[] matchers)
+        public static SlashCommandHandler CreateHandlerForCommand<T, U>(this ICommandHandlerCreator<T, U> creator, params (Func<T, bool>, U)[] matchers)
         {
             return creator.CreateHandlerForCommand(matchers.AsEnumerable());
         }
@@ -43,13 +43,13 @@ namespace Christofel.CommandsLib.Extensions
         /// <param name="matchers"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static SlashCommandHandler CreateHandlerForCommand<T>(this ICommandHandlerCreator<T> creator,
-            params (T, Delegate)[] matchers)
+        public static SlashCommandHandler CreateHandlerForCommand<T, U>(this ICommandHandlerCreator<T, U> creator,
+            params (T, U)[] matchers)
         where T : notnull
         {
             return creator
                 .CreateHandlerForCommand(matchers.Select(
-                    x => ValueTuple.Create<Func<T, bool>, Delegate>(((y) => x.Item1.Equals(y)), x.Item2)));
+                    x => ValueTuple.Create<Func<T, bool>, U>(((y) => x.Item1.Equals(y)), x.Item2)));
         }
     }
 }

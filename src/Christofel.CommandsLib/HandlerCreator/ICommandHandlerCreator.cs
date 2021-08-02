@@ -19,13 +19,13 @@ namespace Christofel.CommandsLib.HandlerCreator
     /// Creator of SlashCommandHandler different types may be used for subcommands or custom matching
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface ICommandHandlerCreator<T>
+    public interface ICommandHandlerCreator<T, U>
     {
         /// <summary>
         /// Creates SlashCommandHandler for given matches
         /// </summary>
         /// <param name="matchers">List of matchers that specify what function is matched given conditions</param>
         /// <returns></returns>
-        public SlashCommandHandler CreateHandlerForCommand(IEnumerable<(Func<T, bool>, Delegate)> matchers);
+        public SlashCommandHandler CreateHandlerForCommand(IEnumerable<(Func<T, bool>, U)> matchers);
     }
 }

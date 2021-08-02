@@ -23,8 +23,9 @@ namespace Christofel.CommandsLib.HandlerCreator
             List<HandlerMatcher> realMatchers = matchers
                 .Select(x => new HandlerMatcher(
                     x.Item1,
-                    CommandHandlerCreatorUtils.CreateHandler(x.Item2, data => data.Options.First().Options?.Select(y => y.Value))
-                    ))
+                    CommandHandlerCreatorUtils.CreateHandler(x.Item2,
+                        data => CommandHandlerCreatorUtils.GetParametersFromOptions(x.Item2, data.Options.First().Options))
+                ))
                 .ToList();
 
             return GetHandler(realMatchers);
