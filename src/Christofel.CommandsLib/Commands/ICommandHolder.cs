@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.CommandsLib.CommandsInfo;
@@ -11,6 +12,8 @@ namespace Christofel.CommandsLib.Commands
     /// </summary>
     public interface ICommandHolder
     {
+        public IEnumerable<HeldSlashCommand> Commands { get; }
+        
         /// <summary>
         /// Holds SlashCommand information, so it is known what executor to execute
         /// </summary>
@@ -18,14 +21,6 @@ namespace Christofel.CommandsLib.Commands
         /// <param name="Executor"></param>
         public record HeldSlashCommand(SlashCommandInfo Info, ICommandExecutor Executor);
 
-        /// <summary>
-        /// Modifies commands DefaultPermission and other permissions
-        /// according to changes in database
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public Task RefreshCommandsAndPermissionsAsync(CancellationToken token = default);
-        
         /// <summary>
         /// Tries to get a slash command in list of commands by its name
         /// If command is not found, null is returned
@@ -41,12 +36,12 @@ namespace Christofel.CommandsLib.Commands
         /// <param name="executor"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public Task<SlashCommandInfo> RegisterCommandAsync(SlashCommandBuilder builder, ICommandExecutor executor, CancellationToken token = default);
+        public SlashCommandInfo AddCommand(SlashCommandBuilder builder, ICommandExecutor executor, CancellationToken token = default);
         
         /// <summary>
         /// Unregister all commands that are stored in commands collection
         /// </summary>
         /// <param name="token"></param>
-        public Task UnregisterCommandsAsync(CancellationToken token = new CancellationToken());
+        public void RemoveCommands(CancellationToken token = new CancellationToken());
     }
 }
