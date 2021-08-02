@@ -30,7 +30,7 @@ namespace Christofel.CommandsLib.Commands
         public HeldSlashCommand? TryGetSlashCommand(string name);
         
         /// <summary>
-        /// Register command and save it to commands collection
+        /// Save command to collection
         /// </summary>
         /// <param name="builder"></param>
         /// <param name="executor"></param>
@@ -39,7 +39,7 @@ namespace Christofel.CommandsLib.Commands
         public SlashCommandInfo AddCommand(SlashCommandBuilder builder, ICommandExecutor executor, CancellationToken token = default);
         
         /// <summary>
-        /// Unregister all commands that are stored in commands collection
+        /// Remove all commands from collection
         /// </summary>
         /// <param name="token"></param>
         public void RemoveCommands(CancellationToken token = new CancellationToken());
