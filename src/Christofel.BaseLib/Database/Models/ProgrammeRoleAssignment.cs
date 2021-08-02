@@ -11,6 +11,7 @@ namespace Christofel.BaseLib.Database.Models
         [Key]
         public int ProgrammeRoleAssignmentId { get; set; }
         
+        [MaxLength(256)]
         public string Programme { get; set; } = null!;
 
         [ForeignKey("Assignment")]

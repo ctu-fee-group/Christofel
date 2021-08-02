@@ -28,6 +28,7 @@ namespace Christofel.BaseLib.Database.Models
         /// <summary>
         /// Name of the permission to be granted (wildcards may be used)
         /// </summary>
+        [MaxLength(512)]
         public string PermissionName { get; set; } = null!;
 
         /// <summary>

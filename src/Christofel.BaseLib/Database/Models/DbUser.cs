@@ -32,6 +32,7 @@ namespace Christofel.BaseLib.Database.Models
         /// <summary>
         /// CTU account username
         /// </summary>
+        [MaxLength(256)]
         public string CtuUsername { get; set; } = null!;
 
         /// <summary>
