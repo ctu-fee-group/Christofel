@@ -84,8 +84,8 @@ namespace Christofel.Application.Commands
                 .WithThreadPool()
                 .Build();
 
-            holder.AddCommand(quitBuilder, executor, token);
-            holder.AddCommand(refreshBuilder, executor, token);
+            holder.AddCommand(quitBuilder, executor);
+            holder.AddCommand(refreshBuilder, executor);
             return Task.CompletedTask;
         }
     }

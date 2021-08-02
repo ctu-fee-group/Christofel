@@ -31,7 +31,7 @@ namespace Christofel.CommandsLib.Commands
             return _commands.FirstOrDefault(x => x.Info.Builder.Name == name);
         }
 
-        public SlashCommandInfo AddCommand(SlashCommandBuilder builder, ICommandExecutor executor, CancellationToken token = default)
+        public SlashCommandInfo AddCommand(SlashCommandBuilder builder, ICommandExecutor executor)
         {
             SlashCommandInfo info = builder.BuildAndGetInfo();
 
@@ -43,9 +43,8 @@ namespace Christofel.CommandsLib.Commands
             return info;
         }
 
-        public void RemoveCommands(CancellationToken token = new CancellationToken())
+        public void RemoveCommands()
         {
-            List<ICommandHolder.HeldSlashCommand> commands = _commands.ToList();
             lock (_commandsLock)
             {
                 _commands.Clear();
