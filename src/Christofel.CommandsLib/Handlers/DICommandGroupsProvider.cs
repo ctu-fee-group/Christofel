@@ -16,17 +16,16 @@ namespace Christofel.CommandsLib.Handlers
     /// CommandGroupsService should be treated as IOptions and it should be configured using
     /// <c>IServiceCollection.Configure<CommandsGroupsService>((groupsService) => groupsService.RegisterGroupType(...))</c>
     /// </remarks>
-    public class CommandGroupsService
+    public class DICommandGroupsProvider : ICommandsGroupProvider
     {
-        private readonly List<ICommandGroup> _groups;
         private readonly List<Type> _groupTypes;
-        private bool _initialized;
         
-        public CommandGroupsService()
+        public DICommandGroupsProvider()
         {
-            _groups = new List<ICommandGroup>();
             _groupTypes = new List<Type>();
         }
+        
+        public IServiceProvider? Provider { get; set; }
 
         public void RegisterGroupType(Type commandGroupType)
         {
@@ -38,26 +37,14 @@ namespace Christofel.CommandsLib.Handlers
             _groupTypes.Add(commandGroupType);
         }
 
-        public void RegisterGroup(ICommandGroup group)
+        public IEnumerable<ICommandGroup> GetGroups()
         {
-            _groups.Add(group);
-        }
-
-        public IEnumerable<ICommandGroup> GetGroups(IServiceProvider? provider)
-        {
-            if (!_initialized && _groupTypes.Count > 0)
+            if (Provider is null)
             {
-                if (provider is null)
-                {
-                    throw new InvalidOperationException("Register by type can only be done if service provider is used");
-                }
-
-                _groups.AddRange(_groupTypes.Select(x => (ICommandGroup)provider.GetRequiredService(x)));
-                
-                _initialized = true;
+                throw new InvalidOperationException("Register by type can only be done if service provider is used");
             }
 
-            return _groups.AsReadOnly();
+            return _groupTypes.Select(x => (ICommandGroup) Provider.GetRequiredService(x));
         }
 
     }

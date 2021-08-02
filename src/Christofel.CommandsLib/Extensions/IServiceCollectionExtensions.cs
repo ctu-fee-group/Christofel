@@ -18,9 +18,16 @@ namespace Christofel.CommandsLib.Extensions
         public static IServiceCollection AddDefaultInteractionHandler(this IServiceCollection collection, Action<IServiceCollection>? configure = null)
         {
             collection
-                .AddOptions<CommandGroupsService>();
+                .AddOptions<DICommandGroupsProvider>();
 
             collection
+                .AddSingleton<ICommandsGroupProvider>(p =>
+                {
+                    DICommandGroupsProvider provider = p.GetRequiredService<IOptions<DICommandGroupsProvider>>().Value;
+                    provider.Provider = p;
+
+                    return provider;
+                })
                 .AddSingleton<ICommandHolder, CommandHolder>()
                 .AddSingleton<InteractionHandler>();
 
@@ -34,7 +41,7 @@ namespace Christofel.CommandsLib.Extensions
         {
             collection.AddSingleton<T>();
 
-            collection.Configure<CommandGroupsService>(handler =>
+            collection.Configure<DICommandGroupsProvider>(handler =>
                 handler.RegisterGroupType(typeof(T)));
 
             return collection;

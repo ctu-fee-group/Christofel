@@ -27,13 +27,11 @@ namespace Christofel.CommandsLib.Handlers
         protected readonly ICommandHolder _commandsHolder;
         protected readonly CancellationTokenSource _commandsTokenSource;
         protected readonly DiscordSocketClient _client;
-        private readonly CommandGroupsService _commandGroups;
-        private readonly IServiceProvider? _provider;
+        private readonly ICommandsGroupProvider _commandGroups;
         
-        public InteractionHandler(DiscordSocketClient client, ICommandHolder commandsHolder, IOptions<CommandGroupsService> commandGroups, IServiceProvider? provider)
+        public InteractionHandler(DiscordSocketClient client, ICommandHolder commandsHolder, ICommandsGroupProvider commandGroups)
         {
-            _provider = provider;
-            _commandGroups = commandGroups.Value;
+            _commandGroups = commandGroups;
             _commandsTokenSource = new CancellationTokenSource();
             _commandsHolder = commandsHolder;
             _client = client;
@@ -83,7 +81,7 @@ namespace Christofel.CommandsLib.Handlers
         {
             SetupEvents();
             return Task.WhenAll(
-                _commandGroups.GetGroups(_provider).Select(x => x.SetupCommandsAsync(_commandsHolder, token)));
+                _commandGroups.GetGroups().Select(x => x.SetupCommandsAsync(_commandsHolder, token)));
         }
 
         /// <summary>
