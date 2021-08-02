@@ -95,9 +95,9 @@ namespace Christofel.BaseLib.Lifetime
         /// <param name="e"></param>
         public virtual void MoveToError(Exception? e)
         {
+            MoveToState(LifetimeState.Error);
             _errorAction(e);
             _errored.Cancel();
-            MoveToState(LifetimeState.Error);
         }
         
         protected void HandleErrored()

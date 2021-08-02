@@ -175,6 +175,11 @@ namespace Christofel.BaseLib.Plugins
             {
                 return;
             }
+
+            if (LifetimeHandler.IsErrored)
+            {
+                LifetimeHandler.MoveToState(LifetimeState.Stopping);
+            }
             
             token.ThrowIfCancellationRequested();
             List<Exception> exceptions = new List<Exception>();
@@ -197,6 +202,10 @@ namespace Christofel.BaseLib.Plugins
             }
 
             VerifyStateAndIncrement(LifetimeState.Stopping);
+            if (LifetimeHandler.IsErrored)
+            {
+                LifetimeHandler.MoveToState(LifetimeState.Stopped);
+            }
         }
 
         /// <summary>
