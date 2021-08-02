@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Permissions;
+using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib.CommandsInfo;
 using Christofel.CommandsLib.Handlers;
 using Discord.Rest;
@@ -10,14 +11,17 @@ using Discord.WebSocket;
 
 namespace Christofel.CommandsLib.Commands
 {
-    public class CommandRegistrator : ICommandsRegistrator
+    /// <summary>
+    /// Command registrator registering commands one by one
+    /// </summary>
+    public class CommandsRegistrator : ICommandsRegistrator, IStartable, IRefreshable, IStoppable
     {
         private readonly  ICommandsGroupProvider _commandGroups;
         private readonly ICommandHolder _commandsHolder;
         private readonly IPermissionService _permissions;
         private readonly DiscordRestClient _client;
 
-        public CommandRegistrator(ICommandsGroupProvider commandGroups, ICommandHolder commandsHolder, IPermissionService permissions, DiscordRestClient client)
+        public CommandsRegistrator(ICommandsGroupProvider commandGroups, ICommandHolder commandsHolder, IPermissionService permissions, DiscordRestClient client)
         {
             _commandGroups = commandGroups;
             _commandsHolder = commandsHolder;

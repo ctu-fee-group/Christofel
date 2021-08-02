@@ -35,7 +35,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<ICommandsRegistrator>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
@@ -44,7 +44,7 @@ namespace Christofel.HelloWorld
             get
             {
                 yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<ICommandsRegistrator>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
@@ -53,7 +53,7 @@ namespace Christofel.HelloWorld
             get
             {
                 yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<ICommandsRegistrator>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 

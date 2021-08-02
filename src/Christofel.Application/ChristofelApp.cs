@@ -73,7 +73,7 @@ namespace Christofel.Application
             get
             {
                 yield return Services.GetRequiredService<PluginService>();
-                yield return Services.GetRequiredService<ICommandsRegistrator>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
@@ -83,7 +83,7 @@ namespace Christofel.Application
             {
                 yield return Services.GetRequiredService<PluginService>();
                 yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<ICommandsRegistrator>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
@@ -93,7 +93,7 @@ namespace Christofel.Application
             {
                 yield return Services.GetRequiredService<PluginAutoloader>();
                 yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<ICommandsRegistrator>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 

@@ -4,7 +4,6 @@ using Christofel.BaseLib.Plugins;
 
 namespace Christofel.CommandsLib.Commands
 {
-    public interface ICommandsRegistrator : IStartable, IStoppable, IRefreshable
     {
         public Task RegisterCommandsAsync(ICommandHolder holder, CancellationToken token = default);
         
