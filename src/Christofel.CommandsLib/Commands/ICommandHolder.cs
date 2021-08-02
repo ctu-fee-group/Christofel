@@ -36,12 +36,12 @@ namespace Christofel.CommandsLib.Commands
         /// <param name="executor"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public SlashCommandInfo AddCommand(SlashCommandBuilder builder, ICommandExecutor executor, CancellationToken token = default);
+        public SlashCommandInfo AddCommand(SlashCommandBuilder builder, ICommandExecutor executor);
         
         /// <summary>
         /// Remove all commands from collection
         /// </summary>
         /// <param name="token"></param>
-        public void RemoveCommands(CancellationToken token = new CancellationToken());
+        public void RemoveCommands();
     }
 }
