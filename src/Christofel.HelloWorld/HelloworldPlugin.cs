@@ -8,6 +8,7 @@ using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
+using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.Extensions;
 using Christofel.CommandsLib.Handlers;
 using Microsoft.Extensions.Logging;
@@ -34,7 +35,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionHandler>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
@@ -43,6 +44,7 @@ namespace Christofel.HelloWorld
             get
             {
                 yield return Services.GetRequiredService<InteractionHandler>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
@@ -51,6 +53,7 @@ namespace Christofel.HelloWorld
             get
             {
                 yield return Services.GetRequiredService<InteractionHandler>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 

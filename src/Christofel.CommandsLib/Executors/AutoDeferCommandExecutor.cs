@@ -35,7 +35,7 @@ namespace Christofel.CommandsLib.Executors
             else
             {
                 await command
-                    .RespondAsync(Message);
+                    .RespondAsync(Message, ephemeral: true);
             }
             
             await _executor.TryExecuteCommand(info, command, token);

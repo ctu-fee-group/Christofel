@@ -29,7 +29,9 @@ namespace Christofel.CommandsLib.Extensions
                     return provider;
                 })
                 .AddSingleton<ICommandHolder, CommandHolder>()
-                .AddSingleton<InteractionHandler>();
+                .AddSingleton<InteractionHandler>()
+                .AddSingleton<ICommandsRegistrator>(p => p.GetRequiredService<CommandsRegistrator>())
+                .AddSingleton<CommandsRegistrator>();
 
             configure?.Invoke(collection);
             

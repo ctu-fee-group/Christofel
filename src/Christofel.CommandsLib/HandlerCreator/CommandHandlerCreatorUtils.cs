@@ -19,14 +19,14 @@ namespace Christofel.CommandsLib.HandlerCreator
         /// <param name="getArguments"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static SlashCommandHandler CreateHandler(Delegate function, Func<SocketSlashCommandData, IEnumerable<object>> getArguments)
+        public static SlashCommandHandler CreateHandler(Delegate function, Func<SocketSlashCommandData, IEnumerable<object?>?> getArguments)
         {
             EfficientInvoker invoker = EfficientInvoker.ForDelegate(function);
             
             return (command, token) =>
             {
                 List<object?> args = new() {command};
-                args.AddRange(getArguments(command.Data));
+                args.AddRange(getArguments(command.Data) ?? Enumerable.Empty<object?>());
                 args.Add(token);
 
                 object? data = invoker.Invoke(function, args.ToArray());

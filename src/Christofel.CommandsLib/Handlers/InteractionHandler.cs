@@ -22,16 +22,14 @@ namespace Christofel.CommandsLib.Handlers
     /// <remarks>
     /// Exposes basic command handling helper commands
     /// </remarks>
-    public class InteractionHandler : IStartable, IRefreshable, IStoppable
+    public class InteractionHandler : IStartable, IStoppable
     {
         protected readonly ICommandHolder _commandsHolder;
         protected readonly CancellationTokenSource _commandsTokenSource;
         protected readonly DiscordSocketClient _client;
-        private readonly ICommandsGroupProvider _commandGroups;
         
-        public InteractionHandler(DiscordSocketClient client, ICommandHolder commandsHolder, ICommandsGroupProvider commandGroups)
+        public InteractionHandler(DiscordSocketClient client, ICommandHolder commandsHolder)
         {
-            _commandGroups = commandGroups;
             _commandsTokenSource = new CancellationTokenSource();
             _commandsHolder = commandsHolder;
             _client = client;
@@ -80,17 +78,7 @@ namespace Christofel.CommandsLib.Handlers
         public Task StartAsync(CancellationToken token = new CancellationToken())
         {
             SetupEvents();
-            return Task.WhenAll(
-                _commandGroups.GetGroups().Select(x => x.SetupCommandsAsync(_commandsHolder, token)));
-        }
-
-        /// <summary>
-        /// Refreshes command permissions
-        /// </summary>
-        /// <param name="token"></param>
-        public virtual Task RefreshAsync(CancellationToken token = new CancellationToken())
-        {
-            return _commandsHolder.RefreshCommandsAndPermissionsAsync(token);
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -104,8 +92,7 @@ namespace Christofel.CommandsLib.Handlers
             
             _commandsTokenSource.Cancel();
             token.ThrowIfCancellationRequested();
-
-            return _commandsHolder.UnregisterCommandsAsync(token);
+            return Task.CompletedTask;
         }
     }
 }

@@ -22,6 +22,7 @@ using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
+using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.Extensions;
 using Christofel.CommandsLib.Handlers;
 using Discord;
@@ -72,7 +73,7 @@ namespace Christofel.Application
             get
             {
                 yield return Services.GetRequiredService<PluginService>();
-                yield return Services.GetRequiredService<InteractionHandler>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
@@ -82,6 +83,7 @@ namespace Christofel.Application
             {
                 yield return Services.GetRequiredService<PluginService>();
                 yield return Services.GetRequiredService<InteractionHandler>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
@@ -91,6 +93,7 @@ namespace Christofel.Application
             {
                 yield return Services.GetRequiredService<PluginAutoloader>();
                 yield return Services.GetRequiredService<InteractionHandler>();
+                yield return Services.GetRequiredService<CommandsRegistrator>();
             }
         }
 
