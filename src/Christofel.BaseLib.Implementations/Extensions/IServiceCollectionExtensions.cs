@@ -1,4 +1,5 @@
 using System;
+using Discord.Rest;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -20,7 +21,7 @@ namespace Christofel.BaseLib.Extensions
                 .AddSingleton(state.Configuration)
                 .AddSingleton(state.Bot)
                 .AddSingleton(state.Bot.Client)
-                .AddSingleton(state.Bot.Client.Rest)
+                .AddSingleton<DiscordRestClient>(state.Bot.Client.Rest)
                 .AddSingleton(state.Lifetime)
                 .AddSingleton(state.LoggerFactory)
                 .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
