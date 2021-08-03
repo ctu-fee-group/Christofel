@@ -20,15 +20,10 @@ namespace Christofel.CommandsLib.CommandsInfo
     /// </summary>
     public class SlashCommandInfo
     {
-        public static SlashCommandBuilder CreateStatefulBuilder()
-        {
-            return new SlashCommandBuilderInfo();
-        }
-        
         public SlashCommandInfo(SlashCommandBuilder builder, string permission,
             SlashCommandHandler handler)
         {
-            Builder = builder;
+            BuiltCommand = builder.Build();
             Handler = handler;
             Permission = new CommandPermission(builder, permission);
         }
@@ -52,16 +47,11 @@ namespace Christofel.CommandsLib.CommandsInfo
         /// What handler to execute when command execution is requested
         /// </summary>
         public SlashCommandHandler Handler { get; }
-        
-        /// <summary>
-        /// The builder that will be used to build the command
-        /// </summary>
-        public SlashCommandBuilder Builder { get; }
-        
+
         /// <summary>
         /// Built command that is set after calling Build()
         /// </summary>
-        public SlashCommandCreationProperties? BuiltCommand { get; private set; }
+        public SlashCommandCreationProperties BuiltCommand { get; private set; }
         
         /// <summary>
         /// Registered command that is set after calling RegisterCommandAsync
@@ -72,20 +62,6 @@ namespace Christofel.CommandsLib.CommandsInfo
         /// Permission of the command
         /// </summary>
         public CommandPermission Permission { get; }
-
-        /// <summary>
-        /// Build the command creation properties
-        /// </summary>
-        /// <returns></returns>
-        public SlashCommandCreationProperties Build()
-        {
-            if (BuiltCommand == null)
-            {
-                BuiltCommand = Builder.Build();
-            }
-
-            return BuiltCommand;
-        }
 
         /// <summary>
         /// Check if given user has permission to execute this command
@@ -156,7 +132,7 @@ namespace Christofel.CommandsLib.CommandsInfo
         {
             if (Command == null)
             {
-                SlashCommandCreationProperties command = await SetDefaultPermissionAsync(Build(), resolver, token);
+                SlashCommandCreationProperties command = await SetDefaultPermissionAsync(BuiltCommand, resolver, token);
                 
                 if (Global)
                 {

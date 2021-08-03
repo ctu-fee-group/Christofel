@@ -36,7 +36,7 @@ namespace Christofel.CommandsLib.Commands
         /// <param name="executor"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public SlashCommandInfo AddCommand(SlashCommandBuilder builder, ICommandExecutor executor);
+        public SlashCommandInfo AddCommand(SlashCommandInfoBuilder builder, ICommandExecutor executor);
         
         /// <summary>
         /// Remove all commands from collection

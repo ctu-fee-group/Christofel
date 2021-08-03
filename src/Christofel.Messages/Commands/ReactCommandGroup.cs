@@ -81,12 +81,13 @@ namespace Christofel.Messages.Commands
             SlashCommandHandler handler = new PlainCommandHandlerCreator()
                 .CreateHandlerForCommand((CommandDelegate<IChannel?, string, string>) HandleReactAsync);
 
-            SlashCommandBuilder commandBuilder = new SlashCommandBuilderInfo()
-                .WithName("react")
-                .WithDescription("React to a message")
-                .WithPermission("messages.react.react")
+            SlashCommandInfoBuilder commandBuilder = new SlashCommandInfoBuilder()
                 .WithGuild(_options.GuildId)
                 .WithHandler(handler)
+                .WithPermission("messages.react.react")
+                .WithBuilder(new SlashCommandBuilder()
+                .WithName("react")
+                .WithDescription("React to a message")
                 .AddOption(new SlashCommandOptionBuilder()
                     .WithName("messageid")
                     .WithDescription("Message to react to")
@@ -101,7 +102,7 @@ namespace Christofel.Messages.Commands
                     .WithName("channel")
                     .WithDescription("Channel with target message. Default is the current channel")
                     .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Channel));
+                    .WithType(ApplicationCommandOptionType.Channel)));
 
             holder.AddCommand(commandBuilder, executor);
             return Task.CompletedTask;

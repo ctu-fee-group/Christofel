@@ -28,12 +28,12 @@ namespace Christofel.CommandsLib.Commands
 
         public ICommandHolder.HeldSlashCommand? TryGetSlashCommand(string name)
         {
-            return _commands.FirstOrDefault(x => x.Info.Builder.Name == name);
+            return _commands.FirstOrDefault(x => x.Info.BuiltCommand.Name == name);
         }
 
-        public SlashCommandInfo AddCommand(SlashCommandBuilder builder, ICommandExecutor executor)
+        public SlashCommandInfo AddCommand(SlashCommandInfoBuilder builder, ICommandExecutor executor)
         {
-            SlashCommandInfo info = builder.BuildAndGetInfo();
+            SlashCommandInfo info = builder.Build();
 
             lock (_commandsLock)
             {
