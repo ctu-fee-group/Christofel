@@ -1,12 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 
-namespace Christofel.CommandsLib.Verificator
+namespace Christofel.CommandsLib.Verifier
 {
     public record Verified<T> (T Result, bool Success, IEnumerable<VerifyFailMessage> FailMessages);
 

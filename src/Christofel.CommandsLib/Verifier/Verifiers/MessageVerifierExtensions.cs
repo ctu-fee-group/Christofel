@@ -1,12 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.CommandsLib.Verificator.Interfaces;
+using Christofel.CommandsLib.Verifier.Interfaces;
 using Discord;
 using Discord.Rest;
-using Microsoft.Extensions.Logging;
 
-namespace Christofel.CommandsLib.Verificator.Verifiers
+namespace Christofel.CommandsLib.Verifier.Verifiers
 {
     public static class MessageVerifierExtensions
     {

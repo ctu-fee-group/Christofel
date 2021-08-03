@@ -1,6 +1,6 @@
 using Discord.Rest;
 
-namespace Christofel.CommandsLib.Verificator.Interfaces
+namespace Christofel.CommandsLib.Verifier.Interfaces
 {
     public interface IHasRestUserMessage
     {
