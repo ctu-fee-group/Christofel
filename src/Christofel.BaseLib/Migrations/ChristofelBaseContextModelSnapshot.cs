@@ -31,13 +31,14 @@ namespace Christofel.BaseLib.Migrations
 
                     b.Property<string>("CtuUsername")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.Property<ulong>("DiscordId")
                         .HasColumnType("bigint unsigned");
 
-                    b.Property<bool>("Duplicity")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<int>("DuplicitUserId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("DuplicityApproved")
                         .HasColumnType("tinyint(1)");
@@ -46,6 +47,8 @@ namespace Christofel.BaseLib.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("UserId");
+
+                    b.HasIndex("DuplicitUserId");
 
                     b.ToTable("Users");
                 });
@@ -58,7 +61,8 @@ namespace Christofel.BaseLib.Migrations
 
                     b.Property<string>("PermissionName")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(512)
+                        .HasColumnType("varchar(512)");
 
                     b.HasKey("PermissionAssignmentId");
 
@@ -76,7 +80,8 @@ namespace Christofel.BaseLib.Migrations
 
                     b.Property<string>("Programme")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
 
                     b.HasKey("ProgrammeRoleAssignmentId");
 
@@ -173,6 +178,17 @@ namespace Christofel.BaseLib.Migrations
                     b.HasIndex("AssignmentId");
 
                     b.ToTable("YearRoleAssignments");
+                });
+
+            modelBuilder.Entity("Christofel.BaseLib.Database.Models.DbUser", b =>
+                {
+                    b.HasOne("Christofel.BaseLib.Database.Models.DbUser", "DuplicitUser")
+                        .WithMany()
+                        .HasForeignKey("DuplicitUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DuplicitUser");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.PermissionAssignment", b =>
