@@ -107,7 +107,15 @@ namespace Christofel.CommandsLib.Verifier
         public async Task<Verified<T>> FinishVerificationAsync()
         {
             // Wait for any work to finish
-            await Task.WhenAll(_tasks);
+            try
+            {
+                await Task.WhenAll(_tasks);
+            }
+            catch (Exception)
+            {
+                await Command.RespondAsync("There was an error, sorry. Check the log.");
+                throw;
+            }
 
             if (!Success)
             {
