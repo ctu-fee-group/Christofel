@@ -1,19 +1,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
-using Christofel.CommandsLib;
 using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.CommandsInfo;
 using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.Handlers;
 using Discord;
-using Discord.Rest;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -36,7 +30,7 @@ namespace Christofel.Application.Commands
             RefreshChristofel refresh,
             IOptions<BotOptions> options,
             ILogger<ControlCommands> logger
-            )
+        )
         {
             _resolver = resolver;
             _logger = logger;
@@ -45,7 +39,8 @@ namespace Christofel.Application.Commands
             _options = options.Value;
         }
 
-        private async Task HandleRefreshCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
+        private async Task HandleRefreshCommand(SocketSlashCommand command,
+            CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /refresh");
             await _refresh(token);
@@ -58,24 +53,28 @@ namespace Christofel.Application.Commands
         {
             _logger.LogInformation("Handling command /quit");
             _applicationLifetime.RequestStop();
-            return command.FollowupAsync("Goodbye", options: new RequestOptions() { CancelToken = token});
+            return command.FollowupAsync("Goodbye", options: new RequestOptions() {CancelToken = token});
         }
 
         public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
         {
-            SlashCommandBuilder quitBuilder = new SlashCommandBuilderInfo()
-                .WithName("quit")
-                .WithDescription("Quit the bot")
+            SlashCommandInfoBuilder quitBuilder = new SlashCommandInfoBuilder()
                 .WithPermission("application.quit")
                 .WithGuild(_options.GuildId)
-                .WithHandler(HandleQuitCommand);
-            
-            SlashCommandBuilder refreshBuilder = new SlashCommandBuilderInfo()
-                .WithName("refresh")
-                .WithDescription("Refresh config where it can be")
+                .WithHandler(HandleQuitCommand)
+                .WithBuilder(new SlashCommandBuilder()
+                    .WithName("quit")
+                    .WithDescription("Quit the bot")
+                );
+
+            SlashCommandInfoBuilder refreshBuilder = new SlashCommandInfoBuilder()
                 .WithPermission("application.refresh")
                 .WithGuild(_options.GuildId)
-                .WithHandler(HandleRefreshCommand);
+                .WithHandler(HandleRefreshCommand)
+                .WithBuilder(new SlashCommandBuilder()
+                    .WithName("refresh")
+                    .WithDescription("Refresh config where it can be")
+                );
 
             ICommandExecutor executor = new CommandExecutorBuilder()
                 .WithLogger(_logger)

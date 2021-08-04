@@ -29,14 +29,14 @@ namespace Christofel.Application.Commands
     public class PluginCommands : ICommandGroup
     {
         private delegate Task PluginDelegate(SocketSlashCommand command, string pluginName, CancellationToken token);
-        
+
         private readonly PluginService _plugins;
         private readonly IChristofelState _state;
         private readonly BotOptions _options;
         private readonly PluginStorage _storage;
         private readonly ILogger<PluginCommands> _logger;
         private readonly IPermissionsResolver _resolver;
-        
+
         public PluginCommands(
             IPermissionsResolver resolver,
             IChristofelState state,
@@ -44,7 +44,7 @@ namespace Christofel.Application.Commands
             IOptions<BotOptions> options,
             PluginStorage storage,
             ILogger<PluginCommands> logger
-            )
+        )
         {
             _resolver = resolver;
             _storage = storage;
@@ -58,57 +58,58 @@ namespace Christofel.Application.Commands
         {
             SubCommandHandlerCreator creator = new SubCommandHandlerCreator();
             SlashCommandHandler handler = creator.CreateHandlerForCommand(
-                ("attach", (CommandDelegate<string>)HandleAttach),
-                ("detach", (CommandDelegate<string>)HandleDetach),
-                ("reattach", (CommandDelegate<string>)HandleReattach),
-                ("list", (CommandDelegate)HandleList),
-                ("check", (CommandDelegate)HandleCheck));
-            
-            SlashCommandBuilder pluginBuilder = new SlashCommandBuilderInfo()
-                .WithName("plugin")
-                .WithDescription("Control attached plugins")
+                ("attach", (CommandDelegate<string>) HandleAttach),
+                ("detach", (CommandDelegate<string>) HandleDetach),
+                ("reattach", (CommandDelegate<string>) HandleReattach),
+                ("list", (CommandDelegate) HandleList),
+                ("check", (CommandDelegate) HandleCheck));
+
+            SlashCommandInfoBuilder pluginBuilder = new SlashCommandInfoBuilder()
                 .WithPermission("application.plugins.control")
                 .WithGuild(_options.GuildId)
                 .WithHandler(handler)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("attach")
-                    .WithDescription("Attach a plugin that is not yet attached")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithBuilder(new SlashCommandBuilder()
+                    .WithName("plugin")
+                    .WithDescription("Control attached plugins")
                     .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("pluginname")
-                        .WithRequired(true)
-                        .WithDescription("Name of the module")
-                        .WithType(ApplicationCommandOptionType.String)
+                        .WithName("attach")
+                        .WithDescription("Attach a plugin that is not yet attached")
+                        .WithType(ApplicationCommandOptionType.SubCommand)
+                        .AddOption(new SlashCommandOptionBuilder()
+                            .WithName("pluginname")
+                            .WithRequired(true)
+                            .WithDescription("Name of the module")
+                            .WithType(ApplicationCommandOptionType.String)
+                        )
+                    ).AddOption(new SlashCommandOptionBuilder()
+                        .WithName("detach")
+                        .WithDescription("Detach a plugin that is already attached")
+                        .WithType(ApplicationCommandOptionType.SubCommand)
+                        .AddOption(new SlashCommandOptionBuilder()
+                            .WithName("pluginname")
+                            .WithRequired(true)
+                            .WithDescription("Name of the module")
+                            .WithType(ApplicationCommandOptionType.String)
+                        )
+                    ).AddOption(new SlashCommandOptionBuilder()
+                        .WithName("reattach")
+                        .WithDescription("Reattach a plugin that is attached")
+                        .WithType(ApplicationCommandOptionType.SubCommand)
+                        .AddOption(new SlashCommandOptionBuilder()
+                            .WithName("pluginname")
+                            .WithRequired(true)
+                            .WithDescription("Name of the module")
+                            .WithType(ApplicationCommandOptionType.String)
+                        )
                     )
-                ).AddOption(new SlashCommandOptionBuilder()
-                    .WithName("detach")
-                    .WithDescription("Detach a plugin that is already attached")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
                     .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("pluginname")
-                        .WithRequired(true)
-                        .WithDescription("Name of the module")
-                        .WithType(ApplicationCommandOptionType.String)
-                    )
-                ).AddOption(new SlashCommandOptionBuilder()
-                    .WithName("reattach")
-                    .WithDescription("Reattach a plugin that is attached")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("pluginname")
-                        .WithRequired(true)
-                        .WithDescription("Name of the module")
-                        .WithType(ApplicationCommandOptionType.String)
-                    )
-                )
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("check")
-                    .WithDescription("Checks memory for any detached modules still left")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                ).AddOption(new SlashCommandOptionBuilder()
-                    .WithName("list")
-                    .WithDescription("Print list of attached plugins")
-                    .WithType(ApplicationCommandOptionType.SubCommand));
+                        .WithName("check")
+                        .WithDescription("Checks memory for any detached modules still left")
+                        .WithType(ApplicationCommandOptionType.SubCommand)
+                    ).AddOption(new SlashCommandOptionBuilder()
+                        .WithName("list")
+                        .WithDescription("Print list of attached plugins")
+                        .WithType(ApplicationCommandOptionType.SubCommand)));
 
             ICommandExecutor executor = new CommandExecutorBuilder()
                 .WithLogger(_logger)
@@ -116,18 +117,19 @@ namespace Christofel.Application.Commands
                 .WithDeferMessage()
                 .WithThreadPool()
                 .Build();
-            
+
             holder.AddCommand(pluginBuilder, executor);
             return Task.CompletedTask;
         }
-        
+
 
         /// <summary>
         /// Handle /plugin attach
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleAttach(SocketSlashCommand command, string pluginName, CancellationToken token = new CancellationToken())
+        private async Task HandleAttach(SocketSlashCommand command, string pluginName,
+            CancellationToken token = new CancellationToken())
         {
             _logger.LogDebug("Handling command /plugin attach");
 
@@ -138,7 +140,7 @@ namespace Christofel.Application.Commands
                 await command.FollowupChunkAsync(
                     "The plugin was not found",
                     ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token });
+                    options: new RequestOptions() {CancelToken = token});
             }
 
             if (_plugins.IsAttached(pluginName))
@@ -147,7 +149,7 @@ namespace Christofel.Application.Commands
                 await command.FollowupChunkAsync(
                     "Plugin with the same name is already attached. Did you mean to reattach it?",
                     ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token });
+                    options: new RequestOptions() {CancelToken = token});
             }
 
             token.ThrowIfCancellationRequested();
@@ -159,7 +161,7 @@ namespace Christofel.Application.Commands
                     await command.FollowupChunkAsync(
                         $@"Plugin {plugin} was attached",
                         ephemeral: true,
-                        options: new RequestOptions() { CancelToken = token });
+                        options: new RequestOptions() {CancelToken = token});
                 }
                 catch (Exception e)
                 {
@@ -167,20 +169,21 @@ namespace Christofel.Application.Commands
                     await command.FollowupChunkAsync(
                         "There was an error. Check the log.",
                         ephemeral: true,
-                        options: new RequestOptions() { CancelToken = token });
+                        options: new RequestOptions() {CancelToken = token});
                 }
             }
         }
-        
+
         /// <summary>
         /// Handle /plugin detach
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleDetach(SocketSlashCommand command, string pluginName, CancellationToken token = new CancellationToken())
+        private async Task HandleDetach(SocketSlashCommand command, string pluginName,
+            CancellationToken token = new CancellationToken())
         {
             _logger.LogDebug("Handling command /module detach");
-            
+
             bool detach = true;
             if (!_plugins.IsAttached(pluginName))
             {
@@ -188,27 +191,28 @@ namespace Christofel.Application.Commands
                 await command.FollowupChunkAsync(
                     "Could not find attached plugin with this name",
                     ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token }
+                    options: new RequestOptions() {CancelToken = token}
                 );
             }
-            
+
             if (detach)
             {
                 IHasPluginInfo plugin = await _plugins.DetachAsync(pluginName, token);
                 await command.FollowupChunkAsync(
                     $@"Plugin {plugin} was detached",
                     ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token }
-                    );
+                    options: new RequestOptions() {CancelToken = token}
+                );
             }
         }
-        
+
         /// <summary>
         /// Handle /plugin reattach
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleReattach(SocketSlashCommand command, string pluginName, CancellationToken token = new CancellationToken())
+        private async Task HandleReattach(SocketSlashCommand command, string pluginName,
+            CancellationToken token = new CancellationToken())
         {
             bool reattach = true;
             if (!_plugins.IsAttached(pluginName))
@@ -217,7 +221,7 @@ namespace Christofel.Application.Commands
                 await command.FollowupChunkAsync(
                     "Could not find attached plugin with this name",
                     ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token }
+                    options: new RequestOptions() {CancelToken = token}
                 );
             }
 
@@ -229,7 +233,7 @@ namespace Christofel.Application.Commands
                     await command.FollowupChunkAsync(
                         $@"Plugin {plugin} was reattached",
                         ephemeral: true,
-                        options: new RequestOptions() { CancelToken = token });
+                        options: new RequestOptions() {CancelToken = token});
                 }
                 catch (Exception e)
                 {
@@ -237,11 +241,11 @@ namespace Christofel.Application.Commands
                     await command.FollowupChunkAsync(
                         "There was an error. Check the log.",
                         ephemeral: true,
-                        options: new RequestOptions() { CancelToken = token });
+                        options: new RequestOptions() {CancelToken = token});
                 }
             }
         }
-        
+
         /// <summary>
         /// Handle /plugin list
         /// </summary>
@@ -253,11 +257,11 @@ namespace Christofel.Application.Commands
             IEnumerable<string> plugins = _storage.AttachedPlugins
                 .Select(x => $@"**{x.Name}** ({x.Version}) - {x.Description}");
             string pluginMessage = "List of attached plugins:\n  " + string.Join("\n  ", plugins);
-            
+
             return command.FollowupChunkAsync(
                 pluginMessage,
                 ephemeral: true,
-                options: new RequestOptions() { CancelToken = token });
+                options: new RequestOptions() {CancelToken = token});
         }
 
         /// <summary>
@@ -272,7 +276,7 @@ namespace Christofel.Application.Commands
             return command.FollowupChunkAsync(
                 "Check log for result",
                 ephemeral: true,
-                options: new RequestOptions() { CancelToken = token });
+                options: new RequestOptions() {CancelToken = token});
         }
     }
 }

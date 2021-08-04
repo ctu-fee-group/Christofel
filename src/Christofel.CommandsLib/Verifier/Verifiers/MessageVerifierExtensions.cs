@@ -20,15 +20,15 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
             return (ulong) hasMessageId.MessageId;
         }
 
-        public static RestUserMessage GetRestUserMessage<T>(this CommandVerifier<T> verifier)
+        public static IUserMessage GetUserMessage<T>(this CommandVerifier<T> verifier)
             where T : new()
         {
-            if (!(verifier.Result is IHasRestUserMessage hasRestMessage) || hasRestMessage.Message == null)
+            if (!(verifier.Result is IHasRestUserMessage hasRestMessage) || hasRestMessage.UserMessage == null)
             {
                 throw new InvalidOperationException("Cannot find rest message");
             }
 
-            return hasRestMessage.Message;
+            return hasRestMessage.UserMessage;
         }
 
         public static CommandVerifier<T> VerifyMessageId<T>(this CommandVerifier<T> verifier,
@@ -52,7 +52,7 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
             string parameterName = "messageid", CancellationToken token = default)
             where T : new()
         {
-            verifier.QueueWork(() => verifier.VerifyRestUserMessageAsync(parameterName, token));
+            verifier.QueueWork(() => verifier.VerifyUserMessageAsync(parameterName, token));
             return verifier;
         }
 
@@ -76,7 +76,7 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
             return Task.FromResult(verifier);
         }
 
-        private static async Task<CommandVerifier<T>> VerifyRestUserMessageAsync<T>(this CommandVerifier<T> verifier,
+        private static async Task<CommandVerifier<T>> VerifyUserMessageAsync<T>(this CommandVerifier<T> verifier,
             string parameterName = "messageid", CancellationToken token = default)
             where T : new()
         {
@@ -103,13 +103,13 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
                 return verifier;
             }
 
-            if (!(message is RestUserMessage restUserMessage))
+            if (!(message is IUserMessage userMessage))
             {
                 verifier.SetFailed(parameterName, "Message could not be matched to a user message.");
                 return verifier;
             }
 
-            hasUserMessage.Message = restUserMessage;
+            hasUserMessage.UserMessage = userMessage;
 
             return verifier;
         }
@@ -123,7 +123,7 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
                 return Task.FromResult(verifier);
             }
 
-            RestUserMessage message = verifier.GetRestUserMessage();
+            IUserMessage message = verifier.GetUserMessage();
 
             if (message.Author.Id != verifier.Client.CurrentUser.Id)
             {

@@ -22,8 +22,9 @@ namespace Christofel.HelloWorld
         private readonly BotOptions _options;
         private readonly ILogger<PingCommandGroup> _logger;
         private readonly IPermissionsResolver _resolver;
-        
-        public PingCommandGroup(IOptions<BotOptions> options, ILogger<PingCommandGroup> logger, IPermissionsResolver resolver)
+
+        public PingCommandGroup(IOptions<BotOptions> options, ILogger<PingCommandGroup> logger,
+            IPermissionsResolver resolver)
         {
             _resolver = resolver;
             _logger = logger;
@@ -33,7 +34,7 @@ namespace Christofel.HelloWorld
         public Task HandlePing(SocketSlashCommand command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling /ping command");
-            return command.RespondAsync("Pong!", options: new RequestOptions { CancelToken = token });
+            return command.RespondAsync("Pong!", options: new RequestOptions {CancelToken = token});
         }
 
         public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
@@ -43,12 +44,13 @@ namespace Christofel.HelloWorld
                 .WithLogger(_logger)
                 .Build();
 
-            SlashCommandBuilder pingBuilder = new SlashCommandBuilderInfo()
-                .WithName("ping")
-                .WithDescription("Ping the bot")
+            SlashCommandInfoBuilder pingBuilder = new SlashCommandInfoBuilder()
                 .WithPermission("helloworld.ping")
                 .WithGuild(_options.GuildId)
-                .WithHandler(HandlePing);
+                .WithHandler(HandlePing)
+                .WithBuilder(new SlashCommandBuilder()
+                    .WithName("ping")
+                    .WithDescription("Ping the bot"));
 
             holder.AddCommand(pingBuilder, executor);
             return Task.CompletedTask;
