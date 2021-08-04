@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -51,8 +52,16 @@ namespace Christofel.CommandsLib.Commands
         {
             foreach (ICommandHolder.HeldSlashCommand heldCommand in holder.Commands)
             {
-                await heldCommand.Info.RegisterCommandAsync(_client, _permissions.Resolver, token);
-                await heldCommand.Info.RegisterPermissionsAsync(_client, _permissions, token);
+                try
+                {
+                    await heldCommand.Info.RegisterCommandAsync(_client, _permissions.Resolver, token);
+                    await heldCommand.Info.RegisterPermissionsAsync(_client, _permissions, token);
+                }
+                catch (Exception e)
+                {
+                    throw new InvalidOperationException(
+                        $@"Could not register a command {heldCommand.Info.BuiltCommand.Name}", e);
+                }
             }
         }
 
