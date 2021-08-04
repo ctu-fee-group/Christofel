@@ -55,7 +55,7 @@ namespace Christofel.Application.Permissions
                 .AnyAsync(x =>
                     x.Target.TargetType == TargetType.Everyone ||
                     (x.Target.TargetType == TargetType.User && users.Contains(x.Target.DiscordId)) ||
-                    (x.Target.TargetType == TargetType.Role && roles.Contains(x.Target.DiscordId)));
+                    (x.Target.TargetType == TargetType.Role && roles.Contains(x.Target.DiscordId)), token);
         }
 
         private IEnumerable<string> GetPossiblePermissions(string permissionName)
