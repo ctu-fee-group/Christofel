@@ -45,7 +45,7 @@ namespace Christofel.Application.Permissions
 
         public async Task<bool> AnyHasPermissionAsync(string permissionName, IEnumerable<DiscordTarget> targets, CancellationToken token = new CancellationToken())
         {
-            var discordTargets = targets as DiscordTarget[] ?? targets.ToArray();
+            DiscordTarget[]? discordTargets = targets as DiscordTarget[] ?? targets.ToArray();
             IEnumerable<ulong> roles = discordTargets.Where(x => x.TargetType == TargetType.Role).Select(x => x.DiscordId);
             IEnumerable<ulong> users = discordTargets.Where(x => x.TargetType == TargetType.User).Select(x => x.DiscordId);
 

@@ -71,7 +71,7 @@ namespace Christofel.Application.Logging.Discord
                 return;
             }
             
-            var channel = _bot
+            IMessageChannel channel = _bot
                 .GetGuild(entry.GuildId)
                 .GetTextChannel(entry.ChannelId);
 
