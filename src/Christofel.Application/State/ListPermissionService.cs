@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Christofel.BaseLib.Permissions;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +27,16 @@ namespace Christofel.Application.State
 
         public IPermissionsResolver Resolver => _provider.GetRequiredService<IPermissionsResolver>();
 
-        public IEnumerable<IPermission> Permissions => _permissions.AsReadOnly();
+        public IEnumerable<IPermission> Permissions
+        {
+            get
+            {
+                lock (_threadLock)
+                {
+                    return _permissions.ToImmutableList();
+                }
+            }
+        }
 
         public void RegisterPermission(IPermission permission)
         {

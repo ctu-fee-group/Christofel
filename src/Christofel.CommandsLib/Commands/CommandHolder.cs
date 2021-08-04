@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,16 @@ namespace Christofel.CommandsLib.Commands
             _commands = new List<ICommandHolder.HeldSlashCommand>();
         }
 
-        public IEnumerable<ICommandHolder.HeldSlashCommand> Commands => _commands.AsReadOnly();
+        public IEnumerable<ICommandHolder.HeldSlashCommand> Commands
+        {
+            get
+            {
+                lock (_commandsLock)
+                {
+                    return _commands.ToImmutableList();
+                }
+            }
+        }
 
         public ICommandHolder.HeldSlashCommand? TryGetSlashCommand(string name)
         {

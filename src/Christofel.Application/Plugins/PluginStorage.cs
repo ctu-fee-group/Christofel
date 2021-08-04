@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Christofel.Application.Plugins
@@ -20,8 +21,27 @@ namespace Christofel.Application.Plugins
             _detachedPlugins = new List<DetachedPlugin>();
         }
 
-        public IReadOnlyCollection<AttachedPlugin> AttachedPlugins => _attachedPlugins.AsReadOnly();
-        public IReadOnlyCollection<DetachedPlugin> DetachedPlugins => _detachedPlugins.AsReadOnly();
+        public IReadOnlyCollection<AttachedPlugin> AttachedPlugins
+        {
+            get
+            {
+                lock (_pluginsLock)
+                {
+                    return _attachedPlugins.ToImmutableList();
+                }
+            }
+        }
+
+        public IReadOnlyCollection<DetachedPlugin> DetachedPlugins
+        {
+            get
+            {
+                lock (_pluginsLock)
+                {
+                    return _detachedPlugins.ToImmutableList();
+                }
+            }
+        }
 
         /// <summary>
         /// Whether plugin with given name is attached
