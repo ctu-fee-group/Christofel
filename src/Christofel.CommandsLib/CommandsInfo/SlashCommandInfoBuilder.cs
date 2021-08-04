@@ -32,11 +32,13 @@ namespace Christofel.CommandsLib.CommandsInfo
 
         public SlashCommandInfoBuilder WithBuilder(SlashCommandBuilder builder)
         {
+            DiscordNetBuilder = builder;
             return this;
         }
 
         public SlashCommandInfoBuilder WithHandler(SlashCommandHandler handler)
         {
+            Handler = handler;
             return this;
         }
 
