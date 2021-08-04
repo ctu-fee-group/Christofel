@@ -38,6 +38,12 @@ namespace Christofel.CommandsLib.Extensions
             return collection;
         }
         
+        /// <summary>
+        /// Adds CommandGroup as singleton and configures DICommandGroupsProvider to provide this group command correctly
+        /// </summary>
+        /// <param name="collection"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static IServiceCollection AddCommandGroup<T>(this IServiceCollection collection)
             where T : class, ICommandGroup
         {

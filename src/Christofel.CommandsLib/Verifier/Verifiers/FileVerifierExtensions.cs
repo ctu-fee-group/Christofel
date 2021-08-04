@@ -8,6 +8,18 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
     {
         public const string FileRegex = @"^[a-zA-Z0-9_\-\.]+$";
         
+        /// <summary>
+        /// Verifies if fileName is present in the filesystem.
+        /// Also verifies its name against <see cref="FileRegex"/>
+        /// so folder cannot be selected
+        /// </summary>
+        /// <param name="verifier"></param>
+        /// <param name="rootPath">Folder the file should be located in</param>
+        /// <param name="fileName">Name of the file</param>
+        /// <param name="extension">Extension of the file that will be applied as .{extension} to the fileName</param>
+        /// <param name="parameterName"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static CommandVerifier<T> VerifyFile<T>(this CommandVerifier<T> verifier,
             string rootPath, string fileName, string extension,
             string parameterName = "messageid")

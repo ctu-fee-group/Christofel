@@ -13,6 +13,17 @@ namespace Christofel.CommandsLib.Extensions
     {
         public static int MaxMessageLength = 2000;
         
+        /// <summary>
+        /// Call RespondAsync, but split it to 2000 character messages to prevent from messages not being sent for being too long
+        /// </summary>
+        /// <param name="interaction"></param>
+        /// <param name="text"></param>
+        /// <param name="embeds"></param>
+        /// <param name="isTTS"></param>
+        /// <param name="ephemeral"></param>
+        /// <param name="allowedMentions"></param>
+        /// <param name="options"></param>
+        /// <param name="component"></param>
         public static async Task RespondChunkAsync(this SocketInteraction interaction, string? text = null, Embed[]? embeds = null, bool isTTS = false,
             bool ephemeral = false, AllowedMentions? allowedMentions = null, RequestOptions? options = null, MessageComponent? component = null)
         {
@@ -29,6 +40,18 @@ namespace Christofel.CommandsLib.Extensions
             }
         }
         
+        /// <summary>
+        /// Call FollowupAsync, but split it to 2000 character messages to prevent from messages not being sent for being too long
+        /// </summary>
+        /// <param name="interaction"></param>
+        /// <param name="text"></param>
+        /// <param name="embeds"></param>
+        /// <param name="isTTS"></param>
+        /// <param name="ephemeral"></param>
+        /// <param name="allowedMentions"></param>
+        /// <param name="options"></param>
+        /// <param name="component"></param>
+        /// <returns></returns>
         public static async Task<RestFollowupMessage> FollowupChunkAsync(this SocketInteraction interaction, string? text = null, Embed[]? embeds = null, bool isTTS = false,
             bool ephemeral = false, AllowedMentions? allowedMentions = null, RequestOptions? options = null, MessageComponent? component = null)
         {

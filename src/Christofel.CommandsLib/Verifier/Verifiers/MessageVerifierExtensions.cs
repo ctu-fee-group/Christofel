@@ -9,6 +9,14 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
 {
     public static class MessageVerifierExtensions
     {
+        /// <summary>
+        /// Returns ulong MessageId from CommandVerifier if T implements IHasMessageId and messageId is set
+        /// Throws InvalidOperationException on failure of getting the message id
+        /// </summary>
+        /// <param name="verifier"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static ulong GetMessageId<T>(this CommandVerifier<T> verifier)
             where T : new()
         {
@@ -20,6 +28,14 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
             return (ulong) hasMessageId.MessageId;
         }
 
+        /// <summary>
+        /// Returns UserMessage from CommandVerifier if T implements IHasUserMessage and user message is set
+        /// Throws InvalidOperationException on failure of getting the user message
+        /// </summary>
+        /// <param name="verifier"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static IUserMessage GetUserMessage<T>(this CommandVerifier<T> verifier)
             where T : new()
         {
@@ -31,6 +47,14 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
             return hasRestMessage.UserMessage;
         }
 
+        /// <summary>
+        /// Verifies that messageId is ulong and sets MessageId to the id
+        /// </summary>
+        /// <param name="verifier"></param>
+        /// <param name="messageId"></param>
+        /// <param name="parameterName"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static CommandVerifier<T> VerifyMessageId<T>(this CommandVerifier<T> verifier,
             string messageId,
             string parameterName = "messageid")
@@ -40,6 +64,14 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
             return verifier;
         }
 
+        /// <summary>
+        /// Verifies that the author of the IUserMessage is Christofel
+        /// UserMessage has to be set beforehand, that means calling <see cref="VerifyUserMessage"/>
+        /// </summary>
+        /// <param name="verifier"></param>
+        /// <param name="parameterName"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public static CommandVerifier<T> VerifyMessageAuthorChristofel<T>(this CommandVerifier<T> verifier,
             string parameterName = "messageid")
             where T : new()
@@ -49,6 +81,16 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
         }
 
         public static CommandVerifier<T> VerifyRestUserMessage<T>(this CommandVerifier<T> verifier,
+        /// <summary>
+        /// Verifies that the author of the IUserMessage is Christofel
+        /// MessageId has to be set beforehand, that means calling <see cref="VerifyMessageId"/>
+        /// MessageChannel has to be set beforehand, that means calling <see cref="ChannelVerifierExtensions.VerifyMessageChannel"/>
+        /// /// </summary>
+        /// <param name="verifier"></param>
+        /// <param name="parameterName"></param>
+        /// <param name="token"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
             string parameterName = "messageid", CancellationToken token = default)
             where T : new()
         {

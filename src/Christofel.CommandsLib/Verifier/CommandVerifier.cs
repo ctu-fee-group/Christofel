@@ -7,10 +7,31 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.CommandsLib.Verifier
 {
+    /// <summary>
+    /// Data received from CommandVerifier.
+    /// If Success is false, data did not pass the verification
+    /// FailMessages contains messages with reasons of fail, Result contains
+    /// the requested type
+    /// </summary>
+    /// <param name="Result"></param>
+    /// <param name="Success"></param>
+    /// <param name="FailMessages"></param>
+    /// <typeparam name="T"></typeparam>
     public record Verified<T> (T Result, bool Success, IEnumerable<VerifyFailMessage> FailMessages);
 
+    /// <summary>
+    /// Message for verifier saying what has failed to verify
+    /// </summary>
+    /// <param name="ParameterName">Parameter that is incorrect</param>
+    /// <param name="Message">Message to show (what has gone wrong)</param>
     public record VerifyFailMessage (string ParameterName, string Message);
-
+    
+    /// <summary>
+    /// Class used for veryfying commands
+    /// It should be used along with extension methods
+    /// that provide verification
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class CommandVerifier<T>
         where T : new()
     {
@@ -19,6 +40,13 @@ namespace Christofel.CommandsLib.Verifier
         private List<VerifyFailMessage> _failMessages;
         private bool _firstResponse;
         
+        /// <summary>
+        /// Create CommandVerifier
+        /// </summary>
+        /// <param name="client">Client to use for various api calls</param>
+        /// <param name="command">What command data are being verified</param>
+        /// <param name="logger">What logger to log into verification problems</param>
+        /// <param name="firstResponse">If true, RespondAsync on the command will be used to report verification problems, if false, FollowupAsycn will be used instead</param>
         public CommandVerifier(DiscordSocketClient client, SocketSlashCommand command, ILogger logger, bool firstResponse = true)
         {
             _tasks = new List<Task>();
@@ -34,22 +62,48 @@ namespace Christofel.CommandsLib.Verifier
             Logger = logger;
         }
         
+        /// <summary>
+        /// Socket client for various api calls
+        /// </summary>
         public DiscordSocketClient Client { get; }
         
+        /// <summary>
+        /// Logger to log into from verifiers or about failed verification summary
+        /// </summary>
         public ILogger Logger { get; }
 
+        /// <summary>
+        /// What command is being verified
+        /// </summary>
         public SocketSlashCommand Command { get; }
         
+        /// <summary>
+        /// Result of the verification with correct data set
+        /// </summary>
         public T Result { get; }
 
+        /// <summary>
+        /// If the verification is successful so far
+        /// </summary>
         public bool Success { get; private set; }
 
+        /// <summary>
+        /// Sets that the verification has failed (Success to false)
+        /// and adds a message for specified parameter name
+        /// </summary>
+        /// <param name="parameterName"></param>
+        /// <param name="message"></param>
         public void SetFailed(string parameterName, string message)
         {
             Success = false;
             _failMessages.Add(new VerifyFailMessage(parameterName, message));
         }
 
+        /// <summary>
+        /// Runs all jobs that need to run, sends response to the user on failure
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public async Task<Verified<T>> FinishVerificationAsync()
         {
             // Wait for any work to finish

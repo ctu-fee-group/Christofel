@@ -13,8 +13,11 @@ using Microsoft.EntityFrameworkCore;
 namespace Christofel.CommandsLib.HandlerCreator
 {
     /// <summary>
-    /// Creates SlashCommandHandler for command with one level subcommands.
-    /// Matchers should match against name of the subcommand
+    /// Creates SlashCommandHandler for command with one or more level subcommands.
+    /// Matchers should match against name of all of the subcommands
+    ///
+    /// So for example, if we have /command subcmd subsubcmd, then
+    /// matcher for "subcmd subsubcmd" should be present
     /// </summary>
     public class SubCommandHandlerCreator : ICommandHandlerCreator<string, Delegate>
     {
