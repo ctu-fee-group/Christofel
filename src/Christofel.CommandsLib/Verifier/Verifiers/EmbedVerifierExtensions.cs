@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.CommandsLib.Verifier.Interfaces;
 using Discord;
 
 namespace Christofel.CommandsLib.Verifier.Verifiers
@@ -16,15 +17,15 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
         /// <returns></returns>
         public static CommandVerifier<T> VerifyUserMessageHasEmbeds<T>(this CommandVerifier<T> verifier,
             string parameterName = "messageid")
-            where T : new()
+            where T : IHasUserMessage, new()
         {
             verifier.QueueWork(() => verifier.VerifyUserMessageHasEmbedsAsync(parameterName));
             return verifier;
         }
-
+        
         private static Task<CommandVerifier<T>> VerifyUserMessageHasEmbedsAsync<T>(this CommandVerifier<T> verifier,
             string parameterName = "messageid")
-            where T : new()
+            where T : IHasUserMessage, new()
         {
             if (!verifier.Success)
             {

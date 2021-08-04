@@ -22,7 +22,7 @@ namespace Christofel.Messages.Commands
 {
     public class ReactCommandGroup : ICommandGroup
     {
-        private class ReactData : IHasMessageChannel, IHasMessageId, IHasRestUserMessage, IHasEmote
+        private class ReactData : IHasMessageChannel, IHasMessageId, IHasUserMessage, IHasEmote
         {
             public IMessageChannel? Channel { get; set; }
             public ulong? MessageId { get; set; }
@@ -52,7 +52,7 @@ namespace Christofel.Messages.Commands
                 new CommandVerifier<ReactData>(_client, command, _logger)
                     .VerifyMessageChannel(channel ?? command.Channel)
                     .VerifyMessageId(messageId)
-                    .VerifyRestUserMessage(token: token)
+                    .VerifyUserMessage(token: token)
                     .VerifyEmote(emojiString)
                     .FinishVerificationAsync();
 

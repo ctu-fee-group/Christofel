@@ -9,7 +9,7 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
     {
         public static CommandVerifier<T> VerifyEmote<T>(this CommandVerifier<T> verifier, string emojiString,
             string parameterName = "emoji")
-            where T : new()
+            where T : class, IHasEmote, new()
         {
             verifier.QueueWork(() => verifier.VerifyEmoteAsync(emojiString, parameterName));
             return verifier;
@@ -17,14 +17,8 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
 
         private static Task<CommandVerifier<T>> VerifyEmoteAsync<T>(this CommandVerifier<T> verifier,
             string emojiString, string parameterName = "emoji")
-            where T : new()
+            where T : class, IHasEmote, new()
         {
-            if (!(verifier.Result is IHasEmote hasEmote))
-            {
-                throw new InvalidOperationException(
-                    "Cannot set Emote as the type does not implement IHasEmote");
-            }
-            
             IEmote? outEmote = null;
             if (outEmote == null && Emote.TryParse(emojiString, out Emote emote))
             {
@@ -42,7 +36,7 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
                 return Task.FromResult(verifier);
             }
 
-            hasEmote.Emote = outEmote;
+            verifier.Result.Emote = outEmote;
 
             return Task.FromResult(verifier);
         }

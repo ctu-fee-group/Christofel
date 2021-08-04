@@ -23,7 +23,7 @@ namespace Christofel.Messages.Commands
 {
     public class EchoCommandGroup : ICommandGroup
     {
-        private class EchoData : IHasMessageChannel, IHasMessageId, IHasRestUserMessage
+        private class EchoData : IHasMessageChannel, IHasMessageId, IHasUserMessage
         {
             public IMessageChannel? Channel { get; set; }
             public ulong? MessageId { get; set; }
@@ -82,7 +82,7 @@ namespace Christofel.Messages.Commands
                 new CommandVerifier<EchoData>(_client, command, _logger)
                     .VerifyMessageChannel(channel ?? command.Channel)
                     .VerifyMessageId(messageId)
-                    .VerifyRestUserMessage(token: token)
+                    .VerifyUserMessage(token: token)
                     .VerifyMessageAuthorChristofel()
                     .FinishVerificationAsync();
 
@@ -116,7 +116,7 @@ namespace Christofel.Messages.Commands
                 new CommandVerifier<EchoData>(_client, command, _logger)
                     .VerifyMessageChannel(channel ?? command.Channel)
                     .VerifyMessageId(messageId)
-                    .VerifyRestUserMessage(token: token)
+                    .VerifyUserMessage(token: token)
                     .VerifyMessageAuthorChristofel()
                     .FinishVerificationAsync();
             if (verified.Success)

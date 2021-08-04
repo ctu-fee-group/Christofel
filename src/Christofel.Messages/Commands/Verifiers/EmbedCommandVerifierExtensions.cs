@@ -14,7 +14,7 @@ namespace Christofel.Messages.Commands.Verifiers
         public static CommandVerifier<T> VerifyIsEmbedJson<T>(this CommandVerifier<T> verifier, EmbedsProvider embeds,
             string embed,
             string parameterName = "embed")
-            where T : new()
+            where T : class, IHasEmbed, new()
         {
             verifier.QueueWork(() => verifier.VerifyIsEmbedJsonAsync(embeds, embed, parameterName));
             return verifier;
@@ -24,7 +24,7 @@ namespace Christofel.Messages.Commands.Verifiers
             EmbedsProvider embeds,
             string fileName,
             string parameterName = "embed")
-            where T : new()
+            where T : class, IHasEmbed, new()
         {
             verifier.QueueWork(() => verifier.VerifyFileIsEmbedJsonAsync(embeds, fileName, parameterName));
             return verifier;
@@ -32,16 +32,11 @@ namespace Christofel.Messages.Commands.Verifiers
 
         private static Task<CommandVerifier<T>> VerifyIsEmbedJsonAsync<T>(this CommandVerifier<T> verifier,
             EmbedsProvider embeds, string embed, string parameterName = "embed")
-            where T : new()
+            where T : class, IHasEmbed, new()
         {
-            if (!(verifier.Result is IHasEmbed hasEmbed))
-            {
-                throw new InvalidOperationException("Cannot set embed as the Result does not implement IHasEmbed");
-            }
-
             try
             {
-                hasEmbed.Embed = embeds.GetEmbedFromString(embed);
+                verifier.Result.Embed = embeds.GetEmbedFromString(embed);
             }
             catch (ArgumentException e)
             {
@@ -57,21 +52,16 @@ namespace Christofel.Messages.Commands.Verifiers
 
         private static async Task<CommandVerifier<T>> VerifyFileIsEmbedJsonAsync<T>(this CommandVerifier<T> verifier,
             EmbedsProvider embeds, string fileName, string parameterName = "embed")
-            where T : new()
+            where T : class, IHasEmbed, new()
         {
             if (!verifier.Success)
             {
                 return verifier;
             }
             
-            if (!(verifier.Result is IHasEmbed hasEmbed))
-            {
-                throw new InvalidOperationException("Cannot set embed as the Result does not implement IHasEmbed");
-            }
-            
             try
             {
-                hasEmbed.Embed = await embeds.GetEmbedFromFile(fileName);
+                verifier.Result.Embed = await embeds.GetEmbedFromFile(fileName);
             }
             catch (ArgumentException e)
             {

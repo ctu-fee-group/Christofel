@@ -23,7 +23,7 @@ namespace Christofel.Messages.Commands
 {
     public class EmbedCommandGroup : ICommandGroup
     {
-        private class EmbedData : IHasMessageChannel, IHasMessageId, IHasRestUserMessage, IHasEmbed
+        private class EmbedData : IHasMessageChannel, IHasMessageId, IHasUserMessage, IHasEmbed
         {
             public IMessageChannel? Channel { get; set; }
             public ulong? MessageId { get; set; }
@@ -110,7 +110,7 @@ namespace Christofel.Messages.Commands
                 new CommandVerifier<EmbedData>(_client, command, _logger)
                     .VerifyMessageChannel(channel ?? command.Channel)
                     .VerifyMessageId(messageId)
-                    .VerifyRestUserMessage(token: token)
+                    .VerifyUserMessage(token: token)
                     .VerifyMessageAuthorChristofel()
                     .VerifyUserMessageHasEmbeds()
                     .VerifyFile(_embeds.EmbedsFolder, fileName, ".json")
@@ -127,7 +127,7 @@ namespace Christofel.Messages.Commands
                 new CommandVerifier<EmbedData>(_client, command, _logger)
                     .VerifyMessageChannel(channel ?? command.Channel)
                     .VerifyMessageId(messageId)
-                    .VerifyRestUserMessage(token: token)
+                    .VerifyUserMessage(token: token)
                     .VerifyMessageAuthorChristofel()
                     .VerifyUserMessageHasEmbeds()
                     .VerifyIsEmbedJson(_embeds, embed)
@@ -168,7 +168,7 @@ namespace Christofel.Messages.Commands
                 new CommandVerifier<EmbedData>(_client, command, _logger)
                     .VerifyMessageChannel(channel ?? command.Channel)
                     .VerifyMessageId(messageId)
-                    .VerifyRestUserMessage(token: token)
+                    .VerifyUserMessage(token: token)
                     .VerifyMessageAuthorChristofel()
                     .FinishVerificationAsync();
 
