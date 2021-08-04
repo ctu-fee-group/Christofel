@@ -12,6 +12,7 @@ using Christofel.CommandsLib.Extensions;
 using Christofel.CommandsLib.Handlers;
 using Christofel.Messages.Commands;
 using Christofel.Messages.Options;
+using Christofel.Messages.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -69,6 +70,7 @@ namespace Christofel.Messages
             return serviceCollection
                 .AddDiscordState(State)
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
+                .AddSingleton<EmbedsProvider>()
                 .Configure<EmbedsOptions>(State.Configuration.GetSection("Messages:Embeds"))
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"))
                 .AddDefaultInteractionHandler(collection =>
