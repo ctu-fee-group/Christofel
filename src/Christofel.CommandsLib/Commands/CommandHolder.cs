@@ -38,7 +38,10 @@ namespace Christofel.CommandsLib.Commands
 
         public ICommandHolder.HeldSlashCommand? TryGetSlashCommand(string name)
         {
-            return _commands.FirstOrDefault(x => x.Info.BuiltCommand.Name == name);
+            lock (_commandsLock)
+            {
+                return _commands.FirstOrDefault(x => x.Info.BuiltCommand.Name == name);
+            }
         }
 
         public SlashCommandInfo AddCommand(SlashCommandInfoBuilder builder, ICommandExecutor executor)
