@@ -26,6 +26,37 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
 
             return verifier.Result.Channel;
         }
+        
+        /// <summary>
+        /// Verifies whether the specified channel is a ITextChannel
+        /// T must implement IHasMessageChannel
+        /// </summary>
+        /// <param name="verifier"></param>
+        /// <param name="channel"></param>
+        /// <param name="parameterName"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static CommandVerifier<T> VerifyTextChannel<T>(this CommandVerifier<T> verifier, IChannel? channel,
+            string parameterName = "channel")
+            where T : class, IHasTextChannel, new()
+        {
+            verifier.QueueWork(() => verifier.VerifyTextChannelAsync<T>(channel, parameterName));
+            return verifier;
+        }
+
+        private static Task<CommandVerifier<T>> VerifyTextChannelAsync<T>(this CommandVerifier<T> verifier, IChannel? channel,
+            string parameterName = "channel")
+            where T : class, IHasTextChannel, new()
+        {
+            if (!(channel is ITextChannel textChannel))
+            {
+                verifier.SetFailed(parameterName, "Specified channel is not a text channel.");
+                return Task.FromResult(verifier);
+            }
+
+            verifier.Result.TextChannel = textChannel;
+            return Task.FromResult(verifier);
+        }
 
         /// <summary>
         /// Verifies whether the specified channel is a IMessageChannel
@@ -50,7 +81,7 @@ namespace Christofel.CommandsLib.Verifier.Verifiers
         {
             if (!(channel is IMessageChannel messageChannel))
             {
-                verifier.SetFailed(parameterName, "Specified channel is not a text channel.");
+                verifier.SetFailed(parameterName, "Specified channel is not a message channel.");
                 return Task.FromResult(verifier);
             }
 
