@@ -14,18 +14,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Core\Discord.Net.Core.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-      </ProjectReference>
-      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Rest\Discord.Net.Rest.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-      </ProjectReference>
-      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj">
-          <Private>false</Private>
-          <ExcludeAssets>runtime</ExcludeAssets>
-      </ProjectReference>
       <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj">
           <Private>false</Private>
@@ -35,6 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Discord.Net.Labs" Version="3.0.1-pre" />
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
     </ItemGroup>
 
