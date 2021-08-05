@@ -224,13 +224,13 @@ namespace Christofel.CommandsLib.CommandsInfo
             return command;
         }
         
-                private async Task<RestApplicationCommand> CreateGlobalCommand(DiscordRestClient client, SlashCommandCreationProperties command, CancellationToken token = new CancellationToken())
+        private async Task<RestApplicationCommand> CreateGlobalCommand(DiscordRestClient client, SlashCommandCreationProperties command, CancellationToken token = new CancellationToken())
         {
             RestApplication application = await client.GetApplicationInfoAsync();
             RestGlobalCommand? globalCommand = (await client.GetGlobalApplicationCommands(new RequestOptions() {CancelToken = token}))
                 .FirstOrDefault(x => x.Name == command.Name && x.ApplicationId == application.Id);
 
-            if (globalCommand != null)
+            if (globalCommand != null && !globalCommand.MatchesCreationProperties(command))
             {
                 await globalCommand.ModifyAsync(props =>
                 {
@@ -259,7 +259,7 @@ namespace Christofel.CommandsLib.CommandsInfo
             RestGuildCommand? guildCommand = (await client.GetGuildApplicationCommands(GuildId.Value, new RequestOptions() {CancelToken = token}))
                 .FirstOrDefault(x => x.Name == command.Name && x.ApplicationId == application.Id);
 
-            if (guildCommand != null)
+            if (guildCommand != null && !guildCommand.MatchesCreationProperties(command))
             {
                 await guildCommand.ModifyAsync(props =>
                 {
