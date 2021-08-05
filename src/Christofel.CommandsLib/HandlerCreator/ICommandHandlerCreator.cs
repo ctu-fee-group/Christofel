@@ -14,6 +14,7 @@ namespace Christofel.CommandsLib.HandlerCreator
     public delegate Task CommandDelegate<in T1, in T2>(SocketSlashCommand command, T1 arg1, T2 arg2, CancellationToken token);
     public delegate Task CommandDelegate<in T1, in T2, in T3>(SocketSlashCommand command, T1 arg1, T2 arg2, T3 arg3, CancellationToken token);
     public delegate Task CommandDelegate<in T1, in T2, in T3, in T4>(SocketSlashCommand command, T1 arg1, T2 arg2, T3 arg3, T4 arg4, CancellationToken token);
+    public delegate Task CommandDelegate<in T1, in T2, in T3, in T4, T5>(SocketSlashCommand command, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, CancellationToken token);
     
     /// <summary>
     /// Creator of SlashCommandHandler different types may be used for subcommands or custom matching
