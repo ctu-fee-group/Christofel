@@ -17,12 +17,14 @@ namespace Christofel.BaseLib.Lifetime
         /// <param name="state"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public static Task<bool> WaitForAsync(this ILifetime lifetime, LifetimeState state, int timeout)
+        public static Task<bool> WaitForAsync(this ILifetime lifetime, LifetimeState state, int timeout,
+            CancellationToken token = default)
         {
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(timeout);
 
-            return WaitForAsync(lifetime, state, tokenSource.Token);
+            return WaitForAsync(lifetime, state,
+                CancellationTokenSource.CreateLinkedTokenSource(token, tokenSource.Token).Token);
         }
 
         /// <summary>
@@ -32,7 +34,8 @@ namespace Christofel.BaseLib.Lifetime
         /// <param name="state"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static async Task<bool> WaitForAsync(this ILifetime lifetime, LifetimeState state, CancellationToken token)
+        public static async Task<bool> WaitForAsync(this ILifetime lifetime, LifetimeState state,
+            CancellationToken token)
         {
             while (lifetime.State < state)
             {
