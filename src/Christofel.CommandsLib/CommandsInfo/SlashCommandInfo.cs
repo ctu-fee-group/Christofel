@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
+using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib.Extensions;
@@ -74,16 +75,7 @@ namespace Christofel.CommandsLib.CommandsInfo
         /// <returns></returns>
         public Task<bool> HasPermissionAsync(SocketUser user, IPermissionsResolver resolver, CancellationToken cancellationToken = new CancellationToken())
         {
-            List<DiscordTarget> targets = new List<DiscordTarget>();
-            
-            if (user is SocketGuildUser guildUser)
-            {
-                targets.AddRange(guildUser.Roles.Select(x => x.ToDiscordTarget()));
-            }
-            
-            targets.Add(user.ToDiscordTarget());
-
-            return resolver.AnyHasPermissionAsync(Permission, targets, cancellationToken);
+            return resolver.AnyHasPermissionAsync(Permission, user.GetAllDiscordTargets(), cancellationToken);
         }
         
         /// <summary>
