@@ -26,7 +26,7 @@ namespace Christofel.Application.Logging.Discord
         
         public DiscordLoggerOptions Config { get; set; }
 
-
+        #nullable disable
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             if (formatter == null)
@@ -35,6 +35,16 @@ namespace Christofel.Application.Logging.Discord
             }
             
             string messageContent = formatter(state, exception);
+            if (messageContent == null)
+            {
+                messageContent = state?.ToString() ?? "";
+            }
+            
+            if (exception != null)
+            {
+                messageContent += exception.ToString();
+            }
+            
             string header = "**" + GetLevelText(logLevel) + $@" {_categoryName}[{eventId}]** {GetScopeMessage()}";
 
             string message = header + "\n```" + messageContent + "```";
@@ -44,6 +54,7 @@ namespace Christofel.Application.Logging.Discord
                 _queueProcessor.EnqueueMessage(new DiscordLogMessage(channel.GuildId, channel.ChannelId, message));
             }
         }
+        #nullable enable
 
         public bool IsEnabled(LogLevel logLevel)
         {
