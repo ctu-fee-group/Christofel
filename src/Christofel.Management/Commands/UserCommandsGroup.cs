@@ -75,7 +75,7 @@ namespace Christofel.Management.Commands
 
                 if (dbUser == null)
                 {
-                    await command.RespondChunkAsync("The given user is not in database or is not a duplicity",
+                    await command.FollowupChunkAsync("The given user is not in database or is not a duplicity",
                         ephemeral: true, options: new RequestOptions() {CancelToken = token});
                 }
                 else
@@ -83,15 +83,17 @@ namespace Christofel.Management.Commands
                     dbUser.DuplicityApproved = true;
 
                     await context.SaveChangesAsync(token);
-                    await command.RespondChunkAsync("Duplicity approved. Link for authentication is: **LINK**",
+                    await command.FollowupChunkAsync("Duplicity approved. Link for authentication is: **LINK**",
                         ephemeral: true, options: new RequestOptions() {CancelToken = token});
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not get the given user from database or the changes could not be saved");
-                await command.RespondChunkAsync(
-                    "Could not get the given user from database or the changes could not be saved", ephemeral: true);
+                await command.FollowupChunkAsync(
+                    "Could not get the given user from database or the changes could not be saved",
+                    ephemeral: true,
+                    options: new RequestOptions() {CancelToken = token});
                 throw;
             }
         }
@@ -129,18 +131,19 @@ namespace Christofel.Management.Commands
 
                 if (embeds.Count == 0)
                 {
-                    await command.RespondChunkAsync("Could not find any duplicit records", ephemeral: true);
+                    await command.FollowupChunkAsync("Could not find any duplicit records", ephemeral: true);
                 }
                 else
                 {
-                    await command.RespondChunkAsync(text: "Found records", embeds: embeds.ToArray(), ephemeral: true,
+                    await command.FollowupChunkAsync(text: "Found records", embeds: embeds.ToArray(), ephemeral: true,
                         options: new RequestOptions() {CancelToken = token});
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not get the users from database.");
-                await command.RespondChunkAsync("Could not get the users from database.");
+                await command.FollowupChunkAsync("Could not get the users from database.", ephemeral: true,
+                    options: new RequestOptions() {CancelToken = token});
             }
         }
 
@@ -158,13 +161,13 @@ namespace Christofel.Management.Commands
 
                 context.Add(dbUser);
                 await context.SaveChangesAsync(token);
-                await command.RespondChunkAsync($@"New user {user.Mention} added. You can assign him roles manually",
+                await command.FollowupChunkAsync($@"New user {user.Mention} added. You can assign him roles manually",
                     ephemeral: true);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "There was an error while saving data to the database");
-                await command.RespondChunkAsync("There was an error while saving data to the database",
+                await command.FollowupChunkAsync("There was an error while saving data to the database",
                     ephemeral: true, options: new RequestOptions() {CancelToken = token});
                 throw;
             }
@@ -204,7 +207,7 @@ namespace Christofel.Management.Commands
 
                 response += string.Join(", ", identities);
 
-                await command.RespondChunkAsync(response, ephemeral: true,
+                await command.FollowupChunkAsync(response, ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
 
                 if (notifyUser)
@@ -229,7 +232,7 @@ namespace Christofel.Management.Commands
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not get the user from the database");
-                await command.RespondChunkAsync("Could not get the user from the database", ephemeral: true,
+                await command.FollowupChunkAsync("Could not get the user from the database", ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
             }
         }
@@ -319,6 +322,7 @@ namespace Christofel.Management.Commands
             ICommandExecutor executor = new CommandExecutorBuilder()
                 .WithLogger(_logger)
                 .WithPermissionsCheck(_resolver)
+                .WithDeferMessage()
                 .WithThreadPool()
                 .Build();
 

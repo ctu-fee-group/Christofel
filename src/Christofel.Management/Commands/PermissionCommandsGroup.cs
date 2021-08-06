@@ -57,14 +57,14 @@ namespace Christofel.Management.Commands
             {
                 context.Add(assignment);
                 await context.SaveChangesAsync(token);
-                await command.RespondChunkAsync(
+                await command.FollowupChunkAsync(
                     "Permission granted. Refresh will be needed for it to take full effect.",
                     ephemeral: true, options: new RequestOptions() {CancelToken = token});
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not save the permission");
-                await command.RespondChunkAsync("Could not save the permission", ephemeral: true,
+                await command.FollowupChunkAsync("Could not save the permission", ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
             }
         }
@@ -90,12 +90,12 @@ namespace Christofel.Management.Commands
                 if (deleted)
                 {
                     await context.SaveChangesAsync(token);
-                    await command.RespondChunkAsync("Permission revoked", ephemeral: true,
+                    await command.FollowupChunkAsync("Permission revoked", ephemeral: true,
                         options: new RequestOptions() {CancelToken = token});
                 }
                 else
                 {
-                    await command.RespondChunkAsync("Could not find that permission assignment in database",
+                    await command.FollowupChunkAsync("Could not find that permission assignment in database",
                         ephemeral: true,
                         options: new RequestOptions() {CancelToken = token});
                 }
@@ -103,7 +103,7 @@ namespace Christofel.Management.Commands
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not save the permission");
-                await command.RespondChunkAsync("Could not save the permission", ephemeral: true,
+                await command.FollowupChunkAsync("Could not save the permission", ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
             }
         }
@@ -115,7 +115,7 @@ namespace Christofel.Management.Commands
                 _permissions.Permissions.Select(x =>
                     $@"  - **{x.PermissionName}** - {x.DisplayName} - {x.Description}"));
 
-            return command.RespondChunkAsync(response, ephemeral: true,
+            return command.FollowupChunkAsync(response, ephemeral: true,
                 options: new RequestOptions() {CancelToken = token});
         }
 
@@ -157,13 +157,13 @@ namespace Christofel.Management.Commands
                     response = "Showing all permissions: " + string.Join('\n', permissionAssignments);
                 }
 
-                await command.RespondChunkAsync(response, ephemeral: true,
+                await command.FollowupChunkAsync(response, ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not get user's permission from the database");
-                await command.RespondChunkAsync("Could not get user's permission from the database", ephemeral: true,
+                await command.FollowupChunkAsync("Could not get user's permission from the database", ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
             }
         }
@@ -253,6 +253,7 @@ namespace Christofel.Management.Commands
             ICommandExecutor executor = new CommandExecutorBuilder()
                 .WithLogger(_logger)
                 .WithThreadPool()
+                .WithDeferMessage()
                 .Build();
 
             holder.AddCommand(permissionsBuilder, executor);

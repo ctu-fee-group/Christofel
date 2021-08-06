@@ -45,7 +45,7 @@ namespace Christofel.Management.Commands
         public async Task HandleSlowmodeFor(SocketSlashCommand command, int interval, int? hours, int? minutes,
             int? seconds, IChannel? channel, CancellationToken token = default)
         {
-            await command.RespondChunkAsync("Not implemented yet", ephemeral: true, options: new RequestOptions(){CancelToken = token});
+            await command.FollowupChunkAsync("Not implemented yet", ephemeral: true, options: new RequestOptions(){CancelToken = token});
             throw new NotImplementedException();
         }
 
@@ -71,11 +71,11 @@ namespace Christofel.Management.Commands
                         .ModifyAsync(props =>
                                 props.SlowModeInterval = interval,
                             new RequestOptions() {CancelToken = token});
-                    await command.RespondChunkAsync("Slowmode enabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
+                    await command.FollowupChunkAsync("Slowmode enabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                 }
                 catch (Exception)
                 {
-                    await command.RespondChunkAsync("Could not change the slowmode interval, check permissions", ephemeral: true, options: new RequestOptions(){CancelToken = token});
+                    await command.FollowupChunkAsync("Could not change the slowmode interval, check permissions", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                     throw;
                 }
             }
@@ -102,11 +102,11 @@ namespace Christofel.Management.Commands
                         .ModifyAsync(props =>
                                 props.SlowModeInterval = 0,
                             new RequestOptions() {CancelToken = token});
-                    await command.RespondChunkAsync("Slowmode disabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
+                    await command.FollowupChunkAsync("Slowmode disabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                 }
                 catch (Exception)
                 {
-                    await command.RespondChunkAsync("Could not change the slowmode interval, check permissions", ephemeral: true, options: new RequestOptions(){CancelToken = token});
+                    await command.FollowupChunkAsync("Could not change the slowmode interval, check permissions", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                     throw;
                 }
             }
@@ -200,6 +200,7 @@ namespace Christofel.Management.Commands
                 .WithLogger(_logger)
                 .WithPermissionsCheck(_resolver)
                 .WithThreadPool()
+                .WithDeferMessage()
                 .Build();
 
             holder.AddCommand(slowmodeBuilder, executor);
