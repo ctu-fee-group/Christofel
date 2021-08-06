@@ -115,7 +115,8 @@ namespace Christofel.Management.Commands
                 _permissions.Permissions.Select(x =>
                     $@"  - **{x.PermissionName}** - {x.DisplayName} - {x.Description}"));
 
-            return command.RespondChunkAsync(response, ephemeral: true, options: new RequestOptions() {CancelToken = token});
+            return command.RespondChunkAsync(response, ephemeral: true,
+                options: new RequestOptions() {CancelToken = token});
         }
 
         public async Task HandleShow(SocketSlashCommand command, IMentionable mentionable,
@@ -123,17 +124,38 @@ namespace Christofel.Management.Commands
         {
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
 
-            DiscordTarget target = mentionable.ToDiscordTarget();
-            string response = $@"Permissions of {mentionable.Mention}:\n";
+            IEnumerable<DiscordTarget> targets;
+            if (mentionable is IUser user)
+            {
+                targets = user.GetAllDiscordTargets();
+            }
+            else
+            {
+                targets = new[] {mentionable.ToDiscordTarget()};
+            }
+
             try
             {
-                List<string> permissionAssignments = await context.Permissions
-                    .AsNoTracking()
-                    .WhereTargetEquals(target)
-                    .Select(x => $@"  - **{x.PermissionName}**")
-                    .ToListAsync(token);
+                List<string> permissionAssignments = (await context.Permissions
+                        .AsNoTracking()
+                        .WhereTargetAnyOf(targets)
+                        .ToListAsync(token))
+                    .GroupBy(x => x.Target)
+                    .Select(x =>
+                        $@"Permission of {(x.Key.GetMentionString())}:" +
+                        "\n" +
+                        string.Join('\n', x.Select(x => $@"  - **{x.PermissionName.Replace("*", "\\*")}**")))
+                    .ToList();
 
-                response += string.Join('\n', permissionAssignments);
+                string response;
+                if (permissionAssignments.Count == 0)
+                {
+                    response = "Specified target does not have any permissions";
+                }
+                else
+                {
+                    response = "Showing all permissions: " + string.Join('\n', permissionAssignments);
+                }
 
                 await command.RespondChunkAsync(response, ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
@@ -204,7 +226,7 @@ namespace Christofel.Management.Commands
                 .WithDescription("List permissions of all attached plugins")
                 .WithType(ApplicationCommandOptionType.SubCommand);
         }
-        
+
         public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
         {
             SlashCommandHandler handler = new SubCommandHandlerCreator()
