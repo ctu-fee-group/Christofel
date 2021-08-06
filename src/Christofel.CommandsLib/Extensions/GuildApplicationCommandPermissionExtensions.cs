@@ -11,8 +11,8 @@ namespace Christofel.CommandsLib.Extensions
             ApplicationCommandPermission[] permissions)
         {
             return Enumerable.SequenceEqual<ApplicationCommandPermission>(
-                commandPermission.Permissions.OrderBy(x => x),
-                permissions.OrderBy(x => x),
+                commandPermission.Permissions.OrderBy(x => x.TargetId),
+                permissions.OrderBy(x => x.TargetId),
                 new ApplicationCommandPermissionComparer());
         }
 
