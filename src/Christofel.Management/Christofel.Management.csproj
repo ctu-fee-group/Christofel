@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <_CopyPlugin Include="$(ProjectDir)/$(OutDir)/*" />
+    </ItemGroup>
+    <Target Name="CopyPluginFiles" AfterTargets="Build">
+        <Message Text="Copying to Christofel.Application plugins folder..." />
+        <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)" />
+        <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)" />
+    </Target>
+    
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Discord.Net.Labs" Version="3.0.1-pre" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
+      <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+      <ProjectReference Include="..\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
+    </ItemGroup>
+
+</Project>

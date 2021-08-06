@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Christofel.BaseLib.Database.Models.Abstractions;
@@ -44,9 +45,9 @@ namespace Christofel.BaseLib.Database.Models
         /// <summary>
         /// Id of the user this is a duplicity with
         /// </summary>
-        [ForeignKey("DuplicitUser")]
-        public int DuplicitUserId { get; set; }
+        public int? DuplicitUserId { get; set; }
         
         public DbUser? DuplicitUser { get; set; }
+        public List<DbUser>? DuplicitUsersBack { get; set; }
     }
 }

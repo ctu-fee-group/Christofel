@@ -14,10 +14,8 @@ namespace Christofel.BaseLib.Database.Models
         [MaxLength(256)]
         public string Programme { get; set; } = null!;
 
-        [ForeignKey("Assignment")]
         public int AssignmentId { get; set; }
         
-        [InverseProperty("ProgrammeRoleAssignments")]
         public RoleAssignment Assignment { get; set; } = null!;
     }
 }

@@ -13,6 +13,14 @@ namespace Christofel.BaseLib.Extensions
         /// <returns></returns>
         public static DiscordTarget ToDiscordTarget(this IRole role)
         {
+            if (role.Name == "@everyone")
+            {
+                return new DiscordTarget
+                {
+                    TargetType = TargetType.Everyone
+                };
+            }
+            
             return new DiscordTarget
             {
                 DiscordId = role.Id,

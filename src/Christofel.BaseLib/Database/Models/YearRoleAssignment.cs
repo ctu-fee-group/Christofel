@@ -13,10 +13,8 @@ namespace Christofel.BaseLib.Database.Models
         
         public int Year { get; set; }
         
-        [ForeignKey("Assignment")]
         public int AssignmentId { get; set; }
         
-        [InverseProperty("YearRoleAssignments")]
         public RoleAssignment Assignment { get; set; } = null!;
     }
 }

@@ -3,14 +3,16 @@ using System;
 using Christofel.BaseLib.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Christofel.BaseLib.Migrations
 {
     [DbContext(typeof(ChristofelBaseContext))]
-    partial class ChristofelBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20210806181021_MakeUserDuplicityOptional")]
+    partial class MakeUserDuplicityOptional
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -183,9 +185,8 @@ namespace Christofel.BaseLib.Migrations
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.DbUser", b =>
                 {
                     b.HasOne("Christofel.BaseLib.Database.Models.DbUser", "DuplicitUser")
-                        .WithMany("DuplicitUsersBack")
-                        .HasForeignKey("DuplicitUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .WithMany()
+                        .HasForeignKey("DuplicitUserId");
 
                     b.Navigation("DuplicitUser");
                 });
@@ -223,7 +224,7 @@ namespace Christofel.BaseLib.Migrations
                     b.HasOne("Christofel.BaseLib.Database.Models.RoleAssignment", "Assignment")
                         .WithMany("ProgrammeRoleAssignments")
                         .HasForeignKey("AssignmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Assignment");
@@ -234,7 +235,7 @@ namespace Christofel.BaseLib.Migrations
                     b.HasOne("Christofel.BaseLib.Database.Models.RoleAssignment", "Assignment")
                         .WithMany("TitleRoleAssignments")
                         .HasForeignKey("AssignmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Assignment");
@@ -245,7 +246,7 @@ namespace Christofel.BaseLib.Migrations
                     b.HasOne("Christofel.BaseLib.Database.Models.RoleAssignment", "Assignment")
                         .WithMany("UsermapRoleAssignments")
                         .HasForeignKey("AssignmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Assignment");
@@ -256,15 +257,10 @@ namespace Christofel.BaseLib.Migrations
                     b.HasOne("Christofel.BaseLib.Database.Models.RoleAssignment", "Assignment")
                         .WithMany("YearRoleAssignments")
                         .HasForeignKey("AssignmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Assignment");
-                });
-
-            modelBuilder.Entity("Christofel.BaseLib.Database.Models.DbUser", b =>
-                {
-                    b.Navigation("DuplicitUsersBack");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.RoleAssignment", b =>

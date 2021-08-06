@@ -23,6 +23,7 @@ namespace Christofel.CommandsLib.Executors
         {
             try
             {
+                _logger.LogInformation($@"Handling command /{command.Data.Name} executed by {command.User.Mention} ({command.User})");
                 await info.Handler(command, token);
             }
             catch (OperationCanceledException)
@@ -31,7 +32,7 @@ namespace Christofel.CommandsLib.Executors
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Command handler has thrown an exception");
+                _logger.LogError(e, $@"Command handler for command /{command.Data.Name} has thrown an exception");
             }
         }
     }

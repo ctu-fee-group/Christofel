@@ -100,7 +100,7 @@ namespace Christofel.Application.Plugins
 
             return plugin;
         }
-        
+
         /// <summary>
         /// Tries to stop plugin in time given.
         /// If it fails, it will register callback for stop.
@@ -108,12 +108,13 @@ namespace Christofel.Application.Plugins
         /// <param name="detached"></param>
         /// <param name="lifetime"></param>
         /// <param name="timeout"></param>
-        public async Task TryStopPluginAsync(DetachedPlugin detached, ILifetime lifetime, int timeout = 10000)
+        /// <param name="token"></param>
+        public async Task TryStopPluginAsync(DetachedPlugin detached, ILifetime lifetime, int timeout = 10000, CancellationToken token = default)
         {
             _logger.LogInformation($@"Requesting stop for plugin {detached}, will wait at most 10 seconds for it to stop");
             lifetime.RequestStop();
             
-            if (!await lifetime.WaitForAsync(LifetimeState.Stopped, timeout))
+            if (!await lifetime.WaitForAsync(LifetimeState.Stopped, timeout, token))
             {
                 _logger.LogWarning($@"Plugin {detached} does not respond to stop request, attaching for late destroy");
                 lifetime.Stopped.Register(() =>
@@ -122,7 +123,7 @@ namespace Christofel.Application.Plugins
                     _logger.LogInformation($@"Plugin finally {detached} stopped late.");
                 });
             }
-            else if (!await lifetime.WaitForAsync(LifetimeState.Destroyed, timeout / 5))
+            else if (!await lifetime.WaitForAsync(LifetimeState.Destroyed, timeout / 5, token))
             {
                 _logger.LogWarning($@"Plugin {detached} stopped, but did not destroy itself in time. Lost it's track.");
             }
@@ -185,8 +186,9 @@ namespace Christofel.Application.Plugins
         /// </summary>
         /// <param name="plugin"></param>
         /// <param name="detached"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<DetachedPlugin> DetachPluginAsync(AttachedPlugin plugin, DetachedPlugin? detached)
+        public async Task<DetachedPlugin> DetachPluginAsync(AttachedPlugin plugin, DetachedPlugin? detached, CancellationToken token = default)
         {
             if (detached == null)
             {
@@ -197,7 +199,7 @@ namespace Christofel.Application.Plugins
             ILifetime lifetime = plugin.Plugin.Lifetime;
             if (lifetime.State < LifetimeState.Destroyed)
             { 
-                await TryStopPluginAsync(detached, lifetime);
+                await TryStopPluginAsync(detached, lifetime, token: token);
             }
             
             WeakReference reference = plugin.Detach();

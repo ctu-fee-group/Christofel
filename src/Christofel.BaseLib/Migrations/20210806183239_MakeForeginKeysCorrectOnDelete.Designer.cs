@@ -3,14 +3,16 @@ using System;
 using Christofel.BaseLib.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Christofel.BaseLib.Migrations
 {
     [DbContext(typeof(ChristofelBaseContext))]
-    partial class ChristofelBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20210806183239_MakeForeginKeysCorrectOnDelete")]
+    partial class MakeForeginKeysCorrectOnDelete
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,7 +50,8 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasKey("UserId");
 
-                    b.HasIndex("DuplicitUserId");
+                    b.HasIndex("DuplicitUserId")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -183,8 +186,8 @@ namespace Christofel.BaseLib.Migrations
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.DbUser", b =>
                 {
                     b.HasOne("Christofel.BaseLib.Database.Models.DbUser", "DuplicitUser")
-                        .WithMany("DuplicitUsersBack")
-                        .HasForeignKey("DuplicitUserId")
+                        .WithOne("DuplicitUserBack")
+                        .HasForeignKey("Christofel.BaseLib.Database.Models.DbUser", "DuplicitUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("DuplicitUser");
@@ -264,7 +267,7 @@ namespace Christofel.BaseLib.Migrations
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.DbUser", b =>
                 {
-                    b.Navigation("DuplicitUsersBack");
+                    b.Navigation("DuplicitUserBack");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.RoleAssignment", b =>

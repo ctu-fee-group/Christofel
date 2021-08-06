@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
+using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib.Extensions;
@@ -14,12 +15,14 @@ using Discord.WebSocket;
 namespace Christofel.CommandsLib.CommandsInfo
 {
     public delegate Task SlashCommandHandler(SocketSlashCommand command, CancellationToken token = new CancellationToken());
-    
+
     /// <summary>
     /// Information about a slash command
     /// </summary>
     public class SlashCommandInfo
     {
+        private bool _modifyingExistingCommand;
+        
         public SlashCommandInfo(SlashCommandBuilder builder, string permission,
             SlashCommandHandler handler)
         {
@@ -72,16 +75,7 @@ namespace Christofel.CommandsLib.CommandsInfo
         /// <returns></returns>
         public Task<bool> HasPermissionAsync(SocketUser user, IPermissionsResolver resolver, CancellationToken cancellationToken = new CancellationToken())
         {
-            List<DiscordTarget> targets = new List<DiscordTarget>();
-            
-            if (user is SocketGuildUser guildUser)
-            {
-                targets.AddRange(guildUser.Roles.Select(x => x.ToDiscordTarget()));
-            }
-            
-            targets.Add(user.ToDiscordTarget());
-
-            return resolver.AnyHasPermissionAsync(Permission, targets, cancellationToken);
+            return resolver.AnyHasPermissionAsync(Permission, user.GetAllDiscordTargets(), cancellationToken);
         }
         
         /// <summary>
@@ -180,7 +174,6 @@ namespace Christofel.CommandsLib.CommandsInfo
             
             permissions.RegisterPermission(Permission);
             await RegisterCommandAsync(client, resolver, token);
-
             await RefreshPermissions(resolver, token);
         }
         
@@ -205,7 +198,9 @@ namespace Christofel.CommandsLib.CommandsInfo
             else if (Command is RestGuildCommand guildCommand)
             {
                 ApplicationCommandPermission[] permissions = await resolver.GetSlashCommandPermissionsAsync(Permission, token);
-                if (permissions.Length > 0)
+                GuildApplicationCommandPermission? commandPermission = await guildCommand.GetCommandPermission();
+
+                if (commandPermission == null || !commandPermission.MatchesPermissions(permissions))
                 {
                     await guildCommand.ModifyCommandPermissions(permissions);
                 }
@@ -224,13 +219,15 @@ namespace Christofel.CommandsLib.CommandsInfo
             return command;
         }
         
-                private async Task<RestApplicationCommand> CreateGlobalCommand(DiscordRestClient client, SlashCommandCreationProperties command, CancellationToken token = new CancellationToken())
+        private async Task<RestApplicationCommand> CreateGlobalCommand(DiscordRestClient client, SlashCommandCreationProperties command, CancellationToken token = new CancellationToken())
         {
             RestApplication application = await client.GetApplicationInfoAsync();
             RestGlobalCommand? globalCommand = (await client.GetGlobalApplicationCommands(new RequestOptions() {CancelToken = token}))
                 .FirstOrDefault(x => x.Name == command.Name && x.ApplicationId == application.Id);
 
-            if (globalCommand != null)
+            _modifyingExistingCommand = globalCommand != null;
+
+            if (globalCommand != null && !globalCommand.MatchesCreationProperties(command))
             {
                 await globalCommand.ModifyAsync(props =>
                 {
@@ -258,8 +255,8 @@ namespace Christofel.CommandsLib.CommandsInfo
             RestApplication application = await client.GetApplicationInfoAsync();
             RestGuildCommand? guildCommand = (await client.GetGuildApplicationCommands(GuildId.Value, new RequestOptions() {CancelToken = token}))
                 .FirstOrDefault(x => x.Name == command.Name && x.ApplicationId == application.Id);
-
-            if (guildCommand != null)
+            
+            if (guildCommand != null && !guildCommand.MatchesCreationProperties(command))
             {
                 await guildCommand.ModifyAsync(props =>
                 {
