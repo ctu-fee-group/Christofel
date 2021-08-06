@@ -14,7 +14,12 @@ namespace Christofel.Management.CtuUtils
 {
     public class CtuIdentityResolver
     {
-        private record LinkUser(int UserId, string CtuUsername, ulong DiscordId) : ILinkUser;
+        private class LinkUser : ILinkUser
+        {
+            public int UserId { get; init; }
+            public string CtuUsername { get; init; } = null!;
+            public ulong DiscordId { get; init; }
+        }
 
         private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;
         
@@ -34,7 +39,8 @@ namespace Christofel.Management.CtuUtils
         public IQueryable<ulong> GetDuplicitiesDiscordIds(IReadableDbContext context, ulong userDiscordId)
         {
             return GetDuplicities(context, userDiscordId)
-                .Select(x => x.DiscordId == userDiscordId ? (x.DuplicitUser?.DiscordId ?? 0) : x.DiscordId);
+                .Where(x => x.DuplicitUser != null || x.DiscordId != userDiscordId)
+                .Select(x => x.DiscordId == userDiscordId ? x.DuplicitUser!.DiscordId : x.DiscordId);
         }
 
         public async Task<List<ulong>> GetDuplicitiesDiscordIdsList(ulong userDiscordId, CancellationToken token = default)
@@ -54,7 +60,12 @@ namespace Christofel.Management.CtuUtils
             return context.Set<DbUser>()
                 .AsQueryable()
                 .Authenticated()
-                .Select(x => new LinkUser(x.UserId, x.CtuUsername, x.DiscordId))
+                .Select(x => new LinkUser
+                {
+                    CtuUsername = x.CtuUsername,
+                    UserId = x.UserId,
+                    DiscordId = x.DiscordId
+                })
                 .Where(x => userDiscordId == x.DiscordId);
         }
 
