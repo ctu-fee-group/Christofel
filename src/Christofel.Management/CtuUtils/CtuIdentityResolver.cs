@@ -23,15 +23,15 @@ namespace Christofel.Management.CtuUtils
             _dbContextFactory = dbContextFactory;
         }
         
-        public IAsyncEnumerable<DbUser> GetDuplicities(IReadableDbContext context, ulong userDiscordId)
+        public IQueryable<DbUser> GetDuplicities(IReadableDbContext context, ulong userDiscordId)
         {
             return context.Set<DbUser>()
-                .AsAsyncEnumerable()
+                .AsQueryable()
                 .Where(x => x.DiscordId == userDiscordId ||
                             (x.DuplicitUser != null && x.DuplicitUser.DiscordId == userDiscordId));
         }
 
-        public IAsyncEnumerable<ulong> GetDuplicitiesDiscordIds(IReadableDbContext context, ulong userDiscordId)
+        public IQueryable<ulong> GetDuplicitiesDiscordIds(IReadableDbContext context, ulong userDiscordId)
         {
             return GetDuplicities(context, userDiscordId)
                 .Select(x => x.DiscordId == userDiscordId ? (x.DuplicitUser?.DiscordId ?? 0) : x.DiscordId);
@@ -49,25 +49,25 @@ namespace Christofel.Management.CtuUtils
             return await GetIdentities(context, userDiscordId).FirstOrDefaultAsync();
         }
         
-        public IAsyncEnumerable<ILinkUser> GetIdentities(IReadableDbContext context, ulong userDiscordId)
+        public IQueryable<ILinkUser> GetIdentities(IReadableDbContext context, ulong userDiscordId)
         {
             return context.Set<DbUser>()
-                .AsAsyncEnumerable()
+                .AsQueryable()
                 .Authenticated()
                 .Select(x => new LinkUser(x.UserId, x.CtuUsername, x.DiscordId))
                 .Where(x => userDiscordId == x.DiscordId);
         }
 
-        public IAsyncEnumerable<ulong> GetIdentitiesDiscordIds(IReadableDbContext context, ulong userDiscordId)
+        public IQueryable<string> GetIdentitiesCtuUsernames(IReadableDbContext context, ulong userDiscordId)
         {
             return GetIdentities(context, userDiscordId)
-                .Select(x => x.DiscordId);
+                .Select(x => x.CtuUsername);
         }
         
-        public async Task<List<ulong>> GetIdentitiesDiscordIdsList(ulong userDiscordId)
+        public async Task<List<string>> GetIdentitiesCtuUsernamesList(ulong userDiscordId)
         {
             await using IReadableDbContext context = _dbContextFactory.CreateDbContext();
-            return await GetIdentitiesDiscordIds(context, userDiscordId)
+            return await GetIdentitiesCtuUsernames(context, userDiscordId)
                 .ToListAsync();
         }
     }

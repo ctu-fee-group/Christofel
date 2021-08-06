@@ -75,13 +75,14 @@ namespace Christofel.Management.Commands
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
             try
             {
-                IAsyncEnumerable<PermissionAssignment> assignments = context.Permissions
-                    .AsAsyncEnumerable()
+                IQueryable<PermissionAssignment> assignments = context.Permissions
+                    .AsQueryable()
                     .WhereTargetEquals(mentionable.ToDiscordTarget())
                     .Where(x => x.PermissionName == permission);
 
                 bool deleted = false;
-                await foreach (PermissionAssignment assignment in assignments)
+                await foreach (PermissionAssignment assignment in assignments.AsAsyncEnumerable()
+                    .WithCancellation(token))
                 {
                     deleted = true;
                     context.Remove(assignment);
