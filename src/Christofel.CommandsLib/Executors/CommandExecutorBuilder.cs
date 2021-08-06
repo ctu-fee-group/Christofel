@@ -107,12 +107,17 @@ namespace Christofel.CommandsLib.Executors
 
             if (_permissionsCheck)
             {
+                if (_logger is null)
+                {
+                    throw new InvalidOperationException("Logger must not be null");
+                }
+                
                 if (_resolver == null)
                 {
                     throw new InvalidOperationException("Permission resolver cannot be null if permission check should be enabled");
                 }
                 
-                executor = new PermissionCheckCommandExecutor(executor, _resolver);
+                executor = new PermissionCheckCommandExecutor(executor, _logger, _resolver);
             }
 
             return executor;
