@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
+using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib.Commands;
@@ -55,12 +56,14 @@ namespace Christofel.Management.Commands
             {
                 context.Add(assignment);
                 await context.SaveChangesAsync(token);
-                await command.RespondAsync("Permission granted. Refresh will be needed for it to take full effect.");
+                await command.RespondChunkAsync("Permission granted. Refresh will be needed for it to take full effect.",
+                    ephemeral: true, options: new RequestOptions() {CancelToken = token});
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                await command.RespondAsync("Could not save the permission");
-                throw;
+                _logger.LogError(e, "Could not save the permission");
+                await command.RespondChunkAsync("Could not save the permission", ephemeral: true,
+                    options: new RequestOptions() {CancelToken = token});
             }
         }
 
@@ -70,24 +73,36 @@ namespace Christofel.Management.Commands
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
             try
             {
-                PermissionAssignment? assignment = await context.Permissions.AsQueryable().FirstOrDefaultAsync(x =>
-                    x.Target == mentionable.ToDiscordTarget() && x.PermissionName == permission, token);
+                DiscordTarget target = mentionable.ToDiscordTarget();
+                IQueryable<PermissionAssignment> assignmentQuery = context.Permissions.AsQueryable();
+
+                if (target.TargetType != TargetType.Everyone)
+                {
+                    assignmentQuery = assignmentQuery
+                        .Where(x => x.Target.DiscordId == target.DiscordId);
+                }
+
+                PermissionAssignment? assignment = await assignmentQuery.FirstOrDefaultAsync(x =>
+                    x.Target.TargetType == target.TargetType && x.PermissionName == permission, token);
 
                 if (assignment == null)
                 {
-                    await command.RespondAsync("Could not find that permission assignment in database");
+                    await command.RespondChunkAsync("Could not find that permission assignment in database", ephemeral: true,
+                        options: new RequestOptions() {CancelToken = token});
                 }
                 else
                 {
                     context.Remove(assignment);
                     await context.SaveChangesAsync(token);
-                    await command.RespondAsync("Permission revoked");
+                    await command.RespondChunkAsync("Permission revoked", ephemeral: true,
+                        options: new RequestOptions() {CancelToken = token});
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                await command.RespondAsync("Could not save the permission");
-                throw;
+                _logger.LogError(e, "Could not save the permission");
+                await command.RespondChunkAsync("Could not save the permission", ephemeral: true,
+                    options: new RequestOptions() {CancelToken = token});
             }
         }
 
@@ -95,9 +110,10 @@ namespace Christofel.Management.Commands
         {
             string response = "List of all permissions from attached plugins:\n";
             response += string.Join('\n',
-                _permissions.Permissions.Select(x => $@"  - {x.PermissionName} - {x.DisplayName} - {x.Description}"));
+                _permissions.Permissions.Select(x =>
+                    $@"  - **{x.PermissionName}** - {x.DisplayName} - {x.Description}"));
 
-            return command.RespondAsync(response, ephemeral: true, options: new RequestOptions() {CancelToken = token});
+            return command.RespondChunkAsync(response, ephemeral: true, options: new RequestOptions() {CancelToken = token});
         }
 
         public async Task HandleShow(SocketSlashCommand command, IMentionable mentionable,
@@ -106,14 +122,32 @@ namespace Christofel.Management.Commands
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
 
             DiscordTarget target = mentionable.ToDiscordTarget();
-            string response = $@"Permissions of {mentionable.Mention}:";
-            response += string.Join('\n', await context.Permissions
-                .AsNoTracking()
-                .Where(x => x.Target == target)
-                .Select(x => $@"  - {x.PermissionName}")
-                .ToListAsync(token));
+            string response = $@"Permissions of {mentionable.Mention}:\n";
+            try
+            {
+                IQueryable<PermissionAssignment> permissionAssignments = context.Permissions
+                    .AsNoTracking()
+                    .Where(x => x.Target.TargetType == target.TargetType);
 
-            await command.RespondAsync(response, ephemeral: true, options: new RequestOptions() {CancelToken = token});
+                if (target.TargetType != TargetType.Everyone)
+                {
+                    permissionAssignments = permissionAssignments
+                        .Where(x => x.Target.DiscordId == target.DiscordId);
+                }
+
+                response += string.Join('\n',
+                    await permissionAssignments.Select(x => $@"  - **{x.PermissionName}**")
+                        .ToListAsync(token));
+
+                await command.RespondChunkAsync(response, ephemeral: true,
+                    options: new RequestOptions() {CancelToken = token});
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Could not get user's permission from the database");
+                await command.RespondChunkAsync("Could not get user's permission from the database", ephemeral: true,
+                    options: new RequestOptions() {CancelToken = token});
+            }
         }
 
         public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())

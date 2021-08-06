@@ -63,6 +63,7 @@ namespace Christofel.Management
         {
             return serviceCollection
                 .AddDiscordState(State)
+                .AddChristofelDatabase(State)
                 .AddDefaultInteractionHandler(collection =>
                     collection.AddCommandGroup<MessageCommandsGroup>()
                         .AddCommandGroup<PermissionCommandsGroup>()

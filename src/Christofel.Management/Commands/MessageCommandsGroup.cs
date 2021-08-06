@@ -42,14 +42,14 @@ namespace Christofel.Management.Commands
             _resolver = resolver;
         }
 
-        public async Task HandleSlowmodeFor(SocketSlashCommand command, long interval, long? hours, long? minutes,
-            long? seconds, IChannel? channel, CancellationToken token = default)
+        public async Task HandleSlowmodeFor(SocketSlashCommand command, int interval, int? hours, int? minutes,
+            int? seconds, IChannel? channel, CancellationToken token = default)
         {
-            await command.RespondAsync("Not implemented yet");
+            await command.RespondChunkAsync("Not implemented yet", ephemeral: true, options: new RequestOptions(){CancelToken = token});
             throw new NotImplementedException();
         }
 
-        public async Task HandleSlowmodeEnable(SocketSlashCommand command, long interval, IChannel? channel,
+        public async Task HandleSlowmodeEnable(SocketSlashCommand command, int interval, IChannel? channel,
             CancellationToken token = default)
         {
             Verified<SlowmodeData> verified = await new CommandVerifier<SlowmodeData>(_client, command, _logger)
@@ -69,13 +69,13 @@ namespace Christofel.Management.Commands
                 {
                     await data.TextChannel
                         .ModifyAsync(props =>
-                                props.SlowModeInterval = 0,
+                                props.SlowModeInterval = interval,
                             new RequestOptions() {CancelToken = token});
-                    await command.RespondAsync("Slowmode enabled");
+                    await command.RespondChunkAsync("Slowmode enabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                 }
                 catch (Exception)
                 {
-                    await command.RespondAsync("Could not change the slowmode interval, check permissions");
+                    await command.RespondChunkAsync("Could not change the slowmode interval, check permissions", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                     throw;
                 }
             }
@@ -102,11 +102,11 @@ namespace Christofel.Management.Commands
                         .ModifyAsync(props =>
                                 props.SlowModeInterval = 0,
                             new RequestOptions() {CancelToken = token});
-                    await command.RespondAsync("Slowmode disabled");
+                    await command.RespondChunkAsync("Slowmode disabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                 }
                 catch (Exception)
                 {
-                    await command.RespondAsync("Could not change the slowmode interval, check permissions");
+                    await command.RespondChunkAsync("Could not change the slowmode interval, check permissions", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                     throw;
                 }
             }
@@ -116,8 +116,8 @@ namespace Christofel.Management.Commands
         {
             SlashCommandHandler slowmodeHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
-                    ("for", (CommandDelegate<long, long?, long?, long?, IChannel?>) HandleSlowmodeFor),
-                    ("enablepermanent", (CommandDelegate<long, IChannel?>) HandleSlowmodeEnable),
+                    ("for", (CommandDelegate<int, int?, int?, int?, IChannel?>) HandleSlowmodeFor),
+                    ("enablepermanent", (CommandDelegate<int, IChannel?>) HandleSlowmodeEnable),
                     ("disable", (CommandDelegate<IChannel?>) HandleSlowmodeDisable)
                 );
 
