@@ -45,7 +45,7 @@ namespace Christofel.BaseLib.Database.Models
         /// Id of the user this is a duplicity with
         /// </summary>
         [ForeignKey("DuplicitUser")]
-        public int DuplicitUserId { get; set; }
+        public int? DuplicitUserId { get; set; }
         
         public DbUser? DuplicitUser { get; set; }
     }
