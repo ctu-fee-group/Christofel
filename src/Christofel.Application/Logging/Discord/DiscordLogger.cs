@@ -74,7 +74,7 @@ namespace Christofel.Application.Logging.Discord
             {
                 LogLevel.Information => "ℹ️",
                 LogLevel.Warning => "⚠",
-                LogLevel.Error => "☢",
+                LogLevel.Error => "🆘",
                 LogLevel.Critical => "💀",
                 _ => level.ToString()
             };
