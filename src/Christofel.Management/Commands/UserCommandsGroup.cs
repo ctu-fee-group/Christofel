@@ -109,7 +109,7 @@ namespace Christofel.Management.Commands
                 {
                     EmbedBuilder embedBuilder = new EmbedBuilder();
 
-                    IUser? currentUser = await _client.GetUserAsync((ulong) targetUser);
+                    IUser? currentUser = await _client.GetUserAsync(targetUser);
                     if (currentUser == null)
                     {
                         embedBuilder.WithAuthor(new EmbedAuthorBuilder()
@@ -193,7 +193,8 @@ namespace Christofel.Management.Commands
 
             try
             {
-                List<string> identities = (await _identityResolver.GetIdentitiesDiscordIdsList((ulong) data.DiscordId))
+                List<string> identities =
+                    (await _identityResolver.GetIdentitiesCtuUsernamesList((ulong) data.DiscordId))
                     .Select(x => $@"CTU username: {x}")
                     .ToList();
 
