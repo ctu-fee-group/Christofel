@@ -21,8 +21,8 @@ namespace Christofel.BaseLib.Database
         {
             modelBuilder.Entity<DbUser>()
                 .HasOne<DbUser>(x => x.DuplicitUser!)
-                .WithOne(x => x.DuplicitUserBack!)
-                .HasForeignKey<DbUser>(x => x.DuplicitUserId)
+                .WithMany(x => x.DuplicitUsersBack!)
+                .HasForeignKey(x => x.DuplicitUserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<ProgrammeRoleAssignment>()

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Christofel.BaseLib.Database.Models.Abstractions;
@@ -47,6 +48,6 @@ namespace Christofel.BaseLib.Database.Models
         public int? DuplicitUserId { get; set; }
         
         public DbUser? DuplicitUser { get; set; }
-        public DbUser? DuplicitUserBack { get; set; }
+        public List<DbUser>? DuplicitUsersBack { get; set; }
     }
 }
