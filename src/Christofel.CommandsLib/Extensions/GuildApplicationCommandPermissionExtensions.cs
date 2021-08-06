@@ -10,7 +10,9 @@ namespace Christofel.CommandsLib.Extensions
         public static bool MatchesPermissions(this GuildApplicationCommandPermission commandPermission,
             ApplicationCommandPermission[] permissions)
         {
-            return commandPermission.Permissions.SequenceEqual<ApplicationCommandPermission>(permissions,
+            return Enumerable.SequenceEqual<ApplicationCommandPermission>(
+                commandPermission.Permissions.OrderBy(x => x),
+                permissions.OrderBy(x => x),
                 new ApplicationCommandPermissionComparer());
         }
 
