@@ -57,7 +57,8 @@ namespace Christofel.Management.Commands
             {
                 context.Add(assignment);
                 await context.SaveChangesAsync(token);
-                await command.RespondChunkAsync("Permission granted. Refresh will be needed for it to take full effect.",
+                await command.RespondChunkAsync(
+                    "Permission granted. Refresh will be needed for it to take full effect.",
                     ephemeral: true, options: new RequestOptions() {CancelToken = token});
             }
             catch (Exception e)
@@ -74,21 +75,28 @@ namespace Christofel.Management.Commands
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
             try
             {
-                PermissionAssignment? assignment = await context.Permissions
-                    .AsQueryable()
+                IAsyncEnumerable<PermissionAssignment> assignments = context.Permissions
+                    .AsAsyncEnumerable()
                     .WhereTargetEquals(mentionable.ToDiscordTarget())
-                    .FirstOrDefaultAsync(x => x.PermissionName == permission, token);
+                    .Where(x => x.PermissionName == permission);
 
-                if (assignment == null)
+                bool deleted = false;
+                await foreach (PermissionAssignment assignment in assignments)
                 {
-                    await command.RespondChunkAsync("Could not find that permission assignment in database", ephemeral: true,
+                    deleted = true;
+                    context.Remove(assignment);
+                }
+
+                if (deleted)
+                {
+                    await context.SaveChangesAsync(token);
+                    await command.RespondChunkAsync("Permission revoked", ephemeral: true,
                         options: new RequestOptions() {CancelToken = token});
                 }
                 else
                 {
-                    context.Remove(assignment);
-                    await context.SaveChangesAsync(token);
-                    await command.RespondChunkAsync("Permission revoked", ephemeral: true,
+                    await command.RespondChunkAsync("Could not find that permission assignment in database",
+                        ephemeral: true,
                         options: new RequestOptions() {CancelToken = token});
                 }
             }
