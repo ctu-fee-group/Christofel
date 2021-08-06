@@ -30,5 +30,33 @@ namespace Christofel.BaseLib.Extensions
             return assignmentQuery
                 .Where(x => x.Target.TargetType == target.TargetType);
         }
+
+        public static IAsyncEnumerable<PermissionAssignment> WhereTargetAnyOf(this IAsyncEnumerable<PermissionAssignment> assignmentQuery,
+            IEnumerable<DiscordTarget> targets)
+        {
+            DiscordTarget[]? discordTargets = targets as DiscordTarget[] ?? targets.ToArray();
+            IEnumerable<ulong> roles = discordTargets.Where(x => x.TargetType == TargetType.Role).Select(x => x.DiscordId);
+            IEnumerable<ulong> users = discordTargets.Where(x => x.TargetType == TargetType.User).Select(x => x.DiscordId);
+            bool everyone = discordTargets.Any(x => x.TargetType == TargetType.Everyone);
+
+            return assignmentQuery
+                .Where(x => (everyone && x.Target.TargetType == TargetType.Everyone) ||
+                            (x.Target.TargetType == TargetType.Role && roles.Contains(x.Target.DiscordId)) ||
+                            (x.Target.TargetType == TargetType.User && users.Contains(x.Target.DiscordId)));
+        }
+        
+        public static IQueryable<PermissionAssignment> WhereTargetAnyOf(this IQueryable<PermissionAssignment> assignmentQuery,
+            IEnumerable<DiscordTarget> targets)
+        {
+            DiscordTarget[]? discordTargets = targets as DiscordTarget[] ?? targets.ToArray();
+            IEnumerable<ulong> roles = discordTargets.Where(x => x.TargetType == TargetType.Role).Select(x => x.DiscordId);
+            IEnumerable<ulong> users = discordTargets.Where(x => x.TargetType == TargetType.User).Select(x => x.DiscordId);
+            bool everyone = discordTargets.Any(x => x.TargetType == TargetType.Everyone);
+
+            return assignmentQuery
+                .Where(x => (everyone && x.Target.TargetType == TargetType.Everyone) ||
+                            (x.Target.TargetType == TargetType.Role && roles.Contains(x.Target.DiscordId)) ||
+                            (x.Target.TargetType == TargetType.User && users.Contains(x.Target.DiscordId)));
+        }
     }
 }
