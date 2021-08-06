@@ -206,9 +206,9 @@ namespace Christofel.CommandsLib.CommandsInfo
             else if (Command is RestGuildCommand guildCommand)
             {
                 ApplicationCommandPermission[] permissions = await resolver.GetSlashCommandPermissionsAsync(Permission, token);
-                GuildApplicationCommandPermission commandPermission = await guildCommand.GetCommandPermission();
+                GuildApplicationCommandPermission? commandPermission = await guildCommand.GetCommandPermission();
 
-                if (!commandPermission.MatchesPermissions(permissions))
+                if (commandPermission == null || !commandPermission.MatchesPermissions(permissions))
                 {
                     await guildCommand.ModifyCommandPermissions(permissions);
                 }
