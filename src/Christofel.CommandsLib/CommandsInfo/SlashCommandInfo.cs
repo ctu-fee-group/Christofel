@@ -14,12 +14,14 @@ using Discord.WebSocket;
 namespace Christofel.CommandsLib.CommandsInfo
 {
     public delegate Task SlashCommandHandler(SocketSlashCommand command, CancellationToken token = new CancellationToken());
-    
+
     /// <summary>
     /// Information about a slash command
     /// </summary>
     public class SlashCommandInfo
     {
+        private bool _modifyingExistingCommand;
+        
         public SlashCommandInfo(SlashCommandBuilder builder, string permission,
             SlashCommandHandler handler)
         {
@@ -180,7 +182,6 @@ namespace Christofel.CommandsLib.CommandsInfo
             
             permissions.RegisterPermission(Permission);
             await RegisterCommandAsync(client, resolver, token);
-
             await RefreshPermissions(resolver, token);
         }
         
@@ -205,7 +206,9 @@ namespace Christofel.CommandsLib.CommandsInfo
             else if (Command is RestGuildCommand guildCommand)
             {
                 ApplicationCommandPermission[] permissions = await resolver.GetSlashCommandPermissionsAsync(Permission, token);
-                if (permissions.Length > 0)
+                GuildApplicationCommandPermission commandPermission = await guildCommand.GetCommandPermission();
+
+                if (!commandPermission.MatchesPermissions(permissions))
                 {
                     await guildCommand.ModifyCommandPermissions(permissions);
                 }
@@ -229,6 +232,8 @@ namespace Christofel.CommandsLib.CommandsInfo
             RestApplication application = await client.GetApplicationInfoAsync();
             RestGlobalCommand? globalCommand = (await client.GetGlobalApplicationCommands(new RequestOptions() {CancelToken = token}))
                 .FirstOrDefault(x => x.Name == command.Name && x.ApplicationId == application.Id);
+
+            _modifyingExistingCommand = globalCommand != null;
 
             if (globalCommand != null && !globalCommand.MatchesCreationProperties(command))
             {
@@ -258,7 +263,7 @@ namespace Christofel.CommandsLib.CommandsInfo
             RestApplication application = await client.GetApplicationInfoAsync();
             RestGuildCommand? guildCommand = (await client.GetGuildApplicationCommands(GuildId.Value, new RequestOptions() {CancelToken = token}))
                 .FirstOrDefault(x => x.Name == command.Name && x.ApplicationId == application.Id);
-
+            
             if (guildCommand != null && !guildCommand.MatchesCreationProperties(command))
             {
                 await guildCommand.ModifyAsync(props =>
