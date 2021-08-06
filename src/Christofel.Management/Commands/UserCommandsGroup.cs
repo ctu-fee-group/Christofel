@@ -218,7 +218,7 @@ namespace Christofel.Management.Commands
                             $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {command.User.Mention} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu.");
                         await dmChannel.CloseAsync();
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         await command.FollowupAsync(
                             "Could not send DM message to the user notifying him about being identified");
@@ -302,7 +302,7 @@ namespace Christofel.Management.Commands
             SlashCommandHandler userHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
                     ("add", (CommandDelegate<IUser, string>) HandleAddUser),
-                    ("showidentity", (CommandDelegate<IUser, string>) HandleAddUser));
+                    ("showidentity", (CommandDelegate<IUser?, string?>) HandleShowIdentity));
 
             SlashCommandInfoBuilder userBuilder = new SlashCommandInfoBuilder()
                 .WithPermission("management.users.manage")
