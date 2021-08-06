@@ -7,22 +7,34 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
+using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
+using Christofel.BaseLib.User;
 using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.CommandsInfo;
 using Christofel.CommandsLib.Executors;
 using Christofel.CommandsLib.HandlerCreator;
 using Christofel.CommandsLib.Extensions;
+using Christofel.CommandsLib.Verifier;
+using Christofel.Management.Commands.Verifiers;
+using Christofel.Management.CtuUtils;
 using Discord;
+using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using IUser = Discord.IUser;
 
 namespace Christofel.Management.Commands
 {
     public class UserCommandsGroup : ICommandGroup
     {
+        private class UserData : IHasDiscordId
+        {
+            public ulong? DiscordId { get; set; }
+        }
+
         // /users add @user ctuUsername
         // /users showidentity @user or discordId
         // /duplicity allow @user
@@ -36,11 +48,13 @@ namespace Christofel.Management.Commands
         private readonly ILogger<MessageCommandsGroup> _logger;
         private readonly IPermissionsResolver _resolver;
         private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
+        private readonly CtuIdentityResolver _identityResolver;
 
         public UserCommandsGroup(IOptions<BotOptions> options, IPermissionsResolver resolver,
             ILogger<MessageCommandsGroup> logger, DiscordSocketClient client,
-            IDbContextFactory<ChristofelBaseContext> dbContextFactory)
+            IDbContextFactory<ChristofelBaseContext> dbContextFactory, CtuIdentityResolver identityResolver)
         {
+            _identityResolver = identityResolver;
             _client = client;
             _options = options.Value;
             _logger = logger;
@@ -87,27 +101,10 @@ namespace Christofel.Management.Commands
             List<Embed> embeds = new List<Embed>();
             try
             {
-                await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
+                List<ulong> duplicities = await _identityResolver.GetDuplicitiesDiscordIdsList(user.Id, token);
 
-                var duplicities = context.Users
-                    .AsAsyncEnumerable()
-                    .Where(x => x.DiscordId == user.Id ||
-                                (x.DuplicitUser != null && x.DuplicitUser.DiscordId == user.Id))
-                    .Select(x => new {x.DiscordId, DuplicitUserDiscordId = x.DuplicitUser?.DiscordId})
-                    .WithCancellation(token);
-
-                // TODO: move foreach to another method
-                await foreach (var duplicity in duplicities)
+                foreach (ulong targetUser in duplicities)
                 {
-                    ulong? targetUser = duplicity.DiscordId == user.Id
-                        ? duplicity.DuplicitUserDiscordId
-                        : duplicity.DiscordId;
-
-                    if (targetUser == null)
-                    {
-                        continue;
-                    }
-
                     EmbedBuilder embedBuilder = new EmbedBuilder();
 
                     IUser? currentUser = await _client.GetUserAsync((ulong) targetUser);
@@ -176,53 +173,34 @@ namespace Christofel.Management.Commands
         public async Task HandleShowIdentity(SocketSlashCommand command, IUser? user, string? discordId,
             CancellationToken token = default)
         {
-            ulong? targetId = null;
+            Verified<UserData> verified = await new CommandVerifier<UserData>(_client, command, _logger)
+                .VerifyUserOrUserId(user, discordId)
+                .FinishVerificationAsync();
 
-            // TODO: move this kind of validation into CommandVerifier?
-            if (user != null)
+            if (!verified.Success)
             {
-                targetId = user.Id;
-            }
-            else if (discordId != null && ulong.TryParse(discordId, out ulong id))
-            {
-                targetId = id;
-            }
-
-            if (targetId == null)
-            {
-                await command.RespondChunkAsync("User or DiscordId have to be set", ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
                 return;
             }
 
-            // TODO: move to custom method, notify the user about being identified
+            UserData data = verified.Result;
+            if (data.DiscordId == null)
+            {
+                throw new InvalidOperationException("Verification failed");
+            }
+
             try
             {
-                await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
+                List<string> identities = (await _identityResolver.GetIdentitiesDiscordIdsList((ulong) data.DiscordId))
+                    .Select(x => $@"CTU username: {x}")
+                    .ToList();
 
-                List<string> identities = await context.Users
-                    .AsNoTracking()
-                    .AsQueryable()
-                    .Where(x => targetId == x.DiscordId && x.AuthenticatedAt != null)
-                    .Select(x => $@"CTU username: {x.CtuUsername}")
-                    .ToListAsync(token);
-
-                string response;
-                bool notifyUser = true;
-                if (identities.Count == 0)
+                string response = identities.Count switch
                 {
-                    notifyUser = false;
-                    response =
-                        "Could not find this user in database (he may not be authenticated or is not in database)";
-                }
-                else if (identities.Count == 1)
-                {
-                    response = "Found exactly one identity for this user: ";
-                }
-                else
-                {
-                    response = "Found multiple identities for this user: ";
-                }
+                    0 => "Could not find this user in database (he may not be authenticated or is not in database)",
+                    1 => "Found exactly one identity for this user: ",
+                    _ => "Found multiple identities for this user: "
+                };
+                bool notifyUser = identities.Count != 0;
 
                 response += string.Join(", ", identities);
 
@@ -231,12 +209,21 @@ namespace Christofel.Management.Commands
 
                 if (notifyUser)
                 {
-                    IDMChannel? dmChannel = await _client.GetDMChannelAsync((ulong) targetId);
+                    try
+                    {
+                        IDMChannel? dmChannel = await _client.GetDMChannelAsync((ulong) data.DiscordId);
 
-                    // TODO: get identity of command.User
-                    await dmChannel.SendMessageAsync(
-                        $@"Ahoj, uživatel TODO alias {command.User.Mention} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu.");
-                    await dmChannel.CloseAsync();
+                        ILinkUser? commandUserIdentity = await _identityResolver.GetFirstIdentity(command.User.Id);
+                        await dmChannel.SendMessageAsync(
+                            $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {command.User.Mention} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu.");
+                        await dmChannel.CloseAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        await command.FollowupAsync(
+                            "Could not send DM message to the user notifying him about being identified");
+                        throw;
+                    }
                 }
             }
             catch (Exception e)
@@ -245,6 +232,64 @@ namespace Christofel.Management.Commands
                 await command.RespondChunkAsync("Could not get the user from the database", ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
             }
+        }
+
+        private SlashCommandBuilder GetUsersCommandBuilder()
+        {
+            return new SlashCommandBuilder()
+                .WithName("users")
+                .WithDescription("Manage users")
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("add")
+                    .WithDescription("Manually add the user to the database")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("user")
+                        .WithDescription("Discord user to add")
+                        .WithRequired(true)
+                        .WithType(ApplicationCommandOptionType.User))
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("ctuusername")
+                        .WithDescription("CTU username of the user")
+                        .WithRequired(true)
+                        .WithType(ApplicationCommandOptionType.String)))
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("showidentity")
+                    .WithDescription("Get users identity")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("user")
+                        .WithDescription("Discord user to show identity of")
+                        .WithType(ApplicationCommandOptionType.User))
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("discordid")
+                        .WithDescription("Id of the user in case he is not on this server anymore")
+                        .WithType(ApplicationCommandOptionType.String)));
+        }
+
+        private SlashCommandBuilder GetDuplicityCommandBuilder()
+        {
+            return new SlashCommandBuilder()
+                .WithName("duplicity")
+                .WithDescription("Manage user duplicities")
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("show")
+                    .WithDescription("Show information about a duplicity")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("user")
+                        .WithDescription("User to show information about")
+                        .WithRequired(true)
+                        .WithType(ApplicationCommandOptionType.User)))
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("allow")
+                    .WithDescription("Allow a duplicity")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("user")
+                        .WithDescription("User to allow duplicity")
+                        .WithRequired(true)
+                        .WithType(ApplicationCommandOptionType.User)));
         }
 
         public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
@@ -263,61 +308,13 @@ namespace Christofel.Management.Commands
                 .WithPermission("management.users.manage")
                 .WithGuild(_options.GuildId)
                 .WithHandler(userHandler)
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("users")
-                    .WithDescription("Manage users")
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("add")
-                        .WithDescription("Manually add the user to the database")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("user")
-                            .WithDescription("Discord user to add")
-                            .WithRequired(true)
-                            .WithType(ApplicationCommandOptionType.User))
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("ctuusername")
-                            .WithDescription("CTU username of the user")
-                            .WithRequired(true)
-                            .WithType(ApplicationCommandOptionType.String)))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("showidentity")
-                        .WithDescription("Get users identity")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("user")
-                            .WithDescription("Discord user to show identity of")
-                            .WithType(ApplicationCommandOptionType.User))
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("discordid")
-                            .WithDescription("Id of the user in case he is not on this server anymore")
-                            .WithType(ApplicationCommandOptionType.String))));
+                .WithBuilder(GetUsersCommandBuilder());
 
             SlashCommandInfoBuilder duplicityBuilder = new SlashCommandInfoBuilder()
                 .WithPermission("management.users.duplicities")
                 .WithHandler(duplicityHandler)
                 .WithGuild(_options.GuildId)
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("duplicity")
-                    .WithDescription("Manage user duplicities")
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("show")
-                        .WithDescription("Show information about a duplicity")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("user")
-                            .WithDescription("User to show information about")
-                            .WithRequired(true)
-                            .WithType(ApplicationCommandOptionType.User)))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("allow")
-                        .WithDescription("Allow a duplicity")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("user")
-                            .WithDescription("User to allow duplicity")
-                            .WithRequired(true)
-                            .WithType(ApplicationCommandOptionType.User))));
+                .WithBuilder(GetDuplicityCommandBuilder());
 
             ICommandExecutor executor = new CommandExecutorBuilder()
                 .WithLogger(_logger)

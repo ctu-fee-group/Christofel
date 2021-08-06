@@ -10,6 +10,7 @@ using Christofel.CommandsLib.Commands;
 using Christofel.CommandsLib.Extensions;
 using Christofel.CommandsLib.Handlers;
 using Christofel.Management.Commands;
+using Christofel.Management.CtuUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -64,6 +65,7 @@ namespace Christofel.Management
             return serviceCollection
                 .AddDiscordState(State)
                 .AddChristofelDatabase(State)
+                .AddSingleton<CtuIdentityResolver>()
                 .AddDefaultInteractionHandler(collection =>
                     collection.AddCommandGroup<MessageCommandsGroup>()
                         .AddCommandGroup<PermissionCommandsGroup>()

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,17 +74,10 @@ namespace Christofel.Management.Commands
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
             try
             {
-                DiscordTarget target = mentionable.ToDiscordTarget();
-                IQueryable<PermissionAssignment> assignmentQuery = context.Permissions.AsQueryable();
-
-                if (target.TargetType != TargetType.Everyone)
-                {
-                    assignmentQuery = assignmentQuery
-                        .Where(x => x.Target.DiscordId == target.DiscordId);
-                }
-
-                PermissionAssignment? assignment = await assignmentQuery.FirstOrDefaultAsync(x =>
-                    x.Target.TargetType == target.TargetType && x.PermissionName == permission, token);
+                PermissionAssignment? assignment = await context.Permissions
+                    .AsQueryable()
+                    .WhereTargetEquals(mentionable.ToDiscordTarget())
+                    .FirstOrDefaultAsync(x => x.PermissionName == permission, token);
 
                 if (assignment == null)
                 {
@@ -125,19 +119,13 @@ namespace Christofel.Management.Commands
             string response = $@"Permissions of {mentionable.Mention}:\n";
             try
             {
-                IQueryable<PermissionAssignment> permissionAssignments = context.Permissions
+                List<string> permissionAssignments = await context.Permissions
                     .AsNoTracking()
-                    .Where(x => x.Target.TargetType == target.TargetType);
+                    .WhereTargetEquals(target)
+                    .Select(x => $@"  - **{x.PermissionName}**")
+                    .ToListAsync(token);
 
-                if (target.TargetType != TargetType.Everyone)
-                {
-                    permissionAssignments = permissionAssignments
-                        .Where(x => x.Target.DiscordId == target.DiscordId);
-                }
-
-                response += string.Join('\n',
-                    await permissionAssignments.Select(x => $@"  - **{x.PermissionName}**")
-                        .ToListAsync(token));
+                response += string.Join('\n', permissionAssignments);
 
                 await command.RespondChunkAsync(response, ephemeral: true,
                     options: new RequestOptions() {CancelToken = token});
@@ -150,6 +138,65 @@ namespace Christofel.Management.Commands
             }
         }
 
+        private SlashCommandOptionBuilder GetGrantSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                .WithName("grant")
+                .WithDescription("Assign permission to user or role")
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("mentionable")
+                    .WithDescription("User or role to assign to")
+                    .WithRequired(true)
+                    .WithType(ApplicationCommandOptionType.Mentionable))
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("permission")
+                    .WithRequired(true)
+                    .WithDescription("Permission to assign")
+                    .WithType(ApplicationCommandOptionType.String)
+                );
+        }
+
+        private SlashCommandOptionBuilder GetRevokeSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                .WithName("revoke")
+                .WithDescription("Revoke (remove already assigned) permission from user or role")
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("mentionable")
+                    .WithDescription("User or role to revoke from")
+                    .WithRequired(true)
+                    .WithType(ApplicationCommandOptionType.Mentionable))
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("permission")
+                    .WithRequired(true)
+                    .WithDescription("Permission to revoke")
+                    .WithType(ApplicationCommandOptionType.String)
+                );
+        }
+
+        private SlashCommandOptionBuilder GetShowSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                .WithName("show")
+                .WithDescription("Show permissions of user or role")
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("mentionable")
+                    .WithDescription("User or role to revoke from")
+                    .WithRequired(true)
+                    .WithType(ApplicationCommandOptionType.Mentionable));
+        }
+
+        private SlashCommandOptionBuilder GetListSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                .WithName("list")
+                .WithDescription("List permissions of all attached plugins")
+                .WithType(ApplicationCommandOptionType.SubCommand);
+        }
+        
         public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
         {
             SlashCommandHandler handler = new SubCommandHandlerCreator()
@@ -167,53 +214,10 @@ namespace Christofel.Management.Commands
                 .WithBuilder(new SlashCommandBuilder()
                     .WithName("permissions")
                     .WithDescription("Manage permissions")
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("grant")
-                        .WithDescription("Assign permission to user or role")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("mentionable")
-                            .WithDescription("User or role to assign to")
-                            .WithRequired(true)
-                            .WithType(ApplicationCommandOptionType.Mentionable))
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("permission")
-                            .WithRequired(true)
-                            .WithDescription("Permission to assign")
-                            .WithType(ApplicationCommandOptionType.String)
-                        )
-                    )
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("revoke")
-                        .WithDescription("Revoke (remove already assigned) permission from user or role")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("mentionable")
-                            .WithDescription("User or role to revoke from")
-                            .WithRequired(true)
-                            .WithType(ApplicationCommandOptionType.Mentionable))
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("permission")
-                            .WithRequired(true)
-                            .WithDescription("Permission to revoke")
-                            .WithType(ApplicationCommandOptionType.String)
-                        )
-                    )
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("show")
-                        .WithDescription("Show permissions of user or role")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("mentionable")
-                            .WithDescription("User or role to revoke from")
-                            .WithRequired(true)
-                            .WithType(ApplicationCommandOptionType.Mentionable))
-                    )
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("list")
-                        .WithDescription("List permissions of all attached plugins")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                    )
+                    .AddOption(GetGrantSubcommandBuilder())
+                    .AddOption(GetRevokeSubcommandBuilder())
+                    .AddOption(GetShowSubcommandBuilder())
+                    .AddOption(GetListSubcommandBuilder())
                 );
 
             ICommandExecutor executor = new CommandExecutorBuilder()
