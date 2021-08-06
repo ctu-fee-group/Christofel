@@ -44,6 +44,9 @@ namespace Christofel.Application.Logging.Discord
             {
                 messageContent += exception.ToString();
             }
+
+            messageContent = messageContent
+                .Replace("`", "\\`");
             
             string header = "**" + GetLevelText(logLevel) + $@" {_categoryName}[{eventId}]** {GetScopeMessage()}";
 
