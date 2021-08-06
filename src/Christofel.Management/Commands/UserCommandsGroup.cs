@@ -214,18 +214,21 @@ namespace Christofel.Management.Commands
                 {
                     try
                     {
-                        IDMChannel? dmChannel = await _client.GetDMChannelAsync((ulong) data.DiscordId);
+                        IUser? targetUser = await _client.GetUserAsync((ulong) data.DiscordId,
+                            new RequestOptions() {CancelToken = token});
+                        IDMChannel? dmChannel =
+                            await targetUser.CreateDMChannelAsync(new RequestOptions() {CancelToken = token});
 
                         ILinkUser? commandUserIdentity = await _identityResolver.GetFirstIdentity(command.User.Id);
                         await dmChannel.SendMessageAsync(
                             $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {command.User.Mention} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu.");
-                        await dmChannel.CloseAsync();
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
+                        _logger.LogError(e, "Could not send DM message to the user notifying him about being identified");
                         await command.FollowupAsync(
-                            "Could not send DM message to the user notifying him about being identified");
-                        throw;
+                            "Could not send DM message to the user notifying him about being identified", ephemeral: true,
+                            options: new RequestOptions(){CancelToken = token});
                     }
                 }
             }
