@@ -17,6 +17,39 @@ namespace Christofel.BaseLib.Database
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<DbUser>()
+                .HasOne<DbUser>(x => x.DuplicitUser!)
+                .WithOne(x => x.DuplicitUserBack!)
+                .HasForeignKey<DbUser>(x => x.DuplicitUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ProgrammeRoleAssignment>()
+                .HasOne<RoleAssignment>(x => x.Assignment)
+                .WithMany(x => x.ProgrammeRoleAssignments)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<TitleRoleAssignment>()
+                .HasOne<RoleAssignment>(x => x.Assignment)
+                .WithMany(x => x.TitleRoleAssignments)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<UsermapRoleAssignment>()
+                .HasOne<RoleAssignment>(x => x.Assignment)
+                .WithMany(x => x.UsermapRoleAssignments)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<YearRoleAssignment>()
+                .HasOne<RoleAssignment>(x => x.Assignment)
+                .WithMany(x => x.YearRoleAssignments)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = new CancellationToken())
         {
             this.AddTimestamps();

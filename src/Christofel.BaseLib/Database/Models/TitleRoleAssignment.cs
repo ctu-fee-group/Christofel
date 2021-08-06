@@ -20,10 +20,8 @@ namespace Christofel.BaseLib.Database.Models
         
         public uint Priority { get; set; }
 
-        [ForeignKey("Assignment")]
         public int AssignmentId { get; set; }
         
-        [InverseProperty("TitleRoleAssignments")]
         public RoleAssignment Assignment { get; set; } = null!;
     }
 }
