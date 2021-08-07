@@ -109,7 +109,7 @@ namespace Christofel.Application.Logging.Discord
                     }
                 }
             }
-            catch
+            catch (Exception e)
             {
                 try
                 {
@@ -126,6 +126,7 @@ namespace Christofel.Application.Logging.Discord
             try
             {
                 _outputThread.Join(1500);
+                ProcessLogQueue();
             }
             catch (ThreadStateException) { }
         }
