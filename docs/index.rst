@@ -35,3 +35,9 @@ Documentation
 
    maintenance/commits
 
+.. toctree::
+   :caption: Other libraries
+   :maxdepth: 2
+
+   commands/index
+
