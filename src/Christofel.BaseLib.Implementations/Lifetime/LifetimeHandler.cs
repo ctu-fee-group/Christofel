@@ -83,9 +83,6 @@ namespace Christofel.BaseLib.Lifetime
                 case LifetimeState.Stopping:
                     HandleStopping();
                     break;
-                case LifetimeState.Error:
-                    HandleErrored();
-                    break;
             }
         }
 
@@ -95,9 +92,12 @@ namespace Christofel.BaseLib.Lifetime
         /// <param name="e"></param>
         public virtual void MoveToError(Exception? e)
         {
-            MoveToState(LifetimeState.Error);
-            _errorAction(e);
-            _errored.Cancel();
+            if (!IsErrored)
+            {
+                MoveToState(LifetimeState.Error);
+                _errorAction(e);
+                _errored.Cancel();
+            }
         }
         
         protected void HandleErrored()
