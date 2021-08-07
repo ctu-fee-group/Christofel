@@ -157,6 +157,7 @@ namespace Christofel.Application
         protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<ChristofelApp>>();
+            _lifetimeHandler.Logger = _logger;
             return Task.CompletedTask;
         }
 
