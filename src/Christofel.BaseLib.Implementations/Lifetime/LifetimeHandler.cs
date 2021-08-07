@@ -22,7 +22,7 @@ namespace Christofel.BaseLib.Lifetime
             _errored = new CancellationTokenSource();
         }
 
-        public bool IsErrored => Lifetime.State == LifetimeState.Error;
+        public bool IsErrored { get; private set; }
 
         public abstract ILifetime Lifetime { get; }
 
@@ -94,7 +94,7 @@ namespace Christofel.BaseLib.Lifetime
         {
             if (!IsErrored)
             {
-                MoveToState(LifetimeState.Error);
+                IsErrored = true;
                 _errorAction(e);
                 _errored.Cancel();
             }

@@ -20,6 +20,16 @@ namespace Christofel.BaseLib.Lifetime
         public LifetimeState State { get; }
         
         /// <summary>
+        /// In case of an error this state is set
+        /// </summary>
+        /// <remarks>
+        /// This may be set in any stage of the lifetime and indicates
+        /// critical failure where the plugin will not be able to recover
+        /// itself from it.
+        /// </remarks>
+        public bool IsErrored { get; }
+        
+        /// <summary>
         /// Errored token is canceled in case of an error
         /// </summary>
         public CancellationToken Errored { get; }

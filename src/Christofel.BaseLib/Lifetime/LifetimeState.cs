@@ -34,16 +34,5 @@ namespace Christofel.BaseLib.Lifetime
         /// After destroy of every object that belonged to the plugin
         /// </summary>
         Destroyed,
-        /// <summary>
-        /// In case of an error this state is set
-        /// </summary>
-        /// <remarks>
-        /// This may be set in any stage of the lifetime and indicates
-        /// critical failure where the plugin will not be able to recover
-        /// itself from it.
-        ///
-        /// Previous state cannot be obtained, because it isn't needed anymore.
-        /// </remarks>
-        Error,
     }
 }

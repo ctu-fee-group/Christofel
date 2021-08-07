@@ -95,7 +95,8 @@ namespace Christofel.Application.State
             }
 
             public LifetimeState State => _handler.State;
-            
+            public bool IsErrored => _handler.IsErrored;
+
             public CancellationToken Errored => _errored.Token;
             public CancellationToken Started => _started.Token;
             public CancellationToken Stopped => _stopped.Token;
