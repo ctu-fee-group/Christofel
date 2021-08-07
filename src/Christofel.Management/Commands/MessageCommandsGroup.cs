@@ -42,20 +42,22 @@ namespace Christofel.Management.Commands
             _resolver = resolver;
         }
 
-        public async Task HandleSlowmodeFor(SocketSlashCommand command, int interval, int? hours, int? minutes,
-            int? seconds, IChannel? channel, CancellationToken token = default)
+        public async Task HandleSlowmodeFor(SocketSlashCommand command, long interval, long? hours, long? minutes,
+            long? seconds, IChannel? channel, CancellationToken token = default)
         {
             await command.FollowupChunkAsync("Not implemented yet", ephemeral: true, options: new RequestOptions(){CancelToken = token});
             throw new NotImplementedException();
         }
 
-        public async Task HandleSlowmodeEnable(SocketSlashCommand command, int interval, IChannel? channel,
+        public async Task HandleSlowmodeEnable(SocketSlashCommand command, long interval, IChannel? channel,
             CancellationToken token = default)
         {
             Verified<SlowmodeData> verified = await new CommandVerifier<SlowmodeData>(_client, command, _logger)
                 .VerifyTextChannel(channel ?? command.Channel)
                 .VerifyMinMax(interval, 1, 3600, "interval")
                 .FinishVerificationAsync();
+
+            int intInterval = unchecked((int) interval);
 
             if (verified.Success)
             {
@@ -69,7 +71,7 @@ namespace Christofel.Management.Commands
                 {
                     await data.TextChannel
                         .ModifyAsync(props =>
-                                props.SlowModeInterval = interval,
+                                props.SlowModeInterval = intInterval,
                             new RequestOptions() {CancelToken = token});
                     await command.FollowupChunkAsync("Slowmode enabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
                 }
@@ -180,8 +182,8 @@ namespace Christofel.Management.Commands
         {
             SlashCommandHandler slowmodeHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
-                    ("for", (CommandDelegate<int, int?, int?, int?, IChannel?>) HandleSlowmodeFor),
-                    ("enablepermanent", (CommandDelegate<int, IChannel?>) HandleSlowmodeEnable),
+                    ("for", (CommandDelegate<long, long?, long?, long?, IChannel?>) HandleSlowmodeFor),
+                    ("enablepermanent", (CommandDelegate<long, IChannel?>) HandleSlowmodeEnable),
                     ("disable", (CommandDelegate<IChannel?>) HandleSlowmodeDisable)
                 );
 
