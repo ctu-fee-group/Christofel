@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib.CommandsInfo;
@@ -25,11 +26,13 @@ namespace Christofel.CommandsLib.Commands
         private readonly ICommandHolder _commandsHolder;
         private readonly IPermissionService _permissions;
         private readonly DiscordRestClient _client;
-        private CommandCache _cache;
+        private readonly CommandCache _cache;
+        private readonly IApplicationLifetime _applicationLifetime;
 
         public CommandsRegistrator(ICommandsGroupProvider commandGroups, ICommandHolder commandsHolder,
-            IPermissionService permissions, DiscordRestClient client)
+            IPermissionService permissions, DiscordRestClient client, IApplicationLifetime applicationLifetime)
         {
+            _applicationLifetime = applicationLifetime;
             _commandGroups = commandGroups;
             _commandsHolder = commandsHolder;
             _permissions = permissions;
@@ -47,10 +50,13 @@ namespace Christofel.CommandsLib.Commands
             await RegisterCommandsAsync(_commandsHolder, token);
         }
 
-        public Task StopAsync(CancellationToken token = new CancellationToken())
+        public async Task StopAsync(CancellationToken token = new CancellationToken())
         {
             _cache.Reset();
-            return UnregisterCommandsAsync(_commandsHolder, token);
+            if (_applicationLifetime.State != LifetimeState.Stopping)
+            {
+                await UnregisterCommandsAsync(_commandsHolder, token);
+            }
         }
 
         public Task RefreshAsync(CancellationToken token = new CancellationToken())
