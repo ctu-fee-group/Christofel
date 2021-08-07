@@ -198,6 +198,13 @@ namespace Christofel.Application
             bot.Client.Ready -= HandleReady;
 
             await base.StopAsync(token);
+        }
+
+        public override async Task DestroyAsync(CancellationToken token = new CancellationToken())
+        {
+            await base.DestroyAsync(token);
+
+            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             await bot.StopBot(token);
         }
 
