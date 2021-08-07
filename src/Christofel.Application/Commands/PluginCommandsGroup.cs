@@ -54,74 +54,6 @@ namespace Christofel.Application.Commands
             _logger = logger;
         }
 
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
-        {
-            SubCommandHandlerCreator creator = new SubCommandHandlerCreator();
-            SlashCommandHandler handler = creator.CreateHandlerForCommand(
-                ("attach", (CommandDelegate<string>) HandleAttach),
-                ("detach", (CommandDelegate<string>) HandleDetach),
-                ("reattach", (CommandDelegate<string>) HandleReattach),
-                ("list", (CommandDelegate) HandleList),
-                ("check", (CommandDelegate) HandleCheck));
-
-            SlashCommandInfoBuilder pluginBuilder = new SlashCommandInfoBuilder()
-                .WithPermission("application.plugins.control")
-                .WithGuild(_options.GuildId)
-                .WithHandler(handler)
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("plugin")
-                    .WithDescription("Control attached plugins")
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("attach")
-                        .WithDescription("Attach a plugin that is not yet attached")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("pluginname")
-                            .WithRequired(true)
-                            .WithDescription("Name of the module")
-                            .WithType(ApplicationCommandOptionType.String)
-                        )
-                    ).AddOption(new SlashCommandOptionBuilder()
-                        .WithName("detach")
-                        .WithDescription("Detach a plugin that is already attached")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("pluginname")
-                            .WithRequired(true)
-                            .WithDescription("Name of the module")
-                            .WithType(ApplicationCommandOptionType.String)
-                        )
-                    ).AddOption(new SlashCommandOptionBuilder()
-                        .WithName("reattach")
-                        .WithDescription("Reattach a plugin that is attached")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("pluginname")
-                            .WithRequired(true)
-                            .WithDescription("Name of the module")
-                            .WithType(ApplicationCommandOptionType.String)
-                        )
-                    )
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("check")
-                        .WithDescription("Checks memory for any detached modules still left")
-                        .WithType(ApplicationCommandOptionType.SubCommand)
-                    ).AddOption(new SlashCommandOptionBuilder()
-                        .WithName("list")
-                        .WithDescription("Print list of attached plugins")
-                        .WithType(ApplicationCommandOptionType.SubCommand)));
-
-            ICommandExecutor executor = new CommandExecutorBuilder()
-                .WithLogger(_logger)
-                .WithPermissionsCheck(_resolver)
-                .WithDeferMessage()
-                .WithThreadPool()
-                .Build();
-
-            holder.AddCommand(pluginBuilder, executor);
-            return Task.CompletedTask;
-        }
-
 
         /// <summary>
         /// Handle /plugin attach
@@ -277,6 +209,98 @@ namespace Christofel.Application.Commands
                 "Check log for result",
                 ephemeral: true,
                 options: new RequestOptions() {CancelToken = token});
+        }
+        
+        public SlashCommandOptionBuilder GetAttachSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                    .WithName("attach")
+                    .WithDescription("Attach a plugin that is not yet attached")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("pluginname")
+                        .WithRequired(true)
+                        .WithDescription("Name of the module")
+                        .WithType(ApplicationCommandOptionType.String)
+                    );
+        }
+        
+        public SlashCommandOptionBuilder GetDetachSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                    .WithName("detach")
+                    .WithDescription("Detach a plugin that is already attached")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("pluginname")
+                        .WithRequired(true)
+                        .WithDescription("Name of the module")
+                        .WithType(ApplicationCommandOptionType.String)
+                    );
+        }
+        
+        public SlashCommandOptionBuilder GetReattachSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                    .WithName("reattach")
+                    .WithDescription("Reattach a plugin that is attached")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("pluginname")
+                        .WithRequired(true)
+                        .WithDescription("Name of the module")
+                        .WithType(ApplicationCommandOptionType.String)
+                    );
+        }
+        
+        public SlashCommandOptionBuilder GetCheckSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                    .WithName("check")
+                    .WithDescription("Checks memory for any detached modules still left")
+                    .WithType(ApplicationCommandOptionType.SubCommand);
+        }
+        
+        public SlashCommandOptionBuilder GetListSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
+                .WithName("list")
+                .WithDescription("Print list of attached plugins")
+                .WithType(ApplicationCommandOptionType.SubCommand);
+        }
+        
+        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        {
+            SubCommandHandlerCreator creator = new SubCommandHandlerCreator();
+            SlashCommandHandler handler = creator.CreateHandlerForCommand(
+                ("attach", (CommandDelegate<string>) HandleAttach),
+                ("detach", (CommandDelegate<string>) HandleDetach),
+                ("reattach", (CommandDelegate<string>) HandleReattach),
+                ("list", (CommandDelegate) HandleList),
+                ("check", (CommandDelegate) HandleCheck));
+
+            SlashCommandInfoBuilder pluginBuilder = new SlashCommandInfoBuilder()
+                .WithPermission("application.plugins.control")
+                .WithGuild(_options.GuildId)
+                .WithHandler(handler)
+                .WithBuilder(new SlashCommandBuilder()
+                    .WithName("plugin")
+                    .WithDescription("Control attached plugins")
+                    .AddOption(GetAttachSubcommandBuilder())
+                    .AddOption(GetDetachSubcommandBuilder())
+                    .AddOption(GetReattachSubcommandBuilder())
+                    .AddOption(GetCheckSubcommandBuilder())
+                    .AddOption(GetListSubcommandBuilder()));
+
+            ICommandExecutor executor = new CommandExecutorBuilder()
+                .WithLogger(_logger)
+                .WithPermissionsCheck(_resolver)
+                .WithDeferMessage()
+                .WithThreadPool()
+                .Build();
+
+            holder.AddCommand(pluginBuilder, executor);
+            return Task.CompletedTask;
         }
     }
 }

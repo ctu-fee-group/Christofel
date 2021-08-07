@@ -193,33 +193,66 @@ namespace Christofel.Messages.Commands
                 await command.RespondAsync("Embed deleted!");
             }
         }
-
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        
+                
+        public SlashCommandOptionBuilder GetMsgSubcommandBuilder()
         {
-            ICommandExecutor executor = new CommandExecutorBuilder()
-                .WithLogger(_logger)
-                .WithPermissionsCheck(_resolver)
-                .WithThreadPool()
-                .Build();
-
-            SlashCommandHandler handler = new SubCommandHandlerCreator()
-                .CreateHandlerForCommand(
-                    ("file send", (CommandDelegate<IChannel?, string>) HandleCreateEmbedFromFile),
-                    ("file edit", (CommandDelegate<IChannel?, string, string>) HandleEditEmbedFromFile),
-                    ("file delete", (CommandDelegate<IChannel?, string>) HandleDeleteEmbed),
-                    ("msg send", (CommandDelegate<IChannel?, string>) HandleCreateEmbedFromMessage),
-                    ("msg edit", (CommandDelegate<IChannel?, string, string>) HandleEditEmbedFromMessage),
-                    ("msg delete", (CommandDelegate<IChannel?, string>) HandleDeleteEmbed)
-                );
-
-            SlashCommandInfoBuilder commandBuilder = new SlashCommandInfoBuilder()
-                .WithHandler(handler)
-                .WithGuild(_options.GuildId)
-                .WithPermission("messages.embed")
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("embed")
-                    .WithDescription("Manage embeds")
+            return new SlashCommandOptionBuilder()
+                .WithName("msg")
+                .WithDescription("Send or edit embeds using text in message")
+                .WithType(ApplicationCommandOptionType.SubCommandGroup)
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("send")
+                    .WithDescription("Send an embed using json message")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
                     .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("embed")
+                        .WithDescription("Embed json to send")
+                        .WithRequired(true)
+                        .WithType(ApplicationCommandOptionType.String))
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("channel")
+                        .WithDescription("Channel to send the message to")
+                        .WithType(ApplicationCommandOptionType.Channel))
+                )
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("edit")
+                    .WithDescription("Edit an embed using a json file from the disk")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("messageid")
+                        .WithDescription("Id of the message to edit")
+                        .WithRequired(true)
+                        .WithType(ApplicationCommandOptionType.String))
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("embed")
+                        .WithDescription("Embed json to send")
+                        .WithRequired(true)
+                        .WithType(ApplicationCommandOptionType.String))
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("channel")
+                        .WithDescription("Channel to send the message to")
+                        .WithType(ApplicationCommandOptionType.Channel)
+                    ))
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("delete")
+                    .WithDescription("Delete an embed")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("messageid")
+                        .WithDescription("Message id to delete")
+                        .WithRequired(true)
+                        .WithType(ApplicationCommandOptionType.String))
+                    .AddOption(new SlashCommandOptionBuilder()
+                        .WithName("channel")
+                        .WithDescription("Channel to delete the message from. Default is the current one")
+                        .WithType(ApplicationCommandOptionType.Channel))
+                );
+        }
+        
+        public SlashCommandOptionBuilder GetFileSubcommandBuilder()
+        {
+            return new SlashCommandOptionBuilder()
                         .WithName("file")
                         .WithDescription("Send or edit embeds using files on the server")
                         .WithType(ApplicationCommandOptionType.SubCommandGroup)
@@ -269,59 +302,37 @@ namespace Christofel.Messages.Commands
                                 .WithName("channel")
                                 .WithDescription("Channel to delete the message from. Default is the current one")
                                 .WithType(ApplicationCommandOptionType.Channel))
-                        ))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("msg")
-                        .WithDescription("Send or edit embeds using text in message")
-                        .WithType(ApplicationCommandOptionType.SubCommandGroup)
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("send")
-                            .WithDescription("Send an embed using json message")
-                            .WithType(ApplicationCommandOptionType.SubCommand)
-                            .AddOption(new SlashCommandOptionBuilder()
-                                .WithName("embed")
-                                .WithDescription("Embed json to send")
-                                .WithRequired(true)
-                                .WithType(ApplicationCommandOptionType.String))
-                            .AddOption(new SlashCommandOptionBuilder()
-                                .WithName("channel")
-                                .WithDescription("Channel to send the message to")
-                                .WithType(ApplicationCommandOptionType.Channel))
-                        )
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("edit")
-                            .WithDescription("Edit an embed using a json file from the disk")
-                            .WithType(ApplicationCommandOptionType.SubCommand)
-                            .AddOption(new SlashCommandOptionBuilder()
-                                .WithName("messageid")
-                                .WithDescription("Id of the message to edit")
-                                .WithRequired(true)
-                                .WithType(ApplicationCommandOptionType.String))
-                            .AddOption(new SlashCommandOptionBuilder()
-                                .WithName("embed")
-                                .WithDescription("Embed json to send")
-                                .WithRequired(true)
-                                .WithType(ApplicationCommandOptionType.String))
-                            .AddOption(new SlashCommandOptionBuilder()
-                                .WithName("channel")
-                                .WithDescription("Channel to send the message to")
-                                .WithType(ApplicationCommandOptionType.Channel)
-                            ))
-                        .AddOption(new SlashCommandOptionBuilder()
-                            .WithName("delete")
-                            .WithDescription("Delete an embed")
-                            .WithType(ApplicationCommandOptionType.SubCommand)
-                            .AddOption(new SlashCommandOptionBuilder()
-                                .WithName("messageid")
-                                .WithDescription("Message id to delete")
-                                .WithRequired(true)
-                                .WithType(ApplicationCommandOptionType.String))
-                            .AddOption(new SlashCommandOptionBuilder()
-                                .WithName("channel")
-                                .WithDescription("Channel to delete the message from. Default is the current one")
-                                .WithType(ApplicationCommandOptionType.Channel))
-                        )
-                    ));
+                        );
+        }
+
+
+        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        {
+            ICommandExecutor executor = new CommandExecutorBuilder()
+                .WithLogger(_logger)
+                .WithPermissionsCheck(_resolver)
+                .WithThreadPool()
+                .Build();
+
+            SlashCommandHandler handler = new SubCommandHandlerCreator()
+                .CreateHandlerForCommand(
+                    ("file send", (CommandDelegate<IChannel?, string>) HandleCreateEmbedFromFile),
+                    ("file edit", (CommandDelegate<IChannel?, string, string>) HandleEditEmbedFromFile),
+                    ("file delete", (CommandDelegate<IChannel?, string>) HandleDeleteEmbed),
+                    ("msg send", (CommandDelegate<IChannel?, string>) HandleCreateEmbedFromMessage),
+                    ("msg edit", (CommandDelegate<IChannel?, string, string>) HandleEditEmbedFromMessage),
+                    ("msg delete", (CommandDelegate<IChannel?, string>) HandleDeleteEmbed)
+                );
+
+            SlashCommandInfoBuilder commandBuilder = new SlashCommandInfoBuilder()
+                .WithHandler(handler)
+                .WithGuild(_options.GuildId)
+                .WithPermission("messages.embed")
+                .WithBuilder(new SlashCommandBuilder()
+                    .WithName("embed")
+                    .WithDescription("Manage embeds")
+                    .AddOption(GetFileSubcommandBuilder())
+                    .AddOption(GetMsgSubcommandBuilder()));
 
             holder.AddCommand(commandBuilder, executor);
             return Task.CompletedTask;
