@@ -41,7 +41,6 @@ namespace Christofel.CommandsLib.Commands
             if (!_cachedGuildCommands.TryGetValue(guildId, out IReadOnlyCollection<RestGuildCommand>? guildCommands))
             {
                 ulong applicationId = await GetApplicationId(token);
-                Console.WriteLine("Request to API guild");
                 guildCommands = (await _client.GetGuildApplicationCommands(guildId,
                         options: new RequestOptions() {CancelToken = token}))
                     .Where(x => x.ApplicationId == applicationId)
@@ -57,7 +56,6 @@ namespace Christofel.CommandsLib.Commands
             if (_cachedGlobalCommands == null)
             {
                 ulong applicationId = await GetApplicationId(token);
-                Console.WriteLine("Request to API global");
                 _cachedGlobalCommands =
                     (await _client.GetGlobalApplicationCommands(options: new RequestOptions() {CancelToken = token}))
                         .Where(x => x.ApplicationId == applicationId).ToImmutableList();
