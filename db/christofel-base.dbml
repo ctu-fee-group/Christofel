@@ -1,37 +1,31 @@
-Table User {
+Table DbUser {
   UserId id [pk, unique]
   CreatedAt datetime
-  UpdatedAt datetime
-  DeletedAt datetime
-  AuthenticatedAt datetime [note: "Last authentication time so we can track how long the user was not reauthenticated"]
-  DiscordId string [note: "Raw discord id, not their user and #tag"]
+  UpdatedAt datetime [null]
+  AuthenticatedAt datetime [null, note: "Last authentication time so we can track how long the user was not reauthenticated"]
+  DiscordId ulong [note: "Raw discord id, not their user and #tag"]
   CtuUsername string
-  Duplicity boolean [note: "Whether there is any duplicity in the table - ctu or discord"]
+  DuplicityUserId id [null, note: ""]
   DuplicityApproved boolean [note: "Whether the duplicity was approved, so the auth flow can be finished"]
-}
-
-Table Configuration {
-  Name string [pk, unique]
-  Value string
-  
-  Note: 'Configuration of the whole application. Shared values may be encountered. Storage in db is chosen because easy sharing between modules can be made'
 }
 
 enum TargetType {
   User
   Role
+  Everyone
 }
 
 Table PermissionAssignment {
-  PermissionId id [pk]
+  PermissionAssignmentId id [pk, unique]
   PermissionName string [note: "Name of the permission"]
-  DiscordTargetId string [note: "Discord target id"]
+  DiscordTargetId string [null, note: "Discord target id"]
   DiscordTargetType TargetType
   
   Note: 'Permissions for commands or other features. Should follow parent.child.subchild pattern etc. * can be used as a placeholder in particular level, etc parent.* gives all permissions beginning with parent to the given target'
 }
 
 enum RoleType {
+  General
   Year
   Programme
   FinishedStudies
@@ -40,40 +34,45 @@ enum RoleType {
 }
 
 Table RoleAssignment {
-  RoleAssignmentId id [pk]
-  RoleId string
+  RoleAssignmentId id [pk, unique]
+  RoleId ulong
   RoleType RoleType
 }
 
 Table YearRoleAssignment {
-  Year int [pk]
-  RoleAssignmentId string [ref: > RoleAssignment.RoleAssignmentId]
+  YearRoleAssignmentId id [pk, unique]
+  Year int
+  AssignmentId string [ref: > RoleAssignment.RoleAssignmentId]
   
   Note: "What year roles should be assigned as year the student started studying"
 }
 
 Table ProgrammeRoleAssignment {
-  Programme string [pk]
-  RoleAssignmentId string [ref: > RoleAssignment.RoleAssignmentId]
+  ProgrammeRoleAssignmentId id [pk, unique]
+  Programme string
+  AssignmentId string [ref: > RoleAssignment.RoleAssignmentId]
   
   Note: "Programme roles to be assigned based on programme"
 }
 
 Table TitleRoleAssignment {
-  Title string [pk]
+  TitleRoleAssignmentId id [pk, unique]
+  Title string
   Post boolean
   Pre boolean
+  Priority uint
   
-  RoleAssignmentId string [ref: > RoleAssignment.RoleAssignmentId]
+  AssignmentId string [ref: > RoleAssignment.RoleAssignmentId]
   
-  Note: "What roles to assigned based off of what titles the user has"
+  Note: "What roles to assign based off of what titles the user has"
 }
 
 Table UsermapRoleAssignment {
-  UsermapRole string [pk]
-  Contain boolean [note: "If true, search for substring, if false, match whole string"]
+  UsermapRoleAssignmentId id [pk, unique]
+  UsermapRole string
+  RegexMatch boolean [note: "If true, search using regex, if false, match whole string"]
   
-  RoleAssignmentId string [ref: > RoleAssignment.RoleAssignmentId]
+  AssignmentId string [ref: > RoleAssignment.RoleAssignmentId]
   
   Note: "Mapping of usermap roles to discord roles"
 }
