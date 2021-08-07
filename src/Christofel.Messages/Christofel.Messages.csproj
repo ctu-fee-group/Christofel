@@ -14,13 +14,15 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Core\Discord.Net.Core.csproj" />
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Rest\Discord.Net.Rest.csproj" />
+      <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
       <ProjectReference Include="..\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Discord.Net.Labs" Version="3.0.1-pre" />
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
     </ItemGroup>
 
