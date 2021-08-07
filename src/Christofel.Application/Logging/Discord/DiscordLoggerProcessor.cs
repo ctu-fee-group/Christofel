@@ -14,7 +14,7 @@ namespace Christofel.Application.Logging.Discord
     public class DiscordLoggerProcessor : IDisposable
     {
         // TODO: how to log exceptions from here?
-        
+
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
 
@@ -29,8 +29,8 @@ namespace Christofel.Application.Logging.Discord
             _bot.Ready += HandleBotReady;
 
             Options = options;
-            _messageQueue = new BlockingCollection<DiscordLogMessage>((int)Options.MaxQueueSize);
-            
+            _messageQueue = new BlockingCollection<DiscordLogMessage>((int) Options.MaxQueueSize);
+
             _outputThread = new Thread(ProcessLogQueue)
             {
                 IsBackground = true,
@@ -38,7 +38,7 @@ namespace Christofel.Application.Logging.Discord
             };
             _outputThread.Start();
         }
-        
+
         public DiscordLoggerOptions Options { get; set; }
 
         public virtual void EnqueueMessage(DiscordLogMessage message)
@@ -50,7 +50,9 @@ namespace Christofel.Application.Logging.Discord
                     _messageQueue.Add(message);
                     return;
                 }
-                catch (InvalidOperationException) { }
+                catch (InvalidOperationException)
+                {
+                }
             }
 
             // Adding is completed so just log the message
@@ -63,14 +65,14 @@ namespace Christofel.Application.Logging.Discord
             }
         }
 
-        private void WriteMessage(DiscordLogMessage entry)
+        private bool WriteMessage(DiscordLogMessage entry)
         {
             if (_bot.ConnectionState != ConnectionState.Connected)
             {
                 _canProcess = false;
-                return;
+                return false;
             }
-            
+
             IMessageChannel channel = _bot
                 .GetGuild(entry.GuildId)
                 .GetTextChannel(entry.ChannelId);
@@ -86,27 +88,62 @@ namespace Christofel.Application.Logging.Discord
             {
                 Console.WriteLine("Could not find log channel");
             }
+
+            return true;
         }
 
         private void ProcessLogQueue()
         {
             try
             {
+                // TODO: refactor to make shorter
+                int count = 0;
+                List<DiscordLogMessage> messagesToSend = new List<DiscordLogMessage>();
+
                 foreach (DiscordLogMessage message in _messageQueue.GetConsumingEnumerable())
                 {
                     while (!_canProcess)
                     {
                         Thread.Sleep(10);
                     }
-                    
-                    try
+
+                    DiscordLogMessage? groupedMessage = messagesToSend.FirstOrDefault(x =>
+                        x.ChannelId == message.ChannelId && x.GuildId == message.GuildId);
+                    if (groupedMessage == null)
                     {
-                        WriteMessage(message);
+                        groupedMessage = message;
+                        messagesToSend.Add(groupedMessage);
                     }
-                    catch (Exception)
+                    else
                     {
-                        EnqueueMessage(message);
+                        groupedMessage.Message += "\n" + message.Message;
                     }
+
+                    count++;
+
+                    if (count < Options.MaxGroupSize && _messageQueue.Count >= Options.MinGroupContinue)
+                    {
+                        continue;
+                    }
+
+                    List<DiscordLogMessage> toRemove = new List<DiscordLogMessage>();
+                    foreach (DiscordLogMessage logMessage in messagesToSend)
+                    {
+                        try
+                        {
+                            if (WriteMessage(logMessage))
+                            {
+                                toRemove.Add(logMessage);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            EnqueueMessage(logMessage);
+                        }
+                    }
+
+                    messagesToSend.RemoveAll(x => toRemove.Contains(x));
+                    count = 0;
                 }
             }
             catch (Exception e)
@@ -115,7 +152,9 @@ namespace Christofel.Application.Logging.Discord
                 {
                     _messageQueue.CompleteAdding();
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
@@ -128,7 +167,9 @@ namespace Christofel.Application.Logging.Discord
                 _outputThread.Join(1500);
                 ProcessLogQueue();
             }
-            catch (ThreadStateException) { }
+            catch (ThreadStateException)
+            {
+            }
         }
 
         protected Task HandleBotReady()
