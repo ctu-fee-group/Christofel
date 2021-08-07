@@ -31,7 +31,7 @@ namespace Christofel.CommandsLib.Executors
         /// </summary>
         /// <param name="message">Message to respond with, if null, defer will be calle</param>
         /// <returns>this</returns>
-        public CommandExecutorBuilder WithDeferMessage(string? message = "I am thinking...")
+        public CommandExecutorBuilder WithDeferMessage(string? message = null)
         {
             _defer = true;
             _deferMessage = message;

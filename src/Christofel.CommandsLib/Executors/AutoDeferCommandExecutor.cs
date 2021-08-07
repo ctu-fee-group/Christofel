@@ -1,7 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.CommandsLib.CommandsInfo;
+using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
 
 namespace Christofel.CommandsLib.Executors
 {
@@ -13,31 +15,32 @@ namespace Christofel.CommandsLib.Executors
     public class AutoDeferCommandExecutor : ICommandExecutor
     {
         private readonly ICommandExecutor _executor;
-        
+
         public AutoDeferCommandExecutor(ICommandExecutor underlyingExecutor, string? message = "I am thinking...")
         {
             _executor = underlyingExecutor;
             Message = message;
         }
-        
+
         /// <summary>
         /// Message to send. If null, Defer
         /// </summary>
         public string? Message { get; set; }
-        
-        public async Task TryExecuteCommand(SlashCommandInfo info, SocketSlashCommand command, CancellationToken token = default)
+
+        public async Task TryExecuteCommand(SlashCommandInfo info, SocketSlashCommand command,
+            CancellationToken token = default)
         {
             if (Message is null)
             {
                 await command
-                    .DeferAsync();
+                    .DeferAsync(ephemeral: true, options: new RequestOptions() {CancelToken = token});
             }
             else
             {
                 await command
-                    .RespondAsync(Message, ephemeral: true);
+                    .RespondAsync(Message, ephemeral: true, options: new RequestOptions() {CancelToken = token});
             }
-            
+
             await _executor.TryExecuteCommand(info, command, token);
         }
     }
