@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Loader;
@@ -203,10 +204,18 @@ namespace Christofel.Application
 
         public override async Task DestroyAsync(CancellationToken token = new CancellationToken())
         {
-            await base.DestroyAsync(token);
-
+            foreach (DiscordLoggerProvider provider in Services.GetRequiredService<IEnumerable<ILoggerProvider>>()
+                .OfType<DiscordLoggerProvider>())
+            {
+                provider.Dispose();
+            }
+            
+            // Log all messages
+            
+            // Stop bot before disposing
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             await bot.StopBot(token);
+            await base.DestroyAsync(token);
         }
 
         protected Task HandleReady()
