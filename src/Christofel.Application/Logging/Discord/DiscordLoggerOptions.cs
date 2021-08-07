@@ -28,6 +28,10 @@ namespace Christofel.Application.Logging.Discord
         /// Queue size of ConcurrentCollection used in processor of discord messages
         /// </summary>
         public uint MaxQueueSize { get; set; } = 1024;
+
+        public uint MaxGroupSize { get; set; } = 20;
+
+        public uint MinGroupContinue { get; set; } = 1;
         
         /// <summary>
         /// What channels to log to
