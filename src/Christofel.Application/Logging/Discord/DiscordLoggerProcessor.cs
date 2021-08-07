@@ -96,6 +96,7 @@ namespace Christofel.Application.Logging.Discord
         {
             try
             {
+                // TODO: refactor to make shorter
                 int count = 0;
                 List<DiscordLogMessage> messagesToSend = new List<DiscordLogMessage>();
 
