@@ -241,8 +241,6 @@ namespace Christofel.BaseLib.Plugins
         /// <param name="token"></param>
         public virtual async Task DestroyAsync(CancellationToken token = new CancellationToken())
         {
-            VerifyStateAndIncrement(LifetimeState.Stopped);
-            
             token.ThrowIfCancellationRequested();
             try
             {
