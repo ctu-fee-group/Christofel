@@ -142,6 +142,7 @@ namespace Christofel.Application.Logging.Discord
                     }
 
                     messagesToSend.RemoveAll(x => toRemove.Contains(x));
+                    count = 0;
                 }
             }
             catch (Exception e)
