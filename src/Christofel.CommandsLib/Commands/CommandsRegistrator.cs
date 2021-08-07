@@ -32,6 +32,7 @@ namespace Christofel.CommandsLib.Commands
         
         public async Task StartAsync(CancellationToken token = new CancellationToken())
         {
+            token.ThrowIfCancellationRequested();
             await Task.WhenAll(
                 _commandGroups.GetGroups().Select(x => x.SetupCommandsAsync(_commandsHolder, token)));
 

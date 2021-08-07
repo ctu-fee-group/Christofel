@@ -152,6 +152,7 @@ namespace Christofel.BaseLib.Plugins
             {
                 foreach (IStartable startable in Startable)
                 {
+                    token.ThrowIfCancellationRequested();
                     await startable.StartAsync(token);
                 }
             }

@@ -216,7 +216,7 @@ namespace Christofel.Application
                 {
                     try
                     {
-                        await base.RunAsync();
+                        await base.RunAsync(_lifetimeHandler.Lifetime.Stopped);
                         _logger.LogInformation("Christofel is ready!");
                     }
                     catch (Exception e)
