@@ -42,7 +42,6 @@ namespace Christofel.Api
                     services
                         .AddDiscordState(state)
                         .AddChristofelDatabase(state)
-                        .AddDbContext<ChristofelBaseContext>()
                         .Configure<BotOptions>(state.Configuration.GetSection("Bot"));
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
@@ -80,7 +79,18 @@ namespace Christofel.Api
                 if (_lifetimeHandler.MoveToIfPrevious(LifetimeState.Starting) && !_lifetimeHandler.IsErrored)
                 {
                     RegisterAspLifetime();
-                    _aspThread = new Thread(_host.Run);
+                    _aspThread = new Thread(() =>
+                    {
+                        try
+                        {
+                            _host.Run();
+                        }
+                        catch (Exception e)
+                        {
+                            _logger?.LogCritical(e, "Caught an exception inside ASP.NET thread");
+                            _lifetimeHandler.RequestStop();
+                        }
+                    });
                     _aspThread.Start();
                 }
             }
