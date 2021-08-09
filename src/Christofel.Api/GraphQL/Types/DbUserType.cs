@@ -20,6 +20,7 @@ namespace Christofel.Api.GraphQL.Types
 
             descriptor
                 .Ignore(x => x.DuplicitUsersBack)
+                .Ignore(x => x.DuplicitUserId)
                 .Ignore(x => x.DuplicitUser);
         }
 
