@@ -16,12 +16,12 @@ namespace Christofel.Api.GraphQL.Authentication
                 new RegisterDiscordPayload(new UserError("Sorry, wrong input")));
         }
         
-        public Task<CtuRegisterPayload> RegisterCtu(
+        public Task<RegisterCtuPayload> RegisterCtu(
             RegisterCtuInput input,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(
-                new CtuRegisterPayload(new UserError("Sorry, wrong input")));
+                new RegisterCtuPayload(new UserError("Sorry, wrong input")));
         }
     }
 }
