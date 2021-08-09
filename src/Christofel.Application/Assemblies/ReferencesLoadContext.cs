@@ -84,7 +84,6 @@ namespace Christofel.Application.Assemblies
 
         protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
         {
-            return IntPtr.Zero;
             IntPtr pointer = LoadUnmanagedDllAssembly(null, unmanagedDllName);
             return pointer == IntPtr.Zero ? base.LoadUnmanagedDll(unmanagedDllName) : pointer;
         }
