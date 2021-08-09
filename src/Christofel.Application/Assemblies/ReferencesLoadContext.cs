@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,6 +20,7 @@ namespace Christofel.Application.Assemblies
     {
         private readonly string _pluginLoadDirectory;
         private readonly AssemblyDependencyResolver _resolver;
+        
         private readonly string[] _sharedAssemblies = new[]
         {
             // Global
@@ -29,13 +31,13 @@ namespace Christofel.Application.Assemblies
             // Discord
             "Discord.Net",
             "Discord.Net.Webhook",
-            "Discord.Net.Core", 
-            "Discord.Net.Rest", 
+            "Discord.Net.Core",
+            "Discord.Net.Rest",
             "Discord.Net.WebSocket",
             "Discord.Net.Labs",
             "Discord.Net.Labs.Webhook",
-            "Discord.Net.Labs.Core", 
-            "Discord.Net.Labs.Rest", 
+            "Discord.Net.Labs.Core",
+            "Discord.Net.Labs.Rest",
             "Discord.Net.Labs.WebSocket",
             // MS
             // Configuration
@@ -54,6 +56,12 @@ namespace Christofel.Application.Assemblies
             "Microsoft.EntityFrameworkCore.Abstractions",
         };
 
+        private readonly string[] _loadAlways = new[]
+        {
+            "Christofel.CommandsLib",
+            "Christofel.BaseLib.Implementations"
+        };
+
         public ReferencesLoadContext(string pluginPath)
             : base(null, true)
         {
@@ -66,24 +74,30 @@ namespace Christofel.Application.Assemblies
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
-            return LoadAssembly(this, assemblyName) ?? base.Load(assemblyName);
+            if (_loadAlways.Contains(assemblyName.Name))
+            {
+                return LoadAssembly(this, assemblyName) ?? base.Load(assemblyName);
+            }
+
+            return null;
         }
 
         protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
         {
+            return IntPtr.Zero;
             IntPtr pointer = LoadUnmanagedDllAssembly(null, unmanagedDllName);
             return pointer == IntPtr.Zero ? base.LoadUnmanagedDll(unmanagedDllName) : pointer;
         }
 
         private Assembly? LoadAssembly(AssemblyLoadContext ctx, AssemblyName assemblyName)
         {
+            Console.WriteLine("LOADING: " + assemblyName);
             
             if (_sharedAssemblies.Contains(assemblyName.Name))
             {
                 return null;
             }
-            File.AppendAllText("/tmp/resolve.txt", "\n" + assemblyName.FullName);
-
+            
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
