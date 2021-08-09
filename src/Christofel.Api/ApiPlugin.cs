@@ -20,7 +20,6 @@ namespace Christofel.Api
         private ILogger<ApiPlugin>? _logger;
         private IHostApplicationLifetime? _aspLifetime;
         private IHost? _host;
-        private Thread? _aspThread;
 
         public ApiPlugin()
         {
@@ -70,7 +69,7 @@ namespace Christofel.Api
             return Task.CompletedTask;
         }
 
-        public Task RunAsync(CancellationToken token = new CancellationToken())
+        public async Task RunAsync(CancellationToken token = new CancellationToken())
         {
             try
             {
@@ -79,19 +78,11 @@ namespace Christofel.Api
                 if (_lifetimeHandler.MoveToIfPrevious(LifetimeState.Starting) && !_lifetimeHandler.IsErrored)
                 {
                     RegisterAspLifetime();
-                    _aspThread = new Thread(() =>
+
+                    if (_host != null)
                     {
-                        try
-                        {
-                            _host.Run();
-                        }
-                        catch (Exception e)
-                        {
-                            _logger?.LogCritical(e, "Caught an exception inside ASP.NET thread");
-                            _lifetimeHandler.RequestStop();
-                        }
-                    });
-                    _aspThread.Start();
+                        await _host.StartAsync(token);
+                    }
                 }
             }
             catch (Exception e)
@@ -99,8 +90,6 @@ namespace Christofel.Api
                 _lifetimeHandler.MoveToError(e);
                 throw;
             }
-
-            return Task.CompletedTask;
         }
 
         public Task RefreshAsync(CancellationToken token = new CancellationToken())
@@ -126,19 +115,22 @@ namespace Christofel.Api
 
         private void HandleStop()
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 try
                 {
                     _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
 
-                    _aspLifetime?.StopApplication();
-                    _aspThread?.Join();
+                    //_aspLifetime?.StopApplication();
+
+                    if (_host != null)
+                    {
+                        await _host.StopAsync();
+                        _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
+                        _host.Dispose();
+                    }
                     _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
 
-                    _host?.Dispose();
-
-                    _aspThread = null;
                     _host = null;
                     _aspLifetime = null;
                     
