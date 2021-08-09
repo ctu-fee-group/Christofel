@@ -80,7 +80,6 @@ namespace Christofel.Application.Plugins
         public async Task<AttachedPlugin> InitializePluginAsync(IPlugin rawPlugin, ContextedAssembly info, IChristofelState state, CancellationToken token = new CancellationToken())
         {
             AttachedPlugin plugin = new AttachedPlugin(rawPlugin, info);
-            _storage.AddAttachedPlugin(plugin);
 
             ILifetime lifetime = rawPlugin.Lifetime;
             RegisterLifetimeCallbacks(lifetime, plugin);
@@ -96,6 +95,8 @@ namespace Christofel.Application.Plugins
 
             await rawPlugin.RunAsync(token);
             
+            _storage.AddAttachedPlugin(plugin);
+
             _logger.LogInformation($@"Plugin {plugin} was initialized successfully");
 
             return plugin;
