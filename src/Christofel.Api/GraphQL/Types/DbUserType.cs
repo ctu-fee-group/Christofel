@@ -13,7 +13,7 @@ namespace Christofel.Api.GraphQL.Types
                 .ImplementsNode()
                 .IdField(x => x.UserId)
                 .ResolveNode((ctx, id) =>
-                    ctx.DataLoader<UserByIdDataLoader>().LoadAsync(id, ctx.RequestAborted));
+                    null!);
 
             descriptor.Field(x => x.DiscordId)
                 .Type<UnsignedLongType>();
