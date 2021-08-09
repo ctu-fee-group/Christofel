@@ -21,6 +21,8 @@ namespace Christofel.Application.Assemblies
         private readonly AssemblyDependencyResolver _resolver;
         private readonly string[] _sharedAssemblies = new[]
         {
+            // Global
+            "System.Runtime",
             // Base lib
             "Christofel.BaseLib",
             // Discord
