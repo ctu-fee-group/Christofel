@@ -47,6 +47,11 @@ namespace Christofel.BaseLib.Database.Models
         /// </summary>
         public int? DuplicitUserId { get; set; }
         
+        /// <summary>
+        /// Code used for registration purposes
+        /// </summary>
+        public string? RegistrationCode { get; set; }
+        
         public DbUser? DuplicitUser { get; set; }
         public List<DbUser>? DuplicitUsersBack { get; set; }
     }
