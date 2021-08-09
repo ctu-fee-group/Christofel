@@ -15,6 +15,9 @@ namespace Christofel.Api.GraphQL.Types
                 .ResolveNode((ctx, id) =>
                     ctx.DataLoader<UserByIdDataLoader>().LoadAsync(id, ctx.RequestAborted));
 
+            descriptor.Field(x => x.DiscordId)
+                .Type<UnsignedLongType>();
+
             descriptor
                 .Ignore(x => x.DuplicitUsersBack)
                 .Ignore(x => x.DuplicitUser);
