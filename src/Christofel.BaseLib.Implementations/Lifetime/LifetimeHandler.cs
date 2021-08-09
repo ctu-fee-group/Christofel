@@ -6,10 +6,10 @@ namespace Christofel.BaseLib.Lifetime
     /// <summary>
     /// LifetimeHandler for using some common methods that Lifetime needs to have
     /// </summary>
-    public abstract class LifetimeHandler
+    public abstract class LifetimeHandler : IDisposable
     {
         protected readonly CancellationTokenSource _started, _stopped, _stopping, _errored;
-        protected readonly Action<Exception?> _errorAction;
+        protected Action<Exception?>? _errorAction;
         protected object _nextStateLock = new object();
         
         /// <param name="errorAction">Action to be executed in case of an error</param>
@@ -95,7 +95,7 @@ namespace Christofel.BaseLib.Lifetime
             if (!IsErrored)
             {
                 IsErrored = true;
-                _errorAction(e);
+                _errorAction?.Invoke(e);
                 _errored.Cancel();
             }
         }
@@ -118,6 +118,16 @@ namespace Christofel.BaseLib.Lifetime
         protected void HandleStopped()
         {
             _stopped.Cancel(false);
+        }
+
+        public virtual void Dispose()
+        {
+            _started.Dispose();
+            _stopped.Dispose();
+            _stopping.Dispose();
+            _errored.Dispose();
+
+            _errorAction = null;
         }
     }
     

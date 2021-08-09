@@ -94,6 +94,8 @@ namespace Christofel.BaseLib.Plugins
             {
                 await provider.DisposeAsync();
             }
+            
+            LifetimeHandler.Dispose();
         }
 
         protected virtual async Task InitAsync(CancellationToken token = new CancellationToken())
