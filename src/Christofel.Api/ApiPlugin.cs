@@ -141,7 +141,9 @@ namespace Christofel.Api
                     _aspThread = null;
                     _host = null;
                     _aspLifetime = null;
+                    
                     _lifetimeHandler.MoveToState(LifetimeState.Destroyed);
+                    _lifetimeHandler.Dispose();
                 }
                 catch (Exception e)
                 {
