@@ -9,6 +9,8 @@ namespace Christofel.Api.GraphQL.Types
     {
         protected override void Configure(IObjectTypeDescriptor<DbUser> descriptor)
         {
+            descriptor.Name("User");
+            
             descriptor
                 .ImplementsNode()
                 .IdField(x => x.UserId)
