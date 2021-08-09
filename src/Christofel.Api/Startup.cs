@@ -21,6 +21,7 @@ namespace Christofel.Api
                 .AddGraphQLServer()
                 .AddMutationType(d => d.Name("Mutation"))
                     .AddTypeExtension<AuthenticationMutations>()
+                .AddQueryType(d => d.Name("Query"))
                 .AddType<DbUserType>()
                 .AddDataLoader<UserByIdDataLoader>()
                 .EnableRelaySupport();
