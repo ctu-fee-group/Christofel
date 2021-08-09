@@ -110,11 +110,20 @@ namespace Christofel.Application.Plugins
         /// <param name="lifetime"></param>
         /// <param name="timeout"></param>
         /// <param name="token"></param>
-        public async Task TryStopPluginAsync(DetachedPlugin detached, ILifetime lifetime, int timeout = 10000, CancellationToken token = default)
+        public async Task TryStopPluginAsync(DetachedPlugin detached, ILifetime lifetime, int timeout = 10000,
+            CancellationToken token = default)
         {
-            _logger.LogInformation($@"Requesting stop for plugin {detached}, will wait at most 10 seconds for it to stop");
-            lifetime.RequestStop();
-            
+            _logger.LogInformation(
+                $@"Requesting stop for plugin {detached}, will wait at most 10 seconds for it to stop");
+            try
+            {
+                lifetime.RequestStop();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Plugin {detached} has thrown an exception during RequestStop call");
+            }
+
             if (!await lifetime.WaitForAsync(LifetimeState.Stopped, timeout, token))
             {
                 _logger.LogWarning($@"Plugin {detached} does not respond to stop request, attaching for late destroy");
@@ -145,39 +154,58 @@ namespace Christofel.Application.Plugins
         {
             lifetime.Errored.Register(() =>
             {
-                _logger.LogError($@"Received error state from {plugin}. Going to detach it");
+                try
+                {
+                    _logger.LogError($@"Received error state from {plugin}. Going to detach it");
 
-                if (plugin.DetachedPlugin != null)
-                {
-                    _logger.LogInformation($@"Plugin {plugin.DetachedPlugin} was already detached and this means that it was probably not well exited");
-                }
-                else
-                {
-                    DetachPluginAsync(plugin, null)
-                        .GetAwaiter()
-                        .GetResult();
-                }
-            });
-
-            lifetime.Stopped.Register(() =>
-            {
-                if (plugin.DetachedPlugin == null)
-                {
-                    _logger.LogWarning($@"Plugin {plugin} reported stopped, but it was not requested, detaching it");
-                    try
+                    if (plugin.DetachedPlugin != null)
+                    {
+                        _logger.LogInformation(
+                            $@"Plugin {plugin.DetachedPlugin} was already detached and this means that it was probably not well exited");
+                    }
+                    else
                     {
                         DetachPluginAsync(plugin, null)
                             .GetAwaiter()
                             .GetResult();
                     }
-                    catch (Exception e)
+                }
+                catch (Exception e)
+                {
+                    _logger.LogCritical(e,
+                        "Errored during Errored CancellationToken callback inside PluginLifetimeService");
+                }
+            });
+
+            lifetime.Stopped.Register(() =>
+            {
+                try
+                {
+                    if (plugin.DetachedPlugin == null)
                     {
-                        _logger.LogCritical(e, "Plugin {plugin} errored during detaching");
+                        _logger.LogWarning(
+                            $@"Plugin {plugin} reported stopped, but it was not requested, detaching it");
+                        try
+                        {
+                            DetachPluginAsync(plugin, null)
+                                .GetAwaiter()
+                                .GetResult();
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogCritical(e, $"Plugin {plugin} errored during detaching");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            $@"Plugin {plugin.DetachedPlugin} reported stopped and was detached/is being detached, not handling it in callback");
                     }
                 }
-                else
+                catch (Exception e)
                 {
-                    _logger.LogInformation($@"Plugin {plugin.DetachedPlugin} reported stopped and was detached/is being detached, not handling it in callback");
+                    _logger.LogCritical(e,
+                        "Errored during Stopped CancellationToken callback inside PluginLifetimeService");
                 }
             });
         }
@@ -189,20 +217,21 @@ namespace Christofel.Application.Plugins
         /// <param name="detached"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<DetachedPlugin> DetachPluginAsync(AttachedPlugin plugin, DetachedPlugin? detached, CancellationToken token = default)
+        public async Task<DetachedPlugin> DetachPluginAsync(AttachedPlugin plugin, DetachedPlugin? detached,
+            CancellationToken token = default)
         {
             if (detached == null)
             {
                 detached = plugin.DetachedPlugin = new DetachedPlugin(plugin);
                 _storage.DetachAttachedPlugin(plugin);
             }
-
+            
             ILifetime lifetime = plugin.Plugin.Lifetime;
             if (lifetime.State < LifetimeState.Destroyed)
-            { 
+            {
                 await TryStopPluginAsync(detached, lifetime, token: token);
             }
-            
+
             WeakReference reference = plugin.Detach();
             detached.AssemblyContextReference = reference;
 
