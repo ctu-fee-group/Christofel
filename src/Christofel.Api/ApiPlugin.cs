@@ -21,20 +21,20 @@ namespace Christofel.Api
         private IHostApplicationLifetime? _aspLifetime;
         private IHost? _host;
         private Thread? _aspThread;
-        
+
         public ApiPlugin()
         {
             _lifetimeHandler = new PluginLifetimeHandler(
                 HandleError,
                 HandleStop
-                );
+            );
         }
-        
+
         public string Name => "Christofel.Api";
         public string Description => "GraphQL API for Christofel";
         public string Version => "v0.0.1";
         public ILifetime Lifetime => _lifetimeHandler.Lifetime;
-        
+
         private IHostBuilder CreateHostBuilder(IChristofelState state) =>
             Host.CreateDefaultBuilder()
                 .ConfigureServices(services =>
@@ -45,22 +45,20 @@ namespace Christofel.Api
                         .AddDbContext<ChristofelBaseContext>()
                         .Configure<BotOptions>(state.Configuration.GetSection("Bot"));
                 })
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-        
+                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+
         public Task InitAsync(IChristofelState state, CancellationToken token)
         {
             try
             {
                 token.ThrowIfCancellationRequested();
 
-                if (_lifetimeHandler.MoveToIfPrevious(LifetimeState.Initializing)) {
+                if (_lifetimeHandler.MoveToIfPrevious(LifetimeState.Initializing) && !_lifetimeHandler.IsErrored)
+                { 
                     _host = CreateHostBuilder(state).Build();
                     _aspLifetime = _host.Services.GetRequiredService<IHostApplicationLifetime>();
                     _logger = _host.Services.GetRequiredService<ILogger<ApiPlugin>>();
-                    
+
                     _lifetimeHandler.MoveToState(LifetimeState.Initialized);
                 }
             }
@@ -72,14 +70,15 @@ namespace Christofel.Api
 
             return Task.CompletedTask;
         }
-        
+
         public Task RunAsync(CancellationToken token = new CancellationToken())
         {
             try
             {
                 token.ThrowIfCancellationRequested();
 
-                if (_lifetimeHandler.MoveToIfPrevious(LifetimeState.Starting)) {
+                if (_lifetimeHandler.MoveToIfPrevious(LifetimeState.Starting) && !_lifetimeHandler.IsErrored)
+                {
                     RegisterAspLifetime();
                     _aspThread = new Thread(_host.Run);
                     _aspThread.Start();
@@ -102,20 +101,11 @@ namespace Christofel.Api
 
         private void RegisterAspLifetime()
         {
-            _aspLifetime?.ApplicationStarted.Register(() =>
-            {
-                _lifetimeHandler.MoveToState(LifetimeState.Running);
-            });
-            
-            _aspLifetime?.ApplicationStopping.Register(() =>
-            {
-                _lifetimeHandler.RequestStop();
-            });
-            
-            _aspLifetime?.ApplicationStopped.Register(() =>
-            {
-                _lifetimeHandler.RequestStop();
-            });
+            _aspLifetime?.ApplicationStarted.Register(() => { _lifetimeHandler.MoveToState(LifetimeState.Running); });
+
+            _aspLifetime?.ApplicationStopping.Register(() => { _lifetimeHandler.RequestStop(); });
+
+            _aspLifetime?.ApplicationStopped.Register(() => { _lifetimeHandler.RequestStop(); });
         }
 
         private void HandleError(Exception? e)
@@ -131,7 +121,7 @@ namespace Christofel.Api
                 try
                 {
                     _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
-                    
+
                     _aspLifetime?.StopApplication();
                     _aspThread?.Join();
                     _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
