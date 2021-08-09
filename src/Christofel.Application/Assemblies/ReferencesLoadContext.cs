@@ -90,8 +90,6 @@ namespace Christofel.Application.Assemblies
 
         private Assembly? LoadAssembly(AssemblyLoadContext ctx, AssemblyName assemblyName)
         {
-            Console.WriteLine("LOADING: " + assemblyName);
-            
             if (_sharedAssemblies.Contains(assemblyName.Name))
             {
                 return null;
