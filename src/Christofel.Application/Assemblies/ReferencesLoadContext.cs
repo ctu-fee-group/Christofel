@@ -23,6 +23,7 @@ namespace Christofel.Application.Assemblies
         {
             // Global
             "System.Runtime",
+            "System.ComponentModel",
             // Base lib
             "Christofel.BaseLib",
             // Discord
@@ -43,6 +44,7 @@ namespace Christofel.Application.Assemblies
             "Microsoft.Extensions.Primitives",
             // Logging
             "Microsoft.Extensions.Logging",
+            "Microsoft.Extensions.Logging.Abstractions",
             // DI
             "Microsoft.Extensions.DependencyInjection",
             "Microsoft.Extensions.DependencyInjection.Abstractions",
@@ -57,32 +59,50 @@ namespace Christofel.Application.Assemblies
         {
             _pluginLoadDirectory = Path.GetDirectoryName(pluginPath) ?? "";
             _resolver = new AssemblyDependencyResolver(_pluginLoadDirectory);
+
+            Resolving += LoadAssembly;
+            ResolvingUnmanagedDll += LoadUnmanagedDllAssembly;
         }
 
         protected override Assembly? Load(AssemblyName assemblyName)
         {
+            return LoadAssembly(this, assemblyName) ?? base.Load(assemblyName);
+        }
+
+        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+        {
+            IntPtr pointer = LoadUnmanagedDllAssembly(null, unmanagedDllName);
+            return pointer == IntPtr.Zero ? base.LoadUnmanagedDll(unmanagedDllName) : pointer;
+        }
+
+        private Assembly? LoadAssembly(AssemblyLoadContext ctx, AssemblyName assemblyName)
+        {
+            
             if (_sharedAssemblies.Contains(assemblyName.Name))
             {
                 return null;
             }
-            
+            File.AppendAllText("/tmp/resolve.txt", "\n" + assemblyName.FullName);
+
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
-                return LoadFromAssemblyPath(assemblyPath);
+                return ctx.LoadFromAssemblyPath(assemblyPath);
             }
 
             assemblyPath = Path.Combine(_pluginLoadDirectory, assemblyName.Name + ".dll");
             if (File.Exists(assemblyPath))
             {
-                return LoadFromAssemblyPath(assemblyPath);
+                return ctx.LoadFromAssemblyPath(assemblyPath);
             }
 
             return null;
         }
 
-        protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+        private IntPtr LoadUnmanagedDllAssembly(Assembly? assembly, string unmanagedDllName)
         {
+            File.AppendAllText("/tmp/resolve_unmanaged.txt", "\n" + unmanagedDllName);
+
             string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
             if (libraryPath != null)
             {
