@@ -119,7 +119,7 @@ namespace Christofel.Application
                 .AddSingleton<DiscordRestClient>(p => p.GetRequiredService<DiscordSocketClient>().Rest)
                 .AddSingleton<IBot, DiscordBot>()
                 // db
-                .AddDbContextFactory<ChristofelBaseContext>(options => 
+                .AddPooledDbContextFactory<ChristofelBaseContext>(options => 
                     options
                         .UseMySql(
                             _configuration.GetConnectionString("ChristofelBase"),
