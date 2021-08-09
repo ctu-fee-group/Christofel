@@ -11,7 +11,7 @@ namespace Christofel.BaseLib.Database.Models
     /// Database table that holds authenticated users
     /// or users in auth process.
     /// </summary>
-    public class DbUser : ITimestampsEntity, ILinkUser
+    public class DbUser : ITimestampsEntity, IDiscordUser, IUser
     {
         [Key]
         public int UserId { get; set; }
@@ -34,7 +34,7 @@ namespace Christofel.BaseLib.Database.Models
         /// CTU account username
         /// </summary>
         [MaxLength(256)]
-        public string CtuUsername { get; set; } = null!;
+        public string? CtuUsername { get; set; }
 
         /// <summary>
         /// When this user is a duplicity (DuplicitUser is not null)
