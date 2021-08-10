@@ -1,3 +1,5 @@
+using HotChocolate;
+
 namespace Christofel.Api.GraphQL.Authentication
 {
     /// <summary>
@@ -9,6 +11,7 @@ namespace Christofel.Api.GraphQL.Authentication
     /// <param name="OauthCode">Code obtained from oauth2</param>
     /// <param name="RedirectUri">Redirect uri passed to oauth2</param>
     public record RegisterDiscordInput(
-        string OauthCode
+        string OauthCode,
+        string RedirectUri
     );
 }

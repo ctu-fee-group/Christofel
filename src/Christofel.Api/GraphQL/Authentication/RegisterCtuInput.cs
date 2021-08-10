@@ -12,6 +12,7 @@ namespace Christofel.Api.GraphQL.Authentication
     /// <param name="RegistrationCode">Code obtained from the first step of the registration (registerDiscord)</param>
     public record RegisterCtuInput(
         string OauthCode,
+        string RedirectUri,
         string RegistrationCode
     );
 }
