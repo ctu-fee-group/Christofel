@@ -7,7 +7,14 @@ namespace Christofel.BaseLib.Database.Models.Abstractions
     /// </summary>
     public interface ITimestampsEntity
     {
+        /// <summary>
+        /// Date and time of creation of the entity
+        /// </summary>
         public DateTime CreatedAt { get; set; }
+        
+        /// <summary>
+        /// Date and time of update of the entity, set if the entity was updated
+        /// </summary>
         public DateTime? UpdatedAt { get; set; }
     }
 }
