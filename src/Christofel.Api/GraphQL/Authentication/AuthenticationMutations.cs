@@ -8,12 +8,63 @@ namespace Christofel.Api.GraphQL.Authentication
     [ExtendObjectType("Mutation")]
     public class AuthenticationMutations
     {
-        public Task<RegisterDiscordPayload> RegisterDiscord(
+        private readonly ILogger<AuthenticationMutations> _logger;
+        private readonly BotOptions _botOptions;
+        private readonly DiscordSocketClient _botClient;
+
+        public AuthenticationMutations(
+            ILogger<AuthenticationMutations> logger,
+            IOptions<BotOptions> botOptions,
+            DiscordSocketClient botClient)
+        {
+            _botOptions = botOptions.Value;
+            _logger = logger;
+            _botClient = botClient;
+        }
+
+        [UseChristofelBaseDatabase]
+        public async Task<RegisterDiscordPayload> RegisterDiscordAsync(
             RegisterDiscordInput input,
+            [ScopedService] ChristofelBaseContext dbContext,
+            [Service] DiscordOauthHandler discordOauthHandler,
+            [Service] DiscordApi discordApi,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(
-                new RegisterDiscordPayload(new UserError("Sorry, wrong input")));
+            OauthResponse response =
+                await discordOauthHandler.ExchangeCodeAsync(input.OauthCode, input.RedirectUri, cancellationToken);
+
+            if (response.IsError)
+            {
+                _logger.LogError($"There was an error while obtaining Discord token {response.ErrorResponse}");
+                return new RegisterDiscordPayload(new UserError(response?.ErrorResponse?.ErrorDescription ??
+                                                                "Unspecified error"));
+            }
+
+            AuthorizedDiscordApi authDiscordApi = discordApi.GetAuthorizedApi(response.SuccessResponse?.AccessToken ??
+                                                                              throw new InvalidOperationException(
+                                                                                  "There was an error obtaining access token"));
+
+            DiscordUser user = await authDiscordApi.GetMe();
+            RestGuildUser? guildUser = await _botClient.Rest.GetGuildUserAsync(_botOptions.GuildId, user.Id,
+                new RequestOptions() { CancelToken = cancellationToken });
+            if (guildUser == null)
+            {
+                _logger.LogWarning(
+                    $"User trying to register using Discord is not on the server ({user.Username}#{user.Discriminator})");
+                return new RegisterDiscordPayload(
+                    new UserError(
+                        $"User you are trying to log in with ({user.Username}#{user.Discriminator}) is not on the Discord server. Are you sure you are logging in with the correct user?"));
+            }
+
+            DbUser dbUser = new DbUser()
+            {
+                DiscordId = user.Id,
+                RegistrationCode = Guid.NewGuid().ToString()
+            };
+
+            dbContext.Add(dbUser);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return new RegisterDiscordPayload(dbUser, dbUser.RegistrationCode);
         }
         
         public Task<RegisterCtuPayload> RegisterCtu(
