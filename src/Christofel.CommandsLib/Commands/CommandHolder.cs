@@ -31,7 +31,7 @@ namespace Christofel.CommandsLib.Commands
             {
                 lock (_commandsLock)
                 {
-                    return _commands.ToImmutableList();
+                    return _commands.ToImmutableArray();
                 }
             }
         }
