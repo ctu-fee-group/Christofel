@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
+
 namespace Christofel.Api.OAuth
 {
     public class OauthOptions
@@ -7,5 +10,7 @@ namespace Christofel.Api.OAuth
         public string? SecretKey { get; set; }
 
         public string? TokenEndpoint { get; set; }
+        
+        public ICollection<string> Scopes { get; set; }
     }
 }

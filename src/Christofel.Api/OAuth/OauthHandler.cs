@@ -40,6 +40,7 @@ namespace Christofel.Api.OAuth
                 { "client_secret", _options.SecretKey },
                 { "code", code },
                 { "grant_type", "authorization_code" },
+                { "scope", string.Join(' ', _options.Scopes) }
             };
 
             FormUrlEncodedContent requestContent = new FormUrlEncodedContent(tokenRequestParameters);
