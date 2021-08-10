@@ -57,18 +57,27 @@ namespace Christofel.Api
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 
-        public Task InitAsync(IChristofelState state, CancellationToken token)
+        public async Task InitAsync(IChristofelState state, CancellationToken token)
         {
             try
             {
                 token.ThrowIfCancellationRequested();
 
                 if (_lifetimeHandler.MoveToIfPrevious(LifetimeState.Initializing) && !_lifetimeHandler.IsErrored)
-                { 
+                {
                     _host = CreateHostBuilder(state).Build();
                     _aspLifetime = _host.Services.GetRequiredService<IHostApplicationLifetime>();
                     _logger = _host.Services.GetRequiredService<ILogger<ApiPlugin>>();
 
+#if DEBUG
+                    string? schemaPath = state.Configuration.GetValue<string?>("Debug:SchemaFile", null);
+                    if (schemaPath != null)
+                    {
+                        IRequestExecutor executor = await _host.Services.GetRequiredService<IRequestExecutorResolver>()
+                            .GetRequestExecutorAsync(default, token);
+                        await File.WriteAllTextAsync(schemaPath, executor.Schema.Print(), token);
+                    }
+#endif
                     _lifetimeHandler.MoveToState(LifetimeState.Initialized);
                 }
             }
@@ -77,8 +86,6 @@ namespace Christofel.Api
                 _lifetimeHandler.MoveToError(e);
                 throw;
             }
-
-            return Task.CompletedTask;
         }
 
         public async Task RunAsync(CancellationToken token = new CancellationToken())
@@ -141,11 +148,12 @@ namespace Christofel.Api
                         _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
                         _host.Dispose();
                     }
+
                     _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
 
                     _host = null;
                     _aspLifetime = null;
-                    
+
                     _lifetimeHandler.MoveToState(LifetimeState.Destroyed);
                     _lifetimeHandler.Dispose();
                 }
