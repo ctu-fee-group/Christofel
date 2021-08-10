@@ -42,6 +42,11 @@ namespace Christofel.Api
                         .AddDiscordState(state)
                         .AddChristofelDatabase(state)
                         .Configure<BotOptions>(state.Configuration.GetSection("Bot"));
+
+                    services
+                    services
+                        .AddScoped<DiscordApi>()
+                        .Configure<DiscordApiOptions>(state.Configuration.GetSection("Apis:Discord"));
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 
