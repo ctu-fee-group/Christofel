@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Discord;
+using Christofel.Api.OAuth;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
@@ -44,6 +46,11 @@ namespace Christofel.Api
                         .Configure<BotOptions>(state.Configuration.GetSection("Bot"));
 
                     services
+                        .AddScoped<CtuOauthHandler>()
+                        .AddScoped<DiscordOauthHandler>()
+                        .Configure<OauthOptions>("Ctu", state.Configuration.GetSection("Oauth:Ctu"))
+                        .Configure<OauthOptions>("Discord", state.Configuration.GetSection("Oauth:Discord"));
+
                     services
                         .AddScoped<DiscordApi>()
                         .Configure<DiscordApiOptions>(state.Configuration.GetSection("Apis:Discord"));
