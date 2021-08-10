@@ -21,7 +21,19 @@ namespace Christofel.Api.GraphQL.Authentication
             _logger = logger;
             _botClient = botClient;
         }
-
+        
+        /// <summary>
+        /// Register using discord.
+        /// This should be first step of registration.
+        /// Second one is to register using CTU (registerCtu).
+        /// </summary>
+        /// <param name="input">Input of the mutation</param>
+        /// <param name="dbContext">Db context to write user to</param>
+        /// <param name="discordOauthHandler">handler for oauth2 token retrieval</param>
+        /// <param name="discordApi"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         [UseChristofelBaseDatabase]
         public async Task<RegisterDiscordPayload> RegisterDiscordAsync(
             RegisterDiscordInput input,
@@ -74,6 +86,13 @@ namespace Christofel.Api.GraphQL.Authentication
             return Task.FromResult(
                 new RegisterCtuPayload(new UserError("Sorry, wrong input")));
 
+        /// <summary>
+        /// Verify specified registration code to know what stage
+        /// of registration should be used (registerDiscord or registerCtu)
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="dbContext"></param>
+        /// <returns></returns>
         [UseReadOnlyChristofelBaseDatabase]
         public async Task<VerifyRegistrationCodePayload> VerifyRegistrationCodeAsync(
             VerifyRegistrationCodeInput input,

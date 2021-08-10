@@ -9,6 +9,9 @@ namespace Christofel.Api.GraphQL.Common
             Errors = errors;
         }
         
+        /// <summary>
+        /// Validation errors in case that there are any
+        /// </summary>
         public ICollection<UserError> Errors { get; }
     }
 }
