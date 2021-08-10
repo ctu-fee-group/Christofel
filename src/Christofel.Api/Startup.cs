@@ -5,11 +5,14 @@ using System.Threading.Tasks;
 using Christofel.Api.GraphQL.Authentication;
 using Christofel.Api.GraphQL.DataLoaders;
 using Christofel.Api.GraphQL.Types;
+using HotChocolate.Execution.Instrumentation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using DiagnosticEventListener = Christofel.Api.GraphQL.Diagnostics.DiagnosticEventListener;
 
 namespace Christofel.Api
 {
@@ -20,10 +23,12 @@ namespace Christofel.Api
             services
                 .AddGraphQLServer()
                 .AddMutationType(d => d.Name("Mutation"))
-                    .AddTypeExtension<AuthenticationMutations>()
+                .AddTypeExtension<AuthenticationMutations>()
                 .AddQueryType(d => d.Name("Query"))
                 .AddType<DbUserType>()
                 .AddDataLoader<UserByIdDataLoader>()
+                .AddDiagnosticEventListener<DiagnosticEventListener>(sp =>
+                    new DiagnosticEventListener(sp.GetApplicationService<ILogger<DiagnosticEventListener>>()))
                 .EnableRelaySupport();
         }
         
