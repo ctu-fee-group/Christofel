@@ -1,7 +1,24 @@
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Ctu;
+using Christofel.Api.Discord;
+using Christofel.Api.Exceptions;
+using Christofel.Api.GraphQL.Attributes;
 using Christofel.Api.GraphQL.Common;
+using Christofel.Api.OAuth;
+using Christofel.BaseLib.Configuration;
+using Christofel.BaseLib.Database;
+using Christofel.BaseLib.Database.Models;
+using Discord;
+using Discord.Rest;
+using Discord.WebSocket;
+using HotChocolate;
 using HotChocolate.Types;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Christofel.Api.GraphQL.Authentication
 {
@@ -21,7 +38,7 @@ namespace Christofel.Api.GraphQL.Authentication
             _logger = logger;
             _botClient = botClient;
         }
-        
+
         /// <summary>
         /// Register using discord.
         /// This should be first step of registration.
@@ -78,13 +95,86 @@ namespace Christofel.Api.GraphQL.Authentication
             await dbContext.SaveChangesAsync(cancellationToken);
             return new RegisterDiscordPayload(dbUser, dbUser.RegistrationCode);
         }
-        
-        public Task<RegisterCtuPayload> RegisterCtu(
+
+        /// <summary>
+        /// Register using CTU.
+        /// This should be second and last step of registration.
+        /// The first step is to register using Discord (registerDiscord).
+        /// </summary>
+        /// <param name="input">Input of the mutation</param>
+        /// <param name="dbContext">Context with user information</param>
+        /// <param name="ctuOauthHandler">Handler for obtaining access token</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [UseChristofelBaseDatabase]
+        public async Task<RegisterCtuPayload> RegisterCtuAsync(
             RegisterCtuInput input,
+            [ScopedService] ChristofelBaseContext dbContext,
+            [Service] CtuOauthHandler ctuOauthHandler,
+            [Service] CtuAuthProcess ctuAuthProcess,
             CancellationToken cancellationToken)
         {
-            return Task.FromResult(
-                new RegisterCtuPayload(new UserError("Sorry, wrong input")));
+            DbUser? dbUser = await dbContext.Users
+                .AsQueryable()
+                .FirstOrDefaultAsync(x => x.RegistrationCode == input.RegistrationCode, cancellationToken);
+
+            if (dbUser == null)
+            {
+                _logger.LogWarning(
+                    $"User trying to register was not found in the database.");
+                return new RegisterCtuPayload(
+                    new UserError(
+                        $"Specified registration code is not valid"));
+            }
+
+            RestGuildUser? guildUser = await _botClient.Rest.GetGuildUserAsync(_botOptions.GuildId, dbUser.DiscordId,
+                new RequestOptions() { CancelToken = cancellationToken });
+
+            if (guildUser == null)
+            {
+                _logger.LogWarning(
+                    $"User trying to register using CTU is not on the server (discord id: {dbUser.DiscordId}, user id: {dbUser.UserId}).");
+                return new RegisterCtuPayload(
+                    new UserError(
+                        $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?"));
+            }
+
+            OauthResponse response =
+                await ctuOauthHandler.ExchangeCodeAsync(input.OauthCode, input.RegistrationCode, cancellationToken);
+
+            if (response.IsError)
+            {
+                _logger.LogError($"There was an error while obtaining CTU token {response.ErrorResponse}");
+                return new RegisterCtuPayload(new UserError(response?.ErrorResponse?.ErrorDescription ??
+                                                            "Unspecified error"));
+            }
+
+            if (response.SuccessResponse == null)
+            {
+                throw new InvalidOperationException("Could not obtain success response from oauth");
+            }
+
+            using (_logger.BeginScope($"CTU Registration of user ({guildUser} - {dbUser.DiscordId} - {dbUser.UserId})"))
+            {
+                try
+                {
+                    await ctuAuthProcess.FinishAuthAsync(response.SuccessResponse.AccessToken, ctuOauthHandler,
+                        dbContext,
+                        dbUser, guildUser);
+                    return new RegisterCtuPayload(dbUser);
+                }
+                catch (UserException e)
+                {
+                    _logger.LogError(e, "Could not register user using CTU, sending him the error");
+                    return new RegisterCtuPayload(new UserError(e.Message));
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Could not register user using CTU, exception is not sent to the user");
+                    return new RegisterCtuPayload(new UserError("Unspecified error"));
+                }
+            }
+        }
 
         /// <summary>
         /// Verify specified registration code to know what stage
