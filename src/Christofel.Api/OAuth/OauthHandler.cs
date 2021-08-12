@@ -2,27 +2,38 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Extensions;
+using Discord.Net.Queue;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RestSharp;
+using RestSharp.Authenticators;
+using RestSharp.Serializers.NewtonsoftJson;
 
 namespace Christofel.Api.OAuth
 {
     public class OauthHandler
     {
-        private readonly OauthOptions _options;
-        private readonly HttpClient _client;
+        protected readonly OauthOptions _options;
+        protected readonly RestClient _client;
 
         public OauthHandler(IOptionsSnapshot<OauthOptions> options)
         {
-            _client = new HttpClient();
+            _client = new RestClient();
+            _client.UseNewtonsoftJson();
+
             _options = GetOptions(options);
+            _client.Authenticator = new HttpBasicAuthenticator(
+                _options.ApplicationId ?? throw new InvalidOperationException("ApplicationId is null"),
+                _options.SecretKey ?? throw new InvalidOperationException("SecretKey is null"));
         }
 
         protected virtual OauthOptions GetOptions(IOptionsSnapshot<OauthOptions> options)
@@ -33,48 +44,36 @@ namespace Christofel.Api.OAuth
         public virtual async Task<OauthResponse> ExchangeCodeAsync(string code, string redirectUri,
             CancellationToken token = default)
         {
-            var tokenRequestParameters = new Dictionary<string, string?>()
+            var tokenRequestParameters = new Dictionary<string, string>()
             {
-                { "client_id", _options.ApplicationId },
                 { "redirect_uri", redirectUri },
-                { "client_secret", _options.SecretKey },
                 { "code", code },
                 { "grant_type", "authorization_code" },
-                { "scope", string.Join(' ', _options.Scopes) }
+                { "scope", string.Join(' ', _options.Scopes ?? Enumerable.Empty<string>()) }
             };
 
-            FormUrlEncodedContent requestContent = new FormUrlEncodedContent(tokenRequestParameters);
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, _options.TokenEndpoint);
-            
-            requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            requestMessage.Content = requestContent;
-            
-            HttpResponseMessage response = await _client.SendAsync(requestMessage, token);
+            IRestRequest request = new RestSharp.RestRequest(
+                _options.TokenEndpoint ?? throw new InvalidOperationException("TokenEndpoint is null"), Method.POST);
+            request.AddParameters(tokenRequestParameters);
 
-            return await ProcessTokenResponseAsync(response, token);
+            IRestResponse response = await _client.ExecuteAsync(request, token);
+            return ProcessTokenResponse(response);
         }
 
-        protected virtual async Task<OauthResponse> ProcessTokenResponseAsync(HttpResponseMessage response, CancellationToken token = default)
+        protected virtual OauthResponse ProcessTokenResponse(IRestResponse response)
         {
             OauthSuccessResponse? successResponse = null;
             OauthErrorResponse? errorResponse = null;
-            
-            if (response.IsSuccessStatusCode)
+
+            if (response.IsSuccessful)
             {
-                successResponse = JsonConvert.DeserializeObject<OauthSuccessResponse>(
-                    await response.Content.ReadAsStringAsync(token)
-                );
+                successResponse = JsonConvert.DeserializeObject<OauthSuccessResponse>(response.Content);
             }
             else
             {
-                errorResponse = JsonConvert.DeserializeObject<OauthErrorResponse>(
-                    await response.Content.ReadAsStringAsync(token)
-                );
-                errorResponse.Headers =
-                    response.Headers
-                        .ToImmutableDictionary(
-                            x => x.Key,
-                            x => x.Value.ToImmutableArray());
+                errorResponse = JsonConvert.DeserializeObject<OauthErrorResponse>(response.Content);
+                errorResponse.Body = response.Content;
+                errorResponse.Headers = string.Join("; ", response.Headers);
                 errorResponse.StatusCode = (int)response.StatusCode;
             }
 

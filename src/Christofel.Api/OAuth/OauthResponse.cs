@@ -21,7 +21,8 @@ namespace Christofel.Api.OAuth
     );
 
     public record OauthErrorResponse {
-        public ImmutableDictionary<string, ImmutableArray<string>>? Headers { get; set; }
+        public string Headers { get; set; }
+        public string Body { get; set; }
         public int? StatusCode { get; set; }
         [JsonProperty("error")] public string? Error { get; }
         [JsonProperty("error_description")] public string? ErrorDescription { get; }

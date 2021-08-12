@@ -11,6 +11,6 @@ namespace Christofel.Api.OAuth
 
         public string? TokenEndpoint { get; set; }
         
-        public ICollection<string> Scopes { get; set; }
+        public ICollection<string>? Scopes { get; set; }
     }
 }

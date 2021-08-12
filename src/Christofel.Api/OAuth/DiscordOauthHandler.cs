@@ -4,7 +4,8 @@ namespace Christofel.Api.OAuth
 {
     public class DiscordOauthHandler : OauthHandler
     {
-        public DiscordOauthHandler(IOptionsSnapshot<OauthOptions> options) : base(options)
+        public DiscordOauthHandler(IOptionsSnapshot<OauthOptions> options)
+            : base(options)
         {
         }
 
