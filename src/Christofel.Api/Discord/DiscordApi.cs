@@ -5,23 +5,17 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Api.Discord
 {
-    public class DiscordApi : IDisposable
+    public class DiscordApi
     {
-        private readonly HttpClient _httpClient;
-
+        private DiscordApiOptions _options;
+        
         public DiscordApi(IOptionsSnapshot<DiscordApiOptions> options)
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(options.Value.BasePath);
+            _options = options.Value;
         }
 
         // GET /users/@me
         public AuthorizedDiscordApi GetAuthorizedApi(string accessToken) =>
-            new AuthorizedDiscordApi(accessToken, _httpClient);
-
-        public void Dispose()
-        {
-            _httpClient.Dispose();
-        }
+            new AuthorizedDiscordApi(accessToken, _options);
     }
 }
