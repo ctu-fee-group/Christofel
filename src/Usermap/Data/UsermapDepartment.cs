@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Christofel.Api.Ctu.Apis.UsermapApi.Data
+namespace Usermap.Data
 {
     public record UsermapDepartment(
         [JsonProperty("code")] int Code,

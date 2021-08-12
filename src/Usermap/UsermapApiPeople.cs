@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu.Apis.UsermapApi.Data;
 using Microsoft.Extensions.Logging;
 using RestSharp;
+using Usermap.Data;
 
-namespace Christofel.Api.Ctu.Apis.UsermapApi
+namespace Usermap
 {
     public class UsermapApiPeople
     {
@@ -13,7 +13,7 @@ namespace Christofel.Api.Ctu.Apis.UsermapApi
         private readonly ILogger _logger;
         private readonly Dictionary<string, UsermapPerson?> _cachedPeople;
 
-        public UsermapApiPeople(RestClient client, ILogger logger)
+        internal UsermapApiPeople(RestClient client, ILogger logger)
         {
             _cachedPeople = new Dictionary<string, UsermapPerson?>();
             _logger = logger;

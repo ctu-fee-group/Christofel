@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RestSharp;
 
-namespace Christofel.Api.Ctu.Apis.UsermapApi
+namespace Usermap
 {
-    public class Usermap
+    public class UsermapApi
     {
         private readonly UsermapApiOptions _options;
         private readonly ILogger _logger;
         private readonly Dictionary<string, AuthorizedUsermapApi> _authorizedApis;
         
-        public Usermap(IOptionsSnapshot<UsermapApiOptions> options, ILogger<Usermap> logger)
+        public UsermapApi(IOptionsSnapshot<UsermapApiOptions> options, ILogger<UsermapApi> logger)
         {
             _options = options.Value;
             _logger = logger;

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Christofel.Api.Ctu.Apis.UsermapApi.Data
+namespace Usermap.Data
 {
     public record UsermapPerson
     (

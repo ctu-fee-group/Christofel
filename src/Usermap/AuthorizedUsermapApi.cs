@@ -5,7 +5,7 @@ using RestSharp;
 using RestSharp.Authenticators;
 using RestSharp.Serializers.NewtonsoftJson;
 
-namespace Christofel.Api.Ctu.Apis.UsermapApi
+namespace Usermap
 {
     public class AuthorizedUsermapApi
     {
@@ -13,7 +13,7 @@ namespace Christofel.Api.Ctu.Apis.UsermapApi
         private UsermapApiPeople? _people;
         private readonly ILogger _logger;
 
-        public AuthorizedUsermapApi(string accessToken, UsermapApiOptions options, ILogger logger)
+        internal AuthorizedUsermapApi(string accessToken, UsermapApiOptions options, ILogger logger)
         {
             _logger = logger;
             _client = new RestClient(options.BaseUrl ?? throw new InvalidOperationException("BaseUrl is null"))

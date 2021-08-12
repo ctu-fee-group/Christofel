@@ -1,4 +1,4 @@
-namespace Christofel.Api.Ctu.Apis.UsermapApi
+namespace Usermap
 {
     public class UsermapApiOptions
     {
