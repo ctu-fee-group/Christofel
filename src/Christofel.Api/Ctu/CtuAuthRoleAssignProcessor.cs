@@ -14,7 +14,9 @@ namespace Christofel.Api.Ctu
     public class CtuAuthRoleAssignProcessor
     {
         private const int MaxRetryCount = 5;
-        private record CtuAuthRoleAssign(RestGuildUser User, List<CtuAuthRole> AddRoles, List<CtuAuthRole> RemoveRoles, int RetryCount);
+
+        private record CtuAuthRoleAssign(RestGuildUser User, List<CtuAuthRole> AddRoles, List<CtuAuthRole> RemoveRoles,
+            int RetryCount);
 
         private readonly object _queueLock = new object();
         private readonly Queue<CtuAuthRoleAssign> _queue;
@@ -86,7 +88,7 @@ namespace Christofel.Api.Ctu
                     _logger.LogCritical(e, "Role assign job has thrown an exception.");
                 }
             }
-            
+
             _logger.LogDebug("Destroying job thread, because no job is queued");
         }
 
@@ -94,9 +96,9 @@ namespace Christofel.Api.Ctu
         {
             try
             {
-                assignJob.User.RemoveRolesAsync(assignJob.RemoveRoles.Select(x => x.RoleId),
+                assignJob.User.RemoveRolesAsync(assignJob.RemoveRoles.Select(x => x.RoleId).Distinct(),
                     new RequestOptions() { CancelToken = _pluginLifetime.Stopping });
-                assignJob.User.AddRolesAsync(assignJob.AddRoles.Select(x => x.RoleId),
+                assignJob.User.AddRolesAsync(assignJob.AddRoles.Select(x => x.RoleId).Distinct(),
                     new RequestOptions() { CancelToken = _pluginLifetime.Stopping });
             }
             catch (Exception e)
@@ -104,9 +106,10 @@ namespace Christofel.Api.Ctu
                 bool retry = assignJob.RetryCount < MaxRetryCount;
                 if (retry)
                 {
-                    EnqueueAssignJob(new CtuAuthRoleAssign(assignJob.User, assignJob.AddRoles, assignJob.RemoveRoles, assignJob.RetryCount + 1));
+                    EnqueueAssignJob(new CtuAuthRoleAssign(assignJob.User, assignJob.AddRoles, assignJob.RemoveRoles,
+                        assignJob.RetryCount + 1));
                 }
-                
+
                 _logger.LogError(e,
                     $"Could not assign roles to user {assignJob.User}. Roles to add: {string.Join(",", assignJob.AddRoles.Select(x => x.RoleId))}, Roles to remove: {string.Join(", ", assignJob.RemoveRoles.Select(x => x.RoleId))}. Going to retry: {retry}");
             }
