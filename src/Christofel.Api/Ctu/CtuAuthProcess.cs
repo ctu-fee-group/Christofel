@@ -67,8 +67,15 @@ namespace Christofel.Api.Ctu
 
         private Func<CtuAuthProcessData, Task> GetNextHandler(IEnumerator<ICtuAuthStep> stepsEnumerator)
         {
+            bool used = false;
             return data =>
             {
+                if (used)
+                {
+                    throw new InvalidOperationException("Next was already called");
+                }
+                used = true;
+                
                 if (stepsEnumerator.MoveNext())
                 {
                     return stepsEnumerator.Current.Handle(data, GetNextHandler(stepsEnumerator));
