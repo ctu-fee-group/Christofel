@@ -119,7 +119,7 @@ namespace Christofel.Api.GraphQL.Authentication
             {
                 return new RegisterCtuPayload(new UserError("Specified registration code is not valid"));
             }
-            
+
             DbUser? dbUser = await dbContext.Users
                 .AsQueryable()
                 .Where(x => x.AuthenticatedAt == null)
@@ -167,7 +167,7 @@ namespace Christofel.Api.GraphQL.Authentication
                 {
                     await ctuAuthProcess.FinishAuthAsync(response.SuccessResponse.AccessToken, ctuOauthHandler,
                         dbContext,
-                        dbUser, guildUser);
+                        dbUser, guildUser, cancellationToken);
                     return new RegisterCtuPayload(dbUser);
                 }
                 catch (UserException e)
