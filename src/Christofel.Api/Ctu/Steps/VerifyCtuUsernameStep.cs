@@ -8,7 +8,7 @@ namespace Christofel.Api.Ctu.Steps
 {
     public class VerifyCtuUsernameStep : CtuAuthStep
     {
-        public VerifyCtuUsernameStep(ILogger<VerifyCtuUsernameStep> logger)
+        public VerifyCtuUsernameStep(ILogger<CtuAuthProcess> logger)
             : base(logger)
         {
         }

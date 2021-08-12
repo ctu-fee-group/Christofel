@@ -18,7 +18,7 @@ namespace Christofel.Api.Ctu.Steps
 
         private Duplicity? _foundDuplicity;
 
-        public VerifyDuplicityStep(ILogger<VerifyDuplicityStep> logger)
+        public VerifyDuplicityStep(ILogger<CtuAuthProcess> logger)
             : base(logger)
         {
         }
