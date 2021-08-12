@@ -30,7 +30,6 @@ namespace Kos
 
             IRestResponse<AtomEntry<KosPerson>?> response =
                 await _client.ExecuteAsync<AtomEntry<KosPerson>?>(request, token);
-            _logger.LogInformation("Kosapi response: " + response.Content);
             _cachedPeople[username] = response.Data?.Content;
 
             if (!response.IsSuccessful || response.Data == null || response.Data.Content == null)

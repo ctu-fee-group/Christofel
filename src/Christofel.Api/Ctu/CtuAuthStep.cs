@@ -18,7 +18,7 @@ namespace Christofel.Api.Ctu
             data.CancellationToken.ThrowIfCancellationRequested();
             
             bool cont = false;
-            string stepName = GetType()?.FullName ?? "Unknown";
+            string stepName = GetType()?.Name ?? "Unknown";
             using (_logger.BeginScope($"CTU auth step {stepName}"))
             {
                 _logger.LogDebug($"Starting auth step step {stepName}");

@@ -51,6 +51,11 @@ namespace Christofel.Api.Ctu
                 try
                 {
                     await dbContext.SaveChangesAsync(token);
+
+                    if (data.Finished)
+                    {
+                        _logger.LogInformation("User was successfully authenticated");
+                    }
                 }
                 catch (Exception e)
                 {
