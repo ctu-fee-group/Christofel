@@ -123,6 +123,7 @@ namespace Christofel.Api
                     if (_host != null)
                     {
                         _aspThread = new Thread(_host.Run);
+                        _aspThread.Start();
                     }
                 }
             }
