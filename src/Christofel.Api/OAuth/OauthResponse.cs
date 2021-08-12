@@ -20,11 +20,11 @@ namespace Christofel.Api.OAuth
         [JsonProperty("scope")] string Scope
     );
 
-    public record OauthErrorResponse {
+    public record OauthErrorResponse([JsonProperty("error")] string Error,
+        [JsonProperty("error_description")] string ErrorDescription)
+    {
         public string Headers { get; set; }
         public string Body { get; set; }
         public int? StatusCode { get; set; }
-        [JsonProperty("error")] public string? Error { get; }
-        [JsonProperty("error_description")] public string? ErrorDescription { get; }
     }
 }

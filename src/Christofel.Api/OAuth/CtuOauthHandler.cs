@@ -18,6 +18,12 @@ namespace Christofel.Api.OAuth
     {
         private class CheckTokenResponse : ICtuUser
         {
+            [JsonConstructor]
+            public CheckTokenResponse([JsonProperty("user_name")] string ctuUsername)
+            {
+                CtuUsername = ctuUsername;
+            }
+            
             public int UserId { get; } = 0;
 
             [JsonProperty("user_name")] public string CtuUsername { get; }
