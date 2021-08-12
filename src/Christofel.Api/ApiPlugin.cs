@@ -54,6 +54,9 @@ namespace Christofel.Api
                     services
                         .AddScoped<DiscordApi>()
                         .Configure<DiscordApiOptions>(state.Configuration.GetSection("Apis:Discord"));
+
+                    services
+                        .AddCtuAuthProcess()
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 
