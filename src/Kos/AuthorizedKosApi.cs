@@ -35,11 +35,11 @@ namespace Kos
         public KosApiTeachers Teachers => _teachers ??= new KosApiTeachers(_client, _logger);
         public KosApiStudents Students => _students ??= new KosApiStudents(_client, _logger);
         
-        public async Task<T?> LoadEntityAsync<T>(KosLoadableEntity<T> kosLoadable,
+        public async Task<T?> LoadEntityAsync<T>(KosLoadableEntity<T>? kosLoadable,
             CancellationToken token = default)
             where T : class, new()
         {
-            if (kosLoadable.Href is null)
+            if (kosLoadable is null || kosLoadable.Href is null)
             {
                 _logger.LogWarning($"Cannot obtain href from {typeof(T).FullName} loadable");
                 return default;
