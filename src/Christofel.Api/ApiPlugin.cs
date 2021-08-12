@@ -72,9 +72,21 @@ namespace Christofel.Api
                         .Configure<UsermapApiOptions>(state.Configuration.GetSection("Apis:Usermap"))
                         .AddScoped<KosApi>()
                         .Configure<KosApiOptions>(state.Configuration.GetSection("Apis:Kos"));
+
+                    services
+                        .AddSingleton<CtuAuthRoleAssignProcessor>();
+                    
+                    services
                         .AddCtuAuthProcess()
                         .AddCtuAuthStep<VerifyCtuUsernameStep>() // If ctu username is set and new auth user does not match, error
                         .AddCtuAuthStep<VerifyDuplicityStep>() // Handle duplicate
+                        .AddCtuAuthStep<SpecificRolesStep>() // Add specific roles
+                        .AddCtuAuthStep<UsermapRolesStep>() // Add usermap roles
+                        .AddCtuAuthStep<TitlesRoleStep>() // Add roles based on title rules
+                        .AddCtuAuthStep<ProgrammeRoleStep>() // Obtain programme and its roles
+                        .AddCtuAuthStep<YearRoleStep>() // Obtain study start year and its roles
+                        .AddCtuAuthStep<RemoveOldRolesStep>() // Remove all assigned roles by the auth process that weren't added by the previous steps
+                        .AddCtuAuthStep<AssignRolesStep>() // Assign roles to the user in queue
                         .AddCtuAuthStep<FinishVerificationStep>();
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });

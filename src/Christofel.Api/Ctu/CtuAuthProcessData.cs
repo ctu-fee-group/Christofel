@@ -19,6 +19,8 @@ namespace Christofel.Api.Ctu
     {
         public ulong RoleId { get; init; }
         public RoleType Type { get; init; }
+        
+        public string? Description { get; init; }
     };
 
     public class CtuAuthAssignedRoles

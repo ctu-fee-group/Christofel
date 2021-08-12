@@ -6,7 +6,7 @@ namespace Christofel.Api.Ctu.Steps
 {
     public class FinishVerificationStep : CtuAuthStep
     {
-        public FinishVerificationStep(ILogger<FinishVerificationStep> logger)
+        public FinishVerificationStep(ILogger<CtuAuthProcess> logger)
             : base(logger)
         {
         }
