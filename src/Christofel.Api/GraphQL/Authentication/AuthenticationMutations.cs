@@ -140,7 +140,7 @@ namespace Christofel.Api.GraphQL.Authentication
             }
 
             OauthResponse response =
-                await ctuOauthHandler.ExchangeCodeAsync(input.OauthCode, input.RegistrationCode, cancellationToken);
+                await ctuOauthHandler.ExchangeCodeAsync(input.OauthCode, input.RedirectUri, cancellationToken);
 
             if (response.IsError)
             {
