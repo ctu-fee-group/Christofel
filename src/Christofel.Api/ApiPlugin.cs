@@ -68,6 +68,7 @@ namespace Christofel.Api
                         .AddCtuAuthProcess()
                         .AddCtuAuthStep<VerifyCtuUsernameStep>() // If ctu username is set and new auth user does not match, error
                         .AddCtuAuthStep<VerifyDuplicityStep>() // Handle duplicate
+                        .AddCtuAuthStep<FinishVerificationStep>();
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 
