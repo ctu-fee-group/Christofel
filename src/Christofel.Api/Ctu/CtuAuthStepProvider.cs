@@ -22,6 +22,8 @@ namespace Christofel.Api.Ctu
             {
                 throw new InvalidOperationException("Trying to add non-step type to auth steps");
             }
+            
+            _steps.Add(type);
         }
 
         public virtual IEnumerable<ICtuAuthStep> GetSteps()
