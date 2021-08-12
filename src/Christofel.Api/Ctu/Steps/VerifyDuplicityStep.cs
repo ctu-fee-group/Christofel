@@ -5,6 +5,7 @@ using Christofel.Api.Ctu.Steps.Enums;
 using Christofel.Api.Exceptions;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
+using Christofel.BaseLib.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -69,6 +70,7 @@ namespace Christofel.Api.Ctu.Steps
             
             DbUser? duplicateBoth = await dbContext.Users
                 .AsQueryable()
+                .Authenticated()
                 .Where(x => x.CtuUsername == dbUser.CtuUsername && x.DiscordId == dbUser.DiscordId)
                 .FirstOrDefaultAsync();
 
@@ -79,6 +81,7 @@ namespace Christofel.Api.Ctu.Steps
 
             DbUser? duplicateDiscord = await dbContext.Users
                 .AsQueryable()
+                .Authenticated()
                 .Where(x => x.DiscordId == dbUser.DiscordId)
                 .FirstOrDefaultAsync();
 
@@ -89,6 +92,7 @@ namespace Christofel.Api.Ctu.Steps
             
             DbUser? duplicateCtu = await dbContext.Users
                 .AsQueryable()
+                .Authenticated()
                 .Where(x => x.CtuUsername == dbUser.CtuUsername)
                 .FirstOrDefaultAsync();
 
