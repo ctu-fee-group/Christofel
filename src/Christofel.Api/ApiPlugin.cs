@@ -31,6 +31,7 @@ namespace Christofel.Api
         private ILogger<ApiPlugin>? _logger;
         private IHostApplicationLifetime? _aspLifetime;
         private IHost? _host;
+        private Thread? _aspThread;
 
         public ApiPlugin()
         {
@@ -115,7 +116,7 @@ namespace Christofel.Api
 
                     if (_host != null)
                     {
-                        await _host.StartAsync(token);
+                        _aspThread = new Thread(_host.Run);
                     }
                 }
             }
@@ -155,14 +156,11 @@ namespace Christofel.Api
                 {
                     _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
 
-                    //_aspLifetime?.StopApplication();
+                    _aspLifetime?.StopApplication();
+                    _aspThread?.Join();
+                    _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
 
-                    if (_host != null)
-                    {
-                        await _host.StopAsync();
-                        _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
-                        _host.Dispose();
-                    }
+                    _host?.Dispose();
 
                     _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
 
