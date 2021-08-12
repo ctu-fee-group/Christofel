@@ -15,6 +15,7 @@ namespace Christofel.Api.Ctu.Steps
         {
             data.Finished = true;
             data.DbUser.AuthenticatedAt = DateTime.Now;
+            data.DbUser.RegistrationCode = null;
 
             return Task.FromResult(true);
         }
