@@ -12,6 +12,7 @@ namespace Usermap
         
         public UsermapApi(IOptionsSnapshot<UsermapApiOptions> options, ILogger<UsermapApi> logger)
         {
+            _authorizedApis = new Dictionary<string, AuthorizedUsermapApi>();
             _options = options.Value;
             _logger = logger;
         }
