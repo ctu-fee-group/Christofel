@@ -7,15 +7,18 @@ using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.User;
 using Discord.Rest;
+using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu
 {
     public class CtuAuthProcess
     {
         private readonly CtuAuthStepProvider _stepProvider;
+        private readonly ILogger<CtuAuthProcess> _logger;
 
-        public CtuAuthProcess(CtuAuthStepProvider stepProvider)
+        public CtuAuthProcess(CtuAuthStepProvider stepProvider, ILogger<CtuAuthProcess> logger)
         {
+            _logger = logger;
             _stepProvider = stepProvider;
         }
 
@@ -25,7 +28,7 @@ namespace Christofel.Api.Ctu
         {
             IEnumerable<ICtuAuthStep> steps = _stepProvider.GetSteps();
             using IEnumerator<ICtuAuthStep> stepsEnumerator = steps.GetEnumerator();
-            
+
             CtuAuthProcessData data = new CtuAuthProcessData(
                 accessToken,
                 ctuOauthHandler,
@@ -45,9 +48,18 @@ namespace Christofel.Api.Ctu
             }
             finally
             {
-                await dbContext.SaveChangesAsync(token);
+                try
+                {
+                    await dbContext.SaveChangesAsync(token);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e,
+                        $"database context save changes has thrown an exception while saving user data ({data.DbUser.UserId} {data.DbUser.DiscordId} {data.DbUser.CtuUsername})");
+                }
             }
         }
+
         private Func<CtuAuthProcessData, Task> GetNextHandler(IEnumerator<ICtuAuthStep> stepsEnumerator)
         {
             return data =>
