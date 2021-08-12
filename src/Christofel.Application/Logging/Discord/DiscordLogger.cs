@@ -96,7 +96,7 @@ namespace Christofel.Application.Logging.Discord
                 state.Add(scope?.ToString() ?? "null");
             }, builder);
 
-            return string.Join(" / ", builder);
+            return string.Join(" => ", builder);
         }
     }
 }
