@@ -142,7 +142,7 @@ namespace Christofel.Application
                         .AddConfiguration(_configuration.GetSection("Logging"))
                         .ClearProviders()
                         .AddFile()
-                        .AddConsole()
+                        .AddSimpleConsole(options => options.IncludeScopes = true)
                         .AddDiscordLogger();
                 })
                 .AddSingleton<DiscordNetLog>()
