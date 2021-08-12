@@ -104,6 +104,7 @@ namespace Christofel.Api.GraphQL.Authentication
         /// <param name="input">Input of the mutation</param>
         /// <param name="dbContext">Context with user information</param>
         /// <param name="ctuOauthHandler">Handler for obtaining access token</param>
+        /// <param name="ctuAuthProcess"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         [UseChristofelBaseDatabase]
@@ -114,8 +115,14 @@ namespace Christofel.Api.GraphQL.Authentication
             [Service] CtuAuthProcess ctuAuthProcess,
             CancellationToken cancellationToken)
         {
+            if (string.IsNullOrEmpty(input.RegistrationCode))
+            {
+                return new RegisterCtuPayload(new UserError("Specified registration code is not valid"));
+            }
+            
             DbUser? dbUser = await dbContext.Users
                 .AsQueryable()
+                .Where(x => x.AuthenticatedAt == null)
                 .FirstOrDefaultAsync(x => x.RegistrationCode == input.RegistrationCode, cancellationToken);
 
             if (dbUser == null)
