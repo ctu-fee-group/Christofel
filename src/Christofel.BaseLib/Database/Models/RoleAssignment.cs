@@ -21,6 +21,7 @@ namespace Christofel.BaseLib.Database.Models
         /// </summary>
         public RoleType RoleType { get; set; }
 
+        public virtual ICollection<SpecificRoleAssignment>? SpecificRoleAssignments { get; set; }
         public virtual ICollection<YearRoleAssignment>? YearRoleAssignments { get; set; }
         public virtual ICollection<ProgrammeRoleAssignment>? ProgrammeRoleAssignments { get; set; }
         public virtual ICollection<TitleRoleAssignment>? TitleRoleAssignments { get; set; }
