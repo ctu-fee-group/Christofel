@@ -17,11 +17,13 @@ using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using HotChocolate;
 using HotChocolate.Execution;
+using Kos;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Usermap;
 
 namespace Christofel.Api
 {
@@ -66,6 +68,10 @@ namespace Christofel.Api
                         .Configure<DiscordApiOptions>(state.Configuration.GetSection("Apis:Discord"));
 
                     services
+                        .AddScoped<UsermapApi>()
+                        .Configure<UsermapApiOptions>(state.Configuration.GetSection("Apis:Usermap"))
+                        .AddScoped<KosApi>()
+                        .Configure<KosApiOptions>(state.Configuration.GetSection("Apis:Kos"));
                         .AddCtuAuthProcess()
                         .AddCtuAuthStep<VerifyCtuUsernameStep>() // If ctu username is set and new auth user does not match, error
                         .AddCtuAuthStep<VerifyDuplicityStep>() // Handle duplicate
