@@ -1,59 +1,104 @@
 {
-    "ConnectionStrings": {
-        "ChristofelBase": "Server=localhost;Database=christofel_local;Uid=root;Pwd=root;"
+  "Debug": {
+    "SchemaFile": "../../../../../graphql/schema.gql"
+  },
+  "ConnectionStrings": {
+    "ChristofelBase": "Server=localhost;Database=christofel_local;Uid=root;Pwd=root;"
+  },
+  "Oauth": {
+    "Discord": {
+      "TokenEndpoint": "https://discord.com/api/oauth2/token",
+      "SecretKey": "<SecretKey>",
+      "ApplicationId": "<ClientId>",
+      "Scopes": [
+        "identify"
+      ]
     },
-    "Bot": {
-        "GuildId": <MainGuildId>,
-        "Token": "<DiscordBotToken>",
-        "DiscordNet": {
-            "AlwaysAcknowledgeInteractions": false
-        }
-    },
-    "Plugins": {
-        "Folder": "./Plugins"
-    },
-    "Logging": {
-        "LogLevel": {
-            "Default": "Trace"
-        },
-        "File": {
-          "BasePath": "Logs",
-          "FileAccessMode": "KeepOpenAndAutoFlush",
-          "FileEncodingName": "utf-8",
-          "DateFormat": "yyyy-MM-dd",
-          "CounterFormat": "000",
-          "MaxFileSize": 10485760,
-          "LogLevel": {
-            "Default": "Debug"
-          },
-          "IncludeScopes": true,
-          "MaxQueueSize": 100,
-          "Files": [
-            {
-              "Path": "default-<counter>.log"
-            },
-            {
-              "Path": "error-<counter>.log",
-              "MinLevel": {
-                "Default": "Error"
-              }
-            }
-          ]
-        },
-        "Discord": {
-          "Channels": [
-            {
-              "GuildId": <LogGuildId>,
-              "ChannelId": <InfoLogChannelId>,
-              "MinLevel": "Information"
-            },
-            {
-              "GuildId": <LogGuildId>,
-              "ChannelId": <WarningLogChannelId>,
-              "MinLevel": "Warning"
-            }
-
-          ]
-        }
+    "Ctu": {
+      "TokenEndpoint": "https://auth.fit.cvut.cz/oauth/token",
+      "CheckTokenEndpoint": "https://auth.fit.cvut.cz/oauth/check_token",
+      "ApplicationId": "<ClientId>",
+      "SecretKey": "<SecretKey>",
+      "Scopes": [
+        "urn:ctu:oauth:umapi.read",
+        "urn:ctu:oauth:kosapi:public.readonly"
+      ]
     }
+  },
+  "Apis": {
+    "Discord": {
+      "BaseUrl": "https://discord.com/api/v9"
+    },
+    "Usermap": {
+      "BaseUrl": "https://kosapi.fit.cvut.cz/usermap/v1"
+    },
+    "Kos": {
+      "BaseUrl": "https://kosapi.feld.cvut.cz/api/3/"
+    }
+  },
+  "Bot": {
+    "GuildId": <GuildId>,
+    "Token": "<BotToken>",
+    "DiscordNet": {
+      "AlwaysAcknowledgeInteractions": false
+    }
+  },
+  "Plugins": {
+    "Folder": "./Plugins",
+    "AutoLoad": [
+      "Christofel.Api",
+      "Christofel.Management",
+      "Christofel.Messages",
+      "Christofel.HelloWorld"
+    ]
+  },
+  "Embeds": {
+    "Folder": "./Embeds"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Trace"
+    },
+    "File": {
+      "BasePath": "Logs",
+      "FileAccessMode": "KeepOpenAndAutoFlush",
+      "FileEncodingName": "utf-8",
+      "DateFormat": "yyyy-MM-dd",
+      "CounterFormat": "000",
+      "MaxFileSize": 10485760,
+      "LogLevel": {
+        "Default": "Debug"
+      },
+      "IncludeScopes": true,
+      "MaxQueueSize": 100,
+      "Files": [
+        {
+          "Path": "default-<counter>.log"
+        },
+        {
+          "Path": "error-<counter>.log",
+          "MinLevel": {
+            "Default": "Error"
+          }
+        }
+      ]
+    },
+    "Discord": {
+      "LogLevel": {
+        "Microsoft": "Warning"
+      },
+      "Channels": [
+        {
+          "GuildId": <GuildId>,
+          "ChannelId": <ChannelId>,
+          "MinLevel": "Information"
+        },
+        {
+          "GuildId": <GuildId>,
+          "ChannelId": <ChannelId>,
+          "MinLevel": "Warning"
+        }
+      ]
+    }
+  }
 }
