@@ -31,8 +31,6 @@ namespace Christofel.Application.Logging.Discord
 
         public uint MaxGroupSize { get; set; } = 20;
 
-        public uint MinGroupContinue { get; set; } = 1;
-        
         /// <summary>
         /// What channels to log to
         /// </summary>
