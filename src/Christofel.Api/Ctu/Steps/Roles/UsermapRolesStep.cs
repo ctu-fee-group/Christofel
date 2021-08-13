@@ -11,6 +11,13 @@ using Usermap.Data;
 
 namespace Christofel.Api.Ctu.Steps.Roles
 {
+    /// <summary>
+    /// Assign roles from UsermapRoleAssignment table
+    /// </summary>
+    /// <remarks>
+    /// Obtains usermap roles if possible, then tries to match them against the ones
+    /// in database. If there are matches, they are added
+    /// </remarks>
     public class UsermapRolesStep : CtuAuthStep
     {
         private readonly UsermapApi _usermapApi;

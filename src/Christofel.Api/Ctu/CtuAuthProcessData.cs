@@ -9,12 +9,25 @@ using Discord.Rest;
 
 namespace Christofel.Api.Ctu
 {
+    /// <summary>
+    /// Data used along the ctu auth process in each step
+    /// </summary>
+    /// <param name="AccessToken"></param>
+    /// <param name="CtuOauthHandler"></param>
+    /// <param name="DbContext"></param>
+    /// <param name="DbUser"></param>
+    /// <param name="GuildUser"></param>
+    /// <param name="Roles"></param>
+    /// <param name="CancellationToken"></param>
     public record CtuAuthProcessData(string AccessToken, CtuOauthHandler CtuOauthHandler,
         ChristofelBaseContext DbContext, DbUser DbUser, RestGuildUser GuildUser, CtuAuthAssignedRoles Roles, CancellationToken CancellationToken)
     {
         public bool Finished { get; set; }
     }
 
+    /// <summary>
+    /// Role to be assigned or deleted
+    /// </summary>
     public record CtuAuthRole
     {
         public ulong RoleId { get; init; }
@@ -23,6 +36,10 @@ namespace Christofel.Api.Ctu
         public string? Description { get; init; }
     };
 
+    /// <summary>
+    /// Holds information about roles to be added and removed,
+    /// should be changed during the auth process
+    /// </summary>
     public class CtuAuthAssignedRoles
     {
         public CtuAuthAssignedRoles()

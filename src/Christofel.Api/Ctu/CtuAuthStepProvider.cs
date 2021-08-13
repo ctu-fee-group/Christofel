@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Api.Ctu
 {
+    /// <summary>
+    /// Provides ICtuAuthSteps using DI service provider
+    /// </summary>
     public class CtuAuthStepProvider
     {
         private List<Type> _steps;

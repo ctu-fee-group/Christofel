@@ -6,6 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps
 {
+    /// <summary>
+    /// Enqueue roles to queue for addition or removal on Discord
+    /// </summary>
     public class AssignRolesStep : CtuAuthStep
     {
         private readonly CtuAuthRoleAssignProcessor _roleAssignProcessor;

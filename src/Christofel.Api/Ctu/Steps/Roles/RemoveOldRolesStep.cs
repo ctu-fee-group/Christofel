@@ -7,6 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps.Roles
 {
+    /// <summary>
+    /// Softly removes discord roles that should not be added again, but were added as part of the auth process
+    /// </summary>
     public class RemoveOldRolesStep : CtuAuthStep
     {
         public RemoveOldRolesStep(ILogger<CtuAuthProcess> logger) : base(logger)

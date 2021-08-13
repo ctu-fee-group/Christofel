@@ -9,6 +9,9 @@ using RestSharp.Serializers.NewtonsoftJson;
 
 namespace Christofel.Api.Discord
 {
+    /// <summary>
+    /// Discord API with assigned accessToken
+    /// </summary>
     public class AuthorizedDiscordApi
     {
         private readonly RestClient _client;

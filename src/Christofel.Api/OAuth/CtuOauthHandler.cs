@@ -44,6 +44,13 @@ namespace Christofel.Api.OAuth
             return options.Get("Ctu");
         }
 
+        /// <summary>
+        /// Obtain ctu username from valid access token
+        /// </summary>
+        /// <param name="accessToken"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public async Task<ICtuUser> CheckTokenAsync(string accessToken, CancellationToken token = default)
         {
             IRestRequest request = new RestSharp.RestRequest(

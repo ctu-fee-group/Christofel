@@ -10,6 +10,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps.Roles
 {
+    /// <summary>
+    /// Assign roles from ProgrammeRoleAssignment table
+    /// </summary>
+    /// <remarks>
+    /// Uses kos api to obtain programme of the user
+    /// </remarks>
     public class ProgrammeRoleStep : CtuAuthStep
     {
         private readonly KosApi _kosApi;

@@ -4,6 +4,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps
 {
+    /// <summary>
+    /// Last step of verification, should be reached only if there was not an error.
+    /// RegistrationCode will be set to null, AuthenticatedAt will be set to now
+    /// </summary>
     public class FinishVerificationStep : CtuAuthStep
     {
         public FinishVerificationStep(ILogger<CtuAuthProcess> logger)

@@ -6,6 +6,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps
 {
+    /// <summary>
+    /// Verifies that the ctu username of the user from database matches the new one trying to auth
+    /// </summary>
+    /// <remarks>
+    /// If database username is not set, it will be after this step
+    /// If it was set and does not match the same one that is now trying to authenticate,
+    /// the process will result in error
+    /// </remarks>
     public class VerifyCtuUsernameStep : CtuAuthStep
     {
         public VerifyCtuUsernameStep(ILogger<CtuAuthProcess> logger)

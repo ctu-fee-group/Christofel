@@ -11,6 +11,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps.Roles
 {
+    /// <summary>
+    /// Assign roles from SpecificRoleAssignment table
+    /// </summary>
+    /// <remarks>
+    /// Adds authenticated role to everyone
+    /// Uses kos api to obtain whether the user is a teacher, assigns teacher role if he is
+    /// </remarks>
     public class SpecificRolesStep : CtuAuthStep
     {
         private readonly KosApi _kosApi;

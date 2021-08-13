@@ -7,6 +7,13 @@ namespace Christofel.Api.GraphQL.Extensions
 {
     public static class ObjectFieldDescriptorExtensions
     {
+        /// <summary>
+        /// Use database context of given type as scoped service
+        /// IDbContextFactory<TDbContext> must be available from services
+        /// </summary>
+        /// <param name="descriptor"></param>
+        /// <typeparam name="TDbContext"></typeparam>
+        /// <returns></returns>
         public static IObjectFieldDescriptor UseDbContext<TDbContext>(
             this IObjectFieldDescriptor descriptor)
             where TDbContext : DbContext
@@ -16,6 +23,13 @@ namespace Christofel.Api.GraphQL.Extensions
                 disposeAsync: (s, c) => c.DisposeAsync());
         }
         
+        /// <summary>
+        /// Use read only context of given type as scoped service
+        /// ReadOnlyDbContextFactory<TDbContextg> muset be available from services
+        /// </summary>
+        /// <param name="descriptor"></param>
+        /// <typeparam name="TDbContext"></typeparam>
+        /// <returns></returns>
         public static IObjectFieldDescriptor UseReadOnlyDbContext<TDbContext>(
             this IObjectFieldDescriptor descriptor)
             where TDbContext : DbContext, IReadableDbContext

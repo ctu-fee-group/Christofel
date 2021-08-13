@@ -13,6 +13,13 @@ using Usermap.Data;
 
 namespace Christofel.Api.Ctu.Steps.Roles
 {
+    /// <summary>
+    /// Assign roles from TitleRoleAssignment table
+    /// </summary>
+    /// <remarks>
+    /// Obtains titles either from kos (safer as there are titlesPre and titlesPost fields)
+    /// or from usermap if kos user is not found (not safe, because the titles have to be parsed from full name)
+    /// </remarks>
     public class TitlesRoleStep : CtuAuthStep
     {
         private record Titles(IEnumerable<string> Pre, IEnumerable<string> Post);

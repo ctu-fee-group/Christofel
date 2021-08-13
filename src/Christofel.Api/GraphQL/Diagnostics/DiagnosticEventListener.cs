@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.GraphQL.Diagnostics
 {
+    /// <summary>
+    /// Logs all kinds of graphql errors to loggers
+    /// </summary>
     public class DiagnosticEventListener : HotChocolate.Execution.Instrumentation.DiagnosticEventListener
     {
         private readonly ILogger _logger;

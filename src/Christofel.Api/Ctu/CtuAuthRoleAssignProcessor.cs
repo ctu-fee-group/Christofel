@@ -11,6 +11,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu
 {
+    /// <summary>
+    /// Processor of role assigns, works on different thread
+    /// </summary>
+    /// <remarks>
+    /// Creates thread only if there is job assigned,
+    /// if there isn't, the thread is freed (thread pool is used)
+    /// </remarks>
     public class CtuAuthRoleAssignProcessor
     {
         private const int MaxRetryCount = 5;

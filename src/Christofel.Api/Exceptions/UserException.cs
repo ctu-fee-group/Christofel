@@ -3,6 +3,9 @@ using System.Runtime.Serialization;
 
 namespace Christofel.Api.Exceptions
 {
+    /// <summary>
+    /// Exception that is showed to the user
+    /// </summary>
     public class UserException : Exception
     {
         public UserException()

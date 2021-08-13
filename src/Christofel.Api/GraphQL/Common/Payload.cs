@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace Christofel.Api.GraphQL.Common
 {
+    /// <summary>
+    /// Base payload of mutations
+    /// </summary>
     public abstract class Payload
     {
         public Payload(ICollection<UserError> errors)

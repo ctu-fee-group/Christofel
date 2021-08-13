@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu
 {
+    /// <summary>
+    /// Class to ease working with ctu auth steps
+    /// </summary>
     public abstract class CtuAuthStep : ICtuAuthStep
     {
         protected readonly ILogger _logger;
@@ -32,9 +35,19 @@ namespace Christofel.Api.Ctu
                 await HandleAfterNext(data);
             }
         }
-
+        
+        /// <summary>
+        /// Handle step before next is called
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns>If true, next will be called, if false, next won't be called and the process will end</returns>
         protected abstract Task<bool> HandleStep(CtuAuthProcessData data);
         
+        /// <summary>
+        /// Handling after next, that means after the user was authenticated
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         protected virtual Task HandleAfterNext(CtuAuthProcessData data)
         {
             return Task.CompletedTask;

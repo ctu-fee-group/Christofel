@@ -12,6 +12,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps
 {
+    /// <summary>
+    /// Verifies all types of duplicities, handles them accordingly
+    /// </summary>
+    /// <remarks>
+    /// Tries to match duplicities from the database,
+    ///
+    /// for CtuSide and DiscordSide duplicities,
+    /// DuplicityApproved column is checked,
+    /// if it is true, the process continues,
+    /// if not, the user is notified about duplicity
+    /// and the process ends up in error
+    ///
+    /// for Both sides duplicity,
+    /// old user is updated with new information,
+    /// new one is deleted
+    /// </remarks>
     public class VerifyDuplicityStep : CtuAuthStep
     {
         private record Duplicity(DuplicityType Type, DbUser User);

@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.Api.GraphQL.DataLoaders
 {
+    /// <summary>
+    /// Loads DbUser from database by user id
+    /// </summary>
     public class UserByIdDataLoader : BatchDataLoader<int, DbUser>
     {
         private ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;

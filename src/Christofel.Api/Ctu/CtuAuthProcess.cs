@@ -11,17 +11,35 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu
 {
+    /// <summary>
+    /// Used to iterate through all steps of auth process
+    /// </summary>
     public class CtuAuthProcess
     {
         private readonly CtuAuthStepProvider _stepProvider;
         private readonly ILogger<CtuAuthProcess> _logger;
 
+        /// <summary>
+        /// Initialize CtuAuthProcess
+        /// </summary>
+        /// <param name="stepProvider">Provider of CtuAuthStep to get all needed steps</param>
+        /// <param name="logger">Logger to log with</param>
         public CtuAuthProcess(CtuAuthStepProvider stepProvider, ILogger<CtuAuthProcess> logger)
         {
             _logger = logger;
             _stepProvider = stepProvider;
         }
 
+        /// <summary>
+        /// Proceed to do all the steps
+        /// If step fails, exception will be thrown
+        /// </summary>
+        /// <param name="accessToken">Valid token that can be used for Kos and Usermap</param>
+        /// <param name="ctuOauthHandler"></param>
+        /// <param name="dbContext">Context monitoring dbUser</param>
+        /// <param name="dbUser">Database user to be edited and saved</param>
+        /// <param name="guildUser">Discord user used for auth purposes. Should be user with the id of dbUser</param>
+        /// <param name="token">Cancellation token in case the request is cancelled</param>
         public async Task FinishAuthAsync(string accessToken, CtuOauthHandler ctuOauthHandler,
             ChristofelBaseContext dbContext, DbUser dbUser,
             RestGuildUser guildUser, CancellationToken token = default)

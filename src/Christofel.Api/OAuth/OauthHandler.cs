@@ -20,6 +20,9 @@ using RestSharp.Serializers.NewtonsoftJson;
 
 namespace Christofel.Api.OAuth
 {
+    /// <summary>
+    /// Handler of post oauth access token retrieval
+    /// </summary>
     public class OauthHandler
     {
         protected readonly OauthOptions _options;
@@ -36,11 +39,24 @@ namespace Christofel.Api.OAuth
                 _options.SecretKey ?? throw new InvalidOperationException("SecretKey is null"));
         }
 
+        /// <summary>
+        /// Return correct options of the current oauth handler (can be used to distinguish multiple oauth services)
+        /// </summary>
+        /// <param name="options"></param>
+        /// <returns></returns>
         protected virtual OauthOptions GetOptions(IOptionsSnapshot<OauthOptions> options)
         {
             return options.Value;
         }
 
+        /// <summary>
+        /// Obtain access token or error
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="redirectUri"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public virtual async Task<OauthResponse> ExchangeCodeAsync(string code, string redirectUri,
             CancellationToken token = default)
         {

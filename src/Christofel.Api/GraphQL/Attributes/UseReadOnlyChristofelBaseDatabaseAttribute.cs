@@ -6,6 +6,9 @@ using HotChocolate.Types.Descriptors;
 
 namespace Christofel.Api.GraphQL.Attributes
 {
+    /// <summary>
+    /// Adds readonly ChristofelBaseContext as scoped service
+    /// </summary>
     public class UseReadOnlyChristofelBaseDatabaseAttribute : ObjectFieldDescriptorAttribute
     {
         public override void OnConfigure(IDescriptorContext context, IObjectFieldDescriptor descriptor, MemberInfo member)
