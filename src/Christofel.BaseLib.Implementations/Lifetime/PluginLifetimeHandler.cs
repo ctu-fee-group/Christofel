@@ -9,7 +9,7 @@ namespace Christofel.BaseLib.Lifetime
     /// </summary>
     public class PluginLifetimeHandler : LifetimeHandler<ICurrentPluginLifetime>
     {
-        private readonly Action _handleStopRequest;
+        private Action? _handleStopRequest;
         private PluginLifetime? _lifetime;
         private bool _stopRequestReceived;
         
@@ -52,10 +52,16 @@ namespace Christofel.BaseLib.Lifetime
             if (!_stopRequestReceived)
             {
                 _stopRequestReceived = true;
-                _handleStopRequest();
+                _handleStopRequest?.Invoke();
             }
         }
-        
+
+        public override void Dispose()
+        {
+            _handleStopRequest = null;
+            base.Dispose();
+        }
+
         public class PluginLifetime : ICurrentPluginLifetime
         {
             private readonly CancellationTokenSource _started, _stopped, _stopping, _errored;

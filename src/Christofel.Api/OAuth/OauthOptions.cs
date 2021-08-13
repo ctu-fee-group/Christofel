@@ -1,0 +1,31 @@
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Christofel.Api.OAuth
+{
+    /// <summary>
+    /// Options for oauth handlers with needed data
+    /// </summary>
+    public class OauthOptions
+    {
+        /// <summary>
+        /// Client id
+        /// </summary>
+        public string? ApplicationId { get; set; }
+        
+        /// <summary>
+        /// Secret key
+        /// </summary>
+        public string? SecretKey { get; set; }
+
+        /// <summary>
+        /// Endpoint to obtain access token from
+        /// </summary>
+        public string? TokenEndpoint { get; set; }
+        
+        /// <summary>
+        /// What scopes should be requested
+        /// </summary>
+        public ICollection<string>? Scopes { get; set; }
+    }
+}

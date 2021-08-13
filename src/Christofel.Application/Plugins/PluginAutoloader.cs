@@ -45,7 +45,7 @@ namespace Christofel.Application.Plugins
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(1, $@"Could not attach autoload module {module}", e);
+                    _logger.LogError(e, $@"Could not attach autoload module {module}");
                 }
             }
         }

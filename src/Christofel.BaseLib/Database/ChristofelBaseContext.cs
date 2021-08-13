@@ -48,6 +48,12 @@ namespace Christofel.BaseLib.Database
                 .WithMany(x => x.YearRoleAssignments)
                 .HasForeignKey(x => x.AssignmentId)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            modelBuilder.Entity<SpecificRoleAssignment>()
+                .HasOne<RoleAssignment>(x => x.Assignment)
+                .WithMany(x => x.SpecificRoleAssignments)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
         public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = new CancellationToken())
@@ -67,6 +73,7 @@ namespace Christofel.BaseLib.Database
         public DbSet<RoleAssignment> RoleAssignments => Set<RoleAssignment>();
         
         public DbSet<YearRoleAssignment> YearRoleAssignments => Set<YearRoleAssignment>();
+        public DbSet<SpecificRoleAssignment> SpecificRoleAssignments => Set<SpecificRoleAssignment>();
         public DbSet<ProgrammeRoleAssignment> ProgrammeRoleAssignments => Set<ProgrammeRoleAssignment>();
         public DbSet<UsermapRoleAssignment> UsermapRoleAssignments => Set<UsermapRoleAssignment>();
         public DbSet<TitleRoleAssignment> TitleRoleAssignment => Set<TitleRoleAssignment>();

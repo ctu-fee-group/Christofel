@@ -12,18 +12,27 @@ namespace Christofel.Application.Logging.Discord
 {
     public class DiscordLogger : ILogger
     {
+        private class NullScope : IDisposable
+        {
+            private static NullScope? _instance;
+            public static NullScope Instance => _instance ??= new NullScope();
+
+            public void Dispose()
+            {
+            }
+        }
+        
         private string _categoryName;
-        private IExternalScopeProvider _scopeProvider;
         private readonly DiscordLoggerProcessor _queueProcessor;
 
         public DiscordLogger(DiscordLoggerOptions config, DiscordLoggerProcessor queueProcessor, string categoryName)
         {
             _categoryName = categoryName;
             Config = config;
-            _scopeProvider = new LoggerExternalScopeProvider();
             _queueProcessor = queueProcessor;
         }
         
+        public IExternalScopeProvider? ScopeProvider { get; set; }
         public DiscordLoggerOptions Config { get; set; }
 
         #nullable disable
@@ -66,7 +75,7 @@ namespace Christofel.Application.Logging.Discord
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            return _scopeProvider.Push(state);
+            return ScopeProvider?.Push(state) ?? NullScope.Instance;
         }
 
         private string GetLevelText(LogLevel level) =>
@@ -82,12 +91,12 @@ namespace Christofel.Application.Logging.Discord
         private string GetScopeMessage()
         {
             List<string> builder = new List<string>();
-            _scopeProvider.ForEachScope((scope, state) =>
+            ScopeProvider?.ForEachScope((scope, state) =>
             {
                 state.Add(scope?.ToString() ?? "null");
             }, builder);
 
-            return string.Join(" / ", builder);
+            return string.Join(" => ", builder);
         }
     }
 }

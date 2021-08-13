@@ -9,12 +9,14 @@ using Microsoft.Extensions.Options;
 namespace Christofel.Application.Logging.Discord
 {
     [ProviderAlias("Discord")]
-    public class DiscordLoggerProvider : ILoggerProvider
+    public class DiscordLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         private readonly IDisposable _onChangeToken;
         private readonly ConcurrentDictionary<string, DiscordLogger> _loggers;
         private readonly DiscordLoggerProcessor _queueProcessor;
         private DiscordLoggerOptions _config;
+        
+        private IExternalScopeProvider? _scopeProvider;
 
         public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, DiscordSocketClient bot)
         {
@@ -34,7 +36,10 @@ namespace Christofel.Application.Logging.Discord
 
         public ILogger CreateLogger(string categoryName)
         {
-            return _loggers.GetOrAdd(categoryName, category => new DiscordLogger(_config, _queueProcessor, categoryName));
+            return _loggers.GetOrAdd(categoryName, category => new DiscordLogger(_config, _queueProcessor, categoryName)
+            {
+                ScopeProvider = _scopeProvider
+            });
         }
 
         private void HandleConfigChanged(DiscordLoggerOptions config)
@@ -45,6 +50,16 @@ namespace Christofel.Application.Logging.Discord
             foreach (DiscordLogger logger in _loggers.Values)
             {
                 logger.Config = _config;
+            }
+        }
+
+        public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+        {
+            _scopeProvider = scopeProvider;
+
+            foreach (System.Collections.Generic.KeyValuePair<string, DiscordLogger> logger in _loggers)
+            {
+                logger.Value.ScopeProvider = _scopeProvider;
             }
         }
     }

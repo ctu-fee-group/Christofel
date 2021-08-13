@@ -30,7 +30,6 @@ namespace Christofel.BaseLib.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("CtuUsername")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
@@ -42,6 +41,9 @@ namespace Christofel.BaseLib.Migrations
 
                     b.Property<bool>("DuplicityApproved")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("RegistrationCode")
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -105,6 +107,27 @@ namespace Christofel.BaseLib.Migrations
                     b.HasKey("RoleAssignmentId");
 
                     b.ToTable("RoleAssignments");
+                });
+
+            modelBuilder.Entity("Christofel.BaseLib.Database.Models.SpecificRoleAssignment", b =>
+                {
+                    b.Property<int>("SpecificRoleAssignmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("AssignmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("SpecificRoleAssignmentId");
+
+                    b.HasIndex("AssignmentId");
+
+                    b.ToTable("SpecificRoleAssignments");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.TitleRoleAssignment", b =>
@@ -229,6 +252,17 @@ namespace Christofel.BaseLib.Migrations
                     b.Navigation("Assignment");
                 });
 
+            modelBuilder.Entity("Christofel.BaseLib.Database.Models.SpecificRoleAssignment", b =>
+                {
+                    b.HasOne("Christofel.BaseLib.Database.Models.RoleAssignment", "Assignment")
+                        .WithMany("SpecificRoleAssignments")
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assignment");
+                });
+
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.TitleRoleAssignment", b =>
                 {
                     b.HasOne("Christofel.BaseLib.Database.Models.RoleAssignment", "Assignment")
@@ -270,6 +304,8 @@ namespace Christofel.BaseLib.Migrations
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.RoleAssignment", b =>
                 {
                     b.Navigation("ProgrammeRoleAssignments");
+
+                    b.Navigation("SpecificRoleAssignments");
 
                     b.Navigation("TitleRoleAssignments");
 

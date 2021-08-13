@@ -14,6 +14,8 @@ namespace Christofel.Application.Assemblies
     {
         private Assembly? _assembly;
         private AssemblyLoadContext? _context;
+        private readonly object _detachLock = new object();
+        private WeakReference? _weakReference;
         
         public ContextedAssembly(AssemblyLoadContext context, Assembly assembly)
         {
@@ -54,16 +56,29 @@ namespace Christofel.Application.Assemblies
         [MethodImpl(MethodImplOptions.NoInlining)]
         public WeakReference Detach()
         {
-            WeakReference weakReference = new WeakReference(Context);
-            if (Context.IsCollectible)
+            lock (_detachLock)
             {
-                Context.Unload();
+                if (_context == null)
+                {
+                    if (_weakReference == null)
+                    {
+                        throw new InvalidOperationException("Weak reference was not set even though it should be");
+                    }
+                    
+                    return _weakReference;
+                }
+                
+                WeakReference weakReference = _weakReference = new WeakReference(Context);
+                if (Context.IsCollectible)
+                {
+                    Context.Unload();
+                }
+
+                _assembly = null;
+                _context = null;
+
+                return weakReference;
             }
-
-            _assembly = null;
-            _context = null;
-
-            return weakReference;
         }
     }
 }

@@ -119,7 +119,7 @@ namespace Christofel.Application
                 .AddSingleton<DiscordRestClient>(p => p.GetRequiredService<DiscordSocketClient>().Rest)
                 .AddSingleton<IBot, DiscordBot>()
                 // db
-                .AddDbContextFactory<ChristofelBaseContext>(options => 
+                .AddPooledDbContextFactory<ChristofelBaseContext>(options => 
                     options
                         .UseMySql(
                             _configuration.GetConnectionString("ChristofelBase"),
@@ -142,7 +142,7 @@ namespace Christofel.Application
                         .AddConfiguration(_configuration.GetSection("Logging"))
                         .ClearProviders()
                         .AddFile()
-                        .AddConsole()
+                        .AddSimpleConsole(options => options.IncludeScopes = true)
                         .AddDiscordLogger();
                 })
                 .AddSingleton<DiscordNetLog>()
