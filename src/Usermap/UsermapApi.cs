@@ -4,6 +4,9 @@ using Microsoft.Extensions.Options;
 
 namespace Usermap
 {
+    /// <summary>
+    /// Entity used to obtain authorized api with specified access token
+    /// </summary>
     public class UsermapApi
     {
         private readonly UsermapApiOptions _options;

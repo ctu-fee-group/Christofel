@@ -20,6 +20,12 @@ namespace Usermap
             _client = client;
         }
 
+        /// <summary>
+        /// Obtain person information using /people/{username}
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="token"></param>
+        /// <returns>Null in case of an error</returns>
         public async Task<UsermapPerson?> GetPersonAsync(string username, CancellationToken token = default)
         {
             if (_cachedPeople.ContainsKey(username))

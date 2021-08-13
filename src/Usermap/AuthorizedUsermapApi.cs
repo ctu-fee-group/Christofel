@@ -7,6 +7,9 @@ using RestSharp.Serializers.NewtonsoftJson;
 
 namespace Usermap
 {
+    /// <summary>
+    /// Entity used to interact with usermap API
+    /// </summary>
     public class AuthorizedUsermapApi
     {
         private readonly RestClient _client;
@@ -25,6 +28,9 @@ namespace Usermap
             _client.UseNewtonsoftJson();
         }
 
+        /// <summary>
+        /// Endpoint /people
+        /// </summary>
         public UsermapApiPeople People => _people ??= new UsermapApiPeople(_client, _logger);
     }
 }
