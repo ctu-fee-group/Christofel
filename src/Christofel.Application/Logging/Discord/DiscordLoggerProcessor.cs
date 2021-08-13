@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Application.Extensions;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Extensions;
+using Christofel.BaseLib.Lifetime;
 using Discord;
 using Discord.WebSocket;
 
@@ -13,7 +15,7 @@ namespace Christofel.Application.Logging.Discord
 {
     public class DiscordLoggerProcessor : IDisposable
     {
-        // TODO: how to log exceptions from here?
+        // TODO: how to handle exceptions here?
 
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
@@ -21,6 +23,7 @@ namespace Christofel.Application.Logging.Discord
         private readonly DiscordSocketClient _bot;
 
         private bool _canProcess;
+        private bool _quit;
 
         public DiscordLoggerProcessor(DiscordSocketClient bot, DiscordLoggerOptions options)
         {
@@ -29,7 +32,7 @@ namespace Christofel.Application.Logging.Discord
             _bot.Ready += HandleBotReady;
 
             Options = options;
-            _messageQueue = new BlockingCollection<DiscordLogMessage>((int) Options.MaxQueueSize);
+            _messageQueue = new BlockingCollection<DiscordLogMessage>((int)Options.MaxQueueSize);
 
             _outputThread = new Thread(ProcessLogQueue)
             {
@@ -43,7 +46,7 @@ namespace Christofel.Application.Logging.Discord
 
         public virtual void EnqueueMessage(DiscordLogMessage message)
         {
-            if (!_messageQueue.IsAddingCompleted)
+            if (!_quit)
             {
                 try
                 {
@@ -58,14 +61,14 @@ namespace Christofel.Application.Logging.Discord
             // Adding is completed so just log the message
             try
             {
-                WriteMessage(message);
+                SendMessage(message);
             }
             catch (Exception)
             {
             }
         }
 
-        private bool WriteMessage(DiscordLogMessage entry)
+        private bool SendMessage(DiscordLogMessage entry)
         {
             if (_bot.ConnectionState != ConnectionState.Connected)
             {
@@ -92,58 +95,51 @@ namespace Christofel.Application.Logging.Discord
             return true;
         }
 
-        private void ProcessLogQueue()
+        private void SendMessages(List<DiscordLogMessage> messages)
         {
-            try
+            foreach (DiscordLogMessage message in messages)
             {
-                // TODO: refactor to make shorter
-                int count = 0;
-                List<DiscordLogMessage> messagesToSend = new List<DiscordLogMessage>();
+                bool sent = false;
 
-                foreach (DiscordLogMessage message in _messageQueue.GetConsumingEnumerable())
+                while (!sent)
                 {
                     while (!_canProcess)
                     {
                         Thread.Sleep(10);
                     }
 
-                    DiscordLogMessage? groupedMessage = messagesToSend.FirstOrDefault(x =>
-                        x.ChannelId == message.ChannelId && x.GuildId == message.GuildId);
-                    if (groupedMessage == null)
+                    try
                     {
-                        groupedMessage = message;
-                        messagesToSend.Add(groupedMessage);
+                        sent = SendMessage(message);
                     }
-                    else
+                    catch (Exception) // Generally exceptions shouldn't happen here
                     {
-                        groupedMessage.Message += "\n" + message.Message;
+                        sent = true; // pretend like it was sent
+                        //EnqueueMessage(message); // add it to queue so we don't lose it
                     }
+                }
+            }
+        }
 
-                    count++;
+        private void ProcessLogQueue()
+        {
+            try
+            {
+                // TODO: refactor to make shorter
+                int count = 0;
+                while (!_messageQueue.IsCompleted)
+                {
+                    List<DiscordLogMessage> fetchedMessages =
+                        _messageQueue.FetchAtLeastOneBlocking(Options.MaxGroupSize);
 
-                    if (count < Options.MaxGroupSize && _messageQueue.Count >= Options.MinGroupContinue)
-                    {
-                        continue;
-                    }
+                    List<DiscordLogMessage> messagesToSend = fetchedMessages
+                        .GroupBy(x => new { x.GuildId, x.ChannelId })
+                        .Select(x =>
+                            new DiscordLogMessage(x.Key.GuildId, x.Key.ChannelId,
+                                string.Join('\n', x.Select(x => x.Message)))
+                        ).ToList();
 
-                    List<DiscordLogMessage> toRemove = new List<DiscordLogMessage>();
-                    foreach (DiscordLogMessage logMessage in messagesToSend)
-                    {
-                        try
-                        {
-                            if (WriteMessage(logMessage))
-                            {
-                                toRemove.Add(logMessage);
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            EnqueueMessage(logMessage);
-                        }
-                    }
-
-                    messagesToSend.RemoveAll(x => toRemove.Contains(x));
-                    count = 0;
+                    SendMessages(messagesToSend);
                 }
             }
             catch (Exception e)
