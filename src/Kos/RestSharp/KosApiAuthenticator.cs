@@ -3,6 +3,9 @@ using RestSharp.Authenticators;
 
 namespace Kos
 {
+    /// <summary>
+    /// Authenticator using access_token as GET parameter
+    /// </summary>
     public class KosApiAuthenticator : AuthenticatorBase
     {
         public KosApiAuthenticator(string token) : base(token)

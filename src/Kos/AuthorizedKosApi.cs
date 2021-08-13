@@ -11,6 +11,9 @@ using RestSharp.Serialization.Xml;
 
 namespace Kos
 {
+    /// <summary>
+    /// Entity used to interact with kos API
+    /// </summary>
     public class AuthorizedKosApi
     {
         private readonly ILogger _logger;
@@ -31,10 +34,28 @@ namespace Kos
             _client.UseDotNetXmlSerializer();
         }
 
+        /// <summary>
+        /// Endpoint /people
+        /// </summary>
         public KosApiPeople People => _people ??= new KosApiPeople(_client, _logger);
+        
+        /// <summary>
+        /// Endpoint /teachers
+        /// </summary>
         public KosApiTeachers Teachers => _teachers ??= new KosApiTeachers(_client, _logger);
+        
+        /// <summary>
+        /// Endpoint /students
+        /// </summary>
         public KosApiStudents Students => _students ??= new KosApiStudents(_client, _logger);
         
+        /// <summary>
+        /// Load loadable entity that is obtained using another entity
+        /// </summary>
+        /// <param name="kosLoadable"></param>
+        /// <param name="token"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public async Task<T?> LoadEntityAsync<T>(KosLoadableEntity<T>? kosLoadable,
             CancellationToken token = default)
             where T : class, new()

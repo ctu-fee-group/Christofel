@@ -4,6 +4,9 @@ using Microsoft.Extensions.Options;
 
 namespace Kos
 {
+    /// <summary>
+    /// Entity used to obtain authorized api with specified access token
+    /// </summary>
     public class KosApi
     {
         private readonly KosApiOptions _options;

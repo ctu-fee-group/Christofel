@@ -15,6 +15,12 @@ namespace Kos
         {
         }
 
+        /// <summary>
+        /// Call /students/{studyCodeOrId} and return its response
+        /// </summary>
+        /// <param name="studyCodeOrId"></param>
+        /// <param name="token"></param>
+        /// <returns>Null in case of an error</returns>
         public Task<KosStudent?> GetStudentAsync(string studyCodeOrId, CancellationToken token = default)
         {
             IRestRequest request =

@@ -18,6 +18,12 @@ namespace Kos
             _cachedPeople = new Dictionary<string, KosPerson?>();
         }
 
+        /// <summary>
+        /// Call /people/{username} and return its response
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="token"></param>
+        /// <returns>Null in case of an error</returns>
         public async Task<KosPerson?> GetPerson(string username, CancellationToken token = default)
         {
             if (_cachedPeople.ContainsKey(username))

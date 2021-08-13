@@ -4,6 +4,10 @@ using Kos.Data;
 
 namespace Kos.Atom
 {
+    /// <summary>
+    /// Entry type shared between all entities
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     [XmlRoot("entry", Namespace = "http://www.w3.org/2005/Atom"), Serializable]
     public class AtomEntry<T>
     {
