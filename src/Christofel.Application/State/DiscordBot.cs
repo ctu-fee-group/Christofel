@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.State
 {
-    public class DiscordBot : IBot
+    public class DiscordBot : IBot, IDisposable
     {
         private readonly ILogger<DiscordBot> _logger;
         private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
@@ -43,20 +43,25 @@ namespace Christofel.Application.State
         public async Task RunApplication(CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Running application");
+            CancellationTokenSource tokenSource = 
+                CancellationTokenSource.CreateLinkedTokenSource(_applicationRunningToken.Token, token);
             try
             {
-                CancellationTokenSource tokenSource = 
-                    CancellationTokenSource.CreateLinkedTokenSource(_applicationRunningToken.Token, token);
                 await Task.Delay(-1, tokenSource.Token);
             }
-            catch (OperationCanceledException) {}
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                tokenSource.Dispose();
+            }
             
             _lifetime.RequestStop();
             if (_lifetime.State < LifetimeState.Destroyed)
             {
                 _logger.LogInformation("Going to wait for Christofel to stop. If the app hangs, just kill it");
-                CancellationTokenSource tokenSource = new CancellationTokenSource();
-                await _lifetime.WaitForAsync(LifetimeState.Destroyed, tokenSource.Token);
+                await _lifetime.WaitForAsync(LifetimeState.Destroyed, default);
                     // Await destroyed at all costs
                     // If the application is not exiting, the user can just kill it
             }
@@ -91,6 +96,11 @@ namespace Christofel.Application.State
             await Client.StartAsync();
 
             return Client;
+        }
+
+        public void Dispose()
+        {
+            _applicationRunningToken.Dispose();
         }
     }
 }

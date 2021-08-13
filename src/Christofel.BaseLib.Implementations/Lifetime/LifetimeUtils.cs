@@ -23,8 +23,19 @@ namespace Christofel.BaseLib.Lifetime
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(timeout);
 
-            return WaitForAsync(lifetime, state,
-                CancellationTokenSource.CreateLinkedTokenSource(token, tokenSource.Token).Token);
+            CancellationTokenSource cancellationTokenSource =
+                CancellationTokenSource.CreateLinkedTokenSource(token, tokenSource.Token);
+
+            try
+            {
+                return WaitForAsync(lifetime, state,
+                    cancellationTokenSource.Token);
+            }
+            finally
+            {
+                tokenSource.Dispose();
+                cancellationTokenSource.Dispose();
+            }
         }
 
         /// <summary>
