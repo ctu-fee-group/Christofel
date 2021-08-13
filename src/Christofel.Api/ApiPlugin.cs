@@ -53,6 +53,9 @@ namespace Christofel.Api
                 .ConfigureServices(services =>
                 {
                     services
+                        .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific);
+                    
+                    services
                         .AddDiscordState(state)
                         .AddChristofelDatabase(state)
                         .Configure<BotOptions>(state.Configuration.GetSection("Bot"));
