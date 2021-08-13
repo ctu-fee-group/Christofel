@@ -100,7 +100,7 @@ namespace Christofel.BaseLib.Plugins
 
         protected virtual async Task InitAsync(CancellationToken token = new CancellationToken())
         {
-            if (!VerifyStateAndIncrement(LifetimeState.Startup))
+            if (!LifetimeHandler.MoveToIfPrevious(LifetimeState.Initializing))
             {
                 return;
             }
@@ -115,6 +115,7 @@ namespace Christofel.BaseLib.Plugins
                 Services = BuildServices(serviceCollection);
 
                 await InitializeServices(Services, token);
+                await InternalInitAsync(token);
             }
             catch (Exception e)
             {
@@ -122,7 +123,7 @@ namespace Christofel.BaseLib.Plugins
                 throw;
             }
 
-            VerifyStateAndIncrement(LifetimeState.Initializing);
+            LifetimeHandler.MoveToIfPrevious(LifetimeState.Initialized);
         }
         
         /// <summary>
@@ -141,22 +142,38 @@ namespace Christofel.BaseLib.Plugins
         /// Runs needed services from Startable
         /// </summary>
         /// <param name="token"></param>
-        public virtual async Task RunAsync(CancellationToken token = new CancellationToken())
+        public virtual  Task RunAsync(CancellationToken token = new CancellationToken())
         {
-            if (!VerifyStateAndIncrement(LifetimeState.Initialized))
+            return RunAsync(true, Startable, token);
+        }
+
+        /// <summary>
+        /// Runs needed services from Startable
+        /// </summary>
+        /// <param name="startables"></param>
+        /// <param name="token"></param>
+        /// <param name="handleLifetime"></param>
+        protected virtual async Task RunAsync(bool handleLifetime, IEnumerable<IStartable> startables, CancellationToken token = new CancellationToken())
+        {
+            if (handleLifetime)
             {
-                return;
+                if (!LifetimeHandler.MoveToIfPrevious(LifetimeState.Starting))
+                {
+                    return;
+                }
             }
 
             token.ThrowIfCancellationRequested();
 
             try
             {
-                foreach (IStartable startable in Startable)
+                foreach (IStartable startable in startables)
                 {
                     token.ThrowIfCancellationRequested();
                     await startable.StartAsync(token);
                 }
+                
+                await InternalRunAsync(token);
             }
             catch (Exception e)
             {
@@ -164,9 +181,12 @@ namespace Christofel.BaseLib.Plugins
                 throw;
             }
 
-            VerifyStateAndIncrement(LifetimeState.Starting);
+            if (handleLifetime)
+            {
+                LifetimeHandler.MoveToIfPrevious(LifetimeState.Running);
+            }
         }
-
+        
         /// <summary>
         /// Stops needed services from Stoppable
         /// </summary>
@@ -174,18 +194,16 @@ namespace Christofel.BaseLib.Plugins
         /// <exception cref="AggregateException"></exception>
         public virtual async Task StopAsync(CancellationToken token = new CancellationToken())
         {
-            if (!VerifyStateAndIncrement(LifetimeState.Running) && !LifetimeHandler.IsErrored)
+            if (!LifetimeHandler.MoveToIfPrevious(LifetimeState.Stopping) && !LifetimeHandler.IsErrored)
             {
                 return;
             }
-
-            if (LifetimeHandler.IsErrored)
-            {
-                LifetimeHandler.MoveToState(LifetimeState.Stopping);
-            }
+            
+            LifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
             
             token.ThrowIfCancellationRequested();
             List<Exception> exceptions = new List<Exception>();
+
             foreach (IStoppable stoppable in Stoppable)
             {
                 try
@@ -198,17 +216,23 @@ namespace Christofel.BaseLib.Plugins
                     LifetimeHandler.MoveToError(e);
                 }
             }
+            
+            try
+            {
+                await InternalStopAsync(token);
+            }
+            catch (Exception e)
+            {
+                exceptions.Add(e);
+                LifetimeHandler.MoveToError(e);
+            }
 
             if (exceptions.Count > 0)
             {
                 throw new AggregateException(exceptions);
             }
 
-            VerifyStateAndIncrement(LifetimeState.Stopping);
-            if (LifetimeHandler.IsErrored)
-            {
-                LifetimeHandler.MoveToState(LifetimeState.Stopped);
-            }
+            LifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
         }
 
         /// <summary>
@@ -230,6 +254,7 @@ namespace Christofel.BaseLib.Plugins
                 {
                     await refreshable.RefreshAsync(token);
                 }
+                await InternalRefreshAsync(token);
             }
             catch (Exception e)
             {
@@ -248,6 +273,7 @@ namespace Christofel.BaseLib.Plugins
             try
             {
                 await DestroyServices(Services, token);
+                await InternalDestroyAsync(token);
             }
             catch (Exception e)
             {
@@ -255,39 +281,64 @@ namespace Christofel.BaseLib.Plugins
                 throw;
             }
 
-            if (Lifetime.State < LifetimeState.Stopping)
-            {
-                LifetimeHandler.MoveToState(LifetimeState.Stopping);
-            }
-            
-            if (Lifetime.State < LifetimeState.Stopped)
-            {
-                LifetimeHandler.MoveToState(LifetimeState.Stopped);
-            }
-            
-            if (Lifetime.State < LifetimeState.Destroyed)
-            {
-                LifetimeHandler.MoveToState(LifetimeState.Destroyed);
-            }
+            LifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
+            LifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
+            LifetimeHandler.MoveToIfLower(LifetimeState.Destroyed);
         }
 
         /// <summary>
-        /// Verifies if the state is expected,
-        /// if it is, increments it and returns true
-        ///
-        /// If it isn't, just return false
+        /// Called on end of init
+        /// to do internal init
         /// </summary>
-        /// <param name="expected"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        protected virtual bool VerifyStateAndIncrement(LifetimeState expected)
+        protected virtual Task InternalInitAsync(CancellationToken token = default)
         {
-            if (LifetimeHandler.Lifetime.State != expected)
-            {
-                return false;
-            }
+            return Task.CompletedTask;
+        }
 
-            LifetimeHandler.NextState();
-            return true;
+        /// <summary>
+        /// Called on end of starting
+        /// to start internal features
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected virtual Task InternalRunAsync(CancellationToken token = default)
+        {
+            return Task.CompletedTask;
+        }
+        
+        /// <summary>
+        /// Called on end of refreshing
+        /// to refresh internal features
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected virtual Task InternalRefreshAsync(CancellationToken token = default)
+        {
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Called on end of stopping
+        /// to stop internal features
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected virtual Task InternalStopAsync(CancellationToken token = default)
+        {
+            return Task.CompletedTask;
+        }
+        
+        /// <summary>
+        /// Called on end of destroyal
+        /// to destroy internal features
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected virtual Task InternalDestroyAsync(CancellationToken token = default)
+        {
+            return Task.CompletedTask;
         }
 
         /// <summary>
