@@ -34,9 +34,9 @@ namespace Christofel.Api.Ctu.Steps.Roles
 
         private class RoleEqualityComparer : IEqualityComparer<CtuAuthRole>
         {
-            public bool Equals(CtuAuthRole x, CtuAuthRole y)
+            public bool Equals(CtuAuthRole? x, CtuAuthRole? y)
             {
-                return x.RoleId == y.RoleId;
+                return x?.RoleId == y?.RoleId;
             }
 
             public int GetHashCode(CtuAuthRole obj)
