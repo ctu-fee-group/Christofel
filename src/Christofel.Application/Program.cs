@@ -34,6 +34,8 @@ namespace Christofel.Application
                 await application.InitAsync();
                 await application.RunAsync(); // blocks until Bot.QuitBot is called
 
+                await application.RunBlockAsync();
+
                 shouldExit = true;
                 exitEvent.Set();
                 Console.WriteLine("Goodbye!");

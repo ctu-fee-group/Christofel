@@ -40,7 +40,7 @@ namespace Christofel.Application
 {
     public delegate Task RefreshChristofel(CancellationToken token);
     
-    public class ChristofelApp : DIPlugin
+    public class ChristofelApp : DIPlugin, IStartable, IRefreshable, IStoppable
     {
         private ILogger<ChristofelApp>? _logger;
         private IConfigurationRoot _configuration;
@@ -73,6 +73,7 @@ namespace Christofel.Application
         {
             get
             {
+                yield return this;
                 yield return Services.GetRequiredService<PluginService>();
                 yield return Services.GetRequiredService<CommandsRegistrator>();
             }
@@ -82,6 +83,7 @@ namespace Christofel.Application
         {
             get
             {
+                yield return this;
                 yield return Services.GetRequiredService<PluginService>();
                 yield return Services.GetRequiredService<InteractionHandler>();
                 yield return Services.GetRequiredService<CommandsRegistrator>();
@@ -89,6 +91,17 @@ namespace Christofel.Application
         }
 
         protected override IEnumerable<IStartable> Startable
+        {
+            get
+            {
+                yield return this;
+            }
+        }
+
+        /// <summary>
+        /// Start after Ready event was received
+        /// </summary>
+        private IEnumerable<IStartable> DeferStartable
         {
             get
             {
@@ -167,39 +180,12 @@ namespace Christofel.Application
             return base.InitAsync(new CancellationToken());
         }
 
-        public override async Task RunAsync(CancellationToken token = new CancellationToken())
+        public Task RunBlockAsync(CancellationToken token = default)
         {
-            _logger.LogInformation("Starting Christofel");
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
-            
-            bot.Client.Ready += HandleReady;
-
-            DiscordNetLog loggerForward = Services.GetRequiredService<DiscordNetLog>();
-            loggerForward.RegisterEvents(bot.Client);
-            loggerForward.RegisterEvents(bot.Client.Rest);
-            
-            await bot.StartBotAsync(token);
-            await bot.RunApplication(
+            return bot.RunApplication(
                 CancellationTokenSource
-                    .CreateLinkedTokenSource(Lifetime.Stopped, token).Token); 
-                // Blocking, ChristofelApp is the only exception
-                // that has RunAsync blocking as it's the base entry point.
-        }
-
-        public override Task RefreshAsync(CancellationToken token = new CancellationToken())
-        {
-            _logger.LogInformation("Refreshing Christofel");
-            _configuration.Reload();
-            return base.RefreshAsync(token);
-        }
-
-        public override async Task StopAsync(CancellationToken token = new CancellationToken())
-        {
-            _logger.LogInformation("Stopping Christofel");
-            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
-            bot.Client.Ready -= HandleReady;
-
-            await base.StopAsync(token);
+                    .CreateLinkedTokenSource(Lifetime.Stopped, token).Token);
         }
 
         public override async Task DestroyAsync(CancellationToken token = new CancellationToken())
@@ -207,14 +193,11 @@ namespace Christofel.Application
             foreach (DiscordLoggerProvider provider in Services.GetRequiredService<IEnumerable<ILoggerProvider>>()
                 .OfType<DiscordLoggerProvider>())
             {
-                provider.Dispose();
+                provider.Dispose(); // Log all messages
             }
             
-            // Log all messages
-            
-            // Stop bot before disposing
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
-            await bot.StopBot(token);
+            await bot.StopBot(token); // Stop bot before disposing
             await base.DestroyAsync(token);
         }
 
@@ -226,7 +209,7 @@ namespace Christofel.Application
                 {
                     try
                     {
-                        await base.RunAsync(_lifetimeHandler.Lifetime.Stopped);
+                        await base.RunAsync(false, DeferStartable, _lifetimeHandler.Lifetime.Stopped);
                         _logger.LogInformation("Christofel is ready!");
                     }
                     catch (Exception e)
@@ -238,6 +221,35 @@ namespace Christofel.Application
                 _running = true;
             }
             
+            return Task.CompletedTask;
+        }
+        
+        Task IStartable.StartAsync(CancellationToken token)
+        {
+            _logger.LogInformation("Starting Christofel");
+            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
+            
+            bot.Client.Ready += HandleReady;
+
+            DiscordNetLog loggerForward = Services.GetRequiredService<DiscordNetLog>();
+            loggerForward.RegisterEvents(bot.Client);
+            loggerForward.RegisterEvents(bot.Client.Rest);
+
+            return bot.StartBotAsync(token);
+        }
+        
+        Task IRefreshable.RefreshAsync(CancellationToken token)
+        {
+            _logger.LogInformation("Refreshing Christofel");
+            _configuration.Reload();
+            return Task.CompletedTask;
+        }
+        
+        Task IStoppable.StopAsync(CancellationToken token)
+        {
+            _logger.LogInformation("Stopping Christofel");
+            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
+            bot.Client.Ready -= HandleReady;
             return Task.CompletedTask;
         }
     }
