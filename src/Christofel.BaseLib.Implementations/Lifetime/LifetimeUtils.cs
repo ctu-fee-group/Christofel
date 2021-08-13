@@ -17,7 +17,7 @@ namespace Christofel.BaseLib.Lifetime
         /// <param name="state"></param>
         /// <param name="timeout"></param>
         /// <returns></returns>
-        public static Task<bool> WaitForAsync(this ILifetime lifetime, LifetimeState state, int timeout,
+        public static async Task<bool> WaitForAsync(this ILifetime lifetime, LifetimeState state, int timeout,
             CancellationToken token = default)
         {
             CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -28,7 +28,7 @@ namespace Christofel.BaseLib.Lifetime
 
             try
             {
-                return WaitForAsync(lifetime, state,
+                return await WaitForAsync(lifetime, state,
                     cancellationTokenSource.Token);
             }
             finally
