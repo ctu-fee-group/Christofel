@@ -98,7 +98,10 @@ namespace Christofel.Api.Ctu
             {
                 assignJob.User.RemoveRolesAsync(assignJob.RemoveRoles.Select(x => x.RoleId).Distinct(),
                     new RequestOptions() { CancelToken = _pluginLifetime.Stopping });
-                assignJob.User.AddRolesAsync(assignJob.AddRoles.Select(x => x.RoleId).Distinct(),
+                assignJob.User.AddRolesAsync(assignJob.AddRoles
+                        .Select(x => x.RoleId)
+                        .Except(assignJob.User.RoleIds)
+                        .Distinct(),
                     new RequestOptions() { CancelToken = _pluginLifetime.Stopping });
             }
             catch (Exception e)
