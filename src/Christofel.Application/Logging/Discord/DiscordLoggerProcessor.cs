@@ -84,7 +84,7 @@ namespace Christofel.Application.Logging.Discord
             {
                 foreach (string part in entry.Message.Chunk(2000))
                 {
-                    channel.SendMessageAsync(part).GetAwaiter().GetResult();
+                    channel.SendMessageAsync(part, allowedMentions: AllowedMentions.None).GetAwaiter().GetResult();
                 }
             }
             else
