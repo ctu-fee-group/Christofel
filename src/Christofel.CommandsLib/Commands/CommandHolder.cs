@@ -31,7 +31,7 @@ namespace Christofel.CommandsLib.Commands
             {
                 lock (_commandsLock)
                 {
-                    return _commands.ToImmutableArray();
+                    return new List<ICommandHolder.HeldSlashCommand>(_commands);
                 }
             }
         }

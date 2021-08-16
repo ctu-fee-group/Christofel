@@ -33,7 +33,7 @@ namespace Christofel.Application.State
             {
                 lock (_threadLock)
                 {
-                    return _permissions.ToImmutableList();
+                    return new List<IPermission>(_permissions);
                 }
             }
         }

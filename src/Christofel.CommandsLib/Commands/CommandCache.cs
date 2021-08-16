@@ -44,7 +44,7 @@ namespace Christofel.CommandsLib.Commands
                 guildCommands = (await _client.GetGuildApplicationCommands(guildId,
                         options: new RequestOptions() {CancelToken = token}))
                     .Where(x => x.ApplicationId == applicationId)
-                    .ToImmutableList();
+                    .ToList();
                 _cachedGuildCommands.TryAdd(guildId, guildCommands);
             }
 
@@ -58,7 +58,7 @@ namespace Christofel.CommandsLib.Commands
                 ulong applicationId = await GetApplicationId(token);
                 _cachedGlobalCommands =
                     (await _client.GetGlobalApplicationCommands(options: new RequestOptions() {CancelToken = token}))
-                        .Where(x => x.ApplicationId == applicationId).ToImmutableList();
+                        .Where(x => x.ApplicationId == applicationId).ToList();
             }
 
             return _cachedGlobalCommands;

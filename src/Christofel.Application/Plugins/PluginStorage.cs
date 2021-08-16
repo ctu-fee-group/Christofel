@@ -27,7 +27,7 @@ namespace Christofel.Application.Plugins
             {
                 lock (_pluginsLock)
                 {
-                    return _attachedPlugins.ToImmutableList();
+                    return new List<AttachedPlugin>(_attachedPlugins);
                 }
             }
         }
@@ -38,7 +38,7 @@ namespace Christofel.Application.Plugins
             {
                 lock (_pluginsLock)
                 {
-                    return _detachedPlugins.ToImmutableList();
+                    return new List<DetachedPlugin>(_detachedPlugins);
                 }
             }
         }
