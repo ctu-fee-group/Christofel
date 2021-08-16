@@ -48,11 +48,26 @@ namespace Christofel.BaseLib.Extensions
         public static IQueryable<PermissionAssignment> WhereTargetAnyOf(this IQueryable<PermissionAssignment> assignmentQuery,
             IEnumerable<DiscordTarget> targets)
         {
-            DiscordTarget[]? discordTargets = targets as DiscordTarget[] ?? targets.ToArray();
-            IEnumerable<ulong> roles = discordTargets.Where(x => x.TargetType == TargetType.Role).Select(x => x.DiscordId);
-            IEnumerable<ulong> users = discordTargets.Where(x => x.TargetType == TargetType.User).Select(x => x.DiscordId);
-            bool everyone = discordTargets.Any(x => x.TargetType == TargetType.Everyone);
+            bool everyone = false;
+            List<ulong> roles = new List<ulong>();
+            List<ulong> users = new List<ulong>();
 
+            foreach (DiscordTarget target in targets)
+            {
+                switch (target.TargetType)
+                {
+                    case TargetType.Everyone:
+                        everyone = true;
+                        break;
+                    case TargetType.Role:
+                        roles.Add(target.DiscordId);
+                        break;
+                    case TargetType.User:
+                        users.Add(target.DiscordId);
+                        break;
+                }
+            }
+            
             return assignmentQuery
                 .Where(x => (everyone && x.Target.TargetType == TargetType.Everyone) ||
                             (x.Target.TargetType == TargetType.Role && roles.Contains(x.Target.DiscordId)) ||
