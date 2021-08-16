@@ -195,8 +195,13 @@ namespace Christofel.Api.GraphQL.Authentication
             VerifyRegistrationCodeInput input,
             [ScopedService] IReadableDbContext dbContext)
         {
-            DbUser? user = await dbContext.Set<DbUser>()
-                .FirstOrDefaultAsync(x => x.RegistrationCode == input.RegistrationCode);
+            DbUser? user = null;
+
+            if (!string.IsNullOrEmpty(input.RegistrationCode))
+            {
+                user = await dbContext.Set<DbUser>()
+                    .FirstOrDefaultAsync(x => x.RegistrationCode == input.RegistrationCode);
+            }
 
             RegistrationCodeVerification verificationStage;
             if (user == null)
