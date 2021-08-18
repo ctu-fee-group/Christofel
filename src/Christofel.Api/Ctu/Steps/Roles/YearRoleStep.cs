@@ -36,7 +36,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
                                                                  throw new InvalidOperationException(
                                                                      "CtuUsername is null"), token: data.CancellationToken);
 
-            KosLoadableEntity<KosStudent>? studentLoadable = kosPerson?.Roles.Students.FirstOrDefault();
+            AtomLoadableEntity<KosStudent>? studentLoadable = kosPerson?.Roles.Students.FirstOrDefault();
             if (studentLoadable is not null)
             {
                 KosStudent? student = await kosApi.LoadEntityAsync(studentLoadable);
@@ -86,7 +86,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
         }
 
         private async Task<int> ObtainFurthestStudentSameType(AuthorizedKosApi kosApi, KosStudent student,
-            IEnumerable<KosLoadableEntity<KosStudent>>? studentLoadables, KosProgrammeType programmeType)
+            IEnumerable<AtomLoadableEntity<KosStudent>>? studentLoadables, KosProgrammeType programmeType)
         {
             int minYear = student.StartDate.Year;
 
@@ -95,7 +95,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
                 return minYear;
             }
             
-            foreach (KosLoadableEntity<KosStudent> studentLoadable in studentLoadables)
+            foreach (AtomLoadableEntity<KosStudent> studentLoadable in studentLoadables)
             {
                 KosStudent? currentStudent = await kosApi.LoadEntityAsync(studentLoadable);
 
