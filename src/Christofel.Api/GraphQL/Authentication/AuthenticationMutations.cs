@@ -115,35 +115,13 @@ namespace Christofel.Api.GraphQL.Authentication
             [Service] CtuAuthProcess ctuAuthProcess,
             CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(input.RegistrationCode))
-            {
-                return new RegisterCtuPayload(new UserError("Specified registration code is not valid"));
-            }
-
-            DbUser? dbUser = await dbContext.Users
-                .AsQueryable()
-                .Where(x => x.AuthenticatedAt == null)
-                .FirstOrDefaultAsync(x => x.RegistrationCode == input.RegistrationCode, cancellationToken);
+            DbUser? dbUser = await GetUserByRegistrationCode(input.RegistrationCode, dbContext, cancellationToken);
 
             if (dbUser == null)
             {
-                _logger.LogWarning(
-                    $"User trying to register was not found in the database.");
                 return new RegisterCtuPayload(
                     new UserError(
                         $"Specified registration code is not valid"));
-            }
-
-            RestGuildUser? guildUser = await _botClient.Rest.GetGuildUserAsync(_botOptions.GuildId, dbUser.DiscordId,
-                new RequestOptions() { CancelToken = cancellationToken });
-
-            if (guildUser == null)
-            {
-                _logger.LogWarning(
-                    $"User trying to register using CTU is not on the server (discord id: {dbUser.DiscordId}, user id: {dbUser.UserId}).");
-                return new RegisterCtuPayload(
-                    new UserError(
-                        $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?"));
             }
 
             OauthResponse response =
@@ -161,47 +139,57 @@ namespace Christofel.Api.GraphQL.Authentication
                 throw new InvalidOperationException("Could not obtain success response from oauth");
             }
 
-            using (_logger.BeginScope($"CTU Registration of user ({guildUser} - {dbUser.DiscordId} - {dbUser.UserId})"))
+            return await HandleRegistration(response.SuccessResponse.AccessToken, dbContext, dbUser, ctuOauthHandler,
+                ctuAuthProcess, cancellationToken);
+        }
+
+        /// <summary>
+        /// Register using CTU using access token. If you want to use oauth2, use registerCtu mutation.
+        /// This should be second and last step of registration.
+        /// The first step is to register using Discord (registerDiscord).
+        /// </summary>
+        /// <param name="input">Input of the mutation</param>
+        /// <param name="dbContext">Context with user information</param>
+        /// <param name="ctuOauthHandler">Handler for obtaining access token</param>
+        /// <param name="ctuAuthProcess"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [UseChristofelBaseDatabase]
+        public async Task<RegisterCtuPayload> RegisterCtuTokenAsync(
+            RegisterCtuTokenInput input,
+            [ScopedService] ChristofelBaseContext dbContext,
+            [Service] CtuOauthHandler ctuOauthHandler,
+            [Service] CtuAuthProcess ctuAuthProcess,
+            CancellationToken cancellationToken)
+        {
+            DbUser? dbUser = await GetUserByRegistrationCode(input.RegistrationCode, dbContext, cancellationToken);
+
+            if (dbUser == null)
             {
-                try
-                {
-                    await ctuAuthProcess.FinishAuthAsync(response.SuccessResponse.AccessToken, ctuOauthHandler,
-                        dbContext,
-                        dbUser, guildUser, cancellationToken);
-                    return new RegisterCtuPayload(dbUser);
-                }
-                catch (UserException e)
-                {
-                    _logger.LogError(e, "Could not register user using CTU, sending him the error");
-                    return new RegisterCtuPayload(new UserError(e.Message));
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Could not register user using CTU, exception is not sent to the user");
-                    return new RegisterCtuPayload(new UserError("Unspecified error"));
-                }
+                return new RegisterCtuPayload(
+                    new UserError(
+                        $"Specified registration code is not valid"));
             }
+
+            return await HandleRegistration(input.AccessToken, dbContext, dbUser, ctuOauthHandler, ctuAuthProcess,
+                cancellationToken);
         }
 
         /// <summary>
         /// Verify specified registration code to know what stage
         /// of registration should be used (registerDiscord or registerCtu)
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="input">Input of the mutation</param>
         /// <param name="dbContext"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         [UseReadOnlyChristofelBaseDatabase]
         public async Task<VerifyRegistrationCodePayload> VerifyRegistrationCodeAsync(
             VerifyRegistrationCodeInput input,
-            [ScopedService] IReadableDbContext dbContext)
+            [ScopedService] IReadableDbContext dbContext,
+            CancellationToken cancellationToken)
         {
-            DbUser? user = null;
-
-            if (!string.IsNullOrEmpty(input.RegistrationCode))
-            {
-                user = await dbContext.Set<DbUser>()
-                    .FirstOrDefaultAsync(x => x.RegistrationCode == input.RegistrationCode);
-            }
+            DbUser? user = await GetUserByRegistrationCode(input.RegistrationCode, dbContext, cancellationToken);
 
             RegistrationCodeVerification verificationStage;
             if (user == null)
@@ -222,6 +210,67 @@ namespace Christofel.Api.GraphQL.Authentication
             }
 
             return new VerifyRegistrationCodePayload(verificationStage);
+        }
+        
+        
+        private async Task<DbUser?> GetUserByRegistrationCode(string registrationCode, IReadableDbContext dbContext,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrEmpty(registrationCode))
+            {
+                return null;
+            }
+
+            DbUser? dbUser = await dbContext.Set<DbUser>()
+                .AsQueryable()
+                .Where(x => x.AuthenticatedAt == null)
+                .FirstOrDefaultAsync(x => x.RegistrationCode == registrationCode, cancellationToken);
+
+            if (dbUser == null)
+            {
+                _logger.LogWarning(
+                    $"User trying to register was not found in the database.");
+            }
+
+            return dbUser;
+        }
+
+        private async Task<RegisterCtuPayload> HandleRegistration(string accessToken, ChristofelBaseContext dbContext,
+            DbUser dbUser, CtuOauthHandler ctuOauthHandler, CtuAuthProcess ctuAuthProcess,
+            CancellationToken cancellationToken)
+        {
+            RestGuildUser? guildUser = await _botClient.Rest.GetGuildUserAsync(_botOptions.GuildId, dbUser.DiscordId,
+                new RequestOptions() { CancelToken = cancellationToken });
+
+            if (guildUser == null)
+            {
+                _logger.LogWarning(
+                    $"User trying to register using CTU is not on the server (discord id: {dbUser.DiscordId}, user id: {dbUser.UserId}).");
+                return new RegisterCtuPayload(
+                    new UserError(
+                        $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?"));
+            }
+
+            using (_logger.BeginScope($"CTU Registration of user ({guildUser} - {dbUser.DiscordId} - {dbUser.UserId})"))
+            {
+                try
+                {
+                    await ctuAuthProcess.FinishAuthAsync(accessToken, ctuOauthHandler,
+                        dbContext,
+                        dbUser, guildUser, cancellationToken);
+                    return new RegisterCtuPayload(dbUser);
+                }
+                catch (UserException e)
+                {
+                    _logger.LogError(e, "Could not register user using CTU, sending him the error");
+                    return new RegisterCtuPayload(new UserError(e.Message));
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Could not register user using CTU, exception is not sent to the user");
+                    return new RegisterCtuPayload(new UserError("Unspecified error"));
+                }
+            }
         }
     }
 }
