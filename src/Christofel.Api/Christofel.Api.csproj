@@ -30,9 +30,9 @@
             <Private>false</Private>
             <ExcludeAssets>runtime</ExcludeAssets>
         </ProjectReference>
+        <ProjectReference Include="..\..\libs\kos-api\src\Kos\Kos.csproj" />
         <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
-      <ProjectReference Include="..\Kos\Kos.csproj" />
       <ProjectReference Include="..\Usermap\Usermap.csproj" />
     </ItemGroup>
 
