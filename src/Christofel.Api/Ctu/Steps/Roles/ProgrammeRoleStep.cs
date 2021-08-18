@@ -31,9 +31,9 @@ namespace Christofel.Api.Ctu.Steps.Roles
             // Support for obtaining programmes from usermap could be done, but would be difficult
 
             AuthorizedKosApi kosApi = _kosApi.GetAuthorizedApi(data.AccessToken);
-            KosPerson? kosPerson = await kosApi.People.GetPerson(data.DbUser.CtuUsername ??
+            KosPerson? kosPerson = await kosApi.People.GetPersonAsync(data.DbUser.CtuUsername ??
                                                              throw new InvalidOperationException(
-                                                                 "CtuUsername is null"));
+                                                                 "CtuUsername is null"), token: data.CancellationToken);
 
             KosLoadableEntity<KosStudent>? studentLoadable = kosPerson?.Roles.Students.FirstOrDefault();
             if (studentLoadable is not null)
