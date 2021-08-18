@@ -76,7 +76,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
         private async Task<Titles?> GetUsermapTitles(string accessToken, string username, CancellationToken token)
         {
             AuthorizedUsermapApi usermapApi = _usermapApi.GetAuthorizedApi(accessToken);
-            UsermapPerson? person = await usermapApi.People.GetPersonAsync(username, token);
+            UsermapPerson? person = await usermapApi.People.GetPersonAsync(username, token: token);
 
             if (person?.FullName is null)
             {

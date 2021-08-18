@@ -37,7 +37,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
             }
 
             UsermapPerson? person =
-                await usermapApi.People.GetPersonAsync(data.DbUser.CtuUsername, data.CancellationToken);
+                await usermapApi.People.GetPersonAsync(data.DbUser.CtuUsername, token: data.CancellationToken);
 
             if (person is null)
             {

@@ -4,3 +4,6 @@
 [submodule "libs/kos-api"]
 	path = libs/kos-api
 	url = https://github.com/ctu-fee-group/kos-api.git
+[submodule "libs/usermap-api"]
+	path = libs/usermap-api
+	url = https://github.com/ctu-fee-group/usermap-api.git
