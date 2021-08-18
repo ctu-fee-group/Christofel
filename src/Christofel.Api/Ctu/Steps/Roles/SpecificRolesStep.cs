@@ -76,7 +76,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
         private async Task<bool> IsTeacherAsync(string username, string accessToken, CancellationToken token = default)
         {
             KosPerson? person = await _kosApi.GetAuthorizedApi(accessToken)
-                .People.GetPerson(username, token);
+                .People.GetPersonAsync(username, token: token);
 
             return person?.Roles?.Teacher != null;
         }

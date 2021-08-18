@@ -68,7 +68,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
         private async Task<Titles?> GetKosTitles(string accessToken, string username, CancellationToken token)
         {
             AuthorizedKosApi kosApi = _kosApi.GetAuthorizedApi(accessToken);
-            KosPerson? person = await kosApi.People.GetPerson(username, token);
+            KosPerson? person = await kosApi.People.GetPersonAsync(username, token: token);
 
             return CreateTitles(person?.TitlesPre, person?.TitlesPost);
         }
