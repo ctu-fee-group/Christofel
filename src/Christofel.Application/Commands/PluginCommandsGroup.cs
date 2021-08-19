@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,13 +9,11 @@ using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.CommandsInfo;
-using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.HandlerCreator;
-using Christofel.CommandsLib.Handlers;
 using Discord;
+using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.CommandsInfo;
+using Discord.Net.Interactions.Executors;
+using Discord.Net.Interactions.HandlerCreator;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,7 +23,7 @@ namespace Christofel.Application.Commands
     /// <summary>
     /// Handler of /plugin attach, detach, reattach, list, check commands
     /// </summary>
-    public class PluginCommands : ICommandGroup
+    public class PluginCommands : IChristofelCommandGroup
     {
         private delegate Task PluginDelegate(SocketSlashCommand command, string pluginName, CancellationToken token);
 
@@ -35,10 +32,10 @@ namespace Christofel.Application.Commands
         private readonly BotOptions _options;
         private readonly PluginStorage _storage;
         private readonly ILogger<PluginCommands> _logger;
-        private readonly IPermissionsResolver _resolver;
+        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
 
         public PluginCommands(
-            IPermissionsResolver resolver,
+            ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             IChristofelState state,
             PluginService plugins,
             IOptions<BotOptions> options,
@@ -269,7 +266,7 @@ namespace Christofel.Application.Commands
                 .WithType(ApplicationCommandOptionType.SubCommand);
         }
         
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
         {
             SubCommandHandlerCreator creator = new SubCommandHandlerCreator();
             SlashCommandHandler handler = creator.CreateHandlerForCommand(
@@ -279,7 +276,7 @@ namespace Christofel.Application.Commands
                 ("list", (CommandDelegate) HandleList),
                 ("check", (CommandDelegate) HandleCheck));
 
-            SlashCommandInfoBuilder pluginBuilder = new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder pluginBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("application.plugins.control")
                 .WithGuild(_options.GuildId)
                 .WithHandler(handler)
@@ -292,14 +289,14 @@ namespace Christofel.Application.Commands
                     .AddOption(GetCheckSubcommandBuilder())
                     .AddOption(GetListSubcommandBuilder()));
 
-            ICommandExecutor executor = new CommandExecutorBuilder()
+            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
-                .WithPermissionsCheck(_resolver)
+                .WithPermissionCheck(_resolver)
                 .WithDeferMessage()
                 .WithThreadPool()
                 .Build();
 
-            holder.AddCommand(pluginBuilder, executor);
+            holder.AddCommand(pluginBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

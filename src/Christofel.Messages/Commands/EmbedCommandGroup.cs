@@ -3,25 +3,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Permissions;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.CommandsInfo;
-using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.HandlerCreator;
-using Christofel.CommandsLib.Verifier;
-using Christofel.CommandsLib.Verifier.Interfaces;
-using Christofel.CommandsLib.Verifier.Verifiers;
+using Christofel.CommandsLib;
 using Christofel.Messages.Commands.Verifiers;
-using Christofel.Messages.Options;
 using Christofel.Messages.Services;
 using Discord;
+using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.CommandsInfo;
+using Discord.Net.Interactions.Executors;
+using Discord.Net.Interactions.HandlerCreator;
+using Discord.Net.Interactions.Verifier;
+using Discord.Net.Interactions.Verifier.Interfaces;
+using Discord.Net.Interactions.Verifier.Verifiers;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Christofel.Messages.Commands
 {
-    public class EmbedCommandGroup : ICommandGroup
+    public class EmbedCommandGroup : IChristofelCommandGroup
     {
         private class EmbedData : IHasMessageChannel, IHasMessageId, IHasUserMessage, IHasEmbed
         {
@@ -34,11 +33,11 @@ namespace Christofel.Messages.Commands
 
         private readonly ILogger<ReactCommandGroup> _logger;
         private readonly DiscordSocketClient _client;
-        private readonly IPermissionsResolver _resolver;
+        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
         private readonly BotOptions _options;
         private readonly EmbedsProvider _embeds;
 
-        public EmbedCommandGroup(ILogger<ReactCommandGroup> logger, IPermissionsResolver resolver,
+        public EmbedCommandGroup(ILogger<ReactCommandGroup> logger, ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             IOptions<BotOptions> options, EmbedsProvider embeds, DiscordSocketClient client)
         {
             _client = client;
@@ -306,11 +305,11 @@ namespace Christofel.Messages.Commands
         }
 
 
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
         {
-            ICommandExecutor executor = new CommandExecutorBuilder()
+            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
-                .WithPermissionsCheck(_resolver)
+                .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .Build();
 
@@ -324,7 +323,7 @@ namespace Christofel.Messages.Commands
                     ("msg delete", (CommandDelegate<IChannel?, string>) HandleDeleteEmbed)
                 );
 
-            SlashCommandInfoBuilder commandBuilder = new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder commandBuilder = new PermissionSlashInfoBuilder()
                 .WithHandler(handler)
                 .WithGuild(_options.GuildId)
                 .WithPermission("messages.embed")
@@ -334,7 +333,7 @@ namespace Christofel.Messages.Commands
                     .AddOption(GetFileSubcommandBuilder())
                     .AddOption(GetMsgSubcommandBuilder()));
 
-            holder.AddCommand(commandBuilder, executor);
+            holder.AddCommand(commandBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

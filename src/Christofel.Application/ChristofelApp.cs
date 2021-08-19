@@ -1,14 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Globalization;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices.ComTypes;
-using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Application.Assemblies;
 using Christofel.Application.Commands;
 using Christofel.Application.Logging;
 using Christofel.Application.Logging.Discord;
@@ -19,17 +13,13 @@ using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
-using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.Handlers;
-using Discord;
+using Christofel.CommandsLib;
+using Discord.Net.Interactions.DI;
 using Discord.Rest;
 using Discord.WebSocket;
-using Karambolo.Extensions.Logging.File;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,7 +65,7 @@ namespace Christofel.Application
             {
                 yield return this;
                 yield return Services.GetRequiredService<PluginService>();
-                yield return Services.GetRequiredService<CommandsRegistrator>();
+                yield return Services.GetRequiredService<InteractionsService>();
             }
         }
 
@@ -85,8 +75,8 @@ namespace Christofel.Application
             {
                 yield return this;
                 yield return Services.GetRequiredService<PluginService>();
-                yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<CommandsRegistrator>();
+                yield return Services.GetRequiredService<InteractionsService>();
+
             }
         }
 
@@ -106,8 +96,7 @@ namespace Christofel.Application
             get
             {
                 yield return Services.GetRequiredService<PluginAutoloader>();
-                yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<CommandsRegistrator>();
+                yield return Services.GetRequiredService<InteractionsService>();
             }
         }
 
@@ -160,11 +149,9 @@ namespace Christofel.Application
                 })
                 .AddSingleton<DiscordNetLog>()
                 // commands
-                .AddDefaultInteractionHandler(collection =>
-                    collection
-                        .AddCommandGroup<ControlCommands>()
-                        .AddCommandGroup<PluginCommands>()
-                    )
+                .AddChristofelInteractionService()
+                .AddCommandGroup<ControlCommands, PermissionSlashInfo>()
+                .AddCommandGroup<PluginCommands, PermissionSlashInfo>()
                 .AddSingleton<RefreshChristofel>(this.RefreshAsync);
         }
 

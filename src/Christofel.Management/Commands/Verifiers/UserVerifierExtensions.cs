@@ -1,8 +1,6 @@
-using System;
 using System.Threading.Tasks;
-using Christofel.CommandsLib.Verifier;
-using Christofel.CommandsLib.Verifier.Interfaces;
 using Discord;
+using Discord.Net.Interactions.Verifier;
 
 namespace Christofel.Management.Commands.Verifiers
 {

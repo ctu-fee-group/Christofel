@@ -6,11 +6,10 @@ using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.Handlers;
+using Christofel.CommandsLib;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
+using Discord.Net.Interactions.DI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -37,15 +36,18 @@ namespace Christofel.Management
 
         protected override IEnumerable<IRefreshable> Refreshable
         {
-            get { yield return Services.GetRequiredService<CommandsRegistrator>(); }
+            get
+            {
+                yield return Services.GetRequiredService<InteractionsService>();
+            }
         }
 
         protected override IEnumerable<IStoppable> Stoppable
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<CommandsRegistrator>();
+                yield return Services.GetRequiredService<InteractionsService>();
+
             }
         }
 
@@ -53,8 +55,7 @@ namespace Christofel.Management
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<CommandsRegistrator>();
+                yield return Services.GetRequiredService<InteractionsService>();
             }
         }
 
@@ -66,11 +67,9 @@ namespace Christofel.Management
                 .AddDiscordState(State)
                 .AddChristofelDatabase(State)
                 .AddSingleton<CtuIdentityResolver>()
-                .AddDefaultInteractionHandler(collection =>
-                    collection.AddCommandGroup<MessageCommandsGroup>()
-                        .AddCommandGroup<PermissionCommandsGroup>()
-                        .AddCommandGroup<UserCommandsGroup>()
-                )
+                .AddCommandGroup<MessageCommandsGroup, PermissionSlashInfo>()
+                .AddCommandGroup<PermissionCommandsGroup, PermissionSlashInfo>()
+                .AddCommandGroup<UserCommandsGroup, PermissionSlashInfo>()
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }

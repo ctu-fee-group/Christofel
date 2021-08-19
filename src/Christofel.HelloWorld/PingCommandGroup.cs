@@ -1,30 +1,24 @@
-using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.CommandsInfo;
-using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.HandlerCreator;
-using Christofel.CommandsLib.Handlers;
 using Discord;
+using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.Executors;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Christofel.HelloWorld
 {
-    public class PingCommandGroup : ICommandGroup
+    public class PingCommandGroup : IChristofelCommandGroup
     {
         private readonly BotOptions _options;
         private readonly ILogger<PingCommandGroup> _logger;
-        private readonly IPermissionsResolver _resolver;
+        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
 
         public PingCommandGroup(IOptions<BotOptions> options, ILogger<PingCommandGroup> logger,
-            IPermissionsResolver resolver)
+            ICommandPermissionsResolver<PermissionSlashInfo> resolver)
         {
             _resolver = resolver;
             _logger = logger;
@@ -37,14 +31,14 @@ namespace Christofel.HelloWorld
             return command.RespondAsync("Pong!", options: new RequestOptions {CancelToken = token});
         }
 
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
         {
-            ICommandExecutor executor = new CommandExecutorBuilder()
-                .WithPermissionsCheck(_resolver)
+            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+                .WithPermissionCheck(_resolver)
                 .WithLogger(_logger)
                 .Build();
 
-            SlashCommandInfoBuilder pingBuilder = new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder pingBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("helloworld.ping")
                 .WithGuild(_options.GuildId)
                 .WithHandler(HandlePing)
@@ -52,7 +46,7 @@ namespace Christofel.HelloWorld
                     .WithName("ping")
                     .WithDescription("Ping the bot"));
 
-            holder.AddCommand(pingBuilder, executor);
+            holder.AddCommand(pingBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

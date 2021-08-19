@@ -1,27 +1,24 @@
 using System;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Permissions;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.CommandsInfo;
-using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.HandlerCreator;
-using Christofel.CommandsLib.Verifier;
-using Christofel.CommandsLib.Verifier.Interfaces;
-using Christofel.CommandsLib.Verifier.Verifiers;
+using Christofel.CommandsLib;
 using Discord;
-using Discord.Net;
-using Discord.Rest;
+using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.CommandsInfo;
+using Discord.Net.Interactions.Executors;
+using Discord.Net.Interactions.HandlerCreator;
+using Discord.Net.Interactions.Verifier;
+using Discord.Net.Interactions.Verifier.Interfaces;
+using Discord.Net.Interactions.Verifier.Verifiers;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Christofel.Messages.Commands
 {
-    public class EchoCommandGroup : ICommandGroup
+    public class EchoCommandGroup : IChristofelCommandGroup
     {
         private class EchoData : IHasMessageChannel, IHasMessageId, IHasUserMessage
         {
@@ -31,11 +28,11 @@ namespace Christofel.Messages.Commands
         }
 
         private readonly ILogger<ReactCommandGroup> _logger;
-        private readonly IPermissionsResolver _resolver;
+        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
         private readonly BotOptions _options;
         private readonly DiscordSocketClient _client;
 
-        public EchoCommandGroup(ILogger<ReactCommandGroup> logger, IPermissionsResolver resolver,
+        public EchoCommandGroup(ILogger<ReactCommandGroup> logger, ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             IOptions<BotOptions> options, DiscordSocketClient client)
         {
             _options = options.Value;
@@ -202,7 +199,7 @@ namespace Christofel.Messages.Commands
                     .WithType(ApplicationCommandOptionType.Channel));
         }
 
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
         {
             SubCommandHandlerCreator handlerCreator = new SubCommandHandlerCreator();
             SlashCommandHandler handler = handlerCreator.CreateHandlerForCommand(
@@ -211,8 +208,8 @@ namespace Christofel.Messages.Commands
                 ("delete", (CommandDelegate<IChannel?, string>) HandleDelete)
             );
 
-            SlashCommandInfoBuilder echoBuilder =
-                new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder echoBuilder =
+                new PermissionSlashInfoBuilder()
                     .WithGuild(_options.GuildId)
                     .WithPermission("messages.echo")
                     .WithHandler(handler)
@@ -223,13 +220,13 @@ namespace Christofel.Messages.Commands
                         .AddOption(GetEditSubcommandBuilder())
                         .AddOption(GetDeleteSubcommandBuilder()));
 
-            ICommandExecutor executor = new CommandExecutorBuilder()
-                .WithPermissionsCheck(_resolver)
+            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+                .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .WithLogger(_logger)
                 .Build();
 
-            holder.AddCommand(echoBuilder, executor);
+            holder.AddCommand(echoBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

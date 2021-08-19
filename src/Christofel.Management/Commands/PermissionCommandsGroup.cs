@@ -6,15 +6,14 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.CommandsInfo;
-using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.HandlerCreator;
-using Christofel.CommandsLib.Extensions;
+using Christofel.CommandsLib;
 using Discord;
+using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.CommandsInfo;
+using Discord.Net.Interactions.Executors;
+using Discord.Net.Interactions.HandlerCreator;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,16 +21,17 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Management.Commands
 {
-    public class PermissionCommandsGroup : ICommandGroup
+    public class PermissionCommandsGroup : IChristofelCommandGroup
     {
         private readonly DiscordSocketClient _client;
         private readonly BotOptions _options;
         private readonly ILogger<MessageCommandsGroup> _logger;
-        private readonly IPermissionsResolver _resolver;
+        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
         private readonly IPermissionService _permissions;
         private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
 
-        public PermissionCommandsGroup(IOptions<BotOptions> options, IPermissionsResolver resolver,
+        public PermissionCommandsGroup(IOptions<BotOptions> options,
+            ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             ILogger<MessageCommandsGroup> logger, DiscordSocketClient client,
             IDbContextFactory<ChristofelBaseContext> dbContextFactory, IPermissionService permissions)
         {
@@ -59,13 +59,13 @@ namespace Christofel.Management.Commands
                 await context.SaveChangesAsync(token);
                 await command.FollowupChunkAsync(
                     "Permission granted. Refresh will be needed for it to take full effect.",
-                    ephemeral: true, options: new RequestOptions() {CancelToken = token});
+                    ephemeral: true, options: new RequestOptions() { CancelToken = token });
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not save the permission");
                 await command.FollowupChunkAsync("Could not save the permission", ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
+                    options: new RequestOptions() { CancelToken = token });
             }
         }
 
@@ -92,20 +92,20 @@ namespace Christofel.Management.Commands
                 {
                     await context.SaveChangesAsync(token);
                     await command.FollowupChunkAsync("Permission revoked", ephemeral: true,
-                        options: new RequestOptions() {CancelToken = token});
+                        options: new RequestOptions() { CancelToken = token });
                 }
                 else
                 {
                     await command.FollowupChunkAsync("Could not find that permission assignment in database",
                         ephemeral: true,
-                        options: new RequestOptions() {CancelToken = token});
+                        options: new RequestOptions() { CancelToken = token });
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not save the permission");
                 await command.FollowupChunkAsync("Could not save the permission", ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
+                    options: new RequestOptions() { CancelToken = token });
             }
         }
 
@@ -117,7 +117,7 @@ namespace Christofel.Management.Commands
                     $@"  - **{x.PermissionName}** - {x.DisplayName} - {x.Description}"));
 
             return command.FollowupChunkAsync(response, ephemeral: true,
-                options: new RequestOptions() {CancelToken = token});
+                options: new RequestOptions() { CancelToken = token });
         }
 
         public async Task HandleShow(SocketSlashCommand command, IMentionable mentionable,
@@ -132,7 +132,7 @@ namespace Christofel.Management.Commands
             }
             else
             {
-                targets = new[] {mentionable.ToDiscordTarget()};
+                targets = new[] { mentionable.ToDiscordTarget() };
             }
 
             try
@@ -159,13 +159,13 @@ namespace Christofel.Management.Commands
                 }
 
                 await command.FollowupChunkAsync(response, ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
+                    options: new RequestOptions() { CancelToken = token });
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not get user's permission from the database");
                 await command.FollowupChunkAsync("Could not get user's permission from the database", ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
+                    options: new RequestOptions() { CancelToken = token });
             }
         }
 
@@ -228,17 +228,18 @@ namespace Christofel.Management.Commands
                 .WithType(ApplicationCommandOptionType.SubCommand);
         }
 
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder,
+            CancellationToken token = new CancellationToken())
         {
             SlashCommandHandler handler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
-                    ("grant", (CommandDelegate<IMentionable, string>) HandleGrant),
-                    ("revoke", (CommandDelegate<IMentionable, string>) HandleRevoke),
-                    ("list", (CommandDelegate) HandleList),
-                    ("show", (CommandDelegate<IMentionable>) HandleShow)
+                    ("grant", (CommandDelegate<IMentionable, string>)HandleGrant),
+                    ("revoke", (CommandDelegate<IMentionable, string>)HandleRevoke),
+                    ("list", (CommandDelegate)HandleList),
+                    ("show", (CommandDelegate<IMentionable>)HandleShow)
                 );
 
-            SlashCommandInfoBuilder permissionsBuilder = new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder permissionsBuilder = new PermissionSlashInfoBuilder()
                 .WithGuild(_options.GuildId)
                 .WithPermission("management.permissions")
                 .WithHandler(handler)
@@ -251,13 +252,14 @@ namespace Christofel.Management.Commands
                     .AddOption(GetListSubcommandBuilder())
                 );
 
-            ICommandExecutor executor = new CommandExecutorBuilder()
+            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
+                .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .WithDeferMessage()
                 .Build();
 
-            holder.AddCommand(permissionsBuilder, executor);
+            holder.AddCommand(permissionsBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
@@ -8,9 +7,8 @@ using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.Handlers;
+using Christofel.CommandsLib;
+using Discord.Net.Interactions.DI;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.HelloWorld
@@ -35,7 +33,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<CommandsRegistrator>();
+                yield return Services.GetRequiredService<InteractionsService>();
             }
         }
 
@@ -43,8 +41,8 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<CommandsRegistrator>();
+                yield return Services.GetRequiredService<InteractionsService>();
+
             }
         }
 
@@ -52,8 +50,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionHandler>();
-                yield return Services.GetRequiredService<CommandsRegistrator>();
+                yield return Services.GetRequiredService<InteractionsService>();
             }
         }
 
@@ -63,9 +60,8 @@ namespace Christofel.HelloWorld
         {
             return serviceCollection
                 .AddDiscordState(State)
-                .AddDefaultInteractionHandler(collection => 
-                    collection.AddCommandGroup<PingCommandGroup>()
-                    )
+                .AddChristofelInteractionService()
+                .AddCommandGroup<PingCommandGroup, PermissionSlashInfo>()
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
