@@ -67,6 +67,7 @@ namespace Christofel.Management
                 .AddDiscordState(State)
                 .AddChristofelDatabase(State)
                 .AddSingleton<CtuIdentityResolver>()
+                .AddChristofelInteractionService()
                 .AddCommandGroup<MessageCommandsGroup, PermissionSlashInfo>()
                 .AddCommandGroup<PermissionCommandsGroup, PermissionSlashInfo>()
                 .AddCommandGroup<UserCommandsGroup, PermissionSlashInfo>()
