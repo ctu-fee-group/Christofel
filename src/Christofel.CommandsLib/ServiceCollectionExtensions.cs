@@ -11,11 +11,14 @@ namespace Christofel.CommandsLib
         public static IServiceCollection AddChristofelInteractionService(this IServiceCollection collection)
         {
             return collection
-                .AddSingleton<InteractionsService<PermissionSlashInfo>, InteractionsService>()
+                .AddSingleton<InteractionsService<PermissionSlashInfo>, InteractionsService>(
+                    p => p.GetRequiredService<InteractionsService>())
+                .AddSingleton<InteractionsService>()
                 .AddSingleton<ICommandPermissionsResolver<PermissionSlashInfo>,
                     ChristofelCommandPermissionResolver>(p =>
                     p.GetRequiredService<ChristofelCommandPermissionResolver>())
                 .AddSingleton<ChristofelCommandPermissionResolver>()
+                .AddOneByOneCommandRegistrator<PermissionSlashInfo>()
                 .AddDefaultInteractionService<PermissionSlashInfo>();
         }
     }
