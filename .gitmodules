@@ -7,3 +7,6 @@
 [submodule "libs/usermap-api"]
 	path = libs/usermap-api
 	url = https://github.com/ctu-fee-group/usermap-api.git
+[submodule "libs/discord-net-interactions"]
+	path = libs/discord-net-interactions
+	url = https://github.com/ctu-fee-group/discord-net-interactions.git

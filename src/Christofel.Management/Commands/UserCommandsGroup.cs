@@ -1,25 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.User;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.CommandsInfo;
-using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.HandlerCreator;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.Verifier;
+using Christofel.CommandsLib;
 using Christofel.Management.Commands.Verifiers;
 using Christofel.Management.CtuUtils;
 using Discord;
-using Discord.Net;
+using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.CommandsInfo;
+using Discord.Net.Interactions.Executors;
+using Discord.Net.Interactions.HandlerCreator;
+using Discord.Net.Interactions.Verifier;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -28,7 +25,7 @@ using IUser = Discord.IUser;
 
 namespace Christofel.Management.Commands
 {
-    public class UserCommandsGroup : ICommandGroup
+    public class UserCommandsGroup : IChristofelCommandGroup
     {
         private class UserData : IHasDiscordId
         {
@@ -46,11 +43,12 @@ namespace Christofel.Management.Commands
         private readonly DiscordSocketClient _client;
         private readonly BotOptions _options;
         private readonly ILogger<MessageCommandsGroup> _logger;
-        private readonly IPermissionsResolver _resolver;
+        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
         private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
         private readonly CtuIdentityResolver _identityResolver;
 
-        public UserCommandsGroup(IOptions<BotOptions> options, IPermissionsResolver resolver,
+        public UserCommandsGroup(IOptions<BotOptions> options,
+            ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             ILogger<MessageCommandsGroup> logger, DiscordSocketClient client,
             IDbContextFactory<ChristofelBaseContext> dbContextFactory, CtuIdentityResolver identityResolver)
         {
@@ -76,7 +74,7 @@ namespace Christofel.Management.Commands
                 if (dbUser == null)
                 {
                     await command.FollowupChunkAsync("The given user is not in database or is not a duplicity",
-                        ephemeral: true, options: new RequestOptions() {CancelToken = token});
+                        ephemeral: true, options: new RequestOptions() { CancelToken = token });
                 }
                 else
                 {
@@ -84,7 +82,7 @@ namespace Christofel.Management.Commands
 
                     await context.SaveChangesAsync(token);
                     await command.FollowupChunkAsync("Duplicity approved. Link for authentication is: **LINK**",
-                        ephemeral: true, options: new RequestOptions() {CancelToken = token});
+                        ephemeral: true, options: new RequestOptions() { CancelToken = token });
                 }
             }
             catch (Exception e)
@@ -93,7 +91,7 @@ namespace Christofel.Management.Commands
                 await command.FollowupChunkAsync(
                     "Could not get the given user from database or the changes could not be saved",
                     ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
+                    options: new RequestOptions() { CancelToken = token });
                 throw;
             }
         }
@@ -136,14 +134,14 @@ namespace Christofel.Management.Commands
                 else
                 {
                     await command.FollowupChunkAsync(text: "Found records", embeds: embeds.ToArray(), ephemeral: true,
-                        options: new RequestOptions() {CancelToken = token});
+                        options: new RequestOptions() { CancelToken = token });
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not get the users from database.");
                 await command.FollowupChunkAsync("Could not get the users from database.", ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
+                    options: new RequestOptions() { CancelToken = token });
             }
         }
 
@@ -168,7 +166,7 @@ namespace Christofel.Management.Commands
             {
                 _logger.LogError(e, "There was an error while saving data to the database");
                 await command.FollowupChunkAsync("There was an error while saving data to the database",
-                    ephemeral: true, options: new RequestOptions() {CancelToken = token});
+                    ephemeral: true, options: new RequestOptions() { CancelToken = token });
                 throw;
             }
         }
@@ -194,7 +192,7 @@ namespace Christofel.Management.Commands
             try
             {
                 List<string> identities =
-                    (await _identityResolver.GetIdentitiesCtuUsernamesList((ulong) data.DiscordId))
+                    (await _identityResolver.GetIdentitiesCtuUsernamesList((ulong)data.DiscordId))
                     .Select(x => $@"CTU username: {x}")
                     .ToList();
 
@@ -209,16 +207,16 @@ namespace Christofel.Management.Commands
                 response += string.Join(", ", identities);
 
                 await command.FollowupChunkAsync(response, ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
+                    options: new RequestOptions() { CancelToken = token });
 
                 if (notifyUser)
                 {
                     try
                     {
-                        IUser? targetUser = await _client.GetUserAsync((ulong) data.DiscordId,
-                            new RequestOptions() {CancelToken = token});
+                        IUser? targetUser = await _client.GetUserAsync((ulong)data.DiscordId,
+                            new RequestOptions() { CancelToken = token });
                         IDMChannel? dmChannel =
-                            await targetUser.CreateDMChannelAsync(new RequestOptions() {CancelToken = token});
+                            await targetUser.CreateDMChannelAsync(new RequestOptions() { CancelToken = token });
 
                         ILinkUser? commandUserIdentity = await _identityResolver.GetFirstIdentity(command.User.Id);
                         await dmChannel.SendMessageAsync(
@@ -226,10 +224,12 @@ namespace Christofel.Management.Commands
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, "Could not send DM message to the user notifying him about being identified");
+                        _logger.LogError(e,
+                            "Could not send DM message to the user notifying him about being identified");
                         await command.FollowupAsync(
-                            "Could not send DM message to the user notifying him about being identified", ephemeral: true,
-                            options: new RequestOptions(){CancelToken = token});
+                            "Could not send DM message to the user notifying him about being identified",
+                            ephemeral: true,
+                            options: new RequestOptions() { CancelToken = token });
                     }
                 }
             }
@@ -237,7 +237,7 @@ namespace Christofel.Management.Commands
             {
                 _logger.LogError(e, "Could not get the user from the database");
                 await command.FollowupChunkAsync("Could not get the user from the database", ephemeral: true,
-                    options: new RequestOptions() {CancelToken = token});
+                    options: new RequestOptions() { CancelToken = token });
             }
         }
 
@@ -299,39 +299,40 @@ namespace Christofel.Management.Commands
                         .WithType(ApplicationCommandOptionType.User)));
         }
 
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder,
+            CancellationToken token = new CancellationToken())
         {
             SlashCommandHandler duplicityHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
-                    ("show", (CommandDelegate<IUser>) HandleShowDuplicity),
-                    ("allow", (CommandDelegate<IUser>) HandleAllowDuplicity));
+                    ("show", (CommandDelegate<IUser>)HandleShowDuplicity),
+                    ("allow", (CommandDelegate<IUser>)HandleAllowDuplicity));
 
             SlashCommandHandler userHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
-                    ("add", (CommandDelegate<IUser, string>) HandleAddUser),
-                    ("showidentity", (CommandDelegate<IUser?, string?>) HandleShowIdentity));
+                    ("add", (CommandDelegate<IUser, string>)HandleAddUser),
+                    ("showidentity", (CommandDelegate<IUser?, string?>)HandleShowIdentity));
 
-            SlashCommandInfoBuilder userBuilder = new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder userBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("management.users.manage")
                 .WithGuild(_options.GuildId)
                 .WithHandler(userHandler)
                 .WithBuilder(GetUsersCommandBuilder());
 
-            SlashCommandInfoBuilder duplicityBuilder = new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder duplicityBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("management.users.duplicities")
                 .WithHandler(duplicityHandler)
                 .WithGuild(_options.GuildId)
                 .WithBuilder(GetDuplicityCommandBuilder());
 
-            ICommandExecutor executor = new CommandExecutorBuilder()
+            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
-                .WithPermissionsCheck(_resolver)
+                .WithPermissionCheck(_resolver)
                 .WithDeferMessage()
                 .WithThreadPool()
                 .Build();
 
-            holder.AddCommand(userBuilder, executor);
-            holder.AddCommand(duplicityBuilder, executor);
+            holder.AddCommand(userBuilder.Build(), executor);
+            holder.AddCommand(duplicityBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

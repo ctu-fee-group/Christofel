@@ -3,22 +3,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Permissions;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.CommandsInfo;
-using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.HandlerCreator;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.Verifier;
-using Christofel.CommandsLib.Verifier.Interfaces;
-using Christofel.CommandsLib.Verifier.Verifiers;
+using Christofel.CommandsLib;
 using Discord;
+using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.CommandsInfo;
+using Discord.Net.Interactions.Executors;
+using Discord.Net.Interactions.HandlerCreator;
+using Discord.Net.Interactions.Verifier;
+using Discord.Net.Interactions.Verifier.Interfaces;
+using Discord.Net.Interactions.Verifier.Verifiers;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Christofel.Management.Commands
 {
-    public class MessageCommandsGroup : ICommandGroup
+    public class MessageCommandsGroup : IChristofelCommandGroup
     {
         public class SlowmodeData : IHasTextChannel
         {
@@ -31,9 +31,9 @@ namespace Christofel.Management.Commands
         private readonly DiscordSocketClient _client;
         private readonly BotOptions _options;
         private readonly ILogger<MessageCommandsGroup> _logger;
-        private readonly IPermissionsResolver _resolver;
+        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
 
-        public MessageCommandsGroup(IOptions<BotOptions> options, IPermissionsResolver resolver,
+        public MessageCommandsGroup(IOptions<BotOptions> options, ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             ILogger<MessageCommandsGroup> logger, DiscordSocketClient client)
         {
             _client = client;
@@ -178,7 +178,7 @@ namespace Christofel.Management.Commands
                     .WithType(ApplicationCommandOptionType.Channel));
         }
 
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
         {
             SlashCommandHandler slowmodeHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
@@ -187,7 +187,7 @@ namespace Christofel.Management.Commands
                     ("disable", (CommandDelegate<IChannel?>) HandleSlowmodeDisable)
                 );
 
-            SlashCommandInfoBuilder slowmodeBuilder = new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder slowmodeBuilder = new PermissionSlashInfoBuilder()
                 .WithGuild(_options.GuildId)
                 .WithPermission("management.messages.slowmode")
                 .WithHandler(slowmodeHandler)
@@ -198,14 +198,14 @@ namespace Christofel.Management.Commands
                     .AddOption(GetEnablePermanentSlowmodeSubcommandBuilder())
                     .AddOption(GetDisableSlowmodeSubcommandBuilder()));
 
-            ICommandExecutor executor = new CommandExecutorBuilder()
+            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
-                .WithPermissionsCheck(_resolver)
+                .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .WithDeferMessage()
                 .Build();
 
-            holder.AddCommand(slowmodeBuilder, executor);
+            holder.AddCommand(slowmodeBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

@@ -1,26 +1,24 @@
 using System;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Permissions;
-using Christofel.CommandsLib.Commands;
-using Christofel.CommandsLib.CommandsInfo;
-using Christofel.CommandsLib.Executors;
-using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.HandlerCreator;
-using Christofel.CommandsLib.Verifier;
-using Christofel.CommandsLib.Verifier.Interfaces;
-using Christofel.CommandsLib.Verifier.Verifiers;
+using Christofel.CommandsLib;
 using Discord;
-using Discord.Rest;
+using Discord.Net.Interactions.Abstractions;
+using Discord.Net.Interactions.CommandsInfo;
+using Discord.Net.Interactions.Executors;
+using Discord.Net.Interactions.HandlerCreator;
+using Discord.Net.Interactions.Verifier;
+using Discord.Net.Interactions.Verifier.Interfaces;
+using Discord.Net.Interactions.Verifier.Verifiers;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Christofel.Messages.Commands
 {
-    public class ReactCommandGroup : ICommandGroup
+    public class ReactCommandGroup : IChristofelCommandGroup
     {
         private class ReactData : IHasMessageChannel, IHasMessageId, IHasUserMessage, IHasEmote
         {
@@ -31,12 +29,12 @@ namespace Christofel.Messages.Commands
         }
 
         private readonly ILogger<ReactCommandGroup> _logger;
-        private readonly IPermissionsResolver _resolver;
+        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
         private readonly BotOptions _options;
         private readonly DiscordSocketClient _client;
 
         public ReactCommandGroup(DiscordSocketClient client, ILogger<ReactCommandGroup> logger,
-            IPermissionsResolver resolver, IOptions<BotOptions> options)
+            ICommandPermissionsResolver<PermissionSlashInfo> resolver, IOptions<BotOptions> options)
         {
             _client = client;
             _options = options.Value;
@@ -70,18 +68,18 @@ namespace Christofel.Messages.Commands
             }
         }
 
-        public Task SetupCommandsAsync(ICommandHolder holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
         {
-            ICommandExecutor executor = new CommandExecutorBuilder()
+            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
-                .WithPermissionsCheck(_resolver)
+                .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .Build();
 
             SlashCommandHandler handler = new PlainCommandHandlerCreator()
                 .CreateHandlerForCommand((CommandDelegate<IChannel?, string, string>) HandleReactAsync);
 
-            SlashCommandInfoBuilder commandBuilder = new SlashCommandInfoBuilder()
+            PermissionSlashInfoBuilder commandBuilder = new PermissionSlashInfoBuilder()
                 .WithGuild(_options.GuildId)
                 .WithHandler(handler)
                 .WithPermission("messages.react.react")
@@ -104,7 +102,7 @@ namespace Christofel.Messages.Commands
                     .WithRequired(false)
                     .WithType(ApplicationCommandOptionType.Channel)));
 
-            holder.AddCommand(commandBuilder, executor);
+            holder.AddCommand(commandBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }
