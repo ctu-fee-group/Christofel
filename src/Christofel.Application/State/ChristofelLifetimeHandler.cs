@@ -66,11 +66,19 @@ namespace Christofel.Application.State
                 try
                 {
                     await _app.StopAsync();
-                    await _app.DestroyAsync();
                 }
                 catch (Exception e)
                 {
                     Logger?.LogError(e, "Got exception while stopping the app");
+                }
+                
+                try
+                {
+                    await _app.DestroyAsync();
+                }
+                catch (Exception e)
+                {
+                    Logger?.LogError(e, "Got exception while destroying the app");
                 }
             });
         }
