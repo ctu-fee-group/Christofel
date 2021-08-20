@@ -251,7 +251,7 @@ namespace Christofel.Api.GraphQL.Authentication
                         $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?"));
             }
 
-            using (_logger.BeginScope($"CTU Registration of user ({guildUser} - {dbUser.DiscordId} - {dbUser.UserId})"))
+            using (_logger.BeginScope($"CTU Registration of user ({guildUser} - {guildUser.Mention} - {dbUser.UserId})"))
             {
                 try
                 {
