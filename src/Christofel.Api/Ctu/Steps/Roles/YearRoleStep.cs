@@ -44,23 +44,9 @@ namespace Christofel.Api.Ctu.Steps.Roles
                 {
                     return true;
                 }
-
-                KosProgramme? programme = await kosApi.LoadEntityAsync(student.Programme);
-
-                int year;
-                if (programme is null)
-                {
-                    year = student.StartDate.Year;
-                }
-                else
-                {
-                    year = await ObtainFurthestStudentSameType(
-                        kosApi,
-                        student,
-                        kosPerson?.Roles?.Students?.Skip(1),
-                        programme.ProgrammeType
-                    );
-                }
+                
+                int year = student.StartDate.Year; 
+                    // First student is the one with lowest date (to not make so many requests, this is sufficient)
 
                 List<CtuAuthRole> roles = await data.DbContext.YearRoleAssignments
                     .AsNoTracking()
@@ -83,40 +69,6 @@ namespace Christofel.Api.Ctu.Steps.Roles
 
 
             return true;
-        }
-
-        private async Task<int> ObtainFurthestStudentSameType(AuthorizedKosApi kosApi, KosStudent student,
-            IEnumerable<AtomLoadableEntity<KosStudent>>? studentLoadables, KosProgrammeType programmeType)
-        {
-            int minYear = student.StartDate.Year;
-
-            if (studentLoadables is null)
-            {
-                return minYear;
-            }
-            
-            foreach (AtomLoadableEntity<KosStudent> studentLoadable in studentLoadables)
-            {
-                KosStudent? currentStudent = await kosApi.LoadEntityAsync(studentLoadable);
-
-                if (currentStudent is null)
-                {
-                    continue;
-                }
-
-                KosProgramme? programme = await kosApi.LoadEntityAsync(currentStudent.Programme);
-                if (programme is null)
-                {
-                    continue;
-                }
-                
-                if (programme.ProgrammeType == programmeType && currentStudent.StartDate.Year < minYear)
-                {
-                    minYear = currentStudent.StartDate.Year;
-                }
-            }
-
-            return minYear;
         }
     }
 }
