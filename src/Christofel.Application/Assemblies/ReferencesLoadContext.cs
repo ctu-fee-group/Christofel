@@ -59,7 +59,10 @@ namespace Christofel.Application.Assemblies
         private readonly string[] _loadAlways = new[]
         {
             "Christofel.CommandsLib",
-            "Christofel.BaseLib.Implementations"
+            "Discord.Net.Interactions",
+            "Discord.Net.Interactions.Abstractions",
+            "Discord.Net.Interactions.DI",
+            "Christofel.BaseLib.Implementations",
         };
 
         public ReferencesLoadContext(string pluginPath)
