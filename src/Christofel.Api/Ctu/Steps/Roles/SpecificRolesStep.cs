@@ -41,6 +41,14 @@ namespace Christofel.Api.Ctu.Steps.Roles
                 assignRoleNames.Add("Teacher");
             }
 
+            string? currentStudiesRole =
+                await ObtainCurrentStudies(data.DbUser.CtuUsername, data.AccessToken, data.CancellationToken);
+
+            if (currentStudiesRole is not null)
+            {
+                assignRoleNames.Add(currentStudiesRole);
+            }
+
             List<CtuAuthRole> assignRoleIds = await data.DbContext.SpecificRoleAssignments
                 .AsNoTracking()
                 .Where(x => assignRoleNames.Contains(x.Name))
@@ -55,7 +63,8 @@ namespace Christofel.Api.Ctu.Steps.Roles
 
             if (assignRoleNames.Count > assignRoleIds.Count)
             {
-                IEnumerable<string?> notFoundRoleNames = assignRoleNames.Except(assignRoleIds.Select(x => x.Description));
+                IEnumerable<string?> notFoundRoleNames =
+                    assignRoleNames.Except(assignRoleIds.Select(x => x.Description));
 
                 foreach (string? notFoundRole in notFoundRoleNames)
                 {
@@ -71,6 +80,36 @@ namespace Christofel.Api.Ctu.Steps.Roles
             data.Roles.AddRange(assignRoleIds);
 
             return true;
+        }
+
+        private async Task<string?> ObtainCurrentStudies(string username, string accessToken,
+            CancellationToken token = default)
+        {
+            AuthorizedKosApi authorizedKosApi = _kosApi.GetAuthorizedApi(accessToken);
+            KosPerson? person = await authorizedKosApi.People.GetPersonAsync(username, token: token);
+            KosStudent? student = await authorizedKosApi
+                .LoadEntityAsync(person?.Roles?.Students?.LastOrDefault(), token: token);
+
+            if (student is null)
+            {
+                return null;
+            }
+
+            KosProgramme? programme = await authorizedKosApi.LoadEntityAsync(student.Programme);
+
+            if (programme is null)
+            {
+                return null;
+            }
+
+            return programme.ProgrammeType switch
+            {
+                KosProgrammeType.Bachelor => "BachelorProgramme",
+                KosProgrammeType.Master => "MasterProgramme",
+                KosProgrammeType.MasterLegacy => "MasterProgramme",
+                KosProgrammeType.Doctoral => "DoctoralProgramme",
+                _ => null
+            };
         }
 
         private async Task<bool> IsTeacherAsync(string username, string accessToken, CancellationToken token = default)
