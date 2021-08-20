@@ -270,6 +270,9 @@ namespace Christofel.BaseLib.Plugins
         public virtual async Task DestroyAsync(CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();
+            LifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
+            LifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
+            
             try
             {
                 await DestroyServices(Services, token);
@@ -280,9 +283,6 @@ namespace Christofel.BaseLib.Plugins
                 LifetimeHandler.MoveToError(e);
                 throw;
             }
-
-            LifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
-            LifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
             LifetimeHandler.MoveToIfLower(LifetimeState.Destroyed);
         }
 
