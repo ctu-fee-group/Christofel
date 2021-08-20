@@ -115,7 +115,7 @@ namespace Christofel.Api.GraphQL.Authentication
             [Service] CtuAuthProcess ctuAuthProcess,
             CancellationToken cancellationToken)
         {
-            DbUser? dbUser = await GetUserByRegistrationCode(input.RegistrationCode, dbContext, cancellationToken);
+            DbUser? dbUser = await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Users, cancellationToken);
 
             if (dbUser == null)
             {
@@ -162,7 +162,7 @@ namespace Christofel.Api.GraphQL.Authentication
             [Service] CtuAuthProcess ctuAuthProcess,
             CancellationToken cancellationToken)
         {
-            DbUser? dbUser = await GetUserByRegistrationCode(input.RegistrationCode, dbContext, cancellationToken);
+            DbUser? dbUser = await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Users, cancellationToken);
 
             if (dbUser == null)
             {
@@ -189,7 +189,7 @@ namespace Christofel.Api.GraphQL.Authentication
             [ScopedService] IReadableDbContext dbContext,
             CancellationToken cancellationToken)
         {
-            DbUser? user = await GetUserByRegistrationCode(input.RegistrationCode, dbContext, cancellationToken);
+            DbUser? user = await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Set<DbUser>(), cancellationToken);
 
             RegistrationCodeVerification verificationStage;
             if (user == null)
@@ -213,7 +213,7 @@ namespace Christofel.Api.GraphQL.Authentication
         }
         
         
-        private async Task<DbUser?> GetUserByRegistrationCode(string registrationCode, IReadableDbContext dbContext,
+        private async Task<DbUser?> GetUserByRegistrationCode(string registrationCode, IQueryable<DbUser> dbUsers,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(registrationCode))
@@ -221,8 +221,7 @@ namespace Christofel.Api.GraphQL.Authentication
                 return null;
             }
 
-            DbUser? dbUser = await dbContext.Set<DbUser>()
-                .AsQueryable()
+            DbUser? dbUser = await dbUsers
                 .Where(x => x.AuthenticatedAt == null)
                 .FirstOrDefaultAsync(x => x.RegistrationCode == registrationCode, cancellationToken);
 
