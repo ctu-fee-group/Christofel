@@ -35,7 +35,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
                                                              throw new InvalidOperationException(
                                                                  "CtuUsername is null"), token: data.CancellationToken);
 
-            AtomLoadableEntity<KosStudent>? studentLoadable = kosPerson?.Roles.Students.FirstOrDefault();
+            AtomLoadableEntity<KosStudent>? studentLoadable = kosPerson?.Roles.Students.LastOrDefault();
             if (studentLoadable is not null)
             {
                 KosStudent? student = await kosApi.LoadEntityAsync(studentLoadable);
