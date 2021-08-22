@@ -18,14 +18,27 @@ namespace Christofel.CommandsLib
 
         public override PermissionSlashInfo Build()
         {
-            if (DiscordNetBuilder == null || Permission == null || Handler == null)
+            if (DiscordNetBuilder is null || Permission is null)
             {
                 throw new InvalidOperationException("DiscordNetBuilder, Permission and Handler must be set");
             }
 
-            PermissionSlashInfo info =
-                new PermissionSlashInfo(DiscordNetBuilder, Handler, Permission, Global, GuildId);
-
+            PermissionSlashInfo info;
+            if (Handler is not null)
+            {
+                info =
+                    new PermissionSlashInfo(DiscordNetBuilder, Handler, Permission, Global, GuildId);
+            }
+            else if (InstancedHandler is not null)
+            {
+                info =
+                    new PermissionSlashInfo(DiscordNetBuilder, InstancedHandler, Permission, Global, GuildId);
+            }
+            else
+            {
+                throw new InvalidOperationException("At least one of Handler, InstancedHandler muset be set");
+            }
+            
             return info;
         }
     }

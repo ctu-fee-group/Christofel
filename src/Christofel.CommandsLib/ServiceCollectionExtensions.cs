@@ -11,7 +11,7 @@ namespace Christofel.CommandsLib
         public static IServiceCollection AddChristofelInteractionService(this IServiceCollection collection)
         {
             return collection
-                .AddSingleton<InteractionsService<PermissionSlashInfo>, InteractionsService>(
+                .AddSingleton<Discord.Net.Interactions.InteractionsService, InteractionsService>(
                     p => p.GetRequiredService<InteractionsService>())
                 .AddSingleton<InteractionsService>()
                 .AddSingleton<ICommandPermissionsResolver<PermissionSlashInfo>,
@@ -19,7 +19,7 @@ namespace Christofel.CommandsLib
                     p.GetRequiredService<ChristofelCommandPermissionResolver>())
                 .AddSingleton<ChristofelCommandPermissionResolver>()
                 .AddOneByOneCommandRegistrator<PermissionSlashInfo>()
-                .AddDefaultInteractionService<PermissionSlashInfo>();
+                .AddDefaultInteractionService();
         }
     }
 }

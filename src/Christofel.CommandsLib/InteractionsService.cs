@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Lifetime;
@@ -11,22 +12,21 @@ using Discord.Net.Interactions.Handlers;
 
 namespace Christofel.CommandsLib
 {
-    public class InteractionsService : InteractionsService<PermissionSlashInfo>, IStartable, IRefreshable, IStoppable
+    public class InteractionsService : Discord.Net.Interactions.InteractionsService, IStartable, IRefreshable,
+        IStoppable
     {
         private readonly IPermissionService _permissionService;
         private readonly List<IPermission> _commandPermissions;
         private readonly IApplicationLifetime _lifetime;
 
-        public InteractionsService(InteractionHandler<PermissionSlashInfo> interactionHandler,
-            ICommandHolder<PermissionSlashInfo> commandHolder,
-            ICommandsRegistrator<PermissionSlashInfo> commandsRegistrator,
-            ICommandsGroupProvider<PermissionSlashInfo> commandsGroupProvider,
+        public InteractionsService(InteractionHandler interactionHandler, IInteractionHolder interactionHolder,
+            ICommandsRegistrator commandsRegistrator, ICommandsGroupProvider commandsGroupProvider,
             IPermissionService permissionService,
-            IApplicationLifetime lifetime) : base(interactionHandler,
-            commandHolder, commandsRegistrator, commandsGroupProvider)
+            IApplicationLifetime lifetime) : base(
+            interactionHandler, interactionHolder, commandsRegistrator, commandsGroupProvider)
         {
-            _permissionService = permissionService;
             _commandPermissions = new List<IPermission>();
+            _permissionService = permissionService;
             _lifetime = lifetime;
         }
 
@@ -34,10 +34,12 @@ namespace Christofel.CommandsLib
         {
             await base.StartAsync(token);
 
-            foreach (HeldSlashCommand<PermissionSlashInfo> heldCommand in _commandHolder.Commands)
+            foreach (PermissionSlashInfo heldInteraction in InteractionHolder.Interactions.Select(x => x.Info)
+                .OfType<PermissionSlashInfo>())
             {
-                var commandPermission = new CommandPermission(heldCommand.Info.BuiltCommand, heldCommand.Info.Permission);
-                
+                var commandPermission =
+                    new CommandPermission(heldInteraction.BuiltCommand, heldInteraction.Permission);
+
                 _commandPermissions.Add(commandPermission);
                 _permissionService.RegisterPermission(commandPermission);
             }
@@ -58,7 +60,7 @@ namespace Christofel.CommandsLib
             {
                 _permissionService.UnregisterPermission(commandPermission);
             }
-            
+
             _commandPermissions.Clear();
         }
     }
