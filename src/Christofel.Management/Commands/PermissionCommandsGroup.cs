@@ -21,7 +21,7 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Management.Commands
 {
-    public class PermissionCommandsGroup : IChristofelCommandGroup
+    public class PermissionCommandsGroup : ICommandGroup
     {
         private readonly DiscordSocketClient _client;
         private readonly BotOptions _options;
@@ -43,7 +43,7 @@ namespace Christofel.Management.Commands
             _permissions = permissions;
         }
 
-        public async Task HandleGrant(SocketSlashCommand command, IMentionable mentionable, string permission,
+        public async Task HandleGrant(SocketInteraction command, IMentionable mentionable, string permission,
             CancellationToken token = default)
         {
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
@@ -69,7 +69,7 @@ namespace Christofel.Management.Commands
             }
         }
 
-        public async Task HandleRevoke(SocketSlashCommand command, IMentionable mentionable, string permission,
+        public async Task HandleRevoke(SocketInteraction command, IMentionable mentionable, string permission,
             CancellationToken token = default)
         {
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
@@ -109,7 +109,7 @@ namespace Christofel.Management.Commands
             }
         }
 
-        public Task HandleList(SocketSlashCommand command, CancellationToken token = default)
+        public Task HandleList(SocketInteraction command, CancellationToken token = default)
         {
             string response = "List of all permissions from attached plugins:\n";
             response += string.Join('\n',
@@ -120,7 +120,7 @@ namespace Christofel.Management.Commands
                 options: new RequestOptions() { CancelToken = token });
         }
 
-        public async Task HandleShow(SocketSlashCommand command, IMentionable mentionable,
+        public async Task HandleShow(SocketInteraction command, IMentionable mentionable,
             CancellationToken token = default)
         {
             await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
@@ -228,10 +228,10 @@ namespace Christofel.Management.Commands
                 .WithType(ApplicationCommandOptionType.SubCommand);
         }
 
-        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder,
+        public Task SetupCommandsAsync(IInteractionHolder holder,
             CancellationToken token = new CancellationToken())
         {
-            SlashCommandHandler handler = new SubCommandHandlerCreator()
+            DiscordInteractionHandler handler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
                     ("grant", (CommandDelegate<IMentionable, string>)HandleGrant),
                     ("revoke", (CommandDelegate<IMentionable, string>)HandleRevoke),
@@ -252,14 +252,14 @@ namespace Christofel.Management.Commands
                     .AddOption(GetListSubcommandBuilder())
                 );
 
-            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
                 .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .WithDeferMessage()
                 .Build();
 
-            holder.AddCommand(permissionsBuilder.Build(), executor);
+            holder.AddInteraction(permissionsBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

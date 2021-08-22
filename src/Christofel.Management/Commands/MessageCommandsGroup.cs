@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Management.Commands
 {
-    public class MessageCommandsGroup : IChristofelCommandGroup
+    public class MessageCommandsGroup : ICommandGroup
     {
         public class SlowmodeData : IHasTextChannel
         {
@@ -42,14 +42,14 @@ namespace Christofel.Management.Commands
             _resolver = resolver;
         }
 
-        public async Task HandleSlowmodeFor(SocketSlashCommand command, long interval, long? hours, long? minutes,
+        public async Task HandleSlowmodeFor(SocketInteraction command, long interval, long? hours, long? minutes,
             long? seconds, IChannel? channel, CancellationToken token = default)
         {
             await command.FollowupChunkAsync("Not implemented yet", ephemeral: true, options: new RequestOptions(){CancelToken = token});
             throw new NotImplementedException();
         }
 
-        public async Task HandleSlowmodeEnable(SocketSlashCommand command, long interval, IChannel? channel,
+        public async Task HandleSlowmodeEnable(SocketInteraction command, long interval, IChannel? channel,
             CancellationToken token = default)
         {
             Verified<SlowmodeData> verified = await new CommandVerifier<SlowmodeData>(_client, command, _logger)
@@ -83,7 +83,7 @@ namespace Christofel.Management.Commands
             }
         }
 
-        public async Task HandleSlowmodeDisable(SocketSlashCommand command, IChannel? channel,
+        public async Task HandleSlowmodeDisable(SocketInteraction command, IChannel? channel,
             CancellationToken token = default)
         {
             Verified<SlowmodeData> verified = await new CommandVerifier<SlowmodeData>(_client, command, _logger)
@@ -178,9 +178,9 @@ namespace Christofel.Management.Commands
                     .WithType(ApplicationCommandOptionType.Channel));
         }
 
-        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
-            SlashCommandHandler slowmodeHandler = new SubCommandHandlerCreator()
+            DiscordInteractionHandler slowmodeHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
                     ("for", (CommandDelegate<long, long?, long?, long?, IChannel?>) HandleSlowmodeFor),
                     ("enablepermanent", (CommandDelegate<long, IChannel?>) HandleSlowmodeEnable),
@@ -198,14 +198,14 @@ namespace Christofel.Management.Commands
                     .AddOption(GetEnablePermanentSlowmodeSubcommandBuilder())
                     .AddOption(GetDisableSlowmodeSubcommandBuilder()));
 
-            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
                 .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .WithDeferMessage()
                 .Build();
 
-            holder.AddCommand(slowmodeBuilder.Build(), executor);
+            holder.AddInteraction(slowmodeBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

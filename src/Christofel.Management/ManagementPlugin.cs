@@ -68,9 +68,9 @@ namespace Christofel.Management
                 .AddChristofelDatabase(State)
                 .AddSingleton<CtuIdentityResolver>()
                 .AddChristofelInteractionService()
-                .AddCommandGroup<MessageCommandsGroup, PermissionSlashInfo>()
-                .AddCommandGroup<PermissionCommandsGroup, PermissionSlashInfo>()
-                .AddCommandGroup<UserCommandsGroup, PermissionSlashInfo>()
+                .AddCommandGroup<MessageCommandsGroup>()
+                .AddCommandGroup<PermissionCommandsGroup>()
+                .AddCommandGroup<UserCommandsGroup>()
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }

@@ -25,7 +25,7 @@ using IUser = Discord.IUser;
 
 namespace Christofel.Management.Commands
 {
-    public class UserCommandsGroup : IChristofelCommandGroup
+    public class UserCommandsGroup : ICommandGroup
     {
         private class UserData : IHasDiscordId
         {
@@ -60,7 +60,7 @@ namespace Christofel.Management.Commands
             _dbContextFactory = dbContextFactory;
         }
 
-        public async Task HandleAllowDuplicity(SocketSlashCommand command, IUser user,
+        public async Task HandleAllowDuplicity(SocketInteraction command, IUser user,
             CancellationToken token = default)
         {
             try
@@ -96,7 +96,7 @@ namespace Christofel.Management.Commands
             }
         }
 
-        public async Task HandleShowDuplicity(SocketSlashCommand command, IUser user, CancellationToken token = default)
+        public async Task HandleShowDuplicity(SocketInteraction command, IUser user, CancellationToken token = default)
         {
             List<Embed> embeds = new List<Embed>();
             try
@@ -145,7 +145,7 @@ namespace Christofel.Management.Commands
             }
         }
 
-        public async Task HandleAddUser(SocketSlashCommand command, IUser user, string ctuUsername,
+        public async Task HandleAddUser(SocketInteraction command, IUser user, string ctuUsername,
             CancellationToken token = default)
         {
             DbUser dbUser = new DbUser()
@@ -171,7 +171,7 @@ namespace Christofel.Management.Commands
             }
         }
 
-        public async Task HandleShowIdentity(SocketSlashCommand command, IUser? user, string? discordId,
+        public async Task HandleShowIdentity(SocketInteraction command, IUser? user, string? discordId,
             CancellationToken token = default)
         {
             Verified<UserData> verified = await new CommandVerifier<UserData>(_client, command, _logger)
@@ -299,15 +299,15 @@ namespace Christofel.Management.Commands
                         .WithType(ApplicationCommandOptionType.User)));
         }
 
-        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder,
+        public Task SetupCommandsAsync(IInteractionHolder holder,
             CancellationToken token = new CancellationToken())
         {
-            SlashCommandHandler duplicityHandler = new SubCommandHandlerCreator()
+            DiscordInteractionHandler duplicityHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
                     ("show", (CommandDelegate<IUser>)HandleShowDuplicity),
                     ("allow", (CommandDelegate<IUser>)HandleAllowDuplicity));
 
-            SlashCommandHandler userHandler = new SubCommandHandlerCreator()
+            DiscordInteractionHandler userHandler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
                     ("add", (CommandDelegate<IUser, string>)HandleAddUser),
                     ("showidentity", (CommandDelegate<IUser?, string?>)HandleShowIdentity));
@@ -324,15 +324,15 @@ namespace Christofel.Management.Commands
                 .WithGuild(_options.GuildId)
                 .WithBuilder(GetDuplicityCommandBuilder());
 
-            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
                 .WithPermissionCheck(_resolver)
                 .WithDeferMessage()
                 .WithThreadPool()
                 .Build();
 
-            holder.AddCommand(userBuilder.Build(), executor);
-            holder.AddCommand(duplicityBuilder.Build(), executor);
+            holder.AddInteraction(userBuilder.Build(), executor);
+            holder.AddInteraction(duplicityBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

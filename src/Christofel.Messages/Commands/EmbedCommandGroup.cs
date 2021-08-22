@@ -20,7 +20,7 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Messages.Commands
 {
-    public class EmbedCommandGroup : IChristofelCommandGroup
+    public class EmbedCommandGroup : ICommandGroup
     {
         private class EmbedData : IHasMessageChannel, IHasMessageId, IHasUserMessage, IHasEmbed
         {
@@ -47,7 +47,7 @@ namespace Christofel.Messages.Commands
             _resolver = resolver;
         }
 
-        private async Task HandleEditEmbed(SocketSlashCommand command, Verified<EmbedData> verified,
+        private async Task HandleEditEmbed(SocketInteraction command, Verified<EmbedData> verified,
             CancellationToken token = default)
         {
             if (verified.Success)
@@ -75,7 +75,7 @@ namespace Christofel.Messages.Commands
             }
         }
 
-        private async Task HandleCreateEmbed(SocketSlashCommand command, Verified<EmbedData> verified,
+        private async Task HandleCreateEmbed(SocketInteraction command, Verified<EmbedData> verified,
             CancellationToken token = default)
         {
             if (verified.Success)
@@ -102,7 +102,7 @@ namespace Christofel.Messages.Commands
             }
         }
 
-        public async Task HandleEditEmbedFromFile(SocketSlashCommand command, IChannel? channel, string messageId,
+        public async Task HandleEditEmbedFromFile(SocketInteraction command, IChannel? channel, string messageId,
             string fileName, CancellationToken token = default)
         {
             Verified<EmbedData> verified = await
@@ -119,7 +119,7 @@ namespace Christofel.Messages.Commands
             await HandleEditEmbed(command, verified, token);
         }
 
-        public async Task HandleEditEmbedFromMessage(SocketSlashCommand command, IChannel? channel, string messageId,
+        public async Task HandleEditEmbedFromMessage(SocketInteraction command, IChannel? channel, string messageId,
             string embed, CancellationToken token = default)
         {
             Verified<EmbedData> verified = await
@@ -135,7 +135,7 @@ namespace Christofel.Messages.Commands
             await HandleEditEmbed(command, verified, token);
         }
 
-        public async Task HandleCreateEmbedFromMessage(SocketSlashCommand command, IChannel? channel, string embed,
+        public async Task HandleCreateEmbedFromMessage(SocketInteraction command, IChannel? channel, string embed,
             CancellationToken token = default)
         {
             Verified<EmbedData> verified = await
@@ -147,7 +147,7 @@ namespace Christofel.Messages.Commands
             await HandleCreateEmbed(command, verified, token);
         }
 
-        public async Task HandleCreateEmbedFromFile(SocketSlashCommand command, IChannel? channel, string fileName,
+        public async Task HandleCreateEmbedFromFile(SocketInteraction command, IChannel? channel, string fileName,
             CancellationToken token = default)
         {
             Verified<EmbedData> verified = await
@@ -160,7 +160,7 @@ namespace Christofel.Messages.Commands
             await HandleCreateEmbed(command, verified, token);
         }
 
-        public async Task HandleDeleteEmbed(SocketSlashCommand command, IChannel? channel, string messageId,
+        public async Task HandleDeleteEmbed(SocketInteraction command, IChannel? channel, string messageId,
             CancellationToken token)
         {
             Verified<EmbedData> verified = await
@@ -305,15 +305,15 @@ namespace Christofel.Messages.Commands
         }
 
 
-        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
-            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
                 .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .Build();
 
-            SlashCommandHandler handler = new SubCommandHandlerCreator()
+            DiscordInteractionHandler handler = new SubCommandHandlerCreator()
                 .CreateHandlerForCommand(
                     ("file send", (CommandDelegate<IChannel?, string>) HandleCreateEmbedFromFile),
                     ("file edit", (CommandDelegate<IChannel?, string, string>) HandleEditEmbedFromFile),
@@ -333,7 +333,7 @@ namespace Christofel.Messages.Commands
                     .AddOption(GetFileSubcommandBuilder())
                     .AddOption(GetMsgSubcommandBuilder()));
 
-            holder.AddCommand(commandBuilder.Build(), executor);
+            holder.AddInteraction(commandBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

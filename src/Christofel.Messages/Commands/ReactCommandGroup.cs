@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Messages.Commands
 {
-    public class ReactCommandGroup : IChristofelCommandGroup
+    public class ReactCommandGroup : ICommandGroup
     {
         private class ReactData : IHasMessageChannel, IHasMessageId, IHasUserMessage, IHasEmote
         {
@@ -43,7 +43,7 @@ namespace Christofel.Messages.Commands
         }
 
         // /react handler
-        public async Task HandleReactAsync(SocketSlashCommand command, IChannel? channel, string messageId,
+        public async Task HandleReactAsync(SocketInteraction command, IChannel? channel, string messageId,
             string emojiString, CancellationToken token = default)
         {
             Verified<ReactData> verified = await
@@ -68,15 +68,15 @@ namespace Christofel.Messages.Commands
             }
         }
 
-        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
-            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
                 .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .Build();
 
-            SlashCommandHandler handler = new PlainCommandHandlerCreator()
+            DiscordInteractionHandler handler = new PlainCommandHandlerCreator()
                 .CreateHandlerForCommand((CommandDelegate<IChannel?, string, string>) HandleReactAsync);
 
             PermissionSlashInfoBuilder commandBuilder = new PermissionSlashInfoBuilder()
@@ -102,7 +102,7 @@ namespace Christofel.Messages.Commands
                     .WithRequired(false)
                     .WithType(ApplicationCommandOptionType.Channel)));
 
-            holder.AddCommand(commandBuilder.Build(), executor);
+            holder.AddInteraction(commandBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

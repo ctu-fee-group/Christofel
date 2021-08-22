@@ -72,9 +72,9 @@ namespace Christofel.Messages
                 .Configure<EmbedsOptions>(State.Configuration.GetSection("Messages:Embeds"))
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"))
                 .AddChristofelInteractionService()
-                .AddCommandGroup<EchoCommandGroup, PermissionSlashInfo>()
-                .AddCommandGroup<EmbedCommandGroup, PermissionSlashInfo>()
-                .AddCommandGroup<ReactCommandGroup, PermissionSlashInfo>();
+                .AddCommandGroup<EchoCommandGroup>()
+                .AddCommandGroup<EmbedCommandGroup>()
+                .AddCommandGroup<ReactCommandGroup>();
         }
     }
 }

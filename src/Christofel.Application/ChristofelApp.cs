@@ -150,8 +150,8 @@ namespace Christofel.Application
                 .AddSingleton<DiscordNetLog>()
                 // commands
                 .AddChristofelInteractionService()
-                .AddCommandGroup<ControlCommands, PermissionSlashInfo>()
-                .AddCommandGroup<PluginCommands, PermissionSlashInfo>()
+                .AddCommandGroup<ControlCommands>()
+                .AddCommandGroup<PluginCommands>()
                 .AddSingleton<RefreshChristofel>(this.RefreshAsync);
         }
 

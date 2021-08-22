@@ -23,7 +23,7 @@ namespace Christofel.Application.Commands
     /// <summary>
     /// Handler of /plugin attach, detach, reattach, list, check commands
     /// </summary>
-    public class PluginCommands : IChristofelCommandGroup
+    public class PluginCommands : ICommandGroup
     {
         private delegate Task PluginDelegate(SocketSlashCommand command, string pluginName, CancellationToken token);
 
@@ -57,7 +57,7 @@ namespace Christofel.Application.Commands
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleAttach(SocketSlashCommand command, string pluginName,
+        private async Task HandleAttach(SocketInteraction command, string pluginName,
             CancellationToken token = new CancellationToken())
         {
             _logger.LogDebug("Handling command /plugin attach");
@@ -108,7 +108,7 @@ namespace Christofel.Application.Commands
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleDetach(SocketSlashCommand command, string pluginName,
+        private async Task HandleDetach(SocketInteraction command, string pluginName,
             CancellationToken token = new CancellationToken())
         {
             _logger.LogDebug("Handling command /module detach");
@@ -140,7 +140,7 @@ namespace Christofel.Application.Commands
         /// </summary>
         /// <param name="command"></param>
         /// <param name="token"></param>
-        private async Task HandleReattach(SocketSlashCommand command, string pluginName,
+        private async Task HandleReattach(SocketInteraction command, string pluginName,
             CancellationToken token = new CancellationToken())
         {
             bool reattach = true;
@@ -181,7 +181,7 @@ namespace Christofel.Application.Commands
         /// <param name="command"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private Task HandleList(SocketSlashCommand command, CancellationToken token = new CancellationToken())
+        private Task HandleList(SocketInteraction command, CancellationToken token = new CancellationToken())
         {
             IEnumerable<string> plugins = _storage.AttachedPlugins
                 .Select(x => $@"**{x.Name}** ({x.Version}) - {x.Description}");
@@ -199,7 +199,7 @@ namespace Christofel.Application.Commands
         /// <param name="command"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private Task HandleCheck(SocketSlashCommand command, CancellationToken token = new CancellationToken())
+        private Task HandleCheck(SocketInteraction command, CancellationToken token = new CancellationToken())
         {
             _plugins.CheckDetached();
             return command.FollowupChunkAsync(
@@ -266,10 +266,10 @@ namespace Christofel.Application.Commands
                 .WithType(ApplicationCommandOptionType.SubCommand);
         }
         
-        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
             SubCommandHandlerCreator creator = new SubCommandHandlerCreator();
-            SlashCommandHandler handler = creator.CreateHandlerForCommand(
+            DiscordInteractionHandler handler = creator.CreateHandlerForCommand(
                 ("attach", (CommandDelegate<string>) HandleAttach),
                 ("detach", (CommandDelegate<string>) HandleDetach),
                 ("reattach", (CommandDelegate<string>) HandleReattach),
@@ -289,14 +289,14 @@ namespace Christofel.Application.Commands
                     .AddOption(GetCheckSubcommandBuilder())
                     .AddOption(GetListSubcommandBuilder()));
 
-            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
                 .WithPermissionCheck(_resolver)
                 .WithDeferMessage()
                 .WithThreadPool()
                 .Build();
 
-            holder.AddCommand(pluginBuilder.Build(), executor);
+            holder.AddInteraction(pluginBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

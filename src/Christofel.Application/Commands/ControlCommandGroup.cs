@@ -15,7 +15,7 @@ namespace Christofel.Application.Commands
     /// <summary>
     /// Handler of /refresh and /quit commands
     /// </summary>
-    public class ControlCommands : IChristofelCommandGroup
+    public class ControlCommands : ICommandGroup
     {
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly RefreshChristofel _refresh;
@@ -38,7 +38,7 @@ namespace Christofel.Application.Commands
             _options = options.Value;
         }
 
-        private async Task HandleRefreshCommand(SocketSlashCommand command,
+        private async Task HandleRefreshCommand(SocketInteraction command,
             CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /refresh");
@@ -48,19 +48,19 @@ namespace Christofel.Application.Commands
             await command.FollowupAsync("Refreshed");
         }
 
-        private Task HandleQuitCommand(SocketSlashCommand command, CancellationToken token = new CancellationToken())
+        private Task HandleQuitCommand(SocketInteraction command, CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Handling command /quit");
             _applicationLifetime.RequestStop();
             return command.FollowupAsync("Goodbye", options: new RequestOptions() {CancelToken = token});
         }
 
-        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
             PermissionSlashInfoBuilder quitBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("application.quit")
                 .WithGuild(_options.GuildId)
-                .WithHandler(HandleQuitCommand)
+                .WithHandler((DiscordInteractionHandler)HandleQuitCommand)
                 .WithBuilder(new SlashCommandBuilder()
                     .WithName("quit")
                     .WithDescription("Quit the bot")
@@ -69,21 +69,21 @@ namespace Christofel.Application.Commands
             PermissionSlashInfoBuilder refreshBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("application.refresh")
                 .WithGuild(_options.GuildId)
-                .WithHandler(HandleRefreshCommand)
+                .WithHandler((DiscordInteractionHandler)HandleRefreshCommand)
                 .WithBuilder(new SlashCommandBuilder()
                     .WithName("refresh")
                     .WithDescription("Refresh config where it can be")
                 );
 
-            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
                 .WithLogger(_logger)
                 .WithPermissionCheck(_resolver)
                 .WithDeferMessage()
                 .WithThreadPool()
                 .Build();
 
-            holder.AddCommand(quitBuilder.Build(), executor);
-            holder.AddCommand(refreshBuilder.Build(), executor);
+            holder.AddInteraction(quitBuilder.Build(), executor);
+            holder.AddInteraction(refreshBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }

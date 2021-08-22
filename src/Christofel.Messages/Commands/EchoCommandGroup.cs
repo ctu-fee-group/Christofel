@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Messages.Commands
 {
-    public class EchoCommandGroup : IChristofelCommandGroup
+    public class EchoCommandGroup : ICommandGroup
     {
         private class EchoData : IHasMessageChannel, IHasMessageId, IHasUserMessage
         {
@@ -41,7 +41,7 @@ namespace Christofel.Messages.Commands
             _client = client;
         }
 
-        public async Task HandleEcho(SocketSlashCommand command, IChannel? channel, string text,
+        public async Task HandleEcho(SocketInteraction command, IChannel? channel, string text,
             CancellationToken token = default)
         {
             Verified<EchoData> verified = await
@@ -72,7 +72,7 @@ namespace Christofel.Messages.Commands
             }
         }
 
-        public async Task HandleEdit(SocketSlashCommand command, IChannel? channel, string messageId, string text,
+        public async Task HandleEdit(SocketInteraction command, IChannel? channel, string messageId, string text,
             CancellationToken token = default)
         {
             Verified<EchoData> verified = await
@@ -106,7 +106,7 @@ namespace Christofel.Messages.Commands
             }
         }
 
-        public async Task HandleDelete(SocketSlashCommand command, IChannel? channel, string messageId,
+        public async Task HandleDelete(SocketInteraction command, IChannel? channel, string messageId,
             CancellationToken token = default)
         {
             Verified<EchoData> verified = await
@@ -199,10 +199,10 @@ namespace Christofel.Messages.Commands
                     .WithType(ApplicationCommandOptionType.Channel));
         }
 
-        public Task SetupCommandsAsync(ICommandHolder<PermissionSlashInfo> holder, CancellationToken token = new CancellationToken())
+        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
         {
             SubCommandHandlerCreator handlerCreator = new SubCommandHandlerCreator();
-            SlashCommandHandler handler = handlerCreator.CreateHandlerForCommand(
+            DiscordInteractionHandler handler = handlerCreator.CreateHandlerForCommand(
                 ("send", (CommandDelegate<IChannel?, string>) HandleEcho),
                 ("edit", (CommandDelegate<IChannel?, string, string>) HandleEdit),
                 ("delete", (CommandDelegate<IChannel?, string>) HandleDelete)
@@ -220,13 +220,13 @@ namespace Christofel.Messages.Commands
                         .AddOption(GetEditSubcommandBuilder())
                         .AddOption(GetDeleteSubcommandBuilder()));
 
-            ICommandExecutor<PermissionSlashInfo> executor = new CommandExecutorBuilder<PermissionSlashInfo>()
+            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
                 .WithPermissionCheck(_resolver)
                 .WithThreadPool()
                 .WithLogger(_logger)
                 .Build();
 
-            holder.AddCommand(echoBuilder.Build(), executor);
+            holder.AddInteraction(echoBuilder.Build(), executor);
             return Task.CompletedTask;
         }
     }
