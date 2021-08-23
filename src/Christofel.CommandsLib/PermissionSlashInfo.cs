@@ -5,18 +5,18 @@ namespace Christofel.CommandsLib
 {
     public class PermissionSlashInfo : SlashCommandInfo
     {
-        public PermissionSlashInfo(SlashCommandBuilder builder, InstancedDiscordInteractionHandler instancedHandler, string permission, bool global,
-            ulong? guildId) : base(builder, instancedHandler, global, guildId)
+        public PermissionSlashInfo(SlashCommandBuilder builder, InstancedDiscordInteractionHandler instancedHandler,
+            string permission, bool global) : base(builder, instancedHandler, global)
         {
             Permission = permission;
         }
-        
-        public PermissionSlashInfo(SlashCommandBuilder builder, DiscordInteractionHandler handler, string permission, bool global,
-            ulong? guildId) : base(builder, handler, global, guildId)
+
+        public PermissionSlashInfo(SlashCommandBuilder builder, DiscordInteractionHandler handler, string permission,
+            bool global) : base(builder, handler, global)
         {
             Permission = permission;
         }
-        
+
         public string Permission { get; set; }
     }
 }

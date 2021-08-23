@@ -27,12 +27,12 @@ namespace Christofel.CommandsLib
             if (Handler is not null)
             {
                 info =
-                    new PermissionSlashInfo(DiscordNetBuilder, Handler, Permission, Global, GuildId);
+                    new PermissionSlashInfo(DiscordNetBuilder, Handler, Permission, Global);
             }
             else if (InstancedHandler is not null)
             {
                 info =
-                    new PermissionSlashInfo(DiscordNetBuilder, InstancedHandler, Permission, Global, GuildId);
+                    new PermissionSlashInfo(DiscordNetBuilder, InstancedHandler, Permission, Global);
             }
             else
             {

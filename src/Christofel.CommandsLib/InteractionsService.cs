@@ -30,11 +30,11 @@ namespace Christofel.CommandsLib
             _lifetime = lifetime;
         }
 
-        public override async Task StartAsync(CancellationToken token = new CancellationToken())
+        public override async Task StartAsync(bool registerCommands = true, CancellationToken token = new CancellationToken())
         {
-            await base.StartAsync(token);
+            await base.StartAsync(registerCommands, token);
 
-            foreach (PermissionSlashInfo heldInteraction in InteractionHolder.Interactions.Select(x => x.Info)
+            foreach (PermissionSlashInfo heldInteraction in _interactionHolder.Interactions.Select(x => x.Info)
                 .OfType<PermissionSlashInfo>())
             {
                 var commandPermission =
@@ -62,6 +62,11 @@ namespace Christofel.CommandsLib
             }
 
             _commandPermissions.Clear();
+        }
+
+        public Task StartAsync(CancellationToken token = new CancellationToken())
+        {
+            return StartAsync(true, token);
         }
     }
 }

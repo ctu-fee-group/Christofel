@@ -29,7 +29,6 @@ namespace Christofel.Application.Commands
 
         private readonly PluginService _plugins;
         private readonly IChristofelState _state;
-        private readonly BotOptions _options;
         private readonly PluginStorage _storage;
         private readonly ILogger<PluginCommands> _logger;
         private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
@@ -38,7 +37,6 @@ namespace Christofel.Application.Commands
             ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             IChristofelState state,
             PluginService plugins,
-            IOptions<BotOptions> options,
             PluginStorage storage,
             ILogger<PluginCommands> logger
         )
@@ -47,7 +45,6 @@ namespace Christofel.Application.Commands
             _storage = storage;
             _state = state;
             _plugins = plugins;
-            _options = options.Value;
             _logger = logger;
         }
 
@@ -278,7 +275,6 @@ namespace Christofel.Application.Commands
 
             PermissionSlashInfoBuilder pluginBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("application.plugins.control")
-                .WithGuild(_options.GuildId)
                 .WithHandler(handler)
                 .WithBuilder(new SlashCommandBuilder()
                     .WithName("plugin")

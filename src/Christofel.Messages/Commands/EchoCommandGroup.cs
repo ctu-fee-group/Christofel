@@ -29,13 +29,11 @@ namespace Christofel.Messages.Commands
 
         private readonly ILogger<ReactCommandGroup> _logger;
         private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
-        private readonly BotOptions _options;
         private readonly DiscordSocketClient _client;
 
-        public EchoCommandGroup(ILogger<ReactCommandGroup> logger, ICommandPermissionsResolver<PermissionSlashInfo> resolver,
-            IOptions<BotOptions> options, DiscordSocketClient client)
+        public EchoCommandGroup(ILogger<ReactCommandGroup> logger,
+            ICommandPermissionsResolver<PermissionSlashInfo> resolver, DiscordSocketClient client)
         {
-            _options = options.Value;
             _logger = logger;
             _resolver = resolver;
             _client = client;
@@ -61,12 +59,12 @@ namespace Christofel.Messages.Commands
                 {
                     await data.Channel.SendMessageAsync(text);
                     await command.RespondAsync("Message sent", ephemeral: true,
-                        options: new RequestOptions {CancelToken = token});
+                        options: new RequestOptions { CancelToken = token });
                 }
                 catch (Exception)
                 {
                     await command.RespondAsync("Message could not be sent, check permissions", ephemeral: true,
-                        options: new RequestOptions {CancelToken = token});
+                        options: new RequestOptions { CancelToken = token });
                     throw;
                 }
             }
@@ -95,12 +93,12 @@ namespace Christofel.Messages.Commands
                 {
                     await data.UserMessage.ModifyAsync(x => x.Content = text);
                     await command.RespondAsync("Message edited", ephemeral: true,
-                        options: new RequestOptions {CancelToken = token});
+                        options: new RequestOptions { CancelToken = token });
                 }
                 catch (Exception)
                 {
                     await command.RespondAsync("Message could not be edited, check permissions", ephemeral: true,
-                        options: new RequestOptions {CancelToken = token});
+                        options: new RequestOptions { CancelToken = token });
                     throw;
                 }
             }
@@ -142,21 +140,21 @@ namespace Christofel.Messages.Commands
         public SlashCommandOptionBuilder GetSendSubcommandBuilder()
         {
             return new SlashCommandOptionBuilder()
-                    .WithName("send")
-                    .WithDescription("Send a new message")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("text")
-                        .WithRequired(true)
-                        .WithDescription("Text to send")
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("channel")
-                        .WithDescription("Channel to send the text to. Default current channel")
-                        .WithRequired(false)
-                        .WithType(ApplicationCommandOptionType.Channel));
+                .WithName("send")
+                .WithDescription("Send a new message")
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("text")
+                    .WithRequired(true)
+                    .WithDescription("Text to send")
+                    .WithType(ApplicationCommandOptionType.String))
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("channel")
+                    .WithDescription("Channel to send the text to. Default current channel")
+                    .WithRequired(false)
+                    .WithType(ApplicationCommandOptionType.Channel));
         }
-        
+
         public SlashCommandOptionBuilder GetEditSubcommandBuilder()
         {
             return new SlashCommandOptionBuilder()
@@ -180,7 +178,7 @@ namespace Christofel.Messages.Commands
                     .WithRequired(false)
                     .WithType(ApplicationCommandOptionType.Channel));
         }
-        
+
         public SlashCommandOptionBuilder GetDeleteSubcommandBuilder()
         {
             return new SlashCommandOptionBuilder()
@@ -203,14 +201,13 @@ namespace Christofel.Messages.Commands
         {
             SubCommandHandlerCreator handlerCreator = new SubCommandHandlerCreator();
             DiscordInteractionHandler handler = handlerCreator.CreateHandlerForCommand(
-                ("send", (CommandDelegate<IChannel?, string>) HandleEcho),
-                ("edit", (CommandDelegate<IChannel?, string, string>) HandleEdit),
-                ("delete", (CommandDelegate<IChannel?, string>) HandleDelete)
+                ("send", (CommandDelegate<IChannel?, string>)HandleEcho),
+                ("edit", (CommandDelegate<IChannel?, string, string>)HandleEdit),
+                ("delete", (CommandDelegate<IChannel?, string>)HandleDelete)
             );
 
             PermissionSlashInfoBuilder echoBuilder =
                 new PermissionSlashInfoBuilder()
-                    .WithGuild(_options.GuildId)
                     .WithPermission("messages.echo")
                     .WithHandler(handler)
                     .WithBuilder(new SlashCommandBuilder()

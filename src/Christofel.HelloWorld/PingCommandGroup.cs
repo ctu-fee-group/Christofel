@@ -14,16 +14,14 @@ namespace Christofel.HelloWorld
 {
     public class PingCommandGroup : ICommandGroup
     {
-        private readonly BotOptions _options;
         private readonly ILogger<PingCommandGroup> _logger;
         private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
 
-        public PingCommandGroup(IOptions<BotOptions> options, ILogger<PingCommandGroup> logger,
+        public PingCommandGroup(ILogger<PingCommandGroup> logger,
             ICommandPermissionsResolver<PermissionSlashInfo> resolver)
         {
             _resolver = resolver;
             _logger = logger;
-            _options = options.Value;
         }
 
         public Task HandlePing(SocketInteraction command, CancellationToken token = new CancellationToken())
@@ -41,7 +39,6 @@ namespace Christofel.HelloWorld
 
             PermissionSlashInfoBuilder pingBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("helloworld.ping")
-                .WithGuild(_options.GuildId)
                 .WithHandler((DiscordInteractionHandler)HandlePing)
                 .WithBuilder(new SlashCommandBuilder()
                     .WithName("ping")

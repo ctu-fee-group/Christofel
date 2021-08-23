@@ -23,20 +23,15 @@ namespace Christofel.Management.Commands
 {
     public class PermissionCommandsGroup : ICommandGroup
     {
-        private readonly DiscordSocketClient _client;
-        private readonly BotOptions _options;
         private readonly ILogger<MessageCommandsGroup> _logger;
         private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
         private readonly IPermissionService _permissions;
         private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
 
-        public PermissionCommandsGroup(IOptions<BotOptions> options,
-            ICommandPermissionsResolver<PermissionSlashInfo> resolver,
-            ILogger<MessageCommandsGroup> logger, DiscordSocketClient client,
+        public PermissionCommandsGroup(
+            ICommandPermissionsResolver<PermissionSlashInfo> resolver, ILogger<MessageCommandsGroup> logger,
             IDbContextFactory<ChristofelBaseContext> dbContextFactory, IPermissionService permissions)
         {
-            _client = client;
-            _options = options.Value;
             _logger = logger;
             _resolver = resolver;
             _dbContextFactory = dbContextFactory;
@@ -240,7 +235,6 @@ namespace Christofel.Management.Commands
                 );
 
             PermissionSlashInfoBuilder permissionsBuilder = new PermissionSlashInfoBuilder()
-                .WithGuild(_options.GuildId)
                 .WithPermission("management.permissions")
                 .WithHandler(handler)
                 .WithBuilder(new SlashCommandBuilder()

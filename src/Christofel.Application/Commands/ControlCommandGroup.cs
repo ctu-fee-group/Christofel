@@ -19,7 +19,6 @@ namespace Christofel.Application.Commands
     {
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly RefreshChristofel _refresh;
-        private readonly BotOptions _options;
         private readonly ILogger<ControlCommands> _logger;
         private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
 
@@ -27,7 +26,6 @@ namespace Christofel.Application.Commands
             ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             IApplicationLifetime lifetime,
             RefreshChristofel refresh,
-            IOptions<BotOptions> options,
             ILogger<ControlCommands> logger
         )
         {
@@ -35,7 +33,6 @@ namespace Christofel.Application.Commands
             _logger = logger;
             _applicationLifetime = lifetime;
             _refresh = refresh;
-            _options = options.Value;
         }
 
         private async Task HandleRefreshCommand(SocketInteraction command,
@@ -59,7 +56,6 @@ namespace Christofel.Application.Commands
         {
             PermissionSlashInfoBuilder quitBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("application.quit")
-                .WithGuild(_options.GuildId)
                 .WithHandler((DiscordInteractionHandler)HandleQuitCommand)
                 .WithBuilder(new SlashCommandBuilder()
                     .WithName("quit")
@@ -68,7 +64,6 @@ namespace Christofel.Application.Commands
 
             PermissionSlashInfoBuilder refreshBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("application.refresh")
-                .WithGuild(_options.GuildId)
                 .WithHandler((DiscordInteractionHandler)HandleRefreshCommand)
                 .WithBuilder(new SlashCommandBuilder()
                     .WithName("refresh")
