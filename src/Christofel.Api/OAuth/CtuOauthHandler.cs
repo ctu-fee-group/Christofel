@@ -14,7 +14,7 @@ using RestSharp;
 
 namespace Christofel.Api.OAuth
 {
-    public class CtuOauthHandler : OauthHandler
+    public class CtuOauthHandler : OauthHandler<CtuOauthOptions>
     {
         private class CheckTokenResponse : ICtuUser
         {
@@ -29,19 +29,12 @@ namespace Christofel.Api.OAuth
             [JsonProperty("user_name")] public string CtuUsername { get; }
         }
 
-        private readonly CtuOauthOptions _options;
         private readonly ILogger _logger;
 
         public CtuOauthHandler(IOptionsSnapshot<CtuOauthOptions> options, ILogger<CtuOauthHandler> logger)
-            : base(options)
+            : base(options.Get("Ctu"))
         {
             _logger = logger;
-            _options = options.Get("Ctu");
-        }
-
-        protected override OauthOptions GetOptions(IOptionsSnapshot<OauthOptions> options)
-        {
-            return options.Get("Ctu");
         }
 
         /// <summary>

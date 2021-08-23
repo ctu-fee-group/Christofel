@@ -23,30 +23,21 @@ namespace Christofel.Api.OAuth
     /// <summary>
     /// Handler of post oauth access token retrieval
     /// </summary>
-    public class OauthHandler
+    public abstract class OauthHandler<TOptions>
+        where TOptions : IOauthOptions
     {
-        protected readonly OauthOptions _options;
+        protected readonly TOptions _options;
         protected readonly RestClient _client;
 
-        public OauthHandler(IOptionsSnapshot<OauthOptions> options)
+        protected OauthHandler(TOptions options)
         {
             _client = new RestClient();
             _client.UseNewtonsoftJson();
 
-            _options = GetOptions(options);
+            _options = options;
             _client.Authenticator = new HttpBasicAuthenticator(
                 _options.ApplicationId ?? throw new InvalidOperationException("ApplicationId is null"),
                 _options.SecretKey ?? throw new InvalidOperationException("SecretKey is null"));
-        }
-
-        /// <summary>
-        /// Return correct options of the current oauth handler (can be used to distinguish multiple oauth services)
-        /// </summary>
-        /// <param name="options"></param>
-        /// <returns></returns>
-        protected virtual OauthOptions GetOptions(IOptionsSnapshot<OauthOptions> options)
-        {
-            return options.Value;
         }
 
         /// <summary>

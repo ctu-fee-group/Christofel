@@ -2,16 +2,11 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Api.OAuth
 {
-    public class DiscordOauthHandler : OauthHandler
+    public class DiscordOauthHandler : OauthHandler<IOauthOptions>
     {
         public DiscordOauthHandler(IOptionsSnapshot<OauthOptions> options)
-            : base(options)
+            : base(options.Get("Discord"))
         {
-        }
-
-        protected override OauthOptions GetOptions(IOptionsSnapshot<OauthOptions> options)
-        {
-            return options.Get("Discord");
         }
     }
 }
