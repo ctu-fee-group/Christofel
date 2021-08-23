@@ -78,7 +78,7 @@ namespace Christofel.Api.OAuth
             }
             else
             {
-                errorResponse = JsonConvert.DeserializeObject<OauthErrorResponse>(response.Content);
+                errorResponse = JsonConvert.DeserializeObject<OauthErrorResponse>(response.Content) ?? new OauthErrorResponse("Unknown", "Unknown");
                 errorResponse.Body = response.Content;
                 errorResponse.Headers = string.Join("; ", response.Headers);
                 errorResponse.StatusCode = (int)response.StatusCode;
