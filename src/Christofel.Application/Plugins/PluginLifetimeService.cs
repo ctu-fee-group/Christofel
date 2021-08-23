@@ -154,59 +154,65 @@ namespace Christofel.Application.Plugins
         {
             lifetime.Errored.Register(() =>
             {
-                try
+                Task.Run(() =>
                 {
-                    _logger.LogError($@"Received error state from {plugin}. Going to detach it");
+                    try
+                    {
+                        _logger.LogError($@"Received error state from {plugin}. Going to detach it");
 
-                    if (plugin.DetachedPlugin != null)
-                    {
-                        _logger.LogInformation(
-                            $@"Plugin {plugin.DetachedPlugin} was already detached and this means that it was probably not well exited");
-                    }
-                    else
-                    {
-                        DetachPluginAsync(plugin, null)
-                            .GetAwaiter()
-                            .GetResult();
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogCritical(e,
-                        "Errored during Errored CancellationToken callback inside PluginLifetimeService");
-                }
-            });
-
-            lifetime.Stopped.Register(() =>
-            {
-                try
-                {
-                    if (plugin.DetachedPlugin == null)
-                    {
-                        _logger.LogWarning(
-                            $@"Plugin {plugin} reported stopped, but it was not requested, detaching it");
-                        try
+                        if (plugin.DetachedPlugin != null)
+                        {
+                            _logger.LogInformation(
+                                $@"Plugin {plugin.DetachedPlugin} was already detached and this means that it was probably not well exited");
+                        }
+                        else
                         {
                             DetachPluginAsync(plugin, null)
                                 .GetAwaiter()
                                 .GetResult();
                         }
-                        catch (Exception e)
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogCritical(e,
+                            "Errored during Errored CancellationToken callback inside PluginLifetimeService");
+                    }
+                });
+            });
+
+            lifetime.Stopped.Register(() =>
+            {
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        if (plugin.DetachedPlugin == null)
                         {
-                            _logger.LogCritical(e, $"Plugin {plugin} errored during detaching");
+                            _logger.LogWarning(
+                                $@"Plugin {plugin} reported stopped, but it was not requested, detaching it");
+                            try
+                            {
+                                DetachPluginAsync(plugin, null)
+                                    .GetAwaiter()
+                                    .GetResult();
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogCritical(e, $"Plugin {plugin} errored during detaching");
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInformation(
+                                $@"Plugin {plugin.DetachedPlugin} reported stopped and was detached/is being detached, not handling it in callback");
                         }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        _logger.LogInformation(
-                            $@"Plugin {plugin.DetachedPlugin} reported stopped and was detached/is being detached, not handling it in callback");
+                        _logger.LogCritical(e,
+                            "Errored during Stopped CancellationToken callback inside PluginLifetimeService");
                     }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogCritical(e,
-                        "Errored during Stopped CancellationToken callback inside PluginLifetimeService");
-                }
+                });
             });
         }
 
