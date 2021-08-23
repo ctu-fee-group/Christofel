@@ -149,7 +149,7 @@ namespace Christofel.Application
                 })
                 .AddSingleton<DiscordNetLog>()
                 // commands
-                .AddChristofelInteractionService()
+                .AddChristofelInteractionService(_configuration.GetSection("Bot"))
                 .AddCommandGroup<ControlCommands>()
                 .AddCommandGroup<PluginCommands>()
                 .AddSingleton<RefreshChristofel>(this.RefreshAsync);

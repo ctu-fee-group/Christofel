@@ -29,15 +29,13 @@ namespace Christofel.Management.Commands
         // /slowmode enablepermanent interval channel
         // /slowmode disable channel
         private readonly DiscordSocketClient _client;
-        private readonly BotOptions _options;
         private readonly ILogger<MessageCommandsGroup> _logger;
         private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
 
-        public MessageCommandsGroup(IOptions<BotOptions> options, ICommandPermissionsResolver<PermissionSlashInfo> resolver,
+        public MessageCommandsGroup(ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             ILogger<MessageCommandsGroup> logger, DiscordSocketClient client)
         {
             _client = client;
-            _options = options.Value;
             _logger = logger;
             _resolver = resolver;
         }
@@ -188,7 +186,6 @@ namespace Christofel.Management.Commands
                 );
 
             PermissionSlashInfoBuilder slowmodeBuilder = new PermissionSlashInfoBuilder()
-                .WithGuild(_options.GuildId)
                 .WithPermission("management.messages.slowmode")
                 .WithHandler(slowmodeHandler)
                 .WithBuilder(new SlashCommandBuilder()

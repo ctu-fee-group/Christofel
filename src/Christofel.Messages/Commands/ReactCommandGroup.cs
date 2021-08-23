@@ -30,14 +30,12 @@ namespace Christofel.Messages.Commands
 
         private readonly ILogger<ReactCommandGroup> _logger;
         private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
-        private readonly BotOptions _options;
         private readonly DiscordSocketClient _client;
 
         public ReactCommandGroup(DiscordSocketClient client, ILogger<ReactCommandGroup> logger,
-            ICommandPermissionsResolver<PermissionSlashInfo> resolver, IOptions<BotOptions> options)
+            ICommandPermissionsResolver<PermissionSlashInfo> resolver)
         {
             _client = client;
-            _options = options.Value;
             _logger = logger;
             _resolver = resolver;
         }
@@ -80,7 +78,6 @@ namespace Christofel.Messages.Commands
                 .CreateHandlerForCommand((CommandDelegate<IChannel?, string, string>) HandleReactAsync);
 
             PermissionSlashInfoBuilder commandBuilder = new PermissionSlashInfoBuilder()
-                .WithGuild(_options.GuildId)
                 .WithHandler(handler)
                 .WithPermission("messages.react.react")
                 .WithBuilder(new SlashCommandBuilder()

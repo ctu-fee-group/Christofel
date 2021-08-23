@@ -41,20 +41,17 @@ namespace Christofel.Management.Commands
         //   - show duplicate information
 
         private readonly DiscordSocketClient _client;
-        private readonly BotOptions _options;
         private readonly ILogger<MessageCommandsGroup> _logger;
         private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
         private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
         private readonly CtuIdentityResolver _identityResolver;
 
-        public UserCommandsGroup(IOptions<BotOptions> options,
-            ICommandPermissionsResolver<PermissionSlashInfo> resolver,
+        public UserCommandsGroup(ICommandPermissionsResolver<PermissionSlashInfo> resolver,
             ILogger<MessageCommandsGroup> logger, DiscordSocketClient client,
             IDbContextFactory<ChristofelBaseContext> dbContextFactory, CtuIdentityResolver identityResolver)
         {
             _identityResolver = identityResolver;
             _client = client;
-            _options = options.Value;
             _logger = logger;
             _resolver = resolver;
             _dbContextFactory = dbContextFactory;
@@ -314,14 +311,12 @@ namespace Christofel.Management.Commands
 
             PermissionSlashInfoBuilder userBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("management.users.manage")
-                .WithGuild(_options.GuildId)
                 .WithHandler(userHandler)
                 .WithBuilder(GetUsersCommandBuilder());
 
             PermissionSlashInfoBuilder duplicityBuilder = new PermissionSlashInfoBuilder()
                 .WithPermission("management.users.duplicities")
                 .WithHandler(duplicityHandler)
-                .WithGuild(_options.GuildId)
                 .WithBuilder(GetDuplicityCommandBuilder());
 
             IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()

@@ -60,7 +60,7 @@ namespace Christofel.HelloWorld
         {
             return serviceCollection
                 .AddDiscordState(State)
-                .AddChristofelInteractionService()
+                .AddChristofelInteractionService(State.Configuration.GetSection("Bot"))
                 .AddCommandGroup<PingCommandGroup>()
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
