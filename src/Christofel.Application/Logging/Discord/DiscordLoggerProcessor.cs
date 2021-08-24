@@ -1,11 +1,16 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Extensions;
 using Christofel.BaseLib.Extensions;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
+using Remora.Discord.Core;
 
 namespace Christofel.Application.Logging.Discord
 {
@@ -16,16 +21,15 @@ namespace Christofel.Application.Logging.Discord
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
 
-        private readonly DiscordSocketClient _bot;
+        private readonly IDiscordRestChannelAPI _channelApi;
 
         private bool _canProcess;
         private bool _quit;
 
-        public DiscordLoggerProcessor(DiscordSocketClient bot, DiscordLoggerOptions options)
+        public DiscordLoggerProcessor(IDiscordRestChannelAPI channelApi, DiscordLoggerOptions options)
         {
+            _channelApi = channelApi;
             _canProcess = false;
-            _bot = bot;
-            _bot.Ready += HandleBotReady;
 
             Options = options;
             _messageQueue = new BlockingCollection<DiscordLogMessage>((int)Options.MaxQueueSize);
@@ -66,29 +70,27 @@ namespace Christofel.Application.Logging.Discord
 
         private bool SendMessage(DiscordLogMessage entry)
         {
-            if (_bot.ConnectionState != ConnectionState.Connected)
+            bool success = true;
+            Optional<IMessageReference> message = default;
+            foreach (string part in entry.Message.Chunk(2000))
             {
-                _canProcess = false;
-                return false;
-            }
+                var result =
+                    _channelApi.CreateMessageAsync(new Snowflake(entry.ChannelId), part, messageReference: message,
+                        allowedMentions:
+                        new AllowedMentions(Roles: new List<Snowflake>(),
+                            Users: new List<Snowflake>())).GetAwaiter().GetResult();
 
-            IMessageChannel channel = _bot
-                .GetGuild(entry.GuildId)
-                .GetTextChannel(entry.ChannelId);
-
-            if (channel != null)
-            {
-                foreach (string part in entry.Message.Chunk(2000))
+                if (!result.IsSuccess)
                 {
-                    channel.SendMessageAsync(part, allowedMentions: AllowedMentions.None).GetAwaiter().GetResult();
+                    success = false;
+                    Console.WriteLine("There was an error when logging: " + result.Error + result.Error.Message);
+                    break;
                 }
-            }
-            else
-            {
-                Console.WriteLine("Could not find log channel");
+
+                message = new MessageReference(result.Entity.ID, result.Entity.ChannelID, result.Entity.GuildID);
             }
 
-            return true;
+            return success;
         }
 
         private void SendMessages(List<DiscordLogMessage> messages)

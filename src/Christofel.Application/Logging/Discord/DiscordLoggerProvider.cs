@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Remora.Discord.API.Abstractions.Rest;
 
 namespace Christofel.Application.Logging.Discord
 {
@@ -15,11 +16,11 @@ namespace Christofel.Application.Logging.Discord
         
         private IExternalScopeProvider? _scopeProvider;
 
-        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, DiscordSocketClient bot)
+        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, IDiscordRestChannelAPI channelApi)
         {
             _config = config.CurrentValue;
             _loggers = new ConcurrentDictionary<string, DiscordLogger>();
-            _queueProcessor = new DiscordLoggerProcessor(bot, config.CurrentValue);
+            _queueProcessor = new DiscordLoggerProcessor(channelApi, config.CurrentValue);
             
             _onChangeToken = config.OnChange(HandleConfigChanged);
         }
