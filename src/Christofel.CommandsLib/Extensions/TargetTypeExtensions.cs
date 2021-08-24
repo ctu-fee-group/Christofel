@@ -1,5 +1,6 @@
 using System;
 using Christofel.BaseLib.Database.Models.Enums;
+using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.CommandsLib.Extensions
 {
@@ -11,14 +12,14 @@ namespace Christofel.CommandsLib.Extensions
         /// <param name="targetType"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static ApplicationCommandPermissionTarget AsApplicationCommandPermission(this TargetType targetType)
+        public static ApplicationCommandPermissionType AsApplicationCommandPermission(this TargetType targetType)
         {
             switch (targetType)
             {
                 case TargetType.Role:
-                    return ApplicationCommandPermissionTarget.Role;
+                    return ApplicationCommandPermissionType.Role;
                 case TargetType.User:
-                    return ApplicationCommandPermissionTarget.User;
+                    return ApplicationCommandPermissionType.User;
             }
 
             throw new ArgumentException($@"Cannot cast {targetType} to ApplicationCommandPermissionTarget");

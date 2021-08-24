@@ -1,35 +1,94 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
+using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib.Extensions;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Remora.Commands.Trees.Nodes;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Core;
 
 namespace Christofel.CommandsLib
 {
-    public sealed class ChristofelCommandPermissionResolver : ICommandPermissionsResolver<PermissionSlashInfo>
+    public sealed class ChristofelCommandPermissionResolver
     {
         private readonly IPermissionsResolver _permissionsResolver;
-        
+
         public ChristofelCommandPermissionResolver(IPermissionsResolver permissionsResolver)
         {
             _permissionsResolver = permissionsResolver;
         }
-        
-        public Task<bool> IsForEveryoneAsync(PermissionSlashInfo info, CancellationToken cancellationToken)
-        {
-            return _permissionsResolver.HasPermissionAsync(info.Permission, DiscordTarget.Everyone, cancellationToken);
-        }
 
-        public Task<bool> HasPermissionAsync(IUser user, PermissionSlashInfo info, CancellationToken cancellationToken)
+        public Task<bool> IsForEveryoneAsync(Snowflake? guildId, CommandNode commandNode,
+            CancellationToken cancellationToken) =>
+            IsForEveryoneAsync(guildId, commandNode.GetChristofelPermission(), cancellationToken);
+
+        public Task<IEnumerable<IApplicationCommandPermissions>> GetCommandPermissionsAsync(Snowflake? guildId,
+            CommandNode commandNode,
+            CancellationToken cancellationToken) =>
+            GetCommandPermissionsAsync(guildId, commandNode.GetChristofelPermission(), cancellationToken);
+
+        public Task<bool> IsForEveryoneAsync(Snowflake? guildId, GroupNode commandNode,
+            CancellationToken cancellationToken) =>
+            IsForEveryoneAsync(guildId, commandNode.GetChristofelPermission(), cancellationToken);
+
+        public Task<IEnumerable<IApplicationCommandPermissions>> GetCommandPermissionsAsync(Snowflake? guildId,
+            GroupNode commandNode,
+            CancellationToken cancellationToken) =>
+            GetCommandPermissionsAsync(guildId, commandNode.GetChristofelPermission(), cancellationToken);
+
+        public Task<bool> HasPermissionAsync(IGuildMember user, CommandNode commandNode,
+            CancellationToken cancellationToken)
         {
-            return _permissionsResolver.AnyHasPermissionAsync(info.Permission, user.GetAllDiscordTargets(),
+            string? permission = commandNode.GetChristofelPermission();
+
+            if (permission is null)
+            {
+                return Task.FromResult(true);
+            }
+
+            return _permissionsResolver.AnyHasPermissionAsync(permission, user.GetAllDiscordTargets(),
                 cancellationToken);
         }
 
-        public Task<IEnumerable<ApplicationCommandPermission>> GetCommandPermissionsAsync(PermissionSlashInfo info, CancellationToken cancellationToken)
+        public Task<bool> HasPermissionAsync(IUser user, CommandNode commandNode, CancellationToken cancellationToken)
         {
-            return _permissionsResolver.GetSlashCommandPermissionsAsync(info.Permission, cancellationToken);
+            string? permission = commandNode.GetChristofelPermission();
+
+            if (permission is null)
+            {
+                return Task.FromResult(true);
+            }
+
+            return _permissionsResolver.AnyHasPermissionAsync(permission, new[] { user.ToDiscordTarget() },
+                cancellationToken);
+        }
+
+        private Task<bool> IsForEveryoneAsync(Snowflake? guildId, string? permission, CancellationToken cancellationToken)
+        {
+            if (permission is null)
+            {
+                return Task.FromResult(true);
+            }
+
+            return _permissionsResolver.HasPermissionAsync(
+                permission, DiscordTarget.Everyone,
+                cancellationToken);
+        }
+
+        private Task<IEnumerable<IApplicationCommandPermissions>> GetCommandPermissionsAsync(Snowflake? guildId, string? permission,
+            CancellationToken cancellationToken)
+        {
+            if (permission is null)
+            {
+                return Task.FromResult(Enumerable.Empty<IApplicationCommandPermissions>());
+            }
+
+            return _permissionsResolver.GetSlashCommandPermissionsAsync(permission, cancellationToken);
         }
     }
 }

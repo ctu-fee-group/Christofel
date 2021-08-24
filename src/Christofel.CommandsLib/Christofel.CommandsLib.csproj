@@ -10,10 +10,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\libs\discord-net-interactions\src\Discord.Net.Interactions.DI\Discord.Net.Interactions.DI.csproj" />
-      <ProjectReference Include="..\..\libs\discord-net-interactions\src\Discord.Net.Interactions\Discord.Net.Interactions.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Remora.Discord.API.Abstractions" Version="32.0.1" />
+      <PackageReference Include="Remora.Discord.Commands" Version="9.0.1" />
     </ItemGroup>
 
 </Project>
