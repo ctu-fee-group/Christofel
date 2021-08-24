@@ -1,7 +1,5 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Christofel.BaseLib.User;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps

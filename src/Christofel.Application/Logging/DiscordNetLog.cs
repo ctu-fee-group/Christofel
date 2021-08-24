@@ -1,7 +1,4 @@
 using System.Threading.Tasks;
-using Discord;
-using Discord.Rest;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.Logging

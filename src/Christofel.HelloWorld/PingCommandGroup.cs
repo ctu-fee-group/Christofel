@@ -1,14 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Database.Models;
 using Christofel.CommandsLib;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.Executors;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Christofel.HelloWorld
 {

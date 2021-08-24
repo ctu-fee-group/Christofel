@@ -1,6 +1,4 @@
-using Christofel.Api.GraphQL.DataLoaders;
 using Christofel.BaseLib.Database.Models;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace Christofel.Api.GraphQL.Types

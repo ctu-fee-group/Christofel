@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Kos;
 using Kos.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps.Roles

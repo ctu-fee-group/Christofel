@@ -1,11 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Lifetime;
-using Discord;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

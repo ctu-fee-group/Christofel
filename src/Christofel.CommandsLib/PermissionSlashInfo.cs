@@ -1,6 +1,3 @@
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-
 namespace Christofel.CommandsLib
 {
     public class PermissionSlashInfo : SlashCommandInfo

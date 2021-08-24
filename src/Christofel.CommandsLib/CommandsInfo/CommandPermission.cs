@@ -1,5 +1,4 @@
 using Christofel.BaseLib.Permissions;
-using Discord;
 
 namespace Christofel.CommandsLib.CommandsInfo
 {

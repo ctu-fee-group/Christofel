@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Christofel.Api.Exceptions;
 using Christofel.BaseLib.User;

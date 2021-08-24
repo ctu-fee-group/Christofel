@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Lifetime;
-using Discord;
-using Discord.Rest;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu

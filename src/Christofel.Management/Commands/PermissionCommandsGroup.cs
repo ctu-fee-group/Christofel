@@ -3,21 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.CommandsInfo;
-using Discord.Net.Interactions.Executors;
-using Discord.Net.Interactions.HandlerCreator;
-using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Christofel.Management.Commands
 {

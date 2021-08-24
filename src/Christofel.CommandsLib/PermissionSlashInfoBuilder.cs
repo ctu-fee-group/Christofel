@@ -1,7 +1,4 @@
 using System;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.CommandsInfo;
 
 namespace Christofel.CommandsLib
 {

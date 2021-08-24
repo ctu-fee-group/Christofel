@@ -1,8 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Christofel.Messages.Services;
-using Discord.Net.Interactions.Verifier;
-using Discord.Net.Interactions.Verifier.Interfaces;
 using Newtonsoft.Json;
 
 namespace Christofel.Messages.Commands.Verifiers

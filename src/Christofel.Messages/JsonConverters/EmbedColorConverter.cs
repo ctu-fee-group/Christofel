@@ -1,5 +1,4 @@
 using System;
-using Discord;
 using Newtonsoft.Json;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 

@@ -1,5 +1,4 @@
 using Christofel.BaseLib.Database.Models.Enums;
-using Discord;
 using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.BaseLib.Database.Models

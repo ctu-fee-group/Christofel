@@ -1,12 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Christofel.BaseLib.Discord;
-using Discord;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.VisualBasic;
 
 namespace Christofel.Application.Logging.Discord
 {

@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using Christofel.Api.OAuth;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.User;
-using Discord.Rest;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu

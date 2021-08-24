@@ -4,8 +4,6 @@ using Christofel.Api.OAuth;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
-using Discord;
-using Discord.Rest;
 
 namespace Christofel.Api.Ctu
 {

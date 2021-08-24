@@ -1,7 +1,5 @@
 using System;
-using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
-using Discord;
 
 namespace Christofel.CommandsLib.Extensions
 {

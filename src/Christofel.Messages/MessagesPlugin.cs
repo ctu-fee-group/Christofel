@@ -10,7 +10,6 @@ using Christofel.CommandsLib;
 using Christofel.Messages.Commands;
 using Christofel.Messages.Options;
 using Christofel.Messages.Services;
-using Discord.Net.Interactions.DI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

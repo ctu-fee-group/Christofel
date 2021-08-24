@@ -5,18 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Plugins;
 using Christofel.BaseLib;
-using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.CommandsInfo;
-using Discord.Net.Interactions.Executors;
-using Discord.Net.Interactions.HandlerCreator;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Christofel.Application.Commands
 {

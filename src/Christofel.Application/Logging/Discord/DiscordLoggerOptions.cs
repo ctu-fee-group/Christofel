@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.Logging.Discord

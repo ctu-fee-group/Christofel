@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading.Tasks;
 using Christofel.Messages.JsonConverters;
 using Christofel.Messages.Options;
-using Discord;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 

@@ -5,11 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Extensions;
-using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Extensions;
-using Christofel.BaseLib.Lifetime;
-using Discord;
-using Discord.WebSocket;
 
 namespace Christofel.Application.Logging.Discord
 {

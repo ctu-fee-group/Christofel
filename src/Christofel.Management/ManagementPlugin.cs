@@ -9,7 +9,6 @@ using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
-using Discord.Net.Interactions.DI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

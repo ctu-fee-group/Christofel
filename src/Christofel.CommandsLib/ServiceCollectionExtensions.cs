@@ -1,7 +1,3 @@
-using Discord.Net.Interactions;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.DI;
-using Discord.Net.Interactions.Handlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

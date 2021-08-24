@@ -1,19 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Assemblies;
-using Christofel.Application.Extensions;
 using Christofel.BaseLib;
-using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Serialization;
 
 namespace Christofel.Application.Plugins
 {

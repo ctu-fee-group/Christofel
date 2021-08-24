@@ -1,9 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib;
 using Christofel.BaseLib.Lifetime;
-using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.State

@@ -1,22 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib;
-using Christofel.Messages.Commands.Verifiers;
 using Christofel.Messages.Services;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.CommandsInfo;
-using Discord.Net.Interactions.Executors;
-using Discord.Net.Interactions.HandlerCreator;
-using Discord.Net.Interactions.Verifier;
-using Discord.Net.Interactions.Verifier.Interfaces;
-using Discord.Net.Interactions.Verifier.Verifiers;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Christofel.Messages.Commands
 {

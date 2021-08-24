@@ -1,6 +1,4 @@
 using System.Threading.Tasks;
-using Discord;
-using Discord.Net.Interactions.Verifier;
 
 namespace Christofel.Management.Commands.Verifiers
 {

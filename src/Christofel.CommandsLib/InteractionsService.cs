@@ -1,14 +1,10 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib.CommandsInfo;
-using Discord.Net.Interactions;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.Handlers;
 
 namespace Christofel.CommandsLib
 {

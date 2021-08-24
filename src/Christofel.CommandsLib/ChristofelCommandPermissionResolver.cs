@@ -1,13 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Permissions;
-using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.Extensions;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
 
 namespace Christofel.CommandsLib
 {

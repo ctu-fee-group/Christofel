@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
 using Christofel.CommandsLib;
-using Discord.Net.Interactions.DI;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.HelloWorld
