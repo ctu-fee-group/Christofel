@@ -1,79 +1,63 @@
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Lifetime;
 using Christofel.CommandsLib;
 using Microsoft.Extensions.Logging;
+using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
 
 namespace Christofel.Application.Commands
 {
     /// <summary>
     /// Handler of /refresh and /quit commands
     /// </summary>
-    public class ControlCommands : ICommandGroup
+    [DiscordDefaultPermission(false)]
+    public class ControlCommands : CommandGroup
     {
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly RefreshChristofel _refresh;
         private readonly ILogger<ControlCommands> _logger;
-        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
+        private readonly FeedbackService _feedbackService;
 
         public ControlCommands(
-            ICommandPermissionsResolver<PermissionSlashInfo> resolver,
+            FeedbackService feedbackService,
             IApplicationLifetime lifetime,
             RefreshChristofel refresh,
             ILogger<ControlCommands> logger
         )
         {
-            _resolver = resolver;
+            _feedbackService = feedbackService;
             _logger = logger;
             _applicationLifetime = lifetime;
             _refresh = refresh;
         }
 
-        private async Task HandleRefreshCommand(SocketInteraction command,
-            CancellationToken token = new CancellationToken())
+        [Command("refresh")]
+        [Description("Refresh the application and all plugins, reloading permissions, configuration and such")]
+        [RequirePermission("application.refresh")]
+        [Ephemeral]
+        private async Task HandleRefreshCommand()
         {
             _logger.LogInformation("Handling command /refresh");
-            await _refresh(token);
+            await _refresh(CancellationToken);
             _logger.LogInformation("Refreshed successfully");
-
-            await command.FollowupAsync("Refreshed");
+            
+            await _feedbackService.SendContextualSuccessAsync("Successfully refreshed", ct: CancellationToken);
         }
 
-        private Task HandleQuitCommand(SocketInteraction command, CancellationToken token = new CancellationToken())
+        [Command("quit")]
+        [Description("Exit the application")]
+        [RequirePermission("application.quit")]
+        private Task HandleQuitCommand()
         {
             _logger.LogInformation("Handling command /quit");
             _applicationLifetime.RequestStop();
-            return command.FollowupAsync("Goodbye", options: new RequestOptions() {CancelToken = token});
-        }
 
-        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
-        {
-            PermissionSlashInfoBuilder quitBuilder = new PermissionSlashInfoBuilder()
-                .WithPermission("application.quit")
-                .WithHandler((DiscordInteractionHandler)HandleQuitCommand)
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("quit")
-                    .WithDescription("Quit the bot")
-                );
-
-            PermissionSlashInfoBuilder refreshBuilder = new PermissionSlashInfoBuilder()
-                .WithPermission("application.refresh")
-                .WithHandler((DiscordInteractionHandler)HandleRefreshCommand)
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("refresh")
-                    .WithDescription("Refresh config where it can be")
-                );
-
-            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
-                .WithLogger(_logger)
-                .WithPermissionCheck(_resolver)
-                .WithDeferMessage()
-                .WithThreadPool()
-                .Build();
-
-            holder.AddInteraction(quitBuilder.Build(), executor);
-            holder.AddInteraction(refreshBuilder.Build(), executor);
-            return Task.CompletedTask;
+            return _feedbackService.SendContextualSuccessAsync("Goodbye", ct: CancellationToken);
         }
     }
 }
