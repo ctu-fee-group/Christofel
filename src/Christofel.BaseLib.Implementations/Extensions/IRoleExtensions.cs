@@ -1,6 +1,6 @@
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
-using Discord;
+using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -23,7 +23,7 @@ namespace Christofel.BaseLib.Extensions
             
             return new DiscordTarget
             {
-                DiscordId = role.Id,
+                DiscordId = role.ID.Value,
                 TargetType = TargetType.Role
             };
         }

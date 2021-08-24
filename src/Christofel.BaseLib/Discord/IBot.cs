@@ -1,6 +1,6 @@
-using System;
-using System.Threading.Tasks;
-using Discord.WebSocket;
+using System.Net.Http;
+using Remora.Discord.Caching.Services;
+using Remora.Discord.Gateway;
 
 namespace Christofel.BaseLib.Discord
 {
@@ -9,18 +9,10 @@ namespace Christofel.BaseLib.Discord
     /// </summary>
     public interface IBot
     {
-        /// <summary>
-        /// The socket client itself to allow Discord API usage and events handling
-        /// </summary>
-        public DiscordSocketClient Client { get; }
-
-        /// <summary>
-        /// Method to tell the application to quit
-        /// </summary>
-        /// <remarks>
-        /// In the end does the same thing as calling RequestStop on IApplicationLifetime
-        /// </remarks>
-        [Obsolete]
-        public void QuitBot();
+        public DiscordGatewayClient Client { get; }
+        
+        public CacheService Cache { get; }
+        
+        public IHttpClientFactory HttpClientFactory { get; }
     }
 }

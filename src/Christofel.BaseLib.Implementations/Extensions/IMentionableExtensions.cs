@@ -1,12 +1,11 @@
 using System;
 using Christofel.BaseLib.Database.Models;
-using Discord;
 
 namespace Christofel.BaseLib.Extensions
 {
     public static class IMentionableExtensions
     {
-        public static DiscordTarget ToDiscordTarget(this IMentionable mentionable)
+        /*public static DiscordTarget ToDiscordTarget(this IMentionable mentionable)
         {
             DiscordTarget target;
             if (mentionable is IUser user)
@@ -24,6 +23,6 @@ namespace Christofel.BaseLib.Extensions
             }
 
             return target;
-        }
+        }*/
     }
 }
