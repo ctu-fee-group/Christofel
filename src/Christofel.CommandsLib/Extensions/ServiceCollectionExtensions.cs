@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Remora.Commands.Extensions;
 using Remora.Discord.Commands.Extensions;
 
 namespace Christofel.CommandsLib.Extensions
@@ -12,7 +13,8 @@ namespace Christofel.CommandsLib.Extensions
                 .AddSingleton<ChristofelSlashService>()
                 .AddTransient<ChristofelCommandPermissionResolver>()
                 .AddDiscordCommands(true)
-                .AddTransient<ChristofelCommandRegistrator>();
+                .AddTransient<ChristofelCommandRegistrator>()
+                .AddCondition<RequirePermissionCondition>();
         }
     }
 }
