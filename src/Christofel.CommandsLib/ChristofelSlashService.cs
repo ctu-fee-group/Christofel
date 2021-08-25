@@ -143,6 +143,68 @@ namespace Christofel.CommandsLib
             return Result.FromSuccess();
         }
 
+        public async Task<Result> DeleteSlashCommandsAsync
+        (
+            Snowflake? guildID = null,
+            CancellationToken ct = default
+        )
+        {
+            var getApplication = await _oauth2API.GetCurrentBotApplicationInformationAsync(ct);
+            if (!getApplication.IsSuccess)
+            {
+                return Result.FromError(getApplication);
+            }
+
+            var application = getApplication.Entity;
+            var deleteCommands = _commandTree.CreateApplicationCommands();
+            if (!deleteCommands.IsSuccess)
+            {
+                return Result.FromError(deleteCommands);
+            }
+
+            Result<IReadOnlyList<IApplicationCommand>> loadedCommands;
+
+            if (guildID is null)
+            {
+                loadedCommands = await _applicationAPI.GetGlobalApplicationCommandsAsync(application.ID, ct);
+            }
+            else
+            {
+                loadedCommands = await _applicationAPI.GetGuildApplicationCommandsAsync(application.ID, (Snowflake)guildID, ct);
+            }
+
+            if (!loadedCommands.IsSuccess)
+            {
+                return Result.FromError(loadedCommands.Error);
+            }
+
+            foreach (var commandInfo in deleteCommands.Entity)
+            {
+                var appCommand = loadedCommands.Entity.FirstOrDefault(x => x.Name == commandInfo.Name);
+                if (appCommand is null)
+                {
+                    continue;
+                }
+
+                Result result;
+                if (guildID is null)
+                {
+                    result = await _applicationAPI.DeleteGlobalApplicationCommandAsync(application.ID, appCommand.ID, ct);
+                }
+                else
+                {
+                    result = await _applicationAPI.DeleteGuildApplicationCommandAsync(application.ID, (Snowflake)guildID, appCommand.ID, ct);
+                }
+
+                if (!result.IsSuccess)
+                {
+                    return Result.FromError(result.Error);
+                }
+            }
+            
+            return Result.FromSuccess();
+        }
+
         private async Task<IReadOnlyCollection<CommandInfo>>
             MapCommandsAsync
             (
