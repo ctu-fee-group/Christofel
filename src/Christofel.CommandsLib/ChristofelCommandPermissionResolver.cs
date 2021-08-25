@@ -41,34 +41,20 @@ namespace Christofel.CommandsLib
             CancellationToken cancellationToken) =>
             GetCommandPermissionsAsync(guildId, commandNode.GetChristofelPermission(), cancellationToken);
 
-        public Task<bool> HasPermissionAsync(IGuildMember user, CommandNode commandNode,
+        public Task<bool> HasPermissionAsync(IGuildMember user, string permission,
             CancellationToken cancellationToken)
         {
-            string? permission = commandNode.GetChristofelPermission();
-
-            if (permission is null)
-            {
-                return Task.FromResult(true);
-            }
-
             return _permissionsResolver.AnyHasPermissionAsync(permission, user.GetAllDiscordTargets(),
                 cancellationToken);
         }
 
-        public Task<bool> HasPermissionAsync(IUser user, CommandNode commandNode, CancellationToken cancellationToken)
+        public Task<bool> HasPermissionAsync(IUser user, string permission, CancellationToken cancellationToken)
         {
-            string? permission = commandNode.GetChristofelPermission();
-
-            if (permission is null)
-            {
-                return Task.FromResult(true);
-            }
-
             return _permissionsResolver.AnyHasPermissionAsync(permission, new[] { user.ToDiscordTarget() },
                 cancellationToken);
         }
 
-        private Task<bool> IsForEveryoneAsync(Snowflake? guildId, string? permission, CancellationToken cancellationToken)
+        public Task<bool> IsForEveryoneAsync(Snowflake? guildId, string? permission, CancellationToken cancellationToken)
         {
             if (permission is null)
             {
@@ -80,7 +66,7 @@ namespace Christofel.CommandsLib
                 cancellationToken);
         }
 
-        private Task<IEnumerable<IApplicationCommandPermissions>> GetCommandPermissionsAsync(Snowflake? guildId, string? permission,
+        public Task<IEnumerable<IApplicationCommandPermissions>> GetCommandPermissionsAsync(Snowflake? guildId, string? permission,
             CancellationToken cancellationToken)
         {
             if (permission is null)

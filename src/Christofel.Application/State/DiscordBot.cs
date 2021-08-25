@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.Caching.Services;
 using Remora.Discord.Gateway;
+using Remora.Discord.Gateway.Results;
+using Remora.Results;
 
 namespace Christofel.Application.State
 {
@@ -17,19 +19,17 @@ namespace Christofel.Application.State
         private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
         private readonly IApplicationLifetime _lifetime;
 
-        public DiscordBot(IHttpClientFactory httpClientFactory, CacheService cache, DiscordGatewayClient client,
+        public DiscordBot(IHttpClientFactory httpClientFactory, DiscordGatewayClient client,
             ILogger<DiscordBot> logger, IApplicationLifetime lifetime)
         {
             Client = client;
             HttpClientFactory = httpClientFactory;
-            Cache = cache;
 
             _lifetime = lifetime;
             _logger = logger;
         }
 
-        public DiscordGatewayClient Client { get; }
-        public CacheService Cache { get; }
+        public DiscordGatewayClient Client { get; } 
         public IHttpClientFactory HttpClientFactory { get; }
 
         /// <summary>
@@ -41,16 +41,35 @@ namespace Christofel.Application.State
             _logger.LogInformation("Running application");
             CancellationTokenSource tokenSource =
                 CancellationTokenSource.CreateLinkedTokenSource(_applicationRunningToken.Token, token);
-            try
+            
+            var runResult = await Client.RunAsync(token);
+            if (!runResult.IsSuccess)
             {
-                await Task.Delay(-1, tokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            finally
-            {
-                tokenSource.Dispose();
+                switch (runResult.Error)
+                {
+                    case ExceptionError exe:
+                    {
+                        _logger.LogError
+                        (
+                            exe.Exception,
+                            "Exception during gateway connection: {ExceptionMessage}",
+                            exe.Message
+                        );
+
+                        break;
+                    }
+                    case GatewayWebSocketError:
+                    case GatewayDiscordError:
+                    {
+                        _logger.LogError("Gateway error: {Message}", runResult.Error.Message);
+                        break;
+                    }
+                    default:
+                    {
+                        _logger.LogError("Unknown error: {Message}", runResult.Error.Message);
+                        break;
+                    }
+                }
             }
 
             _lifetime.RequestStop();

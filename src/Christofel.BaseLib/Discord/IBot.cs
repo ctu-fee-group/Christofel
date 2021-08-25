@@ -11,7 +11,7 @@ namespace Christofel.BaseLib.Discord
     {
         public DiscordGatewayClient Client { get; }
         
-        public CacheService Cache { get; }
+        //public CacheService Cache { get; }
         
         public IHttpClientFactory HttpClientFactory { get; }
     }

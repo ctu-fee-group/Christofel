@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Extensions;
 using Christofel.BaseLib.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
@@ -20,16 +21,14 @@ namespace Christofel.Application.Logging.Discord
 
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
-
-        private readonly IDiscordRestChannelAPI _channelApi;
-
-        private bool _canProcess;
+        
         private bool _quit;
+        private IServiceProvider _provider;
+        private IDiscordRestChannelAPI? _channelApi;
 
-        public DiscordLoggerProcessor(IDiscordRestChannelAPI channelApi, DiscordLoggerOptions options)
+        public DiscordLoggerProcessor(IServiceProvider provider, DiscordLoggerOptions options)
         {
-            _channelApi = channelApi;
-            _canProcess = false;
+            _provider = provider;
 
             Options = options;
             _messageQueue = new BlockingCollection<DiscordLogMessage>((int)Options.MaxQueueSize);
@@ -70,6 +69,11 @@ namespace Christofel.Application.Logging.Discord
 
         private bool SendMessage(DiscordLogMessage entry)
         {
+            if (_channelApi is null)
+            {
+                _channelApi = _provider.GetRequiredService<IDiscordRestChannelAPI>();
+            }
+            
             bool success = true;
             Optional<IMessageReference> message = default;
             foreach (string part in entry.Message.Chunk(2000))
@@ -101,19 +105,13 @@ namespace Christofel.Application.Logging.Discord
 
                 while (!sent)
                 {
-                    while (!_canProcess)
-                    {
-                        Thread.Sleep(10);
-                    }
-
                     try
                     {
                         sent = SendMessage(message);
                     }
                     catch (Exception) // Generally exceptions shouldn't happen here
                     {
-                        sent = true; // pretend like it was sent
-                        //EnqueueMessage(message); // add it to queue so we don't lose it
+                        sent = false; // pretend like it was sent
                     }
                 }
             }
@@ -164,12 +162,6 @@ namespace Christofel.Application.Logging.Discord
             catch (ThreadStateException)
             {
             }
-        }
-
-        protected Task HandleBotReady()
-        {
-            _canProcess = true;
-            return Task.CompletedTask;
         }
     }
 }

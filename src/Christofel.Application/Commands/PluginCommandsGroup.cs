@@ -11,8 +11,10 @@ using Christofel.CommandsLib;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Feedback.Services;
+using Remora.Results;
 
 namespace Christofel.Application.Commands
 {
@@ -47,7 +49,7 @@ namespace Christofel.Application.Commands
 
         [Command("attach")]
         [Description("Attach given plugin by name")]
-        private async Task HandleAttach([Description("Name of the plugin to attach")] string pluginName)
+        public async Task<IResult> HandleAttach([Description("Name of the plugin to attach")] string pluginName)
         {
             _logger.LogDebug("Handling command /plugin attach");
 
@@ -82,11 +84,13 @@ namespace Christofel.Application.Commands
                         ct: CancellationToken);
                 }
             }
+
+            return Result.FromSuccess();
         }
 
         [Command("detach")]
         [Description("Detach given plugin by name")]
-        private async Task HandleDetach([Description("Name of the plugin to detach")] string pluginName)
+        public async Task<IResult> HandleDetach([Description("Name of the plugin to detach")] string pluginName)
         {
             _logger.LogDebug("Handling command /module detach");
 
@@ -114,11 +118,13 @@ namespace Christofel.Application.Commands
                         ct: CancellationToken);
                 }
             }
+
+            return Result.FromSuccess();
         }
 
         [Command("reattach")]
         [Description("Reattach given plugin by name")]
-        private async Task HandleReattach([Description("Name of the plugin to reattach")] string pluginName)
+        public async Task<IResult> HandleReattach([Description("Name of the plugin to reattach")] string pluginName)
         {
             bool reattach = true;
             if (!_plugins.IsAttached(pluginName))
@@ -144,11 +150,13 @@ namespace Christofel.Application.Commands
                         ct: CancellationToken);
                 }
             }
+
+            return Result.FromSuccess();
         }
         
         [Command("list")]
         [Description("List all attached plugins")]
-        private Task HandleList()
+        public Task<Result<IReadOnlyList<IMessage>>> HandleList()
         {
             IEnumerable<string> plugins = _storage.AttachedPlugins
                 .Select(x => $@"**{x.Name}** ({x.Version}) - {x.Description}");
@@ -160,7 +168,7 @@ namespace Christofel.Application.Commands
         
         [Command("check")]
         [Description("Check if detached plugins freed the memory")]
-        private Task HandleCheck()
+        public Task<Result<IReadOnlyList<IMessage>>> HandleCheck()
         {
             _plugins.CheckDetached();
             return _feedbackService.SendContextualInfoAsync("Check log for result",

@@ -16,11 +16,11 @@ namespace Christofel.Application.Logging.Discord
         
         private IExternalScopeProvider? _scopeProvider;
 
-        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, IDiscordRestChannelAPI channelApi)
+        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, IServiceProvider provider)
         {
             _config = config.CurrentValue;
             _loggers = new ConcurrentDictionary<string, DiscordLogger>();
-            _queueProcessor = new DiscordLoggerProcessor(channelApi, config.CurrentValue);
+            _queueProcessor = new DiscordLoggerProcessor(provider, config.CurrentValue);
             
             _onChangeToken = config.OnChange(HandleConfigChanged);
         }

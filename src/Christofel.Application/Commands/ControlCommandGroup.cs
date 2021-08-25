@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,16 +7,17 @@ using Christofel.CommandsLib;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
+using Remora.Results;
 
 namespace Christofel.Application.Commands
 {
     /// <summary>
     /// Handler of /refresh and /quit commands
     /// </summary>
-    [DiscordDefaultPermission(false)]
     public class ControlCommands : CommandGroup
     {
         private readonly IApplicationLifetime _applicationLifetime;
@@ -40,19 +42,19 @@ namespace Christofel.Application.Commands
         [Description("Refresh the application and all plugins, reloading permissions, configuration and such")]
         [RequirePermission("application.refresh")]
         [Ephemeral]
-        private async Task HandleRefreshCommand()
+        public async Task<IResult> HandleRefreshCommand()
         {
             _logger.LogInformation("Handling command /refresh");
             await _refresh(CancellationToken);
             _logger.LogInformation("Refreshed successfully");
             
-            await _feedbackService.SendContextualSuccessAsync("Successfully refreshed", ct: CancellationToken);
+            return await _feedbackService.SendContextualSuccessAsync("Successfully refreshed", ct: CancellationToken);
         }
 
         [Command("quit")]
         [Description("Exit the application")]
         [RequirePermission("application.quit")]
-        private Task HandleQuitCommand()
+        public Task<Result<IReadOnlyList<IMessage>>> HandleQuitCommand()
         {
             _logger.LogInformation("Handling command /quit");
             _applicationLifetime.RequestStop();
