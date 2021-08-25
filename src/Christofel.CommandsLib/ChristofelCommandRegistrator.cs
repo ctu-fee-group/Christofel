@@ -2,9 +2,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
+using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Remora.Discord.Commands.Services;
 using Remora.Discord.Core;
 using Remora.Results;
 
@@ -15,12 +17,15 @@ namespace Christofel.CommandsLib
         private readonly ChristofelSlashService _slashService;
         private readonly BotOptions _options;
         private readonly ILogger _logger;
+        private readonly IApplicationLifetime _lifetime;
 
         public ChristofelCommandRegistrator(
             ILogger<ChristofelCommandRegistrator> logger,
             ChristofelSlashService slashService,
+            IApplicationLifetime lifetime,
             IOptionsSnapshot<BotOptions> options)
         {
+            _lifetime = lifetime;
             _logger = logger;
             _slashService = slashService;
             _options = options.Value;
@@ -54,6 +59,12 @@ namespace Christofel.CommandsLib
 
         public async Task StopAsync(CancellationToken token = new CancellationToken())
         {
+            if (_lifetime.State >= LifetimeState.Stopping)
+            {
+                // Do not unregister commands on application exit
+                return;
+            }
+            
             var checkSlashSupport = _slashService.SupportsSlashCommands();
             if (!checkSlashSupport.IsSuccess)
             {
