@@ -17,6 +17,7 @@ using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
+using Christofel.CommandsLib.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -143,10 +144,7 @@ namespace Christofel.Application
                 .AddResponder<ChristofelReadyResponder>()
                 .AddScoped<ChristofelReadyResponder>(p => new ChristofelReadyResponder(this))
                 // commands
-                .AddSingleton<ChristofelSlashService>()
-                .AddTransient<ChristofelCommandPermissionResolver>()
-                .AddDiscordCommands(true)
-                .AddTransient<ChristofelCommandRegistrator>()
+                .AddChristofelCommands()
                 .AddCommandGroup<ControlCommands>()
                 .AddCommandGroup<PluginCommands>()
                 .AddCondition<RequirePermissionCondition>()
