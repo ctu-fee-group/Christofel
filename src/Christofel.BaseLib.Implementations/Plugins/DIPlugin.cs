@@ -18,6 +18,7 @@ namespace Christofel.BaseLib.Plugins
     {
         private IServiceProvider? _services;
         private IChristofelState? _state;
+        private IPluginContext? _context;
         
         public abstract string Name { get; }
         public abstract string Description { get; }
@@ -30,11 +31,25 @@ namespace Christofel.BaseLib.Plugins
         protected abstract LifetimeHandler LifetimeHandler { get; }
         public ILifetime Lifetime => LifetimeHandler.Lifetime;
 
+        protected IPluginContext Context
+        {
+            get
+            {
+                if (_context is null)
+                {
+                    throw new InvalidOperationException("Context is null");
+                }
+
+                return _context;
+            }
+            set => _context = value;
+        }
+
         protected IChristofelState State
         {
             get
             {
-                if (_state == null)
+                if (_state is null)
                 {
                     throw new InvalidOperationException("State is null");
                 }
@@ -97,11 +112,16 @@ namespace Christofel.BaseLib.Plugins
             LifetimeHandler.Dispose();
         }
 
-        protected virtual async Task InitAsync(CancellationToken token = new CancellationToken())
+        protected virtual async Task<IPluginContext> InitAsync(CancellationToken token = new CancellationToken())
         {
+            if (_context is null)
+            {
+                _context = new PluginContext();
+            }
+            
             if (!LifetimeHandler.MoveToIfPrevious(LifetimeState.Initializing))
             {
-                return;
+                return Context;
             }
 
             try
@@ -123,6 +143,7 @@ namespace Christofel.BaseLib.Plugins
             }
 
             LifetimeHandler.MoveToIfPrevious(LifetimeState.Initialized);
+            return Context;
         }
         
         /// <summary>
@@ -131,7 +152,7 @@ namespace Christofel.BaseLib.Plugins
         /// <param name="state"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public virtual Task InitAsync(IChristofelState state, CancellationToken token = new CancellationToken())
+        public virtual Task<IPluginContext> InitAsync(IChristofelState state, CancellationToken token = new CancellationToken())
         {
             State = state;
             return InitAsync(token);
