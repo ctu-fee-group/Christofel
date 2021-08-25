@@ -19,9 +19,7 @@ namespace Christofel.Application
         public Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new CancellationToken())
         {
             // TODO: somehow move the logic here
-            _app.HandleReady();
-            
-            return Task.FromResult(Result.FromSuccess());
+            return _app.HandleReady();
         }
     }
 }

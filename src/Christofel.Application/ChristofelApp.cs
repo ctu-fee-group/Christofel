@@ -8,6 +8,7 @@ using Christofel.Application.Logging;
 using Christofel.Application.Logging.Discord;
 using Christofel.Application.Permissions;
 using Christofel.Application.Plugins;
+using Christofel.Application.Responders;
 using Christofel.Application.State;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
@@ -28,6 +29,7 @@ using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
 using Remora.Discord.Rest.Extensions;
+using Remora.Results;
 
 namespace Christofel.Application
 {
@@ -142,12 +144,12 @@ namespace Christofel.Application
                 .AddDiscordGateway(p => p.GetRequiredService<IOptions<DiscordBotOptions>>().Value.Token)
                 // events
                 .AddResponder<ChristofelReadyResponder>()
+                .AddResponder<ApplicationResponder>()
                 .AddScoped<ChristofelReadyResponder>(p => new ChristofelReadyResponder(this))
                 // commands
                 .AddChristofelCommands()
                 .AddCommandGroup<ControlCommands>()
                 .AddCommandGroup<PluginCommands>()
-                .AddCondition<RequirePermissionCondition>()
                 .AddSingleton<RefreshChristofel>(this.RefreshAsync);
         }
 
@@ -186,27 +188,27 @@ namespace Christofel.Application
             await base.DestroyAsync(token);
         }
 
-        public Task HandleReady()
+        public async Task<Result> HandleReady()
         {
             if (!_running)
             {
-                Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        await base.RunAsync(false, DeferStartable, _lifetimeHandler.Lifetime.Stopped);
-                        _logger.LogInformation("Christofel is ready!");
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogCritical(0, e, "Christofel threw an exception when Starting");
-                        LifetimeHandler.MoveToError(e);
-                    }
-                });
+                    await base.RunAsync(false, DeferStartable, _lifetimeHandler.Lifetime.Stopped);
+                    _logger.LogInformation("Christofel is ready!");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogCritical(0, e, "Christofel threw an exception when Starting");
+                    LifetimeHandler.MoveToError(e);
+
+                    return new InvalidOperationException("Christofel could not start");
+                }
+                
                 _running = true;
             }
 
-            return Task.CompletedTask;
+            return Result.FromSuccess();
         }
 
         Task IRefreshable.RefreshAsync(CancellationToken token)
