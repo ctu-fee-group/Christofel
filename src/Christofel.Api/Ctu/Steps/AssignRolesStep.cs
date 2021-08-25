@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu.Steps
 {
@@ -23,6 +24,8 @@ namespace Christofel.Api.Ctu.Steps
                 $"Going to enqueue role assignments for user {data.GuildUser}. Add roles: {string.Join(", ", data.Roles.AddRoles.Select(x => x.RoleId))}. Remove roles: {string.Join(", ", data.Roles.RemoveRoles.Select(x => x.RoleId))}");
             _roleAssignProcessor.EnqueueAssignJob(
                 data.GuildUser,
+                new Snowflake(data.DbUser.DiscordId),
+                new Snowflake(data.GuildId),
                 data.Roles.AddRoles.ToList(),
                 data.Roles.RemoveRoles.ToList()
             );

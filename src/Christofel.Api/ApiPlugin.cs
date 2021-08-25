@@ -91,7 +91,7 @@ namespace Christofel.Api
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 
-        public async Task InitAsync(IChristofelState state, CancellationToken token)
+        public async Task<IPluginContext> InitAsync(IChristofelState state, CancellationToken token)
         {
             try
             {
@@ -120,6 +120,8 @@ namespace Christofel.Api
                 _lifetimeHandler.MoveToError(e);
                 throw;
             }
+
+            return new PluginContext();
         }
 
         public async Task RunAsync(CancellationToken token = new CancellationToken())

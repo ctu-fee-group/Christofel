@@ -6,6 +6,7 @@ using Christofel.Api.OAuth;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Microsoft.Extensions.Logging;
+using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.Api.Ctu
 {
@@ -35,12 +36,13 @@ namespace Christofel.Api.Ctu
         /// <param name="accessToken">Valid token that can be used for Kos and Usermap</param>
         /// <param name="ctuOauthHandler"></param>
         /// <param name="dbContext">Context monitoring dbUser</param>
+        /// <param name="guildId">Id of the guild we are workikng in</param>
         /// <param name="dbUser">Database user to be edited and saved</param>
         /// <param name="guildUser">Discord user used for auth purposes. Should be user with the id of dbUser</param>
         /// <param name="token">Cancellation token in case the request is cancelled</param>
         public async Task FinishAuthAsync(string accessToken, CtuOauthHandler ctuOauthHandler,
-            ChristofelBaseContext dbContext, DbUser dbUser,
-            RestGuildUser guildUser, CancellationToken token = default)
+            ChristofelBaseContext dbContext, ulong guildId, DbUser dbUser,
+            IGuildMember guildUser, CancellationToken token = default)
         {
             IEnumerable<ICtuAuthStep> steps = _stepProvider.GetSteps();
             using IEnumerator<ICtuAuthStep> stepsEnumerator = steps.GetEnumerator();
@@ -49,6 +51,7 @@ namespace Christofel.Api.Ctu
                 accessToken,
                 ctuOauthHandler,
                 dbContext,
+                guildId,
                 dbUser,
                 guildUser,
                 new CtuAuthAssignedRoles(),

@@ -4,6 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Lifetime;
 using Microsoft.Extensions.Logging;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu
 {
@@ -18,8 +21,8 @@ namespace Christofel.Api.Ctu
     {
         private const int MaxRetryCount = 5;
 
-        private record CtuAuthRoleAssign(RestGuildUser User, List<CtuAuthRole> AddRoles, List<CtuAuthRole> RemoveRoles,
-            int RetryCount);
+        private record CtuAuthRoleAssign(IGuildMember GuildMember, Snowflake UserId, Snowflake GuildId,
+            List<CtuAuthRole> AddRoles, List<CtuAuthRole> RemoveRoles, int RetryCount);
 
         private readonly object _queueLock = new object();
         private readonly Queue<CtuAuthRoleAssign> _queue;
@@ -29,18 +32,21 @@ namespace Christofel.Api.Ctu
         private ICurrentPluginLifetime _pluginLifetime;
 
         private readonly ILogger _logger;
+        private readonly IDiscordRestGuildAPI _guildApi;
 
         public CtuAuthRoleAssignProcessor(ILogger<CtuAuthRoleAssignProcessor> logger,
-            ICurrentPluginLifetime pluginLifetime)
+            ICurrentPluginLifetime pluginLifetime, IDiscordRestGuildAPI guildApi)
         {
             _logger = logger;
+            _guildApi = guildApi;
             _queue = new Queue<CtuAuthRoleAssign>();
             _pluginLifetime = pluginLifetime;
         }
 
-        public void EnqueueAssignJob(RestGuildUser user, List<CtuAuthRole> addRoles, List<CtuAuthRole> removeRoles)
+        public void EnqueueAssignJob(IGuildMember guildMember, Snowflake userId, Snowflake guildId,
+            List<CtuAuthRole> addRoles, List<CtuAuthRole> removeRoles)
         {
-            EnqueueAssignJob(new CtuAuthRoleAssign(user, addRoles, removeRoles, 0));
+            EnqueueAssignJob(new CtuAuthRoleAssign(guildMember, userId, guildId, addRoles, removeRoles, 0));
         }
 
         private void EnqueueAssignJob(CtuAuthRoleAssign assignJob)
@@ -64,7 +70,7 @@ namespace Christofel.Api.Ctu
             }
         }
 
-        private void ProcessQueue()
+        private async Task ProcessQueue()
         {
             bool shouldRun = true;
             while (shouldRun)
@@ -84,7 +90,7 @@ namespace Christofel.Api.Ctu
                         }
                     }
 
-                    ProcessAssignJob(assignJob);
+                    await ProcessAssignJob(assignJob);
                 }
                 catch (Exception e)
                 {
@@ -95,29 +101,56 @@ namespace Christofel.Api.Ctu
             _logger.LogDebug("Destroying job thread, because no job is queued");
         }
 
-        private void ProcessAssignJob(CtuAuthRoleAssign assignJob)
+        private async Task ProcessAssignJob(CtuAuthRoleAssign assignJob)
         {
-            try
-            {
-                assignJob.User.RemoveRolesAsync(assignJob.RemoveRoles.Select(x => x.RoleId).Distinct(),
-                    new RequestOptions() { CancelToken = _pluginLifetime.Stopping });
-                assignJob.User.AddRolesAsync(assignJob.AddRoles
-                        .Select(x => x.RoleId)
-                        .Except(assignJob.User.RoleIds)
-                        .Distinct(),
-                    new RequestOptions() { CancelToken = _pluginLifetime.Stopping });
-            }
-            catch (Exception e)
-            {
-                bool retry = assignJob.RetryCount < MaxRetryCount;
-                if (retry)
-                {
-                    EnqueueAssignJob(new CtuAuthRoleAssign(assignJob.User, assignJob.AddRoles, assignJob.RemoveRoles,
-                        assignJob.RetryCount + 1));
-                }
+            bool error = false;
+            var removeRoles = assignJob.RemoveRoles.Select(x => new Snowflake(x.RoleId)).Distinct();
 
-                _logger.LogError(e,
-                    $"Could not assign roles to user {assignJob.User}. Roles to add: {string.Join(",", assignJob.AddRoles.Select(x => x.RoleId))}, Roles to remove: {string.Join(", ", assignJob.RemoveRoles.Select(x => x.RoleId))}. Going to retry: {retry}");
+            foreach (var roleId in removeRoles)
+            {
+                var result = await _guildApi
+                    .RemoveGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
+                        "Authentication process removal of role", _pluginLifetime.Stopping);
+
+                if (!result.IsSuccess)
+                {
+                    error = true;
+                    _logger.LogError(
+                        $"Couldn't remove role <@&{roleId}> from user <@{assignJob.UserId}>: {result.Error.Message}");
+                }
+            }
+
+            var assignRoles = assignJob.AddRoles
+                .Select(x => new Snowflake(x.RoleId))
+                .Except(assignJob.GuildMember.Roles)
+                .Distinct();
+
+            foreach (var roleId in assignRoles)
+            {
+                var result = await _guildApi
+                    .AddGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
+                        "Authentication process removal of role", _pluginLifetime.Stopping);
+
+                if (!result.IsSuccess)
+                {
+                    error = true;
+                    _logger.LogError(
+                        $"Couldn't add role <@&{roleId}> to user <@{assignJob.UserId}>: {result.Error.Message}");
+                }
+            }
+
+            if (error && assignJob.RetryCount < MaxRetryCount)
+            {
+                EnqueueAssignJob(new CtuAuthRoleAssign(assignJob.GuildMember, assignJob.UserId, assignJob.GuildId,
+                    assignJob.AddRoles, assignJob.RemoveRoles, assignJob.RetryCount + 1));
+
+                _logger.LogError(
+                    $"Going to retry assigning roles to <@{assignJob.UserId}>. Roles to add: {string.Join(",", assignJob.AddRoles.Select(x => x.RoleId))}, Roles to remove: {string.Join(", ", assignJob.RemoveRoles.Select(x => x.RoleId))}.");
+            }
+            else if (error)
+            {
+                _logger.LogError(
+                    $"Could not assign roles to user <@{assignJob.UserId}> and maximal number of retries was reached.");
             }
         }
     }
