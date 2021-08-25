@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Christofel.Application.Plugins
@@ -9,64 +10,34 @@ namespace Christofel.Application.Plugins
     /// </summary>
     public class PluginStorage
     {
-        private List<AttachedPlugin> _attachedPlugins;
-        private List<DetachedPlugin> _detachedPlugins;
+        private ImmutableArray<AttachedPlugin> _attachedPlugins;
+        private ImmutableArray<DetachedPlugin> _detachedPlugins;
 
         private object _pluginsLock = new object();
-        
+
         public PluginStorage()
         {
-            _attachedPlugins = new List<AttachedPlugin>();
-            _detachedPlugins = new List<DetachedPlugin>();
+            _attachedPlugins = ImmutableArray.Create<AttachedPlugin>();
+            _detachedPlugins = ImmutableArray.Create<DetachedPlugin>();
         }
 
-        public IReadOnlyCollection<AttachedPlugin> AttachedPlugins
-        {
-            get
-            {
-                lock (_pluginsLock)
-                {
-                    return new List<AttachedPlugin>(_attachedPlugins);
-                }
-            }
-        }
+        public IReadOnlyCollection<AttachedPlugin> AttachedPlugins => _attachedPlugins;
 
-        public IReadOnlyCollection<DetachedPlugin> DetachedPlugins
-        {
-            get
-            {
-                lock (_pluginsLock)
-                {
-                    return new List<DetachedPlugin>(_detachedPlugins);
-                }
-            }
-        }
+        public IReadOnlyCollection<DetachedPlugin> DetachedPlugins => _detachedPlugins;
 
         /// <summary>
         /// Whether plugin with given name is attached
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public bool IsAttached(string name)
-        {
-            lock (_pluginsLock)
-            {
-                return _attachedPlugins.Any(x => x.Name == name);
-            }
-        }
+        public bool IsAttached(string name) => _attachedPlugins.Any(x => x.Name == name);
 
         /// <summary>
         /// Returns attached plugin or throws an exception if it is not found
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public AttachedPlugin GetAttachedPlugin(string name)
-        {
-            lock (_pluginsLock)
-            {
-                return _attachedPlugins.First(x => x.Name == name);
-            }
-        }
+        public AttachedPlugin GetAttachedPlugin(string name) => _attachedPlugins.First(x => x.Name == name);
 
         /// <summary>
         /// Adds attached plugin
@@ -76,7 +47,7 @@ namespace Christofel.Application.Plugins
         {
             lock (_pluginsLock)
             {
-                _attachedPlugins.Add(plugin);
+                _attachedPlugins = _attachedPlugins.Add(plugin);
             }
         }
 
@@ -94,17 +65,14 @@ namespace Christofel.Application.Plugins
             {
                 throw new InvalidOperationException("Plugin is not detached");
             }
-            
+
             lock (_pluginsLock)
             {
-                if (_attachedPlugins.Contains(plugin))
-                {
-                    _attachedPlugins.Remove(plugin);
-                }
+                _attachedPlugins = _attachedPlugins.Remove(plugin);
 
                 if (!_detachedPlugins.Contains(plugin.DetachedPlugin))
                 {
-                    _detachedPlugins.Add(plugin.DetachedPlugin);
+                    _detachedPlugins = _detachedPlugins.Add(plugin.DetachedPlugin);
                 }
             }
         }
@@ -117,9 +85,8 @@ namespace Christofel.Application.Plugins
         {
             lock (_pluginsLock)
             {
-                _detachedPlugins.Remove(plugin);
+                _detachedPlugins = _detachedPlugins.Remove(plugin);
             }
         }
-        
     }
 }
