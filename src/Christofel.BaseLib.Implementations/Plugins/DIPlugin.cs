@@ -18,7 +18,7 @@ namespace Christofel.BaseLib.Plugins
     {
         private IServiceProvider? _services;
         private IChristofelState? _state;
-        private IPluginContext? _context;
+        private PluginContext? _context;
         
         public abstract string Name { get; }
         public abstract string Description { get; }
@@ -31,7 +31,7 @@ namespace Christofel.BaseLib.Plugins
         protected abstract LifetimeHandler LifetimeHandler { get; }
         public ILifetime Lifetime => LifetimeHandler.Lifetime;
 
-        protected IPluginContext Context
+        protected PluginContext Context
         {
             get
             {
