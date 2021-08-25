@@ -1,4 +1,6 @@
 using System;
+using Christofel.BaseLib.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.Gateway.Extensions;
@@ -40,7 +42,9 @@ namespace Christofel.BaseLib.Extensions
         {
             if (write)
             {
-                provider.AddSingleton(state.DatabaseFactory);
+                provider
+                    .AddSingleton(state.DatabaseFactory)
+                    .AddTransient<ChristofelBaseContext>(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext());
             }
 
             return provider
