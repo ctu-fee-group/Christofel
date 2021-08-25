@@ -24,6 +24,7 @@ namespace Christofel.Application.Commands
     [Group("plugins")]
     [DiscordDefaultPermission(false)]
     [RequirePermission("application.plugins")]
+    [Ephemeral]
     public class PluginCommands : CommandGroup
     {
         private readonly PluginService _plugins;

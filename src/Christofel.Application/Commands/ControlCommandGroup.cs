@@ -54,6 +54,7 @@ namespace Christofel.Application.Commands
         [Command("quit")]
         [Description("Exit the application")]
         [RequirePermission("application.quit")]
+        [Ephemeral]
         public Task<Result<IReadOnlyList<IMessage>>> HandleQuitCommand()
         {
             _logger.LogInformation("Handling command /quit");
