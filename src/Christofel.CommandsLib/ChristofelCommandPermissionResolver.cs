@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
+using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib.Extensions;
@@ -51,6 +52,17 @@ namespace Christofel.CommandsLib
         public Task<bool> HasPermissionAsync(IUser user, string permission, CancellationToken cancellationToken)
         {
             return _permissionsResolver.AnyHasPermissionAsync(permission, new[] { user.ToDiscordTarget() },
+                cancellationToken);
+        }
+        
+        public Task<bool> HasPermissionAsync(Snowflake userId, IReadOnlyList<Snowflake> roleIds, string permission, CancellationToken cancellationToken)
+        {
+            List<DiscordTarget> targets = new List<DiscordTarget>();
+            targets.Add(new DiscordTarget(userId.Value, TargetType.User));
+            targets.Add(DiscordTarget.Everyone);
+            targets.AddRange(roleIds.Select(x => new DiscordTarget(x.Value, TargetType.Role)));
+
+            return _permissionsResolver.AnyHasPermissionAsync(permission, targets,
                 cancellationToken);
         }
 
