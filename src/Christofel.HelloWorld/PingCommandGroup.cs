@@ -1,44 +1,35 @@
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.CommandsLib;
 using Microsoft.Extensions.Logging;
+using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.Commands.Feedback.Services;
+using Remora.Results;
 
 namespace Christofel.HelloWorld
 {
-    public class PingCommandGroup : ICommandGroup
+    public class PingCommandGroup : CommandGroup
     {
         private readonly ILogger<PingCommandGroup> _logger;
-        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
+        private readonly FeedbackService _feedbackService;
 
         public PingCommandGroup(ILogger<PingCommandGroup> logger,
-            ICommandPermissionsResolver<PermissionSlashInfo> resolver)
+            FeedbackService feedbackService)
         {
-            _resolver = resolver;
+            _feedbackService = feedbackService;
             _logger = logger;
         }
 
-        public Task HandlePing(SocketInteraction command, CancellationToken token = new CancellationToken())
+        [Command("ping")]
+        [RequirePermission("helloworld.ping")]
+        [Description("The bot will respond pong if everything went okay")]
+        public Task<Result<IReadOnlyList<IMessage>>> HandlePing()
         {
-            _logger.LogInformation("Handling /ping command");
-            return command.RespondAsync("Pong!", options: new RequestOptions {CancelToken = token});
-        }
-
-        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
-        {
-            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
-                .WithPermissionCheck(_resolver)
-                .WithLogger(_logger)
-                .Build();
-
-            PermissionSlashInfoBuilder pingBuilder = new PermissionSlashInfoBuilder()
-                .WithPermission("helloworld.ping")
-                .WithHandler((DiscordInteractionHandler)HandlePing)
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("ping")
-                    .WithDescription("Ping the bot"));
-
-            holder.AddInteraction(pingBuilder.Build(), executor);
-            return Task.CompletedTask;
+            return _feedbackService.SendContextualSuccessAsync("Pong!");
         }
     }
 }
