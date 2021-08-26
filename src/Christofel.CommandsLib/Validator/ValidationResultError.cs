@@ -5,15 +5,7 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.Validator
 {
-    public struct ValidationResultError : IResultError
-    {
-        public ValidationResultError(IReadOnlyList<ValidationFailure> validationFailures)
-        {
-            ValidationFailures = validationFailures;
-        }
-
-        public IReadOnlyList<ValidationFailure> ValidationFailures { get; }
-
-        public string Message => string.Join("\n", ValidationFailures.Select(x => "  " + x.PropertyName + ": " + x.ErrorMessage));
-    }
+    public record ValidationResultError(
+        IReadOnlyList<ValidationFailure> ValidationFailures
+    ) : ResultError("Validation error occured.");
 }
