@@ -14,7 +14,7 @@ namespace Christofel.BaseLib
     public interface IChristofelState
     {
         /// <summary>
-        /// The Bot state itself containing Discord.NET client
+        /// The Bot state itself containing Discord client
         /// </summary>
         public IBot Bot { get; }
         

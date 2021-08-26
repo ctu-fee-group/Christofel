@@ -5,7 +5,7 @@ This project is written in C# using .NET 5.
 Only most important principles can be found in this readme.
 For the whole documentation `goto` https://christofel.readthedocs.io/en/latest/
 
-Christofel is a Discord bot using Discord.NET.
+Christofel is a Discord bot using Remora.Discord.
 
 ## Christofel the Bot
 
@@ -18,7 +18,7 @@ All of the plugins that are used on our server are in this repository.
 
 ## Christofel the Library
 
-Christofel uses Discord.NET along with some Microsoft extensions (namely Configuration, DependencyInjection, Logging).
+Christofel uses Remora.Discord along with some Microsoft extensions (namely Configuration, DependencyInjection, Logging).
 
 The main feature of library (and base application) is to be able to attach plugins during runtime.
 The library can be found in `Christofel.BaseLib` project. This should be a library that every
@@ -39,7 +39,7 @@ version of the same library that is used in another plugin. Shared libraries are
 on.
 > This fact is being accounted for in BaseLib so that it contains as minimal implementation as needed. The rest of the implementation
 > can be found in `Christofel.BaseLib.Implementations` and each plugin can have its version loaded.
-> Basic helper classes for slash commands can be found in Christofel.CommandsLib
+> Basic helper classes for slash commands can be found in Christofel.CommandsLib that uses Remora.Discord.Commands
 
 Each plugin has its lifetime that exposes some CancellationTokens for registering callbacks
 and a method to stop and destroy the plugin (or application).
