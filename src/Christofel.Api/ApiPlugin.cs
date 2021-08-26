@@ -51,15 +51,16 @@ namespace Christofel.Api
                 {
                     services
                         .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific);
-                    
+
                     services
                         .AddDiscordState(state)
                         .AddChristofelDatabase(state);
-
-                    services
-                        .AddSingleton<StartupData>(new StartupData(state.Configuration));
                 })
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseConfiguration(state.Configuration);
+                    webBuilder.UseStartup<Startup>();
+                });
 
         public async Task<IPluginContext> InitAsync(IChristofelState state, CancellationToken token)
         {

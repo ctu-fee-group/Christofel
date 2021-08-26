@@ -21,42 +21,36 @@ using DiagnosticEventListener = Christofel.Api.GraphQL.Diagnostics.DiagnosticEve
 
 namespace Christofel.Api
 {
-    public record StartupData(
-        IConfiguration Configuration
-    );
-
     public class Startup
     {
-        private readonly StartupData _data;
-
-        public Startup(StartupData data)
+        private readonly IConfiguration _configuration;
+        
+        public Startup(IConfiguration configuration)
         {
-            _data = data;
+            _configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var configuration = _data.Configuration;
-            
             // bot options containing guild id
             services
-                .Configure<BotOptions>(configuration.GetSection("Bot"));
+                .Configure<BotOptions>(_configuration.GetSection("Bot"));
 
             // Ctu handlers for exchanging access token
             services
                 .AddScoped<CtuOauthHandler>()
                 .AddScoped<DiscordOauthHandler>()
-                .Configure<CtuOauthOptions>("Ctu", configuration.GetSection("Oauth:Ctu"))
-                .Configure<OauthOptions>("Discord", configuration.GetSection("Oauth:Discord"));
+                .Configure<CtuOauthOptions>("Ctu", _configuration.GetSection("Oauth:Ctu"))
+                .Configure<OauthOptions>("Discord", _configuration.GetSection("Oauth:Discord"));
             
             // Apis used for auth
             services
                 .AddScoped<DiscordApi>()
-                .Configure<DiscordApiOptions>(configuration.GetSection("Apis:Discord"))
+                .Configure<DiscordApiOptions>(_configuration.GetSection("Apis:Discord"))
                 .AddScoped<UsermapApi>()
-                .Configure<UsermapApiOptions>(configuration.GetSection("Apis:Usermap"))
+                .Configure<UsermapApiOptions>(_configuration.GetSection("Apis:Usermap"))
                 .AddScoped<KosApi>()
-                .Configure<KosApiOptions>(configuration.GetSection("Apis:Kos"));
+                .Configure<KosApiOptions>(_configuration.GetSection("Apis:Kos"));
 
             // processors of queues
             services
