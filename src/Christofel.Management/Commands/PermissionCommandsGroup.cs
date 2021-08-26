@@ -66,11 +66,11 @@ namespace Christofel.Management.Commands
             [Description("Permission to grant to the user or role")]
             string permission,
             [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
-            Snowflake? user = null,
+            Snowflake? userId = null,
             [Description("Role to assign permission to")]
-            IRole? role = null)
+            Snowflake? roleId = null)
         {
-            var validationResult = ExactlyOneValidation("user, role", user, role);
+            var validationResult = ExactlyOneValidation("user, role", userId, roleId);
             if (!validationResult.IsSuccess)
             {
                 return validationResult;
@@ -79,9 +79,7 @@ namespace Christofel.Management.Commands
             PermissionAssignment assignment = new PermissionAssignment()
             {
                 PermissionName = permission,
-                Target = user.HasValue
-                    ? new DiscordTarget(user.Value.Value, TargetType.User)
-                    : role?.ToDiscordTarget() ?? throw new InvalidOperationException("Validation failed")
+                Target = GetUserOrRoleTarget(userId, roleId)
             };
 
             try
@@ -119,9 +117,9 @@ namespace Christofel.Management.Commands
             [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
             Snowflake? user = null,
             [Description("Role to assign permission to")]
-            IRole? role = null)
+            Snowflake? roleId = null)
         {
-            var validationResult = ExactlyOneValidation("user, role", user, role);
+            var validationResult = ExactlyOneValidation("user, role", user, roleId);
             if (!validationResult.IsSuccess)
             {
                 return validationResult;
@@ -130,9 +128,7 @@ namespace Christofel.Management.Commands
             Result<IReadOnlyList<IMessage>> feedbackResult;
             try
             {
-                DiscordTarget target = user.HasValue
-                    ? new DiscordTarget(user.Value.Value, TargetType.User)
-                    : role?.ToDiscordTarget() ?? throw new InvalidOperationException("Validation failed");
+                DiscordTarget target = GetUserOrRoleTarget(user, roleId);
 
                 IQueryable<PermissionAssignment> assignments = _dbContext.Permissions
                     .AsQueryable()
@@ -155,8 +151,6 @@ namespace Christofel.Management.Commands
                 }
                 else
                 {
-                    feedbackResult =
-                        await _feedbackService.SendContextualSuccessAsync("Permission revoked", ct: CancellationToken);
                     feedbackResult =
                         await _feedbackService.SendContextualErrorAsync("Could not find that permission assignment");
                 }
@@ -215,16 +209,16 @@ namespace Christofel.Management.Commands
             [Description("Show permissions of user and all their roles")]
             IGuildMember? user = null,
             [Description("Show permissions of role")]
-            IRole? role = null)
+            Snowflake? roleId = null)
         {
-            var validationResult = ExactlyOneValidation("user, role", user, role);
+            var validationResult = ExactlyOneValidation("user, role", user, roleId);
             if (!validationResult.IsSuccess)
             {
                 return validationResult;
             }
 
             var targets = user?.GetAllDiscordTargets() ?? new[]
-                { role?.ToDiscordTarget() ?? throw new InvalidOperationException("Validation failed") };
+                { roleId.HasValue ? new DiscordTarget(roleId.Value.Value, TargetType.Role) : throw new InvalidOperationException("Validation failed") };
 
             Result<IReadOnlyList<IMessage>> feedbackResult;
             try
@@ -264,6 +258,18 @@ namespace Christofel.Management.Commands
             return feedbackResult.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(feedbackResult);
+        }
+        
+        private DiscordTarget GetUserOrRoleTarget(Snowflake? user, Snowflake? role)
+        {
+            if (user.HasValue)
+            {
+                return new DiscordTarget(user.Value.Value, TargetType.User);
+            }
+
+            return role.HasValue
+                ? new DiscordTarget(role.Value.Value, TargetType.Role)
+                : throw new InvalidOperationException("Validation failed");
         }
     }
 }
