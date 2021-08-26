@@ -47,18 +47,15 @@ namespace Christofel.Management.Commands
         private readonly CtuIdentityResolver _identityResolver;
         private readonly FeedbackService _feedbackService;
         private readonly ChristofelBaseContext _dbContext;
-        private readonly IDiscordRestUserAPI _userApi;
         private readonly ICommandContext _context;
 
         public UserCommandsGroup(FeedbackService feedbackService,
             ILogger<MessageCommandsGroup> logger,
             CtuIdentityResolver identityResolver,
             ChristofelBaseContext dbContext,
-            IDiscordRestUserAPI userApi,
             ICommandContext context)
         {
             _context = context;
-            _userApi = userApi;
             _feedbackService = feedbackService;
             _identityResolver = identityResolver;
             _logger = logger;
@@ -253,10 +250,10 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.users.showidentity")]
         public async Task<Result> HandleShowIdentity(
             [Description("Show identity of this user"), DiscordTypeHint(TypeHint.User)]
-            Optional<Snowflake> user = default,
+            Snowflake? user = null,
             [Description("Show identity of this user based on discord id (userful for deleted accounts)"),
              DiscordTypeHint(TypeHint.String)]
-            Optional<ulong> discordId = default)
+            Snowflake? discordId = null)
         {
             var validationResult = ExactlyOneValidation("user, discordid", user, discordId);
             if (!validationResult.IsSuccess)
@@ -266,12 +263,10 @@ namespace Christofel.Management.Commands
 
             try
             {
-                var userId = user.HasValue
-                    ? user.Value.Value
-                    : discordId.Value;
+                var userId = user ?? discordId ?? throw new InvalidOperationException("Validation failed");
 
                 List<string> identities =
-                    (await _identityResolver.GetIdentitiesCtuUsernamesList(userId))
+                    (await _identityResolver.GetIdentitiesCtuUsernamesList(userId.Value))
                     .Select(x => $@"CTU username: {x}")
                     .ToList();
 
@@ -298,7 +293,7 @@ namespace Christofel.Management.Commands
                     {
                         ILinkUser? commandUserIdentity =
                             await _identityResolver.GetFirstIdentity(_context.User.ID.Value);
-                        var dmFeedbackResult = await _feedbackService.SendPrivateNeutralAsync(new Snowflake(userId),
+                        var dmFeedbackResult = await _feedbackService.SendPrivateNeutralAsync(userId,
                             $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {_context.User.Username}#{_context.User.Discriminator} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu.");
 
                         if (!dmFeedbackResult.IsSuccess)
@@ -330,12 +325,12 @@ namespace Christofel.Management.Commands
             return Result.FromSuccess();
         }
 
-        private Result ExactlyOneValidation(string name, IOptional left, IOptional right)
+        private Result ExactlyOneValidation<T, U>(string name, T? left, U? right)
         {
             var validationResult = new CommandValidator()
                 .MakeSure(name, (left, right),
                     o => o
-                        .Must(x => x.left.HasValue ^ x.right.HasValue)
+                        .Must(x => (x.left is not null) ^ (x.right is not null))
                         .WithMessage("Exactly one must be specified."))
                 .Validate()
                 .GetResult();

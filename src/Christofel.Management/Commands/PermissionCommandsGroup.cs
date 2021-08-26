@@ -45,12 +45,12 @@ namespace Christofel.Management.Commands
             _permissions = permissions;
         }
 
-        private Result ExactlyOneValidation(string name, IOptional left, IOptional right)
+        private Result ExactlyOneValidation<T, U>(string name, T? left, U? right)
         {
             var validationResult = new CommandValidator()
                 .MakeSure(name, (left, right),
                     o => o
-                        .Must(x => x.left.HasValue ^ x.right.HasValue)
+                        .Must(x => (x.left is not null) ^ (x.right is not null))
                         .WithMessage("Exactly one must be specified."))
                 .Validate()
                 .GetResult();
@@ -65,9 +65,9 @@ namespace Christofel.Management.Commands
             [Description("Permission to grant to the user or role")]
             string permission,
             [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
-            Optional<Snowflake> user = default,
+            Snowflake? user = null,
             [Description("Role to assign permission to")]
-            Optional<IRole> role = default)
+            IRole? role = null)
         {
             var validationResult = ExactlyOneValidation("user, role", user, role);
             if (!validationResult.IsSuccess)
@@ -80,7 +80,7 @@ namespace Christofel.Management.Commands
                 PermissionName = permission,
                 Target = user.HasValue
                     ? new DiscordTarget(user.Value.Value, TargetType.User)
-                    : role.Value.ToDiscordTarget()
+                    : role?.ToDiscordTarget() ?? throw new InvalidOperationException("Validation failed")
             };
 
             try
@@ -116,9 +116,9 @@ namespace Christofel.Management.Commands
             [Description("Permission to revoke from the user or role")]
             string permission,
             [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
-            Optional<Snowflake> user = default,
+            Snowflake? user = null,
             [Description("Role to assign permission to")]
-            Optional<IRole> role = default)
+            IRole? role = null)
         {
             var validationResult = ExactlyOneValidation("user, role", user, role);
             if (!validationResult.IsSuccess)
@@ -131,8 +131,8 @@ namespace Christofel.Management.Commands
             {
                 DiscordTarget target = user.HasValue
                     ? new DiscordTarget(user.Value.Value, TargetType.User)
-                    : role.Value.ToDiscordTarget();
-                
+                    : role?.ToDiscordTarget() ?? throw new InvalidOperationException("Validation failed");
+
                 IQueryable<PermissionAssignment> assignments = _dbContext.Permissions
                     .AsQueryable()
                     .WhereTargetEquals(target)
@@ -195,9 +195,9 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.permissions.show")]
         public async Task<Result> HandleShow(
             [Description("Show permissions of user and all their roles")]
-            Optional<IGuildMember> user = default,
+            IGuildMember? user = null,
             [Description("Show permissions of role")]
-            Optional<IRole> role = default)
+            IRole? role = null)
         {
             var validationResult = ExactlyOneValidation("user, role", user, role);
             if (!validationResult.IsSuccess)
@@ -205,7 +205,8 @@ namespace Christofel.Management.Commands
                 return validationResult;
             }
 
-            var targets = user.HasValue ? user.Value.GetAllDiscordTargets() : new[] { role.Value.ToDiscordTarget() };
+            var targets = user?.GetAllDiscordTargets() ?? new[]
+                { role?.ToDiscordTarget() ?? throw new InvalidOperationException("Validation failed") };
 
             Result<IReadOnlyList<IMessage>> feedbackResult;
             try
