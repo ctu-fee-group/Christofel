@@ -93,7 +93,11 @@ namespace Christofel.Messages.Commands
                 return Result.FromError(messageResult);
             }
 
-            return Result.FromSuccess();
+            var feedbackResult = await _feedbackService.SendContextualSuccessAsync("Message edited", ct: CancellationToken);
+
+            return feedbackResult.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(feedbackResult);
         }
     }
 }
