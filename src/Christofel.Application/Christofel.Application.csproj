@@ -14,6 +14,7 @@
       <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
       <ProjectReference Include="..\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
+      <ProjectReference Include="..\Christofel.Logger\Christofel.Logger.csproj" />
     </ItemGroup>
 
     <ItemGroup>
