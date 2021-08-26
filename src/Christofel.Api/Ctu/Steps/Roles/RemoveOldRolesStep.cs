@@ -25,7 +25,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
                     RoleId = x.RoleId,
                     Type = x.RoleType
                 })
-                .Where(x => data.GuildUser.Roles.Contains(new Snowflake(x.RoleId)))
+                .Where(x => data.GuildUser.Roles.Select(r => r.Value).Contains(x.RoleId))
                 .ToListAsync();
 
             data.Roles.RemoveRange(
