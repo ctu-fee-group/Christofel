@@ -56,23 +56,6 @@ namespace Christofel.BaseLib.Implementations.Responders
                             {
                                 return e;
                             }
-                            finally
-                            {
-                                // Suspicious type conversions are disabled here, since the user-defined responders may
-                                // implement IDisposable or IAsyncDisposable.
-
-                                // ReSharper disable once SuspiciousTypeConversion.Global
-                                if (responder is IDisposable disposable)
-                                {
-                                    disposable.Dispose();
-                                }
-
-                                // ReSharper disable once SuspiciousTypeConversion.Global
-                                if (responder is IAsyncDisposable asyncDisposable)
-                                {
-                                    await asyncDisposable.DisposeAsync();
-                                }
-                            }
                         }
                     )
                         .Select(HandleEventResult)
