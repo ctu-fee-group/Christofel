@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.Api.Ctu.Database;
 using Christofel.BaseLib.Lifetime;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
+using Remora.Results;
 
 namespace Christofel.Api.Ctu
 {
@@ -51,6 +54,12 @@ namespace Christofel.Api.Ctu
 
         private void EnqueueAssignJob(CtuAuthRoleAssign assignJob)
         {
+            if (_pluginLifetime.Stopping.IsCancellationRequested)
+            {
+                _logger.LogWarning("Cannot enqueue more assignment jobs as application is stopping.");
+                return;
+            }
+            
             bool createThread = false;
             lock (_queueLock)
             {
@@ -79,17 +88,18 @@ namespace Christofel.Api.Ctu
                 {
                     CtuAuthRoleAssign assignJob;
 
+                    if (_pluginLifetime.Stopping.IsCancellationRequested)
+                    {
+                        _logger.LogWarning("Could not finish roles assignments");
+                        return;
+                    }
+
                     lock (_queueLock)
                     {
                         assignJob = _queue.Dequeue();
 
-                        if (_queue.Count == 0 || _pluginLifetime.Stopping.IsCancellationRequested)
+                        if (_queue.Count == 0)
                         {
-                            if (_queue.Count > 0)
-                            {
-                                _logger.LogWarning("Could not finish roles assignments");
-                            }
-
                             shouldRun = false;
                             _threadRunning = false;
                         }
@@ -109,47 +119,55 @@ namespace Christofel.Api.Ctu
         private async Task ProcessAssignJob(CtuAuthRoleAssign assignJob)
         {
             bool error = false;
-            var removeRoles = assignJob.RemoveRoles.Select(x => new Snowflake(x.RoleId)).Distinct();
+            var removeRoles = assignJob.RemoveRoles
+                .Select(x => new Snowflake(x.RoleId))
+                .Distinct();
 
-            foreach (var roleId in removeRoles)
-            {
-                var result = await _guildApi
-                    .RemoveGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
-                        "CTU Authentication", _pluginLifetime.Stopping);
-
-                if (!result.IsSuccess)
-                {
-                    error = true;
-                    _logger.LogError(
-                        $"Couldn't remove role <@&{roleId}> from user <@{assignJob.UserId}>: {result.Error.Message}");
-                }
-            }
+            await HandleRolesEdit(assignJob, removeRoles, (roleId) => _guildApi
+                .RemoveGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
+                    "CTU Authentication", _pluginLifetime.Stopping));
 
             var assignRoles = assignJob.AddRoles
                 .Select(x => new Snowflake(x.RoleId))
                 .Except(assignJob.GuildMember.Roles)
                 .Distinct();
 
-            foreach (var roleId in assignRoles)
-            {
-                var result = await _guildApi
-                    .AddGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
-                        "CTU Authentication", _pluginLifetime.Stopping);
+            await HandleRolesEdit(assignJob, assignRoles, (roleId) => _guildApi
+                .AddGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
+                    "CTU Authentication", _pluginLifetime.Stopping));
+            
+            HandleResult(error, assignJob);
+        }
 
+        private delegate Task<Result> EditRole(Snowflake roleId);
+
+        private async Task<bool> HandleRolesEdit(CtuAuthRoleAssign assignJob, IEnumerable<Snowflake> roleIds,
+            EditRole editFunction)
+        {
+            bool error = false;
+            foreach (var roleId in roleIds)
+            {
                 if (_pluginLifetime.Stopping.IsCancellationRequested)
                 {
                     _logger.LogWarning("Could not finish roles assignments");
-                    return;
+                    return error;
                 }
+
+                var result = await editFunction(roleId);
 
                 if (!result.IsSuccess)
                 {
                     error = true;
                     _logger.LogError(
-                        $"Couldn't add role <@&{roleId}> to user <@{assignJob.UserId}>: {result.Error.Message}");
+                        $"Couldn't add or remove role <@&{roleId}> from user <@{assignJob.UserId}>: {result.Error.Message}");
                 }
             }
 
+            return error;
+        }
+
+        private void HandleResult(bool error, CtuAuthRoleAssign assignJob)
+        {
             if (error && assignJob.RetryCount < MaxRetryCount)
             {
                 EnqueueAssignJob(new CtuAuthRoleAssign(assignJob.GuildMember, assignJob.UserId, assignJob.GuildId,
