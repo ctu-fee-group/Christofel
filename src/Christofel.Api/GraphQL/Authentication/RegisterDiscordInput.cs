@@ -1,5 +1,3 @@
-using HotChocolate;
-
 namespace Christofel.Api.GraphQL.Authentication
 {
     /// <summary>

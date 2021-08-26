@@ -1,5 +1,3 @@
-using Microsoft.VisualBasic;
-
 namespace Christofel.BaseLib.Database.Models.Enums
 {
     /// <summary>

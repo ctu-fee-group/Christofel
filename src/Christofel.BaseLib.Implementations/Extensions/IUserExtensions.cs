@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
-using Discord;
+using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -17,22 +18,26 @@ namespace Christofel.BaseLib.Extensions
         {
             return new DiscordTarget
             {
-                DiscordId = role.Id,
+                DiscordId = role.ID.Value,
                 TargetType = TargetType.User
             };
         }
 
-        public static IEnumerable<DiscordTarget> GetAllDiscordTargets(this IUser user)
+        public static IEnumerable<DiscordTarget> GetAllDiscordTargets(this IGuildMember guildMember)
         {
             List<DiscordTarget> targets = new List<DiscordTarget>();
-            
-            if (user is IGuildUser guildUser)
-            {
-                targets.AddRange(guildUser.RoleIds.Select(x => new DiscordTarget(x, TargetType.Role)));
-            }
-            
+
+            targets.AddRange(guildMember.Roles.Select(x => new DiscordTarget(x.Value, TargetType.Role)));
             targets.Add(DiscordTarget.Everyone);
-            targets.Add(user.ToDiscordTarget());
+            
+            if (guildMember.User.HasValue)
+            {
+                targets.Add(guildMember.User.Value.ToDiscordTarget());
+            }
+            else
+            {
+                throw new InvalidOperationException("Will get to this");
+            }
 
             return targets;
         }

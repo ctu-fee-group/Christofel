@@ -1,106 +1,72 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.CommandsInfo;
-using Discord.Net.Interactions.Executors;
-using Discord.Net.Interactions.HandlerCreator;
-using Discord.Net.Interactions.Verifier;
-using Discord.Net.Interactions.Verifier.Interfaces;
-using Discord.Net.Interactions.Verifier.Verifiers;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Core;
+using Remora.Results;
 
 namespace Christofel.Messages.Commands
 {
-    public class ReactCommandGroup : ICommandGroup
+    [Ephemeral]
+    [DiscordDefaultPermission(false)]
+    public class ReactCommandGroup : CommandGroup
     {
-        private class ReactData : IHasMessageChannel, IHasMessageId, IHasUserMessage, IHasEmote
-        {
-            public IMessageChannel? Channel { get; set; }
-            public ulong? MessageId { get; set; }
-            public IUserMessage? UserMessage { get; set; }
-            public IEmote? Emote { get; set; }
-        }
-
         private readonly ILogger<ReactCommandGroup> _logger;
-        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
-        private readonly DiscordSocketClient _client;
+        private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly ICommandContext _context;
+        private readonly FeedbackService _feedbackService;
 
-        public ReactCommandGroup(DiscordSocketClient client, ILogger<ReactCommandGroup> logger,
-            ICommandPermissionsResolver<PermissionSlashInfo> resolver)
+        public ReactCommandGroup(ILogger<ReactCommandGroup> logger, ICommandContext context,
+            FeedbackService feedbackService, IDiscordRestChannelAPI channelApi)
         {
-            _client = client;
+            _feedbackService = feedbackService;
+            _context = context;
+            _channelApi = channelApi;
             _logger = logger;
-            _resolver = resolver;
         }
 
         // /react handler
-        public async Task HandleReactAsync(SocketInteraction command, IChannel? channel, string messageId,
-            string emojiString, CancellationToken token = default)
+        [Command("react")]
+        [RequirePermission("messages.react")]
+        public async Task<Result> HandleReactAsync(
+            [DiscordTypeHint(TypeHint.String), Description("Id of the message to react to")]
+            Snowflake messageId,
+            [Description("Emoji to react with")] string emoji,
+            [Description("Channel where the message is located"), DiscordTypeHint(TypeHint.Channel)]
+            Snowflake? channel = null)
         {
-            Verified<ReactData> verified = await
-                new CommandVerifier<ReactData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .VerifyMessageId(messageId)
-                    .VerifyUserMessage(token: token)
-                    .VerifyEmote(emojiString)
-                    .FinishVerificationAsync();
+            Snowflake channelId = channel ?? _context.ChannelID;
+            var result =
+                await _channelApi.CreateReactionAsync(channelId, messageId, emoji, CancellationToken);
 
-            if (verified.Success)
+            Result<IReadOnlyList<IMessage>> feedbackResult;
+            if (!result.IsSuccess)
             {
-                ReactData data = verified.Result;
-                if (data.UserMessage == null || data.Emote == null)
-                {
-                    throw new InvalidOperationException("Validation failed");
-                }
+                _logger.LogError($"Could not react with emoji {emoji}: {result.Error.Message}");
 
-                await data.UserMessage.AddReactionAsync(data.Emote, new RequestOptions() {CancelToken = token});
-                await command.RespondAsync("Reaction added", ephemeral: true,
-                    options: new RequestOptions {CancelToken = token});
+                feedbackResult =
+                    await _feedbackService.SendContextualErrorAsync(
+                        "There was an error and the reaction could not be added");
             }
-        }
+            else
+            {
+                feedbackResult =
+                    await _feedbackService.SendContextualSuccessAsync("Reaction added");
+            }
 
-        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
-        {
-            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
-                .WithLogger(_logger)
-                .WithPermissionCheck(_resolver)
-                .WithThreadPool()
-                .Build();
-
-            DiscordInteractionHandler handler = new PlainCommandHandlerCreator()
-                .CreateHandlerForCommand((CommandDelegate<IChannel?, string, string>) HandleReactAsync);
-
-            PermissionSlashInfoBuilder commandBuilder = new PermissionSlashInfoBuilder()
-                .WithHandler(handler)
-                .WithPermission("messages.react.react")
-                .WithBuilder(new SlashCommandBuilder()
-                .WithName("react")
-                .WithDescription("React to a message")
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("messageid")
-                    .WithDescription("Message to react to")
-                    .WithRequired(true)
-                    .WithType(ApplicationCommandOptionType.String))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("emojistring")
-                    .WithDescription("Emoji or Emote to react with")
-                    .WithRequired(true)
-                    .WithType(ApplicationCommandOptionType.String))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("channel")
-                    .WithDescription("Channel with target message. Default is the current channel")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Channel)));
-
-            holder.AddInteraction(commandBuilder.Build(), executor);
-            return Task.CompletedTask;
+            return feedbackResult.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(feedbackResult);
         }
     }
 }

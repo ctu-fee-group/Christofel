@@ -6,10 +6,13 @@ using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Christofel.BaseLib.Extensions;
+using Christofel.BaseLib.Implementations.Responders;
 using Christofel.BaseLib.Lifetime;
 using Christofel.CommandsLib;
-using Discord.Net.Interactions.DI;
+using Christofel.CommandsLib.Extensions;
 using Microsoft.Extensions.Logging;
+using Remora.Commands.Extensions;
+using Remora.Discord.Gateway.Extensions;
 
 namespace Christofel.HelloWorld
 {
@@ -33,7 +36,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionsService>();
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
 
@@ -41,7 +44,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionsService>();
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
 
             }
         }
@@ -50,7 +53,7 @@ namespace Christofel.HelloWorld
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionsService>();
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
 
@@ -60,7 +63,8 @@ namespace Christofel.HelloWorld
         {
             return serviceCollection
                 .AddDiscordState(State)
-                .AddChristofelInteractionService(State.Configuration.GetSection("Bot"))
+                .AddSingleton<PluginResponder>()
+                .AddChristofelCommands()
                 .AddCommandGroup<PingCommandGroup>()
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
@@ -69,7 +73,7 @@ namespace Christofel.HelloWorld
         protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<HelloworldPlugin>>();
-            token.ThrowIfCancellationRequested();
+            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

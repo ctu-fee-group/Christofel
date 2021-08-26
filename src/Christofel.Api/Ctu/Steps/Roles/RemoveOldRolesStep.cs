@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu.Steps.Roles
 {
@@ -25,7 +25,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
                     RoleId = x.RoleId,
                     Type = x.RoleType
                 })
-                .Where(x => data.GuildUser.RoleIds.Contains(x.RoleId))
+                .Where(x => data.GuildUser.Roles.Select(r => r.Value).Contains(x.RoleId))
                 .ToListAsync();
 
             data.Roles.RemoveRange(

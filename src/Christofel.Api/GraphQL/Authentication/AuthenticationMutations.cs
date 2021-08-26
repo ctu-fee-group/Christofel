@@ -11,14 +11,16 @@ using Christofel.Api.OAuth;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
-using Discord;
-using Discord.Rest;
-using Discord.WebSocket;
 using HotChocolate;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
+using Remora.Discord.Core;
+using Remora.Results;
 
 namespace Christofel.Api.GraphQL.Authentication
 {
@@ -27,16 +29,13 @@ namespace Christofel.Api.GraphQL.Authentication
     {
         private readonly ILogger<AuthenticationMutations> _logger;
         private readonly BotOptions _botOptions;
-        private readonly DiscordSocketClient _botClient;
 
         public AuthenticationMutations(
             ILogger<AuthenticationMutations> logger,
-            IOptions<BotOptions> botOptions,
-            DiscordSocketClient botClient)
+            IOptions<BotOptions> botOptions)
         {
             _botOptions = botOptions.Value;
             _logger = logger;
-            _botClient = botClient;
         }
 
         /// <summary>
@@ -48,6 +47,7 @@ namespace Christofel.Api.GraphQL.Authentication
         /// <param name="dbContext">Db context to write user to</param>
         /// <param name="discordOauthHandler">handler for oauth2 token retrieval</param>
         /// <param name="discordApi"></param>
+        /// <param name="guildApi"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
@@ -57,6 +57,7 @@ namespace Christofel.Api.GraphQL.Authentication
             [ScopedService] ChristofelBaseContext dbContext,
             [Service] DiscordOauthHandler discordOauthHandler,
             [Service] DiscordApi discordApi,
+            [Service] IDiscordRestGuildAPI guildApi,
             CancellationToken cancellationToken)
         {
             OauthResponse response =
@@ -74,15 +75,24 @@ namespace Christofel.Api.GraphQL.Authentication
                                                                                   "There was an error obtaining access token"));
 
             DiscordUser user = await authDiscordApi.GetMe();
-            RestGuildUser? guildUser = await _botClient.Rest.GetGuildUserAsync(_botOptions.GuildId, user.Id,
-                new RequestOptions() { CancelToken = cancellationToken });
-            if (guildUser == null)
+            var memberResult = await guildApi.GetGuildMemberAsync(new Snowflake(_botOptions.GuildId),
+                new Snowflake(user.Id), cancellationToken);
+            if (!memberResult.IsSuccess)
             {
-                _logger.LogWarning(
-                    $"User trying to register using Discord is not on the server ({user.Username}#{user.Discriminator})");
-                return new RegisterDiscordPayload(
-                    new UserError(
-                        $"User you are trying to log in with ({user.Username}#{user.Discriminator}) is not on the Discord server. Are you sure you are logging in with the correct user?"));
+                if (memberResult.Error is NotFoundError)
+                {
+                    _logger.LogWarning(
+                        $"User trying to register using Discord is not on the server ({user.Username}#{user.Discriminator})");
+                    return new RegisterDiscordPayload(
+                        new UserError(
+                            $"User you are trying to log in with ({user.Username}#{user.Discriminator}) is not on the Discord server. Are you sure you are logging in with the correct user?"));
+                }
+                else
+                {
+                    _logger.LogError(
+                        $"There was an error while getting the guild member ({user.Username}#{user.Discriminator}) from the rest api {memberResult.Error.Message}");
+                    return new RegisterDiscordPayload(new UserError("Unspecified error"));
+                }
             }
 
             DbUser dbUser = new DbUser()
@@ -113,9 +123,11 @@ namespace Christofel.Api.GraphQL.Authentication
             [ScopedService] ChristofelBaseContext dbContext,
             [Service] CtuOauthHandler ctuOauthHandler,
             [Service] CtuAuthProcess ctuAuthProcess,
+            [Service] IDiscordRestGuildAPI guildApi,
             CancellationToken cancellationToken)
         {
-            DbUser? dbUser = await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Users, cancellationToken);
+            DbUser? dbUser =
+                await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Users, cancellationToken);
 
             if (dbUser == null)
             {
@@ -140,7 +152,7 @@ namespace Christofel.Api.GraphQL.Authentication
             }
 
             return await HandleRegistration(response.SuccessResponse.AccessToken, dbContext, dbUser, ctuOauthHandler,
-                ctuAuthProcess, cancellationToken);
+                ctuAuthProcess, guildApi, cancellationToken);
         }
 
         /// <summary>
@@ -160,9 +172,11 @@ namespace Christofel.Api.GraphQL.Authentication
             [ScopedService] ChristofelBaseContext dbContext,
             [Service] CtuOauthHandler ctuOauthHandler,
             [Service] CtuAuthProcess ctuAuthProcess,
+            [Service] IDiscordRestGuildAPI guildApi,
             CancellationToken cancellationToken)
         {
-            DbUser? dbUser = await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Users, cancellationToken);
+            DbUser? dbUser =
+                await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Users, cancellationToken);
 
             if (dbUser == null)
             {
@@ -172,7 +186,7 @@ namespace Christofel.Api.GraphQL.Authentication
             }
 
             return await HandleRegistration(input.AccessToken, dbContext, dbUser, ctuOauthHandler, ctuAuthProcess,
-                cancellationToken);
+                guildApi, cancellationToken);
         }
 
         /// <summary>
@@ -189,7 +203,8 @@ namespace Christofel.Api.GraphQL.Authentication
             [ScopedService] IReadableDbContext dbContext,
             CancellationToken cancellationToken)
         {
-            DbUser? user = await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Set<DbUser>(), cancellationToken);
+            DbUser? user =
+                await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Set<DbUser>(), cancellationToken);
 
             RegistrationCodeVerification verificationStage;
             if (user == null)
@@ -211,8 +226,8 @@ namespace Christofel.Api.GraphQL.Authentication
 
             return new VerifyRegistrationCodePayload(verificationStage);
         }
-        
-        
+
+
         private async Task<DbUser?> GetUserByRegistrationCode(string registrationCode, IQueryable<DbUser> dbUsers,
             CancellationToken cancellationToken)
         {
@@ -236,27 +251,40 @@ namespace Christofel.Api.GraphQL.Authentication
 
         private async Task<RegisterCtuPayload> HandleRegistration(string accessToken, ChristofelBaseContext dbContext,
             DbUser dbUser, CtuOauthHandler ctuOauthHandler, CtuAuthProcess ctuAuthProcess,
+            IDiscordRestGuildAPI guildApi,
             CancellationToken cancellationToken)
         {
-            RestGuildUser? guildUser = await _botClient.Rest.GetGuildUserAsync(_botOptions.GuildId, dbUser.DiscordId,
-                new RequestOptions() { CancelToken = cancellationToken });
+            var memberResult = await guildApi.GetGuildMemberAsync(new Snowflake(_botOptions.GuildId),
+                new Snowflake(dbUser.DiscordId), cancellationToken);
 
-            if (guildUser == null)
+            if (!memberResult.IsSuccess)
             {
-                _logger.LogWarning(
-                    $"User trying to register using CTU is not on the server (discord id: {dbUser.DiscordId}, user id: {dbUser.UserId}).");
-                return new RegisterCtuPayload(
-                    new UserError(
-                        $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?"));
+                if (memberResult.Error is NotFoundError)
+                {
+                    _logger.LogWarning(
+                        $"User trying to register using CTU is not on the server (discord id: {dbUser.DiscordId}, user id: {dbUser.UserId}).");
+                    return new RegisterCtuPayload(
+                        new UserError(
+                            $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?"));
+                }
+                else
+                {
+                    _logger.LogError(
+                        $"There was an error while getting the guild member (<@{dbUser.DiscordId}> - {dbUser.UserId}) from the rest api {memberResult.Error.Message}");
+                    return new RegisterCtuPayload(new UserError("Unspecified error"));
+                }
             }
 
-            using (_logger.BeginScope($"CTU Registration of user ({guildUser} - {guildUser.Mention} - {dbUser.UserId})"))
+            var user = memberResult.Entity.User;
+            var username = user.HasValue ? (user.Value.Username + "#" + user.Value.Discriminator) : "Unknown username";
+            using (_logger.BeginScope(
+                $"CTU Registration of user ({username} - <@{dbUser.DiscordId}> - {dbUser.UserId})"))
             {
                 try
                 {
                     await ctuAuthProcess.FinishAuthAsync(accessToken, ctuOauthHandler,
-                        dbContext,
-                        dbUser, guildUser, cancellationToken);
+                        dbContext, _botOptions.GuildId,
+                        dbUser, memberResult.Entity, cancellationToken);
                     return new RegisterCtuPayload(dbUser);
                 }
                 catch (UserException e)

@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Extensions;
-using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Extensions;
-using Christofel.BaseLib.Lifetime;
-using Discord;
-using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
+using Remora.Discord.Core;
 
 namespace Christofel.Application.Logging.Discord
 {
@@ -19,17 +21,14 @@ namespace Christofel.Application.Logging.Discord
 
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
+        
+        private bool _disposed;
+        private IServiceProvider _provider;
+        private IDiscordRestChannelAPI? _channelApi;
 
-        private readonly DiscordSocketClient _bot;
-
-        private bool _canProcess;
-        private bool _quit;
-
-        public DiscordLoggerProcessor(DiscordSocketClient bot, DiscordLoggerOptions options)
+        public DiscordLoggerProcessor(IServiceProvider provider, DiscordLoggerOptions options)
         {
-            _canProcess = false;
-            _bot = bot;
-            _bot.Ready += HandleBotReady;
+            _provider = provider;
 
             Options = options;
             _messageQueue = new BlockingCollection<DiscordLogMessage>((int)Options.MaxQueueSize);
@@ -46,7 +45,7 @@ namespace Christofel.Application.Logging.Discord
 
         public virtual void EnqueueMessage(DiscordLogMessage message)
         {
-            if (!_quit)
+            if (!_disposed)
             {
                 try
                 {
@@ -70,52 +69,55 @@ namespace Christofel.Application.Logging.Discord
 
         private bool SendMessage(DiscordLogMessage entry)
         {
-            if (_bot.ConnectionState != ConnectionState.Connected)
+            if (_disposed)
             {
-                _canProcess = false;
                 return false;
             }
-
-            IMessageChannel channel = _bot
-                .GetGuild(entry.GuildId)
-                .GetTextChannel(entry.ChannelId);
-
-            if (channel != null)
+            
+            if (_channelApi is null)
             {
-                foreach (string part in entry.Message.Chunk(2000))
+                _channelApi = _provider.GetRequiredService<IDiscordRestChannelAPI>();
+            }
+
+            bool success = true;
+            Optional<IMessageReference> message = default;
+            foreach (string part in entry.Message.Chunk(2000))
+            {
+                var result =
+                    _channelApi.CreateMessageAsync(new Snowflake(entry.ChannelId), part, messageReference: message,
+                        allowedMentions:
+                        new AllowedMentions(Roles: new List<Snowflake>(),
+                            Users: new List<Snowflake>())).GetAwaiter().GetResult();
+
+                if (!result.IsSuccess)
                 {
-                    channel.SendMessageAsync(part, allowedMentions: AllowedMentions.None).GetAwaiter().GetResult();
+                    success = false;
+                    Console.WriteLine("There was an error when logging: " + result.Error + result.Error.Message);
+                    break;
                 }
-            }
-            else
-            {
-                Console.WriteLine("Could not find log channel");
+
+                message = new MessageReference(result.Entity.ID, result.Entity.ChannelID, result.Entity.GuildID);
             }
 
-            return true;
+            return success;
         }
 
         private void SendMessages(List<DiscordLogMessage> messages)
         {
+            int retries = 5;
             foreach (DiscordLogMessage message in messages)
             {
                 bool sent = false;
 
-                while (!sent)
+                while (!sent && retries-- > 0)
                 {
-                    while (!_canProcess)
-                    {
-                        Thread.Sleep(10);
-                    }
-
                     try
                     {
                         sent = SendMessage(message);
                     }
                     catch (Exception) // Generally exceptions shouldn't happen here
                     {
-                        sent = true; // pretend like it was sent
-                        //EnqueueMessage(message); // add it to queue so we don't lose it
+                        sent = false;
                     }
                 }
             }
@@ -160,18 +162,13 @@ namespace Christofel.Application.Logging.Discord
 
             try
             {
-                _outputThread.Join(1500);
+                _outputThread.Join(20000);
                 ProcessLogQueue();
+                _disposed = true;
             }
             catch (ThreadStateException)
             {
             }
-        }
-
-        protected Task HandleBotReady()
-        {
-            _canProcess = true;
-            return Task.CompletedTask;
         }
     }
 }

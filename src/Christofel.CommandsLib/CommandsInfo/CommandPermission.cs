@@ -1,5 +1,4 @@
 using Christofel.BaseLib.Permissions;
-using Discord;
 
 namespace Christofel.CommandsLib.CommandsInfo
 {
@@ -10,26 +9,12 @@ namespace Christofel.CommandsLib.CommandsInfo
     {
         private string _commandDescription;
         private string _commandName;
-        
-        public CommandPermission(SlashCommandBuilder builder, string permissionName)
-        {
-            PermissionName = permissionName;
-            _commandName = builder.Name;
-            _commandDescription = builder.Description;
-        }
-        
-        public CommandPermission(SlashCommandCreationProperties commandProperties, string permissionName)
-        {
-            PermissionName = permissionName;
-            _commandName = commandProperties.Name;
-            _commandDescription = commandProperties.Description;
-        }
 
-        public CommandPermission(IApplicationCommand command, string permissionName)
+        public CommandPermission(string commandName, string commandDescription, string permissionName)
         {
             PermissionName = permissionName;
-            _commandName = command.Name;
-            _commandDescription = command.Description;
+            _commandName = commandName;
+            _commandDescription = commandDescription;
         }
 
         public string PermissionName { get; }

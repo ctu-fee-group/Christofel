@@ -1,195 +1,278 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.User;
 using Christofel.CommandsLib;
-using Christofel.Management.Commands.Verifiers;
+using Christofel.CommandsLib.Validator;
 using Christofel.Management.CtuUtils;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.CommandsInfo;
-using Discord.Net.Interactions.Executors;
-using Discord.Net.Interactions.HandlerCreator;
-using Discord.Net.Interactions.Verifier;
-using Discord.WebSocket;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using IUser = Discord.IUser;
+using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.API;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
+using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Core;
+using Remora.Discord.Gateway.Responders;
+using Remora.Results;
+using IUser = Remora.Discord.API.Abstractions.Objects.IUser;
 
 namespace Christofel.Management.Commands
 {
-    public class UserCommandsGroup : ICommandGroup
+    [Group("users")]
+    [RequirePermission("management.users")]
+    [Description("Manage users and their identities")]
+    [Ephemeral]
+    public class UserCommandsGroup : CommandGroup
     {
-        private class UserData : IHasDiscordId
-        {
-            public ulong? DiscordId { get; set; }
-        }
-
         // /users add @user ctuUsername
         // /users showidentity @user or discordId
-        // /duplicity allow @user
+        // /users duplicate allow @user
         //   - respond who is the duplicity
         //   - respond with auth link
-        // /duplicity show @user
+        // /users duplicate show @user
         //   - show duplicate information
 
-        private readonly DiscordSocketClient _client;
         private readonly ILogger<MessageCommandsGroup> _logger;
-        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
-        private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
         private readonly CtuIdentityResolver _identityResolver;
+        private readonly FeedbackService _feedbackService;
+        private readonly ChristofelBaseContext _dbContext;
+        private readonly ICommandContext _context;
 
-        public UserCommandsGroup(ICommandPermissionsResolver<PermissionSlashInfo> resolver,
-            ILogger<MessageCommandsGroup> logger, DiscordSocketClient client,
-            IDbContextFactory<ChristofelBaseContext> dbContextFactory, CtuIdentityResolver identityResolver)
+        public UserCommandsGroup(FeedbackService feedbackService,
+            ILogger<MessageCommandsGroup> logger,
+            CtuIdentityResolver identityResolver,
+            ChristofelBaseContext dbContext,
+            ICommandContext context)
         {
+            _context = context;
+            _feedbackService = feedbackService;
             _identityResolver = identityResolver;
-            _client = client;
             _logger = logger;
-            _resolver = resolver;
-            _dbContextFactory = dbContextFactory;
+            _dbContext = dbContext;
         }
 
-        public async Task HandleAllowDuplicity(SocketInteraction command, IUser user,
-            CancellationToken token = default)
+        [Group("duplicate")]
+        [Description("Manage user duplicates")]
+        [RequirePermission("management.users.duplicate")]
+        public class InnerDuplicate : CommandGroup
         {
-            try
+            private readonly ILogger<MessageCommandsGroup> _logger;
+            private readonly ChristofelBaseContext _dbContext;
+            private readonly CtuIdentityResolver _identityResolver;
+            private readonly FeedbackService _feedbackService;
+            private readonly IDiscordRestUserAPI _userApi;
+
+            public InnerDuplicate(FeedbackService feedbackService,
+                ILogger<MessageCommandsGroup> logger, IDiscordRestUserAPI userApi,
+                ChristofelBaseContext dbContext, CtuIdentityResolver identityResolver)
             {
-                await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
-                DbUser? dbUser =
-                    await EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(context.Users,
-                        x => x.DiscordId == user.Id && x.DuplicitUserId != null,
-                        token);
-
-                if (dbUser == null)
-                {
-                    await command.FollowupChunkAsync("The given user is not in database or is not a duplicity",
-                        ephemeral: true, options: new RequestOptions() { CancelToken = token });
-                }
-                else
-                {
-                    dbUser.DuplicityApproved = true;
-
-                    await context.SaveChangesAsync(token);
-                    await command.FollowupChunkAsync("Duplicity approved. Link for authentication is: **LINK**",
-                        ephemeral: true, options: new RequestOptions() { CancelToken = token });
-                }
+                _userApi = userApi;
+                _feedbackService = feedbackService;
+                _identityResolver = identityResolver;
+                _logger = logger;
+                _dbContext = dbContext;
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Could not get the given user from database or the changes could not be saved");
-                await command.FollowupChunkAsync(
-                    "Could not get the given user from database or the changes could not be saved",
-                    ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token });
-                throw;
-            }
-        }
 
-        public async Task HandleShowDuplicity(SocketInteraction command, IUser user, CancellationToken token = default)
-        {
-            List<Embed> embeds = new List<Embed>();
-            try
+            [Command("allow")]
+            [Description("Allow duplicate user to be registered")]
+            [RequirePermission("management.users.duplicate.allow")]
+            public async Task<Result> HandleAllowDuplicity(
+                [Description("Allow duplicate registration to this specified duplicate user")]
+                IUser user)
             {
-                List<ulong> duplicities = await _identityResolver.GetDuplicitiesDiscordIdsList(user.Id, token);
-
-                foreach (ulong targetUser in duplicities)
+                Result<IReadOnlyList<IMessage>> feedbackResult;
+                try
                 {
-                    EmbedBuilder embedBuilder = new EmbedBuilder();
+                    DbUser? dbUser =
+                        await EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_dbContext.Users,
+                            x => x.DiscordId == user.ID.Value && x.DuplicitUserId != null && x.AuthenticatedAt == null,
+                            CancellationToken);
 
-                    IUser? currentUser = await _client.GetUserAsync(targetUser);
-                    if (currentUser == null)
+                    if (dbUser == null)
                     {
-                        embedBuilder.WithAuthor(new EmbedAuthorBuilder()
-                            .WithName($@"Could not find discord mapping - known discord id: {targetUser}"));
+                        feedbackResult =
+                            await _feedbackService.SendContextualErrorAsync(
+                                "The given user is not in database or is not a duplicity", ct: CancellationToken);
                     }
                     else
                     {
-                        embedBuilder
-                            .WithAuthor(currentUser);
+                        dbUser.DuplicityApproved = true;
+
+                        await _dbContext.SaveChangesAsync(CancellationToken);
+                        feedbackResult =
+                            await _feedbackService.SendContextualSuccessAsync(
+                                "Duplicity approved. Link for authentication is: **LINK**", ct: CancellationToken);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Could not get the given user from database or the changes could not be saved");
+                    feedbackResult =
+                        await _feedbackService.SendContextualSuccessAsync(
+                            "Could not get the given user from database or the changes could not be saved",
+                            ct: CancellationToken);
+                }
+
+                return feedbackResult.IsSuccess
+                    ? Result.FromSuccess()
+                    : Result.FromError(feedbackResult);
+            }
+
+            [Command("show")]
+            [Description("Show information about specified user duplicates")]
+            [RequirePermission("management.users.duplicate.show")]
+            public async Task<Result> HandleShowDuplicity(
+                [Description("Show duplicate information of the specified user")]
+                IUser user)
+            {
+                Result<IReadOnlyList<IMessage>> feedbackResult;
+                List<Embed> embeds = new List<Embed>();
+                try
+                {
+                    List<ulong> duplicities =
+                        await _identityResolver.GetDuplicitiesDiscordIdsList(user.ID.Value, CancellationToken);
+
+                    foreach (ulong targetUser in duplicities)
+                    {
+                        Optional<IEmbedAuthor> embedAuthor = default;
+
+                        var currentUserResult = await _userApi.GetUserAsync(new Snowflake(targetUser));
+                        if (!currentUserResult.IsSuccess)
+                        {
+                            embedAuthor =
+                                new EmbedAuthor($@"Could not find discord mapping - known discord id: {targetUser}");
+                        }
+                        else
+                        {
+                            var currentUser = currentUserResult.Entity;
+
+                            var avatar = CDN.GetUserAvatarUrl(currentUserResult.Entity);
+                            if (!avatar.IsSuccess)
+                            {
+                                avatar = CDN.GetDefaultUserAvatarUrl(currentUserResult.Entity);
+                            }
+                            
+                            embedAuthor =
+                                new EmbedAuthor(
+                                    $"{currentUser.Username}#{currentUser.Discriminator} <@{currentUser.ID.Value}>",
+                                    IconUrl: (avatar.IsSuccess ? avatar.Entity.ToString() : string.Empty));
+                        }
+
+                        embeds.Add(new Embed(Title: "Duplicity",
+                            Description: "This is a duplicity of the specified user.",
+                            Footer: new EmbedFooter(
+                                $"For identity of this user, use /users showidentity discordid:<@{targetUser}>"),
+                            Author: embedAuthor));
                     }
 
-                    embeds.Add(embedBuilder
-                        .WithTitle("Duplicity")
-                        .WithDescription("This is a duplicity of the specified user.")
-                        .WithFooter(
-                            $@"For identity of this user, use /users showidentity discordid:{targetUser}")
-                        .Build());
+                    if (embeds.Count == 0)
+                    {
+                        feedbackResult =
+                            await _feedbackService.SendContextualNeutralAsync(
+                                "Could not find any duplicate records of the given user");
+                    }
+                    else
+                    {
+                        foreach (var embed in embeds)
+                        {
+                            // TODO: group to one message?
+                            var result =
+                                await _feedbackService.SendContextualEmbedAsync(embed, ct: CancellationToken);
+                            if (!result.IsSuccess)
+                            {
+                                return Result.FromError(result);
+                            }
+                        }
+
+                        return Result.FromSuccess();
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Could not get the users from database.");
+                    feedbackResult =
+                        await _feedbackService.SendContextualErrorAsync("Could not get the users from database");
                 }
 
-                if (embeds.Count == 0)
-                {
-                    await command.FollowupChunkAsync("Could not find any duplicit records", ephemeral: true);
-                }
-                else
-                {
-                    await command.FollowupChunkAsync(text: "Found records", embeds: embeds.ToArray(), ephemeral: true,
-                        options: new RequestOptions() { CancelToken = token });
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Could not get the users from database.");
-                await command.FollowupChunkAsync("Could not get the users from database.", ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token });
+                return feedbackResult.IsSuccess
+                    ? Result.FromSuccess()
+                    : Result.FromError(feedbackResult);
             }
         }
 
-        public async Task HandleAddUser(SocketInteraction command, IUser user, string ctuUsername,
-            CancellationToken token = default)
+        [Command("add")]
+        [Description("Add user to database manually")]
+        [RequirePermission("management.users.add")]
+        public async Task<Result> HandleAddUser(
+            [Description("Discord user to add"), DiscordTypeHint(TypeHint.User)]
+            Snowflake user,
+            [Description("CTU Username of the user to add")]
+            string ctuUsername)
         {
             DbUser dbUser = new DbUser()
             {
                 CtuUsername = ctuUsername,
-                DiscordId = user.Id
+                DiscordId = user.Value,
+                AuthenticatedAt = DateTime.Now
             };
+
+            Result<IReadOnlyList<IMessage>> feedbackResponse;
             try
             {
-                await using ChristofelBaseContext context = _dbContextFactory.CreateDbContext();
+                _dbContext.Add(dbUser);
+                await _dbContext.SaveChangesAsync(CancellationToken);
 
-                context.Add(dbUser);
-                await context.SaveChangesAsync(token);
-                await command.FollowupChunkAsync($@"New user {user.Mention} added. You can assign him roles manually",
-                    ephemeral: true);
+                feedbackResponse =
+                    await _feedbackService.SendContextualSuccessAsync(
+                        $"New user <@{user}> added. You have to assign him roles manually");
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "There was an error while saving data to the database");
-                await command.FollowupChunkAsync("There was an error while saving data to the database",
-                    ephemeral: true, options: new RequestOptions() { CancelToken = token });
-                throw;
+                feedbackResponse =
+                    await _feedbackService.SendContextualSuccessAsync(
+                        $"There was an error while saving data to the database");
             }
+
+            return feedbackResponse.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(feedbackResponse);
         }
 
-        public async Task HandleShowIdentity(SocketInteraction command, IUser? user, string? discordId,
-            CancellationToken token = default)
+        [Command("showidentity")]
+        [Description(
+            "Show identity of a user. The user will be notified about this and your identity will be shown to him")]
+        [RequirePermission("management.users.showidentity")]
+        public async Task<Result> HandleShowIdentity(
+            [Description("Show identity of this user"), DiscordTypeHint(TypeHint.User)]
+            Snowflake? user = null,
+            [Description("Show identity of this user based on discord id (userful for deleted accounts)"),
+             DiscordTypeHint(TypeHint.String)]
+            Snowflake? discordId = null)
         {
-            Verified<UserData> verified = await new CommandVerifier<UserData>(_client, command, _logger)
-                .VerifyUserOrUserId(user, discordId)
-                .FinishVerificationAsync();
-
-            if (!verified.Success)
+            var validationResult = ExactlyOneValidation("user, discordid", user, discordId);
+            if (!validationResult.IsSuccess)
             {
-                return;
-            }
-
-            UserData data = verified.Result;
-            if (data.DiscordId == null)
-            {
-                throw new InvalidOperationException("Verification failed");
+                return validationResult;
             }
 
             try
             {
+                var userId = user ?? discordId ?? throw new InvalidOperationException("Validation failed");
+
                 List<string> identities =
-                    (await _identityResolver.GetIdentitiesCtuUsernamesList((ulong)data.DiscordId))
+                    (await _identityResolver.GetIdentitiesCtuUsernamesList(userId.Value))
                     .Select(x => $@"CTU username: {x}")
                     .ToList();
 
@@ -203,132 +286,62 @@ namespace Christofel.Management.Commands
 
                 response += string.Join(", ", identities);
 
-                await command.FollowupChunkAsync(response, ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token });
+                var feedbackResult = await _feedbackService.SendContextualSuccessAsync(response, ct: CancellationToken);
+
+                if (!feedbackResult.IsSuccess)
+                {
+                    return Result.FromError(feedbackResult);
+                }
 
                 if (notifyUser)
                 {
                     try
                     {
-                        IUser? targetUser = await _client.GetUserAsync((ulong)data.DiscordId,
-                            new RequestOptions() { CancelToken = token });
-                        IDMChannel? dmChannel =
-                            await targetUser.CreateDMChannelAsync(new RequestOptions() { CancelToken = token });
+                        ILinkUser? commandUserIdentity =
+                            await _identityResolver.GetFirstIdentity(_context.User.ID.Value);
+                        var dmFeedbackResult = await _feedbackService.SendPrivateNeutralAsync(userId,
+                            $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {_context.User.Username}#{_context.User.Discriminator} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu.");
 
-                        ILinkUser? commandUserIdentity = await _identityResolver.GetFirstIdentity(command.User.Id);
-                        await dmChannel.SendMessageAsync(
-                            $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {command.User.Mention} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu.");
+                        if (!dmFeedbackResult.IsSuccess)
+                        {
+                            return Result.FromError(dmFeedbackResult);
+                        }
                     }
                     catch (Exception e)
                     {
                         _logger.LogError(e,
                             "Could not send DM message to the user notifying him about being identified");
-                        await command.FollowupAsync(
-                            "Could not send DM message to the user notifying him about being identified",
-                            ephemeral: true,
-                            options: new RequestOptions() { CancelToken = token });
+                        await _feedbackService.SendContextualErrorAsync(
+                            "Could not send DM message to the user notifying him about being identified");
                     }
                 }
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not get the user from the database");
-                await command.FollowupChunkAsync("Could not get the user from the database", ephemeral: true,
-                    options: new RequestOptions() { CancelToken = token });
+                var feedbackResult = await _feedbackService.SendContextualErrorAsync(
+                    "Could not get the user from the database");
+
+                if (!feedbackResult.IsSuccess)
+                {
+                    return Result.FromError(feedbackResult);
+                }
             }
+            
+            return Result.FromSuccess();
         }
 
-        private SlashCommandBuilder GetUsersCommandBuilder()
+        private Result ExactlyOneValidation<T, U>(string name, T? left, U? right)
         {
-            return new SlashCommandBuilder()
-                .WithName("users")
-                .WithDescription("Manage users")
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("add")
-                    .WithDescription("Manually add the user to the database")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("user")
-                        .WithDescription("Discord user to add")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.User))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("ctuusername")
-                        .WithDescription("CTU username of the user")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String)))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("showidentity")
-                    .WithDescription("Get users identity")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("user")
-                        .WithDescription("Discord user to show identity of")
-                        .WithType(ApplicationCommandOptionType.User))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("discordid")
-                        .WithDescription("Id of the user in case he is not on this server anymore")
-                        .WithType(ApplicationCommandOptionType.String)));
-        }
+            var validationResult = new CommandValidator()
+                .MakeSure(name, (left, right),
+                    o => o
+                        .Must(x => (x.left is not null) ^ (x.right is not null))
+                        .WithMessage("Exactly one must be specified."))
+                .Validate()
+                .GetResult();
 
-        private SlashCommandBuilder GetDuplicityCommandBuilder()
-        {
-            return new SlashCommandBuilder()
-                .WithName("duplicity")
-                .WithDescription("Manage user duplicities")
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("show")
-                    .WithDescription("Show information about a duplicity")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("user")
-                        .WithDescription("User to show information about")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.User)))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("allow")
-                    .WithDescription("Allow a duplicity")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("user")
-                        .WithDescription("User to allow duplicity")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.User)));
-        }
-
-        public Task SetupCommandsAsync(IInteractionHolder holder,
-            CancellationToken token = new CancellationToken())
-        {
-            DiscordInteractionHandler duplicityHandler = new SubCommandHandlerCreator()
-                .CreateHandlerForCommand(
-                    ("show", (CommandDelegate<IUser>)HandleShowDuplicity),
-                    ("allow", (CommandDelegate<IUser>)HandleAllowDuplicity));
-
-            DiscordInteractionHandler userHandler = new SubCommandHandlerCreator()
-                .CreateHandlerForCommand(
-                    ("add", (CommandDelegate<IUser, string>)HandleAddUser),
-                    ("showidentity", (CommandDelegate<IUser?, string?>)HandleShowIdentity));
-
-            PermissionSlashInfoBuilder userBuilder = new PermissionSlashInfoBuilder()
-                .WithPermission("management.users.manage")
-                .WithHandler(userHandler)
-                .WithBuilder(GetUsersCommandBuilder());
-
-            PermissionSlashInfoBuilder duplicityBuilder = new PermissionSlashInfoBuilder()
-                .WithPermission("management.users.duplicities")
-                .WithHandler(duplicityHandler)
-                .WithBuilder(GetDuplicityCommandBuilder());
-
-            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
-                .WithLogger(_logger)
-                .WithPermissionCheck(_resolver)
-                .WithDeferMessage()
-                .WithThreadPool()
-                .Build();
-
-            holder.AddInteraction(userBuilder.Build(), executor);
-            holder.AddInteraction(duplicityBuilder.Build(), executor);
-            return Task.CompletedTask;
+            return validationResult;
         }
     }
 }

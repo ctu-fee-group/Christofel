@@ -1,7 +1,9 @@
 using System;
-using Discord.Rest;
+using Christofel.BaseLib.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Remora.Discord.Gateway.Extensions;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -21,11 +23,12 @@ namespace Christofel.BaseLib.Extensions
                 .AddSingleton(state.Configuration)
                 .AddSingleton(state.Bot)
                 .AddSingleton(state.Bot.Client)
-                .AddSingleton<DiscordRestClient>(state.Bot.Client.Rest)
+                .AddSingleton(state.Bot.HttpClientFactory)
                 .AddSingleton(state.Lifetime)
                 .AddSingleton(state.LoggerFactory)
                 .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
-                .AddSingleton(state.Permissions);
+                .AddSingleton(state.Permissions)
+                .AddDiscordGateway(_ => throw new InvalidOperationException("Token is obtained in the application"));
         }
 
         /// <summary>
@@ -34,14 +37,16 @@ namespace Christofel.BaseLib.Extensions
         /// <param name="provider"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public static IServiceCollection AddChristofelDatabase(this IServiceCollection provider, IChristofelState state, bool write = true)
+        public static IServiceCollection AddChristofelDatabase(this IServiceCollection provider, IChristofelState state,
+            bool write = true)
         {
-
             if (write)
             {
-                provider.AddSingleton(state.DatabaseFactory);
+                provider
+                    .AddSingleton(state.DatabaseFactory)
+                    .AddTransient<ChristofelBaseContext>(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext());
             }
-            
+
             return provider
                 .AddSingleton(state.ReadOnlyDatabaseFactory);
         }

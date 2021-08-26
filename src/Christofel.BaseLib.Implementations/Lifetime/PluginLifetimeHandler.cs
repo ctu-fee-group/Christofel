@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using Christofel.BaseLib.Plugins;
 
 namespace Christofel.BaseLib.Lifetime
 {

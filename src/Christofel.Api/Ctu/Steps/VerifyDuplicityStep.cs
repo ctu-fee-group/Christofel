@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Steps.Enums;
@@ -7,7 +6,6 @@ using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.Steps

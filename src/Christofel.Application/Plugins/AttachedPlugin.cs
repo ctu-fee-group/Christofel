@@ -11,12 +11,27 @@ namespace Christofel.Application.Plugins
     public class AttachedPlugin : IHasPluginInfo
     {
         private IPlugin? _plugin;
+        private IPluginContext? _pluginContext;
         
-        public AttachedPlugin(IPlugin plugin, ContextedAssembly assembly)
+        public AttachedPlugin(IPlugin plugin, IPluginContext context, ContextedAssembly assembly)
         {
             _plugin = plugin;
+            _pluginContext = context;
             PluginAssembly = assembly;
             Id = Guid.NewGuid();
+        }
+
+        public IPluginContext Context
+        {
+            get
+            {
+                if (_pluginContext is null)
+                {
+                    throw new InvalidOperationException("Plugin was already detached");
+                }
+
+                return _pluginContext;
+            }
         }
 
         /// <summary>
@@ -73,6 +88,7 @@ namespace Christofel.Application.Plugins
         public WeakReference Detach()
         {
             _plugin = null;
+            _pluginContext = null;
             return PluginAssembly.Detach();
         }
     }

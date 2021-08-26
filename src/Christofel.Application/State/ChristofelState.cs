@@ -1,5 +1,4 @@
 using Christofel.BaseLib;
-using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Lifetime;

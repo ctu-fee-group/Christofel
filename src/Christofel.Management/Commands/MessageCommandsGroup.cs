@@ -1,209 +1,115 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib;
-using Discord;
-using Discord.Net.Interactions.Abstractions;
-using Discord.Net.Interactions.CommandsInfo;
-using Discord.Net.Interactions.Executors;
-using Discord.Net.Interactions.HandlerCreator;
-using Discord.Net.Interactions.Verifier;
-using Discord.Net.Interactions.Verifier.Interfaces;
-using Discord.Net.Interactions.Verifier.Verifiers;
-using Discord.WebSocket;
+using Christofel.CommandsLib.Extensions;
+using Christofel.CommandsLib.Validator;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Core;
+using Remora.Results;
 
 namespace Christofel.Management.Commands
 {
-    public class MessageCommandsGroup : ICommandGroup
+    [Group("slowmode")]
+    [RequirePermission("management.slowmode")]
+    [Description("Manage slowmode in a channel")]
+    [DiscordDefaultPermission(false)]
+    [Ephemeral]
+    public class MessageCommandsGroup : CommandGroup
     {
-        public class SlowmodeData : IHasTextChannel
-        {
-            public ITextChannel? TextChannel { get; set; }
-        }
-        
         // /slowmode for interval hours minutes seconds channel
         // /slowmode enablepermanent interval channel
         // /slowmode disable channel
-        private readonly DiscordSocketClient _client;
         private readonly ILogger<MessageCommandsGroup> _logger;
-        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
+        private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly FeedbackService _feedbackService;
+        private readonly ICommandContext _context;
 
-        public MessageCommandsGroup(ICommandPermissionsResolver<PermissionSlashInfo> resolver,
-            ILogger<MessageCommandsGroup> logger, DiscordSocketClient client)
+        public MessageCommandsGroup(ILogger<MessageCommandsGroup> logger, IDiscordRestChannelAPI channelApi,
+            FeedbackService feedbackService, ICommandContext context)
         {
-            _client = client;
             _logger = logger;
-            _resolver = resolver;
+            _context = context;
+            _channelApi = channelApi;
+            _feedbackService = feedbackService;
         }
 
-        public async Task HandleSlowmodeFor(SocketInteraction command, long interval, long? hours, long? minutes,
-            long? seconds, IChannel? channel, CancellationToken token = default)
+        [Command("for")]
+        [RequirePermission("management.slowmode.for")]
+        [Description("Enables slowmode for specified duration (hours, minutes, seconds)")]
+        public async Task<IResult> HandleSlowmodeFor(int interval, long? hours, long? minutes,
+            long? seconds, [DiscordTypeHint(TypeHint.Channel)] Optional<Snowflake> channel)
         {
-            await command.FollowupChunkAsync("Not implemented yet", ephemeral: true, options: new RequestOptions(){CancelToken = token});
-            throw new NotImplementedException();
-        }
+            long totalSeconds = ((hours ?? 0) * 60 + (minutes ?? 0)) * 60 + (seconds ?? 0);
 
-        public async Task HandleSlowmodeEnable(SocketInteraction command, long interval, IChannel? channel,
-            CancellationToken token = default)
-        {
-            Verified<SlowmodeData> verified = await new CommandVerifier<SlowmodeData>(_client, command, _logger)
-                .VerifyTextChannel(channel ?? command.Channel)
-                .VerifyMinMax(interval, 1, 3600, "interval")
-                .FinishVerificationAsync();
+            var validationResult = new CommandValidator()
+                .MakeSure("interval", interval, o => o.InclusiveBetween(1, 3600))
+                .MakeSure("totalSeconds", totalSeconds, o => o.GreaterThan(0))
+                .Validate()
+                .GetResult();
 
-            int intInterval = unchecked((int) interval);
-
-            if (verified.Success)
+            if (!validationResult.IsSuccess)
             {
-                SlowmodeData data = verified.Result;
-                if (data.TextChannel == null)
-                {
-                    throw new InvalidOperationException("Verification failed");
-                }
-
-                try
-                {
-                    await data.TextChannel
-                        .ModifyAsync(props =>
-                                props.SlowModeInterval = intInterval,
-                            new RequestOptions() {CancelToken = token});
-                    await command.FollowupChunkAsync("Slowmode enabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
-                }
-                catch (Exception)
-                {
-                    await command.FollowupChunkAsync("Could not change the slowmode interval, check permissions", ephemeral: true, options: new RequestOptions(){CancelToken = token});
-                    throw;
-                }
+                return validationResult;
             }
+
+            return await _feedbackService.SendContextualErrorAsync("Not implemented", ct: CancellationToken);
         }
 
-        public async Task HandleSlowmodeDisable(SocketInteraction command, IChannel? channel,
-            CancellationToken token = default)
+        [Command("enable")]
+        [RequirePermission("management.slowmode.enable")]
+        [Description("Enables slowmode **permanently** in specified channel")]
+        public async Task<IResult> HandleSlowmodeEnable(
+            [Description("Rate limit per user (seconds)")]
+            int interval,
+            [Description("Channel to enable slowmode in. Current channel if omitted."), DiscordTypeHint(TypeHint.Channel)]
+            Optional<Snowflake> channel = default)
         {
-            Verified<SlowmodeData> verified = await new CommandVerifier<SlowmodeData>(_client, command, _logger)
-                .VerifyTextChannel(channel ?? command.Channel)
-                .FinishVerificationAsync();
+            var validationResult = new CommandValidator()
+                .MakeSure("interval", interval, o => o.InclusiveBetween(1, 3600))
+                .Validate()
+                .GetResult();
 
-            if (verified.Success)
+            if (!validationResult.IsSuccess)
             {
-                SlowmodeData data = verified.Result;
-                if (data.TextChannel == null)
-                {
-                    throw new InvalidOperationException("Verification failed");
-                }
-
-                try
-                {
-                    await data.TextChannel
-                        .ModifyAsync(props =>
-                                props.SlowModeInterval = 0,
-                            new RequestOptions() {CancelToken = token});
-                    await command.FollowupChunkAsync("Slowmode disabled", ephemeral: true, options: new RequestOptions(){CancelToken = token});
-                }
-                catch (Exception)
-                {
-                    await command.FollowupChunkAsync("Could not change the slowmode interval, check permissions", ephemeral: true, options: new RequestOptions(){CancelToken = token});
-                    throw;
-                }
+                return validationResult;
             }
+
+            var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
+
+            var result =
+                await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: interval, ct: CancellationToken);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogError($"Could not enable slowmode in channel <#{channelId}>: {result.Error?.Message}");
+                return await _feedbackService.SendContextualErrorAsync("Something has gone wrong",
+                    ct: CancellationToken);
+            }
+
+            return await _feedbackService.SendContextualSuccessAsync("Slowmode enabled", ct: CancellationToken);
         }
 
-        private SlashCommandOptionBuilder GetForSlowmodeSubcommandBuilder()
+        [Command("disable")]
+        [RequirePermission("management.slowmode.disable")]
+        [Description("Disables slowmode in specified channel")]
+        public async Task<IResult> HandleSlowmodeDisable(
+            [Description("Channel to disable slowmode in. Current channel if omitted."), DiscordTypeHint(TypeHint.Channel)]
+            Snowflake? channel = null)
         {
-            return new SlashCommandOptionBuilder()
-                .WithName("for")
-                .WithDescription("Enable slowmode for specified duration")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("interval")
-                    .WithDescription("Interval in seconds for slowmode, min 1, max 3600")
-                    .WithRequired(true)
-                    .WithType(ApplicationCommandOptionType.Integer))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("hours")
-                    .WithDescription("How many hours to enable slowmode for")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Integer))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("minutes")
-                    .WithDescription("How many minutes to enable slowmode for")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Integer))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("seconds")
-                    .WithDescription("How many seconds to enable slowmode for")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Integer))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("channel")
-                    .WithDescription("Channel where to turn on slowmode")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Channel));
-        }
-
-        private SlashCommandOptionBuilder GetEnablePermanentSlowmodeSubcommandBuilder()
-        {
-            return new SlashCommandOptionBuilder()
-                .WithName("enablepermanent")
-                .WithDescription("Enable slowmode permanently in specified channel")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("interval")
-                    .WithDescription("Interval in seconds for slowmode, min 1, max 3600")
-                    .WithRequired(true)
-                    .WithType(ApplicationCommandOptionType.Integer))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("channel")
-                    .WithDescription("Channel where to enable slowmode")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Channel));
-        }
-
-        private SlashCommandOptionBuilder GetDisableSlowmodeSubcommandBuilder()
-        {
-            return new SlashCommandOptionBuilder()
-                .WithName("disable")
-                .WithDescription("Disable slowmode in channel")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("channel")
-                    .WithDescription("Channel where to disable slowmode")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Channel));
-        }
-
-        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
-        {
-            DiscordInteractionHandler slowmodeHandler = new SubCommandHandlerCreator()
-                .CreateHandlerForCommand(
-                    ("for", (CommandDelegate<long, long?, long?, long?, IChannel?>) HandleSlowmodeFor),
-                    ("enablepermanent", (CommandDelegate<long, IChannel?>) HandleSlowmodeEnable),
-                    ("disable", (CommandDelegate<IChannel?>) HandleSlowmodeDisable)
-                );
-
-            PermissionSlashInfoBuilder slowmodeBuilder = new PermissionSlashInfoBuilder()
-                .WithPermission("management.messages.slowmode")
-                .WithHandler(slowmodeHandler)
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("slowmode")
-                    .WithDescription("Controls slowmode of a channel")
-                    .AddOption(GetForSlowmodeSubcommandBuilder())
-                    .AddOption(GetEnablePermanentSlowmodeSubcommandBuilder())
-                    .AddOption(GetDisableSlowmodeSubcommandBuilder()));
-
-            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
-                .WithLogger(_logger)
-                .WithPermissionCheck(_resolver)
-                .WithThreadPool()
-                .WithDeferMessage()
-                .Build();
-
-            holder.AddInteraction(slowmodeBuilder.Build(), executor);
-            return Task.CompletedTask;
+            var channelId = channel ?? _context.ChannelID;
+            return await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: null, ct: CancellationToken);
         }
     }
 }

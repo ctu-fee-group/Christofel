@@ -1,13 +1,15 @@
 using System;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Lifetime;
-using Discord;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Remora.Discord.Caching.Services;
+using Remora.Discord.Gateway;
+using Remora.Discord.Gateway.Results;
+using Remora.Results;
 
 namespace Christofel.Application.State
 {
@@ -15,26 +17,20 @@ namespace Christofel.Application.State
     {
         private readonly ILogger<DiscordBot> _logger;
         private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
-        private readonly DiscordBotOptions _options;
         private readonly IApplicationLifetime _lifetime;
 
-        public DiscordBot(DiscordSocketClient client, IOptions<DiscordBotOptions> options, ILogger<DiscordBot> logger, IApplicationLifetime lifetime)
+        public DiscordBot(IHttpClientFactory httpClientFactory, DiscordGatewayClient client,
+            ILogger<DiscordBot> logger, IApplicationLifetime lifetime)
         {
             Client = client;
+            HttpClientFactory = httpClientFactory;
+
             _lifetime = lifetime;
             _logger = logger;
-            _options = options.Value;
         }
 
-        public DiscordSocketClient Client { get; }
-
-        /// <summary>
-        /// Requests a quit operation
-        /// </summary>
-        public void QuitBot()
-        {
-            _applicationRunningToken.Cancel();
-        }
+        public DiscordGatewayClient Client { get; } 
+        public IHttpClientFactory HttpClientFactory { get; }
 
         /// <summary>
         /// Runs application in delay task until stop is requested using cancellation token
@@ -43,59 +39,47 @@ namespace Christofel.Application.State
         public async Task RunApplication(CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation("Running application");
-            CancellationTokenSource tokenSource = 
+            CancellationTokenSource tokenSource =
                 CancellationTokenSource.CreateLinkedTokenSource(_applicationRunningToken.Token, token);
-            try
-            {
-                await Task.Delay(-1, tokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            finally
-            {
-                tokenSource.Dispose();
-            }
             
+            var runResult = await Client.RunAsync(token);
+            if (!runResult.IsSuccess)
+            {
+                switch (runResult.Error)
+                {
+                    case ExceptionError exe:
+                    {
+                        _logger.LogError
+                        (
+                            exe.Exception,
+                            "Exception during gateway connection: {ExceptionMessage}",
+                            exe.Message
+                        );
+
+                        break;
+                    }
+                    case GatewayWebSocketError:
+                    case GatewayDiscordError:
+                    {
+                        _logger.LogError("Gateway error: {Message}", runResult.Error.Message);
+                        break;
+                    }
+                    default:
+                    {
+                        _logger.LogError("Unknown error: {Message}", runResult.Error.Message);
+                        break;
+                    }
+                }
+            }
+
             _lifetime.RequestStop();
             if (_lifetime.State < LifetimeState.Destroyed)
             {
                 _logger.LogInformation("Going to wait for Christofel to stop. If the app hangs, just kill it");
                 await _lifetime.WaitForAsync(LifetimeState.Destroyed, default);
-                    // Await destroyed at all costs
-                    // If the application is not exiting, the user can just kill it
+                // Await destroyed at all costs
+                // If the application is not exiting, the user can just kill it
             }
-        }
-
-        /// <summary>
-        /// Logouts the bot from Discord
-        /// </summary>
-        /// <param name="token"></param>
-        public async Task StopBot(CancellationToken token = new CancellationToken())
-        {
-            token.ThrowIfCancellationRequested();
-            if (Client.ConnectionState == ConnectionState.Connected)
-            {
-                await Client.StopAsync();
-                await Client.LogoutAsync();
-            }
-        }
-
-        /// <summary>
-        /// Starts the bot logging it to Discord
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public async Task<DiscordSocketClient> StartBotAsync(CancellationToken token = new CancellationToken())
-        {
-            token.ThrowIfCancellationRequested();
-            _logger.LogInformation("Starting bot");
-
-            await Client.LoginAsync(TokenType.Bot, _options.Token);
-            token.ThrowIfCancellationRequested();
-            await Client.StartAsync();
-
-            return Client;
         }
 
         public void Dispose()

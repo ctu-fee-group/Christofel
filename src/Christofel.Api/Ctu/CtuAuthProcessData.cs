@@ -4,8 +4,7 @@ using Christofel.Api.OAuth;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
-using Discord;
-using Discord.Rest;
+using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.Api.Ctu
 {
@@ -20,7 +19,7 @@ namespace Christofel.Api.Ctu
     /// <param name="Roles"></param>
     /// <param name="CancellationToken"></param>
     public record CtuAuthProcessData(string AccessToken, CtuOauthHandler CtuOauthHandler,
-        ChristofelBaseContext DbContext, DbUser DbUser, RestGuildUser GuildUser, CtuAuthAssignedRoles Roles, CancellationToken CancellationToken)
+        ChristofelBaseContext DbContext, ulong GuildId, DbUser DbUser, IGuildMember GuildUser, CtuAuthAssignedRoles Roles, CancellationToken CancellationToken)
     {
         public bool Finished { get; set; }
     }

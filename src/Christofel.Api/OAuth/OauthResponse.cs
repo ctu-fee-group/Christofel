@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using Newtonsoft.Json;
 
 namespace Christofel.Api.OAuth

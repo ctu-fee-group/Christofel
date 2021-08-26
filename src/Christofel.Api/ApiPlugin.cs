@@ -10,12 +10,9 @@ using Christofel.Api.Discord;
 using Christofel.Api.OAuth;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
-using HotChocolate;
 using HotChocolate.Execution;
 using Kos;
 using Microsoft.AspNetCore.Hosting;
@@ -94,7 +91,7 @@ namespace Christofel.Api
                 })
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 
-        public async Task InitAsync(IChristofelState state, CancellationToken token)
+        public async Task<IPluginContext> InitAsync(IChristofelState state, CancellationToken token)
         {
             try
             {
@@ -123,6 +120,8 @@ namespace Christofel.Api
                 _lifetimeHandler.MoveToError(e);
                 throw;
             }
+
+            return new PluginContext();
         }
 
         public async Task RunAsync(CancellationToken token = new CancellationToken())

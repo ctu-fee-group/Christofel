@@ -2,8 +2,6 @@ using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Christofel.Application.Assemblies
 {

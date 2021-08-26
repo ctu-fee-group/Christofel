@@ -8,6 +8,7 @@ using Christofel.Application.Logging;
 using Christofel.Application.Logging.Discord;
 using Christofel.Application.Permissions;
 using Christofel.Application.Plugins;
+using Christofel.Application.Responders;
 using Christofel.Application.State;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
@@ -17,20 +18,24 @@ using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
-using Discord.Net.Interactions.DI;
-using Discord.Rest;
-using Discord.WebSocket;
+using Christofel.CommandsLib.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Remora.Commands.Extensions;
+using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Gateway;
+using Remora.Discord.Gateway.Extensions;
+using Remora.Discord.Rest.Extensions;
+using Remora.Results;
 
 namespace Christofel.Application
 {
     public delegate Task RefreshChristofel(CancellationToken token);
-    
-    public class ChristofelApp : DIPlugin, IStartable, IRefreshable, IStoppable
+
+    public class ChristofelApp : DIPlugin, IRefreshable, IStoppable
     {
         private ILogger<ChristofelApp>? _logger;
         private IConfigurationRoot _configuration;
@@ -40,7 +45,7 @@ namespace Christofel.Application
         public static IConfigurationRoot CreateConfiguration(string[] commandArgs)
         {
             string environment = Environment.GetEnvironmentVariable("ENV") ?? "production";
-            
+
             return new ConfigurationBuilder()
                 .AddJsonFile("config.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($@"config.{environment}.json", optional: true, reloadOnChange: true)
@@ -65,7 +70,7 @@ namespace Christofel.Application
             {
                 yield return this;
                 yield return Services.GetRequiredService<PluginService>();
-                yield return Services.GetRequiredService<InteractionsService>();
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
 
@@ -75,18 +80,11 @@ namespace Christofel.Application
             {
                 yield return this;
                 yield return Services.GetRequiredService<PluginService>();
-                yield return Services.GetRequiredService<InteractionsService>();
-
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
 
-        protected override IEnumerable<IStartable> Startable
-        {
-            get
-            {
-                yield return this;
-            }
-        }
+        protected override IEnumerable<IStartable> Startable => Enumerable.Empty<IStartable>();
 
         /// <summary>
         /// Start after Ready event was received
@@ -96,7 +94,7 @@ namespace Christofel.Application
             get
             {
                 yield return Services.GetRequiredService<PluginAutoloader>();
-                yield return Services.GetRequiredService<InteractionsService>();
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
 
@@ -112,22 +110,17 @@ namespace Christofel.Application
                 .Configure<BotOptions>(_configuration.GetSection("Bot"))
                 .Configure<DiscordBotOptions>(_configuration.GetSection("Bot"))
                 .Configure<PluginServiceOptions>(_configuration.GetSection("Plugins"))
-                .Configure<DiscordSocketConfig>(_configuration.GetSection("Bot:DiscordNet"))
-                // bot
-                .AddSingleton<DiscordSocketConfig>(
-                    s => s.GetRequiredService<IOptions<DiscordSocketConfig>>().Value
-                    )
-                .AddSingleton<DiscordSocketClient>()
-                .AddSingleton<DiscordRestClient>(p => p.GetRequiredService<DiscordSocketClient>().Rest)
                 .AddSingleton<IBot, DiscordBot>()
                 // db
-                .AddPooledDbContextFactory<ChristofelBaseContext>(options => 
+                .AddPooledDbContextFactory<ChristofelBaseContext>(options =>
                     options
                         .UseMySql(
                             _configuration.GetConnectionString("ChristofelBase"),
                             ServerVersion.AutoDetect(_configuration.GetConnectionString("ChristofelBase")
                             ))
-                    )
+                )
+                .AddTransient<ChristofelBaseContext>(p =>
+                    p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext())
                 .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
                 // permissions
                 .AddSingleton<IPermissionService, ListPermissionService>()
@@ -136,7 +129,7 @@ namespace Christofel.Application
                 .AddSingleton<PluginService>()
                 .AddSingleton<PluginStorage>()
                 .AddSingleton<PluginLifetimeService>()
-                .AddSingleton<PluginAutoloader>()
+                .AddTransient<PluginAutoloader>()
                 // loggings
                 .AddLogging(builder =>
                 {
@@ -147,16 +140,25 @@ namespace Christofel.Application
                         .AddSimpleConsole(options => options.IncludeScopes = true)
                         .AddDiscordLogger();
                 })
-                .AddSingleton<DiscordNetLog>()
+                // discord
+                .AddDiscordGateway(p => p.GetRequiredService<IOptions<DiscordBotOptions>>().Value.Token)
+                // events
+                .AddResponder<ChristofelReadyResponder>()
+                .AddResponder<ApplicationResponder>()
+                .AddScoped<ChristofelReadyResponder>(p => new ChristofelReadyResponder(this))
                 // commands
-                .AddChristofelInteractionService(_configuration.GetSection("Bot"))
+                .AddChristofelCommands()
                 .AddCommandGroup<ControlCommands>()
                 .AddCommandGroup<PluginCommands>()
                 .AddSingleton<RefreshChristofel>(this.RefreshAsync);
         }
 
-        protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
+        protected override Task InitializeServices(IServiceProvider services,
+            CancellationToken token = new CancellationToken())
         {
+            var test = services.GetRequiredService<RefreshChristofel>();
+            var client = services.GetRequiredService<DiscordGatewayClient>();
+            
             _logger = services.GetRequiredService<ILogger<ChristofelApp>>();
             _lifetimeHandler.Logger = _logger;
             return Task.CompletedTask;
@@ -167,10 +169,10 @@ namespace Christofel.Application
             return base.InitAsync(new CancellationToken());
         }
 
-        public Task RunBlockAsync(CancellationToken token = default)
+        public async Task RunBlockAsync(CancellationToken token = default)
         {
             DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
-            return bot.RunApplication(
+            await bot.RunApplication(
                 CancellationTokenSource
                     .CreateLinkedTokenSource(Lifetime.Stopped, token).Token);
         }
@@ -182,61 +184,43 @@ namespace Christofel.Application
             {
                 provider.Dispose(); // Log all messages
             }
-            
-            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
-            await bot.StopBot(token); // Stop bot before disposing
+
             await base.DestroyAsync(token);
         }
 
-        protected Task HandleReady()
+        public async Task<Result> HandleReady()
         {
             if (!_running)
             {
-                Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        await base.RunAsync(false, DeferStartable, _lifetimeHandler.Lifetime.Stopped);
-                        _logger.LogInformation("Christofel is ready!");
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogCritical(0, e, "Christofel threw an exception when Starting");
-                        LifetimeHandler.MoveToError(e);
-                    }
-                });
+                    await base.RunAsync(false, DeferStartable, _lifetimeHandler.Lifetime.Stopped);
+                    _logger.LogInformation("Christofel is ready!");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogCritical(0, e, "Christofel threw an exception when Starting");
+                    LifetimeHandler.MoveToError(e);
+
+                    return new InvalidOperationException("Christofel could not start");
+                }
+                
                 _running = true;
             }
-            
-            return Task.CompletedTask;
-        }
-        
-        Task IStartable.StartAsync(CancellationToken token)
-        {
-            _logger.LogInformation("Starting Christofel");
-            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
-            
-            bot.Client.Ready += HandleReady;
 
-            DiscordNetLog loggerForward = Services.GetRequiredService<DiscordNetLog>();
-            loggerForward.RegisterEvents(bot.Client);
-            loggerForward.RegisterEvents(bot.Client.Rest);
-
-            return bot.StartBotAsync(token);
+            return Result.FromSuccess();
         }
-        
+
         Task IRefreshable.RefreshAsync(CancellationToken token)
         {
             _logger.LogInformation("Refreshing Christofel");
             _configuration.Reload();
             return Task.CompletedTask;
         }
-        
+
         Task IStoppable.StopAsync(CancellationToken token)
         {
             _logger.LogInformation("Stopping Christofel");
-            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
-            bot.Client.Ready -= HandleReady;
             return Task.CompletedTask;
         }
     }

@@ -18,18 +18,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Core\Discord.Net.Core.csproj">
-            <Private>false</Private>
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-        <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.Rest\Discord.Net.Rest.csproj">
-            <Private>false</Private>
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
-        <ProjectReference Include="..\..\libs\Discord.Net-Labs\src\Discord.Net.WebSocket\Discord.Net.WebSocket.csproj">
-            <Private>false</Private>
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </ProjectReference>
         <ProjectReference Include="..\..\libs\kos-api\src\Kos\Kos.csproj" />
         <ProjectReference Include="..\..\libs\usermap-api\src\Usermap\Usermap.csproj" />
         <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />

@@ -1,11 +1,12 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Christofel.Messages.JsonConverters;
 using Christofel.Messages.Options;
-using Discord;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Remora.Discord.API.Objects;
 
 namespace Christofel.Messages.Services
 {
@@ -14,7 +15,7 @@ namespace Christofel.Messages.Services
         private EmbedsOptions _embedsOptions;
         private readonly IDisposable _embedsOptionsUpdateToken;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
-        
+
         public EmbedsProvider(IOptionsMonitor<EmbedsOptions> options)
         {
             _embedsOptionsUpdateToken = options.OnChange(c => _embedsOptions = c);
@@ -26,17 +27,18 @@ namespace Christofel.Messages.Services
 
         public string EmbedsFolder => _embedsOptions.Folder;
 
-        public Embed GetEmbedFromString(string embedString)
+        public Embed? GetEmbedFromString(string embedString)
         {
-            Embed embed = JsonConvert
-                .DeserializeObject<EmbedBuilder>(embedString, _jsonSerializerSettings)
-                .Build();
-
-            return embed;
+            return JsonConvert.DeserializeObject<Embed>(embedString, _jsonSerializerSettings);
         }
 
-        public async Task<Embed> GetEmbedFromFile(string embedName)
+        public async Task<Embed?> GetEmbedFromFile(string embedName)
         {
+            if (!Regex.IsMatch(embedName, @"^[a-zA-Z_\-\.]+$"))
+            {
+                throw new InvalidOperationException("File name cannot be accepted");
+            }
+
             return GetEmbedFromString(await File.ReadAllTextAsync(Path.Join(EmbedsFolder, embedName + ".json")));
         }
 

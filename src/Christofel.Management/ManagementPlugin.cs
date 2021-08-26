@@ -4,14 +4,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
+using Christofel.BaseLib.Implementations.Responders;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
+using Christofel.CommandsLib.Extensions;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
-using Discord.Net.Interactions.DI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Remora.Commands.Extensions;
 
 namespace Christofel.Management
 {
@@ -38,7 +40,7 @@ namespace Christofel.Management
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionsService>();
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
 
@@ -46,7 +48,7 @@ namespace Christofel.Management
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionsService>();
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
 
             }
         }
@@ -55,7 +57,7 @@ namespace Christofel.Management
         {
             get
             {
-                yield return Services.GetRequiredService<InteractionsService>();
+                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
 
@@ -67,7 +69,8 @@ namespace Christofel.Management
                 .AddDiscordState(State)
                 .AddChristofelDatabase(State)
                 .AddSingleton<CtuIdentityResolver>()
-                .AddChristofelInteractionService(State.Configuration.GetSection("Bot"))
+                .AddSingleton<PluginResponder>()
+                .AddChristofelCommands()
                 .AddCommandGroup<MessageCommandsGroup>()
                 .AddCommandGroup<PermissionCommandsGroup>()
                 .AddCommandGroup<UserCommandsGroup>()
@@ -79,7 +82,7 @@ namespace Christofel.Management
             CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<ManagementPlugin>>();
-            token.ThrowIfCancellationRequested();
+            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

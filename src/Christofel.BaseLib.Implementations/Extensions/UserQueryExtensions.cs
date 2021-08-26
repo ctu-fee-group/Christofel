@@ -11,11 +11,5 @@ namespace Christofel.BaseLib.Extensions
             return userQuery
                 .Where(x => x.AuthenticatedAt != null);
         }
-        
-        public static IAsyncEnumerable<DbUser> Authenticated(this IAsyncEnumerable<DbUser> userQuery)
-        {
-            return userQuery
-                .Where(x => x.AuthenticatedAt != null);
-        }
     }
 }

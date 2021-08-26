@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Concurrent;
-using System.Net.Http.Headers;
-using Christofel.BaseLib.Discord;
-using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Remora.Discord.API.Abstractions.Rest;
 
 namespace Christofel.Application.Logging.Discord
 {
@@ -18,11 +16,11 @@ namespace Christofel.Application.Logging.Discord
         
         private IExternalScopeProvider? _scopeProvider;
 
-        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, DiscordSocketClient bot)
+        public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, IServiceProvider provider)
         {
             _config = config.CurrentValue;
             _loggers = new ConcurrentDictionary<string, DiscordLogger>();
-            _queueProcessor = new DiscordLoggerProcessor(bot, config.CurrentValue);
+            _queueProcessor = new DiscordLoggerProcessor(provider, config.CurrentValue);
             
             _onChangeToken = config.OnChange(HandleConfigChanged);
         }
