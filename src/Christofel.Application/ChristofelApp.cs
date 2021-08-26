@@ -202,7 +202,7 @@ namespace Christofel.Application
                     _logger.LogCritical(0, e, "Christofel threw an exception when Starting");
                     LifetimeHandler.MoveToError(e);
 
-                    return new InvalidOperationException("Christofel could not start");
+                    return new InvalidOperationError("Christofel could not start");
                 }
                 
                 _running = true;
