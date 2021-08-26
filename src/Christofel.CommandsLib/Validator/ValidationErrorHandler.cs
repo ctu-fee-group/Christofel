@@ -40,7 +40,7 @@ namespace Christofel.CommandsLib.Validator
             if (!commandResult.IsSuccess && commandResult.Error is ValidationResultError validationResultError)
             {
                 _logger.LogWarning(
-                    $"User <@{_context.User}> ({_context.User.Username}#{_context.User.Discriminator}) has put in invalid data to command, see errors:\n{validationResultError.Message}");
+                    $"User <@{_context.User.ID}> ({_context.User.Username}#{_context.User.Discriminator}) has put in invalid data to command, see errors:\n{validationResultError.Message}");
                 var feedbackResult = await SendValidationEmbed(context,
                     GetValidationEmbed(validationResultError.ValidationFailures), ct);
 
