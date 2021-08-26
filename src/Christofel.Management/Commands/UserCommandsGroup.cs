@@ -158,10 +158,15 @@ namespace Christofel.Management.Commands
                             var currentUser = currentUserResult.Entity;
 
                             var avatar = CDN.GetUserAvatarUrl(currentUserResult.Entity);
+                            if (!avatar.IsSuccess)
+                            {
+                                avatar = CDN.GetDefaultUserAvatarUrl(currentUserResult.Entity);
+                            }
+                            
                             embedAuthor =
                                 new EmbedAuthor(
                                     $"{currentUser.Username}#{currentUser.Discriminator} <@{currentUser.ID.Value}>",
-                                    (avatar.IsSuccess ? avatar.Entity.ToString() : string.Empty));
+                                    IconUrl: (avatar.IsSuccess ? avatar.Entity.ToString() : string.Empty));
                         }
 
                         embeds.Add(new Embed(Title: "Duplicity",
