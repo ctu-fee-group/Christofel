@@ -152,6 +152,10 @@ namespace Christofel.Api.Ctu
                 _logger.LogError(
                     $"Could not assign roles to user <@{assignJob.UserId}> and maximal number of retries was reached.");
             }
+            else
+            {
+                _logger.LogInformation($"Successfully added roles to <@{assignJob.UserId}>");
+            }
         }
     }
 }
