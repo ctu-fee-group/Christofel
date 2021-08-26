@@ -110,7 +110,7 @@ namespace Christofel.Api.Ctu
             {
                 var result = await _guildApi
                     .RemoveGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
-                        "Authentication process removal of role", _pluginLifetime.Stopping);
+                        "CTU Authentication", _pluginLifetime.Stopping);
 
                 if (!result.IsSuccess)
                 {
@@ -129,7 +129,7 @@ namespace Christofel.Api.Ctu
             {
                 var result = await _guildApi
                     .AddGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
-                        "Authentication process removal of role", _pluginLifetime.Stopping);
+                        "CTU Authentication", _pluginLifetime.Stopping);
 
                 if (!result.IsSuccess)
                 {
