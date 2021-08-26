@@ -34,6 +34,7 @@ namespace Christofel.CommandsLib
         /// <param name="commandTree">The command tree.</param>
         /// <param name="oauth2API">The OAuth2 API.</param>
         /// <param name="applicationAPI">The application API.</param>
+        /// <param name="permissionResolver"></param>
         public ChristofelSlashService
         (
             CommandTree commandTree,
@@ -401,7 +402,7 @@ namespace Christofel.CommandsLib
                         break;
                     default:
                         throw new InvalidOperationException("Invalid root type");
-                        continue; // Handle shomehow?
+                        // Handle shomehow?
                 }
 
                 returnData.Add(new CommandInfo(commandData, defaultPermission, permissions.ToList()));
