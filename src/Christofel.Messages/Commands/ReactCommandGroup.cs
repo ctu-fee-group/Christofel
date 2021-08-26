@@ -43,9 +43,9 @@ namespace Christofel.Messages.Commands
             Snowflake messageId,
             [Description("Emoji to react with")] string emoji,
             [Description("Channel where the message is located"), DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel = default)
+            Snowflake? channel = null)
         {
-            Snowflake channelId = channel.HasValue ? channel.Value : _context.ChannelID;
+            Snowflake channelId = channel ?? _context.ChannelID;
             var result =
                 await _channelApi.CreateReactionAsync(channelId, messageId, emoji, CancellationToken);
 

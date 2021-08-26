@@ -44,9 +44,9 @@ namespace Christofel.Messages.Commands
             [Description("Text of the message to send")]
             string text,
             [Description("Where to send the message. Default is current channel"), DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel = default)
+            Snowflake? channel = null)
         {
-            var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
+            var channelId = channel ?? _context.ChannelID;
             var messageResult = await _channelApi.CreateMessageAsync(channelId, text, ct: CancellationToken);
             if (!messageResult.IsSuccess)
             {
@@ -72,10 +72,9 @@ namespace Christofel.Messages.Commands
             [Description("New text of the message")]
             string text,
             [Description("Where to send the message. Default is current channel"), DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel = default)
+            Snowflake? channel = null)
         {
-            var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
-
+            var channelId = channel ?? _context.ChannelID;
             var messageResult =
                 await _channelApi.GetChannelMessageAsync(channelId, messageId, CancellationToken);
             if (!messageResult.IsSuccess)

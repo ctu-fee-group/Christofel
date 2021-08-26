@@ -127,7 +127,7 @@ namespace Christofel.Messages.Commands
                 [Description("File with json to send")]
                 string embed,
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
-                Optional<Snowflake> channel = default)
+                Snowflake? channel = default)
             {
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
@@ -136,7 +136,7 @@ namespace Christofel.Messages.Commands
                 }
 
                 return await HandleEditEmbed(_feedbackService, _channelApi,
-                    channel.HasValue ? channel.Value : _context.ChannelID,
+                    channel ?? _context.ChannelID,
                     messageId, parseResult.Entity, CancellationToken);
             }
 
@@ -145,9 +145,9 @@ namespace Christofel.Messages.Commands
             [Description("Create an embed from json file")]
             [RequirePermission("messages.embed.file.send")]
             public async Task<Result> HandleCreateEmbedFromFile(
+                [Description("File with json to send")] string embed,
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
-                Optional<Snowflake> channel,
-                [Description("File with json to send")] string embed)
+                Snowflake? channel = null)
             {
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
@@ -155,7 +155,7 @@ namespace Christofel.Messages.Commands
                     return Result.FromError(parseResult);
                 }
 
-                return await HandleCreateEmbed(_feedbackService, channel.HasValue ? channel.Value : _context.ChannelID,
+                return await HandleCreateEmbed(_feedbackService, channel ?? _context.ChannelID,
                     parseResult.Entity, CancellationToken);
             }
         }
@@ -205,12 +205,12 @@ namespace Christofel.Messages.Commands
             [Description("Edit message with embed from json string")]
             [RequirePermission("messages.embed.msg.edit")]
             public async Task<Result> HandleEditEmbedFromMessage(
-                [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
-                Optional<Snowflake> channel,
                 [Description("What message to edit"), DiscordTypeHint(TypeHint.String)]
                 Snowflake messageId,
                 [Description("Embed json")]
-                string embed)
+                string embed,
+                [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
+                Snowflake? channel = null)
             {
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
@@ -219,7 +219,7 @@ namespace Christofel.Messages.Commands
                 }
 
                 return await HandleEditEmbed(_feedbackService, _channelApi,
-                    channel.HasValue ? channel.Value : _context.ChannelID,
+                    channel ?? _context.ChannelID,
                     messageId, parseResult.Entity, CancellationToken);
             }
 
