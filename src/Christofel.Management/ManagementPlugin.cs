@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
+using Christofel.BaseLib.Implementations.Responders;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
@@ -68,6 +69,7 @@ namespace Christofel.Management
                 .AddDiscordState(State)
                 .AddChristofelDatabase(State)
                 .AddSingleton<CtuIdentityResolver>()
+                .AddSingleton<PluginResponder>()
                 .AddChristofelCommands()
                 .AddCommandGroup<MessageCommandsGroup>()
                 .AddCommandGroup<PermissionCommandsGroup>()
@@ -80,7 +82,7 @@ namespace Christofel.Management
             CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<ManagementPlugin>>();
-            token.ThrowIfCancellationRequested();
+            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }
