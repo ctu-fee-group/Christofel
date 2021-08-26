@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Christofel.Api.Exceptions;
+using Christofel.Api.GraphQL.Common;
 using Christofel.BaseLib.User;
 using Microsoft.Extensions.Logging;
 
@@ -31,6 +32,7 @@ namespace Christofel.Api.Ctu.Steps
             {
                 _logger.LogError("CTU username was set in the database, but does not match new request CTU username");
                 throw new UserException(
+                    UserErrorCode.Unspecified,
                     "CTU username was already set in database, but does not match new request CTU username");
             }
 

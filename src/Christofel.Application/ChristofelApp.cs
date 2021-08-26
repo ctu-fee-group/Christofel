@@ -4,8 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Commands;
-using Christofel.Application.Logging;
-using Christofel.Application.Logging.Discord;
 using Christofel.Application.Permissions;
 using Christofel.Application.Plugins;
 using Christofel.Application.Responders;
@@ -19,16 +17,15 @@ using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
+using Christofel.Logger;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Extensions;
-using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
-using Remora.Discord.Rest.Extensions;
 using Remora.Results;
 
 namespace Christofel.Application

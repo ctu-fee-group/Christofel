@@ -2,7 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace Christofel.Application.Extensions
+namespace Christofel.Logger
 {
     public static class BlockingCollectionExtensions
     {

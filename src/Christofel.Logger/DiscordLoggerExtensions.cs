@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Configuration;
 
-namespace Christofel.Application.Logging.Discord
+namespace Christofel.Logger
 {
     public static class DiscordLoggerExtensions
     {

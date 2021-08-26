@@ -67,7 +67,7 @@ namespace Christofel.Api.GraphQL.Authentication
             {
                 _logger.LogError($"There was an error while obtaining Discord token {response.ErrorResponse}");
                 return new RegisterDiscordPayload(new UserError(response?.ErrorResponse?.ErrorDescription ??
-                                                                "Unspecified error"));
+                                                                "Unspecified error", UserErrorCode.OauthTokenRejected));
             }
 
             AuthorizedDiscordApi authDiscordApi = discordApi.GetAuthorizedApi(response.SuccessResponse?.AccessToken ??
@@ -85,13 +85,14 @@ namespace Christofel.Api.GraphQL.Authentication
                         $"User trying to register using Discord is not on the server ({user.Username}#{user.Discriminator})");
                     return new RegisterDiscordPayload(
                         new UserError(
-                            $"User you are trying to log in with ({user.Username}#{user.Discriminator}) is not on the Discord server. Are you sure you are logging in with the correct user?"));
+                            $"User you are trying to log in with ({user.Username}#{user.Discriminator}) is not on the Discord server. Are you sure you are logging in with the correct user?",
+                            UserErrorCode.UserNotInGuild));
                 }
                 else
                 {
                     _logger.LogError(
                         $"There was an error while getting the guild member ({user.Username}#{user.Discriminator}) from the rest api {memberResult.Error.Message}");
-                    return new RegisterDiscordPayload(new UserError("Unspecified error"));
+                    return new RegisterDiscordPayload(new UserError("Unspecified error", UserErrorCode.Unspecified));
                 }
             }
 
@@ -133,7 +134,7 @@ namespace Christofel.Api.GraphQL.Authentication
             {
                 return new RegisterCtuPayload(
                     new UserError(
-                        $"Specified registration code is not valid"));
+                        $"Specified registration code is not valid", UserErrorCode.InvalidRegistrationCode));
             }
 
             OauthResponse response =
@@ -143,7 +144,7 @@ namespace Christofel.Api.GraphQL.Authentication
             {
                 _logger.LogError($"There was an error while obtaining CTU token {response.ErrorResponse}");
                 return new RegisterCtuPayload(new UserError(response?.ErrorResponse?.ErrorDescription ??
-                                                            "Unspecified error"));
+                                                            "Unspecified error", UserErrorCode.OauthTokenRejected));
             }
 
             if (response.SuccessResponse == null)
@@ -182,7 +183,7 @@ namespace Christofel.Api.GraphQL.Authentication
             {
                 return new RegisterCtuPayload(
                     new UserError(
-                        $"Specified registration code is not valid"));
+                        $"Specified registration code is not valid", UserErrorCode.InvalidRegistrationCode));
             }
 
             return await HandleRegistration(input.AccessToken, dbContext, dbUser, ctuOauthHandler, ctuAuthProcess,
@@ -265,13 +266,14 @@ namespace Christofel.Api.GraphQL.Authentication
                         $"User trying to register using CTU is not on the server (discord id: {dbUser.DiscordId}, user id: {dbUser.UserId}).");
                     return new RegisterCtuPayload(
                         new UserError(
-                            $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?"));
+                            $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?",
+                            UserErrorCode.UserNotInGuild));
                 }
                 else
                 {
                     _logger.LogError(
                         $"There was an error while getting the guild member (<@{dbUser.DiscordId}> - {dbUser.UserId}) from the rest api {memberResult.Error.Message}");
-                    return new RegisterCtuPayload(new UserError("Unspecified error"));
+                    return new RegisterCtuPayload(new UserError("Unspecified error", UserErrorCode.Unspecified));
                 }
             }
 
@@ -290,12 +292,12 @@ namespace Christofel.Api.GraphQL.Authentication
                 catch (UserException e)
                 {
                     _logger.LogError(e, "Could not register user using CTU, sending him the error");
-                    return new RegisterCtuPayload(new UserError(e.Message));
+                    return new RegisterCtuPayload(new UserError(e.Message, e.ErrorCode));
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e, "Could not register user using CTU, exception is not sent to the user");
-                    return new RegisterCtuPayload(new UserError("Unspecified error"));
+                    return new RegisterCtuPayload(new UserError("Unspecified error", UserErrorCode.Unspecified));
                 }
             }
         }

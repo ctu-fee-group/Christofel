@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Steps.Enums;
 using Christofel.Api.Exceptions;
+using Christofel.Api.GraphQL.Common;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Extensions;
@@ -51,6 +52,7 @@ namespace Christofel.Api.Ctu.Steps
                     if (!data.DbUser.DuplicityApproved)
                     {
                         throw new UserException(
+                            UserErrorCode.RejectedDuplicateUser,
                             "There is a duplicate user stored, contact administrators, if you want to proceed");
                     }
 
@@ -81,7 +83,7 @@ namespace Christofel.Api.Ctu.Steps
         {
             ChristofelBaseContext dbContext = data.DbContext;
             DbUser dbUser = data.DbUser;
-            
+
             DbUser? duplicateBoth = await dbContext.Users
                 .AsQueryable()
                 .Authenticated()
@@ -103,7 +105,7 @@ namespace Christofel.Api.Ctu.Steps
             {
                 return new Duplicity(DuplicityType.DiscordSide, duplicateDiscord);
             }
-            
+
             DbUser? duplicateCtu = await dbContext.Users
                 .AsQueryable()
                 .Authenticated()
@@ -114,7 +116,7 @@ namespace Christofel.Api.Ctu.Steps
             {
                 return new Duplicity(DuplicityType.CtuSide, duplicateCtu);
             }
-            
+
             return new Duplicity(DuplicityType.None, dbUser);
         }
     }

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace Christofel.Application.Logging.Discord
+namespace Christofel.Logger
 {
     public class DiscordLoggerChannelOptions
     {

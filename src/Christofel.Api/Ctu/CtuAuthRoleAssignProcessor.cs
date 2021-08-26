@@ -83,8 +83,13 @@ namespace Christofel.Api.Ctu
                     {
                         assignJob = _queue.Dequeue();
 
-                        if (_queue.Count == 0)
+                        if (_queue.Count == 0 || _pluginLifetime.Stopping.IsCancellationRequested)
                         {
+                            if (_queue.Count > 0)
+                            {
+                                _logger.LogWarning("Could not finish roles assignments");
+                            }
+
                             shouldRun = false;
                             _threadRunning = false;
                         }
@@ -130,6 +135,12 @@ namespace Christofel.Api.Ctu
                 var result = await _guildApi
                     .AddGuildMemberRoleAsync(assignJob.GuildId, assignJob.UserId, roleId,
                         "CTU Authentication", _pluginLifetime.Stopping);
+
+                if (_pluginLifetime.Stopping.IsCancellationRequested)
+                {
+                    _logger.LogWarning("Could not finish roles assignments");
+                    return;
+                }
 
                 if (!result.IsSuccess)
                 {

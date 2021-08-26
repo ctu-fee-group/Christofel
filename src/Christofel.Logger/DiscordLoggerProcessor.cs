@@ -1,19 +1,15 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Christofel.Application.Extensions;
-using Christofel.BaseLib.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
 
-namespace Christofel.Application.Logging.Discord
+namespace Christofel.Logger
 {
     public class DiscordLoggerProcessor : IDisposable
     {
@@ -66,6 +62,14 @@ namespace Christofel.Application.Logging.Discord
             {
             }
         }
+        
+        private static IEnumerable<string> Chunk(string? str, int chunkSize) =>
+            !string.IsNullOrEmpty(str) ?
+                Enumerable.Range(0, (int)Math.Ceiling(((double)str.Length) / chunkSize))
+                    .Select(i => str
+                        .Substring(i * chunkSize,
+                            (i * chunkSize + chunkSize <= str.Length) ? chunkSize : str.Length - i * chunkSize))
+                : Enumerable.Empty<string>();
 
         private bool SendMessage(DiscordLogMessage entry)
         {
@@ -81,7 +85,7 @@ namespace Christofel.Application.Logging.Discord
 
             bool success = true;
             Optional<IMessageReference> message = default;
-            foreach (string part in entry.Message.Chunk(2000))
+            foreach (string part in Chunk(entry.Message, 2000))
             {
                 var result =
                     _channelApi.CreateMessageAsync(new Snowflake(entry.ChannelId), part, messageReference: message,
