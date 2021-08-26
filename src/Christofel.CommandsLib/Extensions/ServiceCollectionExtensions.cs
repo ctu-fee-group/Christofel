@@ -18,7 +18,7 @@ namespace Christofel.CommandsLib.Extensions
                 .AddTransient<ChristofelCommandPermissionResolver>()
                 .AddTransient<ChristofelCommandRegistrator>()
                 .AddDiscordCommands(true)
-                .AddSingleton<ValidationFeedbackService>()
+                .AddScoped<ValidationFeedbackService>()
                 .AddCondition<RequirePermissionCondition>()
                 .AddPostExecutionEvent<ValidationErrorHandler>()
                 .AddPostExecutionEvent<ErrorExecutionEvent>();

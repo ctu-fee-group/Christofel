@@ -19,14 +19,16 @@ namespace Christofel.CommandsLib.Validator
     {
         private readonly ILogger _logger;
         private readonly ICommandContext _context;
-        private readonly FeedbackService _feedbackService;
+        private readonly ValidationFeedbackService _feedbackService;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDiscordRestInteractionAPI _interactionApi;
+        private readonly ContextInjectionService _injectionService;
 
-        public ValidationErrorHandler(ICommandContext context, FeedbackService validationFeedbackService,
+        public ValidationErrorHandler(ICommandContext context, ValidationFeedbackService validationFeedbackService,
             ILogger<ValidationErrorHandler> logger, IDiscordRestChannelAPI channelApi,
-            IDiscordRestInteractionAPI interactionApi)
+            IDiscordRestInteractionAPI interactionApi, ContextInjectionService injectionService)
         {
+            _injectionService = injectionService;
             _interactionApi = interactionApi;
             _channelApi = channelApi;
             _logger = logger;
@@ -41,8 +43,7 @@ namespace Christofel.CommandsLib.Validator
             {
                 _logger.LogWarning(
                     $"User <@{_context.User.ID}> ({_context.User.Username}#{_context.User.Discriminator}) has put in invalid data to command, see errors:\n{validationResultError.Message}");
-                var feedbackResult = await SendValidationEmbed(context,
-                    GetValidationEmbed(validationResultError.ValidationFailures), ct);
+                var feedbackResult = await _feedbackService.SendContextualValidationError(validationResultError.ValidationFailures, ct);
 
                 return feedbackResult.IsSuccess
                     ? Result.FromSuccess()
@@ -50,59 +51,6 @@ namespace Christofel.CommandsLib.Validator
             }
 
             return Result.FromSuccess();
-        }
-
-        private Embed GetValidationEmbed(IReadOnlyList<ValidationFailure> validationFailures)
-        {
-            var embed = new Embed(
-                "Validation errors",
-                EmbedType.Rich,
-                Fields: validationFailures.Select(GetField).ToList(),
-                Colour: _feedbackService.Theme.FaultOrDanger
-            );
-
-            return embed;
-        }
-
-        private IEmbedField GetField(ValidationFailure validationFailure)
-        {
-            return new EmbedField(validationFailure.PropertyName, validationFailure.ErrorMessage);
-        }
-
-        private async Task<Result<IMessage>> SendValidationEmbed(ICommandContext context, Embed embed,
-            CancellationToken ct)
-        {
-            switch (context)
-            {
-                case MessageContext messageContext:
-                {
-                    return await _channelApi.CreateMessageAsync
-                    (
-                        messageContext.ChannelID,
-                        embeds: new[] { embed },
-                        ct: ct
-                    );
-                }
-                case InteractionContext interactionContext:
-                {
-                    var result = await _interactionApi.CreateFollowupMessageAsync
-                    (
-                        interactionContext.ApplicationID,
-                        interactionContext.Token,
-                        embeds: new[] { embed },
-                        ct: ct
-                    );
-
-                    if (!result.IsSuccess)
-                    {
-                        return result;
-                    }
-
-                    return result;
-                }
-                default:
-                    throw new InvalidOperationException("Invalid context type");
-            }
         }
     }
 }
