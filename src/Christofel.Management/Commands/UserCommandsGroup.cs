@@ -223,7 +223,8 @@ namespace Christofel.Management.Commands
             DbUser dbUser = new DbUser()
             {
                 CtuUsername = ctuUsername,
-                DiscordId = user.Value
+                DiscordId = user.Value,
+                AuthenticatedAt = DateTime.Now
             };
 
             Result<IReadOnlyList<IMessage>> feedbackResponse;
