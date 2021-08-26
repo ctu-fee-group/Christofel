@@ -253,10 +253,10 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.users.showidentity")]
         public async Task<Result> HandleShowIdentity(
             [Description("Show identity of this user"), DiscordTypeHint(TypeHint.User)]
-            Optional<Snowflake> user,
+            Optional<Snowflake> user = default,
             [Description("Show identity of this user based on discord id (userful for deleted accounts)"),
              DiscordTypeHint(TypeHint.String)]
-            Optional<ulong> discordId)
+            Optional<ulong> discordId = default)
         {
             var validationResult = ExactlyOneValidation("user, discordid", user, discordId);
             if (!validationResult.IsSuccess)

@@ -74,7 +74,7 @@ namespace Christofel.Management.Commands
             [Description("Rate limit per user (seconds)")]
             int interval,
             [Description("Channel to enable slowmode in. Current channel if omitted."), DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel)
+            Optional<Snowflake> channel = default)
         {
             var validationResult = new CommandValidator()
                 .MakeSure("interval", interval, o => o.InclusiveBetween(1, 3600))

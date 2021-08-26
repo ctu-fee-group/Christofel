@@ -62,12 +62,12 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.permissions.grant")]
         [Description("Grant specified permission to user or role. Specify either user or role only")]
         public async Task<Result> HandleGrant(
-            [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
-            Optional<Snowflake> user,
-            [Description("Role to assign permission to")]
-            Optional<IRole> role,
             [Description("Permission to grant to the user or role")]
-            string permission)
+            string permission,
+            [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
+            Optional<Snowflake> user = default,
+            [Description("Role to assign permission to")]
+            Optional<IRole> role = default)
         {
             var validationResult = ExactlyOneValidation("user, role", user, role);
             if (!validationResult.IsSuccess)
@@ -113,12 +113,12 @@ namespace Christofel.Management.Commands
         [Description(
             "Revoke specified permission. Specify either user or role only. Exact permission must be specified")]
         public async Task<Result> HandleRevoke(
-            [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
-            Optional<Snowflake> user,
-            [Description("Role to assign permission to")]
-            Optional<IRole> role,
             [Description("Permission to revoke from the user or role")]
-            string permission)
+            string permission,
+            [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
+            Optional<Snowflake> user = default,
+            [Description("Role to assign permission to")]
+            Optional<IRole> role = default)
         {
             var validationResult = ExactlyOneValidation("user, role", user, role);
             if (!validationResult.IsSuccess)
@@ -195,9 +195,9 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.permissions.show")]
         public async Task<Result> HandleShow(
             [Description("Show permissions of user and all their roles")]
-            Optional<IGuildMember> user,
+            Optional<IGuildMember> user = default,
             [Description("Show permissions of role")]
-            Optional<IRole> role)
+            Optional<IRole> role = default)
         {
             var validationResult = ExactlyOneValidation("user, role", user, role);
             if (!validationResult.IsSuccess)
