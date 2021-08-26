@@ -11,16 +11,12 @@ namespace Christofel.Application
             try
             {
                 ChristofelApp application = new ChristofelApp(args);
-                EventWaitHandle exitEvent = new EventWaitHandle(false, EventResetMode.AutoReset);
-                bool shouldExit = false;
+                EventWaitHandle exitEvent = new EventWaitHandle(false, EventResetMode.ManualReset);
 
                 AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
                 {
-                    if (!shouldExit)
-                    {
-                        application.Lifetime.RequestStop();
+                    application.Lifetime.RequestStop();
                         exitEvent.WaitOne();
-                    }
                 };
 
                 Console.CancelKeyPress += (sender, e) =>
@@ -35,7 +31,6 @@ namespace Christofel.Application
 
                 await application.RunBlockAsync();
 
-                shouldExit = true;
                 exitEvent.Set();
                 Console.WriteLine("Goodbye!");
             }
