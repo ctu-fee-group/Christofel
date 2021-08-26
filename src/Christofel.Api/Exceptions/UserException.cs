@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.Serialization;
+using Christofel.Api.GraphQL.Common;
 
 namespace Christofel.Api.Exceptions
 {
@@ -8,19 +9,18 @@ namespace Christofel.Api.Exceptions
     /// </summary>
     public class UserException : Exception
     {
-        public UserException()
+        public UserException(UserErrorCode code)
+        {
+            ErrorCode = code;
+        }
+        
+        public UserErrorCode ErrorCode { get; }
+
+        public UserException(UserErrorCode code, string? message) : base(message)
         {
         }
 
-        protected UserException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
-
-        public UserException(string? message) : base(message)
-        {
-        }
-
-        public UserException(string? message, Exception? innerException) : base(message, innerException)
+        public UserException(UserErrorCode code, string? message, Exception? innerException) : base(message, innerException)
         {
         }
     }
