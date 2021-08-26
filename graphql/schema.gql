@@ -60,6 +60,7 @@ type User implements Node {
 "Validation error"
 type UserError {
   message: String!
+  errorCode: UserErrorCode!
 }
 
 "Result of verifyRegistration mutation"
@@ -103,6 +104,19 @@ enum RegistrationCodeVerification {
   CTU_AUTHORIZED
   "This code was already used for registration and the user was successfully authenticated.\nThis typically should not be returned as codes are removed after authentication is done"
   DONE
+}
+
+enum UserErrorCode {
+  "Error of unknown type that cannot be shown to the user"
+  UNSPECIFIED
+  "Token was rejected (or 500 from oauth handler)"
+  OAUTH_TOKEN_REJECTED
+  "User trying to authenticate is a rejected duplicate"
+  REJECTED_DUPLICATE_USER
+  "The user trying to log in is not in the correct guild"
+  USER_NOT_IN_GUILD
+  "The given registration is not valid"
+  INVALID_REGISTRATION_CODE
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
