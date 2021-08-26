@@ -106,7 +106,7 @@ namespace Christofel.Messages.Commands
                     var embed = await _embeds.GetEmbedFromFile(file);
                     if (embed is null)
                     {
-                        return new InvalidOperationException("Could not parse the embed");
+                        return new InvalidOperationError("Could not parse the embed");
                     }
 
                     return Result<Embed>.FromSuccess(embed);
@@ -189,7 +189,7 @@ namespace Christofel.Messages.Commands
                     var embed = _embeds.GetEmbedFromString(embedString);
                     if (embed is null)
                     {
-                        return new InvalidOperationException("Could not parse the embed");
+                        return new InvalidOperationError("Could not parse the embed");
                     }
 
                     return Result<Embed>.FromSuccess(embed);
