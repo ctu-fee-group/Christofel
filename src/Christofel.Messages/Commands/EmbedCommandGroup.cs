@@ -122,12 +122,12 @@ namespace Christofel.Messages.Commands
             [Description("Edit an embed from json file")]
             [RequirePermission("messages.embed.file.edit")]
             public async Task<Result> HandleEditEmbedFromFile(
-                [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
-                Optional<Snowflake> channel,
                 [Description("What message to edit"), DiscordTypeHint(TypeHint.String)]
                 Snowflake messageId,
                 [Description("File with json to send")]
-                string embed)
+                string embed,
+                [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
+                Optional<Snowflake> channel = default)
             {
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
@@ -225,9 +225,10 @@ namespace Christofel.Messages.Commands
 
             [RequirePermission("messages.embed.msg.create")]
             public async Task<Result> HandleCreateEmbedFromMessage(
+                [Description("Embed json to send")]
+                string embed,
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
-                Optional<Snowflake> channel,
-                [Description("Embed json to send")] string embed)
+                Optional<Snowflake> channel = default)
             {
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)

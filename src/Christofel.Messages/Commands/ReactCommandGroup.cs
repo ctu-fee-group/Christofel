@@ -39,11 +39,11 @@ namespace Christofel.Messages.Commands
         [Command("react")]
         [RequirePermission("messages.react")]
         public async Task<Result> HandleReactAsync(
-            [Description("Channel where the message is located"), DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel,
             [DiscordTypeHint(TypeHint.String), Description("Id of the message to react to")]
             Snowflake messageId,
-            [Description("Emoji to react with")] string emoji)
+            [Description("Emoji to react with")] string emoji,
+            [Description("Channel where the message is located"), DiscordTypeHint(TypeHint.Channel)]
+            Optional<Snowflake> channel = default)
         {
             Snowflake channelId = channel.HasValue ? channel.Value : _context.ChannelID;
             var result =

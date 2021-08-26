@@ -41,10 +41,10 @@ namespace Christofel.Messages.Commands
         [Description("Send a message")]
         [RequirePermission("messages.echo.send")]
         public async Task<Result> HandleEcho(
-            [Description("Where to send the message. Default is current channel"), DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel,
             [Description("Text of the message to send")]
-            string text)
+            string text,
+            [Description("Where to send the message. Default is current channel"), DiscordTypeHint(TypeHint.Channel)]
+            Optional<Snowflake> channel = default)
         {
             var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
             var messageResult = await _channelApi.CreateMessageAsync(channel.Value, text, ct: CancellationToken);
@@ -67,12 +67,12 @@ namespace Christofel.Messages.Commands
         [Description("Edit a message sent by the bot")]
         [RequirePermission("messages.echo.edit")]
         public async Task<Result> HandleEdit(
-            [Description("Where to send the message. Default is current channel"), DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel,
             [Description("What message to edit"), DiscordTypeHint(TypeHint.String)]
             Snowflake messageId,
             [Description("New text of the message")]
-            string text)
+            string text,
+            [Description("Where to send the message. Default is current channel"), DiscordTypeHint(TypeHint.Channel)]
+            Optional<Snowflake> channel = default)
         {
             var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
 
