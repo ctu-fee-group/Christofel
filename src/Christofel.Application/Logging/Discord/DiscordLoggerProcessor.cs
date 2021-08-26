@@ -22,7 +22,7 @@ namespace Christofel.Application.Logging.Discord
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
         
-        private bool _quit;
+        private bool _disposed;
         private IServiceProvider _provider;
         private IDiscordRestChannelAPI? _channelApi;
 
@@ -45,7 +45,7 @@ namespace Christofel.Application.Logging.Discord
 
         public virtual void EnqueueMessage(DiscordLogMessage message)
         {
-            if (!_quit)
+            if (!_disposed)
             {
                 try
                 {
@@ -69,11 +69,16 @@ namespace Christofel.Application.Logging.Discord
 
         private bool SendMessage(DiscordLogMessage entry)
         {
+            if (_disposed)
+            {
+                return false;
+            }
+            
             if (_channelApi is null)
             {
                 _channelApi = _provider.GetRequiredService<IDiscordRestChannelAPI>();
             }
-            
+
             bool success = true;
             Optional<IMessageReference> message = default;
             foreach (string part in entry.Message.Chunk(2000))
@@ -99,11 +104,12 @@ namespace Christofel.Application.Logging.Discord
 
         private void SendMessages(List<DiscordLogMessage> messages)
         {
+            int retries = 5;
             foreach (DiscordLogMessage message in messages)
             {
                 bool sent = false;
 
-                while (!sent)
+                while (!sent && retries-- > 0)
                 {
                     try
                     {
@@ -111,7 +117,7 @@ namespace Christofel.Application.Logging.Discord
                     }
                     catch (Exception) // Generally exceptions shouldn't happen here
                     {
-                        sent = false; // pretend like it was sent
+                        sent = false;
                     }
                 }
             }
@@ -156,8 +162,9 @@ namespace Christofel.Application.Logging.Discord
 
             try
             {
-                _outputThread.Join(1500);
+                _outputThread.Join(20000);
                 ProcessLogQueue();
+                _disposed = true;
             }
             catch (ThreadStateException)
             {
