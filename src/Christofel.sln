@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Usermap", "..\libs\usermap-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.CommandsLib", "Christofel.CommandsLib\Christofel.CommandsLib.csproj", "{CBE0DFD0-003A-4F0B-99BB-61ECFD1E27F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Logger", "Christofel.Logger\Christofel.Logger.csproj", "{8D41256B-AEAE-4475-866F-B8C6E5A610FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,7 @@ Global
 		{9E5496D6-C4AF-4B14-9EB1-DFDF78CB0770} = {0B39810A-5D62-42DD-A20F-FF100A95A0E8}
 		{2AAA0A7E-CDBF-46CF-97F5-5743ED6CC16F} = {0B39810A-5D62-42DD-A20F-FF100A95A0E8}
 		{CBE0DFD0-003A-4F0B-99BB-61ECFD1E27F3} = {CDA54591-9A27-4DAE-95C5-D4D7784F74EB}
+		{8D41256B-AEAE-4475-866F-B8C6E5A610FE} = {CDA54591-9A27-4DAE-95C5-D4D7784F74EB}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0C798625-3BD0-40A1-8921-08292D0445A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -100,5 +103,9 @@ Global
 		{CBE0DFD0-003A-4F0B-99BB-61ECFD1E27F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBE0DFD0-003A-4F0B-99BB-61ECFD1E27F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBE0DFD0-003A-4F0B-99BB-61ECFD1E27F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D41256B-AEAE-4475-866F-B8C6E5A610FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D41256B-AEAE-4475-866F-B8C6E5A610FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D41256B-AEAE-4475-866F-B8C6E5A610FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D41256B-AEAE-4475-866F-B8C6E5A610FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

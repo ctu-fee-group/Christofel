@@ -1,4 +1,4 @@
-namespace Christofel.Application.Logging.Discord
+namespace Christofel.Logger
 {
     public class DiscordLogMessage
     {

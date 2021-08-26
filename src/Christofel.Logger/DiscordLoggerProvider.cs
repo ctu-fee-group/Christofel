@@ -2,9 +2,8 @@ using System;
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Remora.Discord.API.Abstractions.Rest;
 
-namespace Christofel.Application.Logging.Discord
+namespace Christofel.Logger
 {
     [ProviderAlias("Discord")]
     public class DiscordLoggerProvider : ILoggerProvider, ISupportExternalScope
