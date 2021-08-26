@@ -141,9 +141,9 @@ namespace Christofel.Messages.Commands
             }
 
 
-            [Command("create")]
+            [Command("send")]
             [Description("Create an embed from json file")]
-            [RequirePermission("messages.embed.file.create")]
+            [RequirePermission("messages.embed.file.send")]
             public async Task<Result> HandleCreateEmbedFromFile(
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
                 Optional<Snowflake> channel,
@@ -202,7 +202,7 @@ namespace Christofel.Messages.Commands
             }
 
             [Command("edit")]
-            [Description("Edit message with embed using json")]
+            [Description("Edit message with embed from json string")]
             [RequirePermission("messages.embed.msg.edit")]
             public async Task<Result> HandleEditEmbedFromMessage(
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
@@ -223,7 +223,9 @@ namespace Christofel.Messages.Commands
                     messageId, parseResult.Entity, CancellationToken);
             }
 
-            [RequirePermission("messages.embed.msg.create")]
+            [RequirePermission("messages.embed.msg.send")]
+            [Command("send")]
+            [Description("Create an embed from json string")]
             public async Task<Result> HandleCreateEmbedFromMessage(
                 [Description("Embed json to send")]
                 string embed,
