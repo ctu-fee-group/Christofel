@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -190,6 +191,23 @@ namespace Christofel.Management.Commands
                 : Result.FromError(feedbackResult);
         }
 
+        private class DiscordTargetComparer : IEqualityComparer<DiscordTarget>
+        {
+            public bool Equals(DiscordTarget? x, DiscordTarget? y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (ReferenceEquals(x, null)) return false;
+                if (ReferenceEquals(y, null)) return false;
+                if (x.GetType() != y.GetType()) return false;
+                return x.DiscordId == y.DiscordId && x.GuildId == y.GuildId && x.TargetType == y.TargetType;
+            }
+
+            public int GetHashCode(DiscordTarget obj)
+            {
+                return HashCode.Combine(obj.DiscordId, obj.GuildId, (int)obj.TargetType);
+            }
+        }
+
         [Command("show")]
         [Description("Show permissions of role or user. For users their role permissions will be shown as well")]
         [RequirePermission("management.permissions.show")]
@@ -215,7 +233,7 @@ namespace Christofel.Management.Commands
                         .AsNoTracking()
                         .WhereTargetAnyOf(targets)
                         .ToListAsync(CancellationToken))
-                    .GroupBy(x => x.Target)
+                    .GroupBy(x => x.Target, new DiscordTargetComparer())
                     .Select(grouping =>
                         $@"Permission of {(grouping.Key.GetMentionString())}:" +
                         "\n" +
