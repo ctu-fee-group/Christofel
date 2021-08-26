@@ -97,15 +97,18 @@ namespace Christofel.Api.Ctu
                     lock (_queueLock)
                     {
                         assignJob = _queue.Dequeue();
+                    }
 
+                    await ProcessAssignJob(assignJob);
+
+                    lock (_queueLock)
+                    {
                         if (_queue.Count == 0)
                         {
                             shouldRun = false;
                             _threadRunning = false;
                         }
                     }
-
-                    await ProcessAssignJob(assignJob);
                 }
                 catch (Exception e)
                 {
