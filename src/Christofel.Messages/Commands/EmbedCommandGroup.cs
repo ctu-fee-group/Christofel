@@ -1,325 +1,243 @@
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.CommandsLib;
 using Christofel.Messages.Services;
 using Microsoft.Extensions.Logging;
+using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
+using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Core;
+using Remora.Results;
 
 namespace Christofel.Messages.Commands
 {
-    public class EmbedCommandGroup : ICommandGroup
+    [Group("embed")]
+    [Description("Manage embeds")]
+    [RequirePermission("messages.embed")]
+    [Ephemeral]
+    [DiscordDefaultPermission(false)]
+    public class EmbedCommandGroup : CommandGroup
     {
-        private class EmbedData : IHasMessageChannel, IHasMessageId, IHasUserMessage, IHasEmbed
-        {
-            public IMessageChannel? Channel { get; set; }
-            public ulong? MessageId { get; set; }
-            public IUserMessage? UserMessage { get; set; }
-
-            public Embed? Embed { get; set; }
-        }
-
         private readonly ILogger<ReactCommandGroup> _logger;
-        private readonly DiscordSocketClient _client;
-        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
         private readonly EmbedsProvider _embeds;
+        private readonly FeedbackService _feedbackService;
+        private readonly ICommandContext _context;
 
-        public EmbedCommandGroup(ILogger<ReactCommandGroup> logger,
-            ICommandPermissionsResolver<PermissionSlashInfo> resolver, EmbedsProvider embeds,
-            DiscordSocketClient client)
+
+        public EmbedCommandGroup(ILogger<ReactCommandGroup> logger, EmbedsProvider embeds,
+            FeedbackService feedbackService, ICommandContext context)
         {
-            _client = client;
+            _feedbackService = feedbackService;
+            _context = context;
             _embeds = embeds;
             _logger = logger;
-            _resolver = resolver;
         }
 
-        private async Task HandleEditEmbed(SocketInteraction command, Verified<EmbedData> verified,
-            CancellationToken token = default)
+        private static async Task<Result> HandleEditEmbed(FeedbackService feedbackService,
+            IDiscordRestChannelAPI channelApi,
+            Snowflake channelId, Snowflake messageId, Embed embed, CancellationToken ct)
         {
-            if (verified.Success)
+            var messageResult =
+                await channelApi.EditMessageAsync(channelId, messageId, embeds: new[] { embed }, ct: ct);
+            if (!messageResult.IsSuccess)
             {
-                EmbedData data = verified.Result;
-                if (data.Embed == null || data.UserMessage == null)
-                {
-                    throw new InvalidOperationException("Validation failed");
-                }
+                await feedbackService.SendContextualErrorAsync("Could not edit the embed, check permissions",
+                    ct: ct);
+                return Result.FromError(messageResult);
+            }
 
+            var feedbackResult = await feedbackService.SendContextualSuccessAsync("Embed edited", ct: ct);
+
+            return feedbackResult.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(feedbackResult);
+        }
+
+        private static async Task<Result> HandleCreateEmbed(FeedbackService feedbackService,
+            Snowflake channelId, Embed embed, CancellationToken ct)
+        {
+            var messageResult = await feedbackService.SendEmbedAsync(channelId, embed, ct);
+            if (!messageResult.IsSuccess)
+            {
+                await feedbackService.SendContextualErrorAsync("Could not send the embed, check permissions", ct: ct);
+                return Result.FromError(messageResult);
+            }
+
+            var feedbackResult = await feedbackService.SendContextualSuccessAsync("Embed sent", ct: ct);
+
+            return feedbackResult.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(feedbackResult);
+        }
+
+        [Group("file")]
+        [Description("Manage embeds using json files in the filesystem")]
+        [RequirePermission("messages.embed.file")]
+        public class FileInner : CommandGroup
+        {
+            private readonly ILogger<ReactCommandGroup> _logger;
+            private readonly EmbedsProvider _embeds;
+            private readonly FeedbackService _feedbackService;
+            private readonly ICommandContext _context;
+            private readonly IDiscordRestChannelAPI _channelApi;
+
+
+            public FileInner(ILogger<ReactCommandGroup> logger, EmbedsProvider embeds,
+                FeedbackService feedbackService, ICommandContext context, IDiscordRestChannelAPI channelApi)
+            {
+                _channelApi = channelApi;
+                _feedbackService = feedbackService;
+                _context = context;
+                _embeds = embeds;
+                _logger = logger;
+            }
+            
+            private async Task<Result<Embed>> ParseEmbed(string file)
+            {
                 try
                 {
-                    await data.UserMessage.ModifyAsync(
-                        props => props.Embeds = new[] { data.Embed },
-                        new RequestOptions() { CancelToken = token });
-                    await command.RespondAsync("Embed edited!", ephemeral: true,
-                        options: new RequestOptions() { CancelToken = token });
+                    var embed = await _embeds.GetEmbedFromFile(file);
+                    if (embed is null)
+                    {
+                        return new InvalidOperationException("Could not parse the embed");
+                    }
+
+                    return Result<Embed>.FromSuccess(embed);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    await command.RespondAsync("There was an error editing the embed, check permissions",
-                        ephemeral: true, options: new RequestOptions() { CancelToken = token });
-                    throw;
+                    await _feedbackService.SendContextualErrorAsync($"Could not parse the embed: {e.Message}");
+                    return e;
                 }
+            }
+            
+            [Command("edit")]
+            [Description("Edit an embed from json file")]
+            [RequirePermission("messages.embed.file.edit")]
+            public async Task<Result> HandleEditEmbedFromFile(
+                [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
+                Optional<Snowflake> channel,
+                [Description("What message to edit"), DiscordTypeHint(TypeHint.String)]
+                Snowflake messageId,
+                [Description("File with json to send")]
+                string embed)
+            {
+                var parseResult = await ParseEmbed(embed);
+                if (!parseResult.IsSuccess)
+                {
+                    return Result.FromError(parseResult);
+                }
+
+                return await HandleEditEmbed(_feedbackService, _channelApi,
+                    channel.HasValue ? channel.Value : _context.ChannelID,
+                    messageId, parseResult.Entity, CancellationToken);
+            }
+
+
+            [Command("create")]
+            [Description("Create an embed from json file")]
+            [RequirePermission("messages.embed.file.create")]
+            public async Task<Result> HandleCreateEmbedFromFile(
+                [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
+                Optional<Snowflake> channel,
+                [Description("File with json to send")] string embed)
+            {
+                var parseResult = await ParseEmbed(embed);
+                if (!parseResult.IsSuccess)
+                {
+                    return Result.FromError(parseResult);
+                }
+
+                return await HandleCreateEmbed(_feedbackService, channel.HasValue ? channel.Value : _context.ChannelID,
+                    parseResult.Entity, CancellationToken);
             }
         }
 
-        private async Task HandleCreateEmbed(SocketInteraction command, Verified<EmbedData> verified,
-            CancellationToken token = default)
+        [Group("msg")]
+        [Description("Manage embeds using json messages")]
+        [RequirePermission("messages.embed.msg")]
+        public class MessageInner : CommandGroup
         {
-            if (verified.Success)
-            {
-                EmbedData data = verified.Result;
-                if (data.Embed == null || data.Channel == null)
-                {
-                    throw new InvalidOperationException("Validation failed");
-                }
+            private readonly ILogger<ReactCommandGroup> _logger;
+            private readonly EmbedsProvider _embeds;
+            private readonly FeedbackService _feedbackService;
+            private readonly ICommandContext _context;
+            private readonly IDiscordRestChannelAPI _channelApi;
 
+
+            public MessageInner(ILogger<ReactCommandGroup> logger, EmbedsProvider embeds,
+                FeedbackService feedbackService, ICommandContext context, IDiscordRestChannelAPI channelApi)
+            {
+                _channelApi = channelApi;
+                _feedbackService = feedbackService;
+                _context = context;
+                _embeds = embeds;
+                _logger = logger;
+            }
+
+            private async Task<Result<Embed>> ParseEmbed(string embedString)
+            {
                 try
                 {
-                    await data.Channel.SendMessageAsync(embed: data.Embed,
-                        options: new RequestOptions() { CancelToken = token });
-                    await command.RespondAsync("Embed sent!", ephemeral: true,
-                        options: new RequestOptions() { CancelToken = token });
+                    var embed = _embeds.GetEmbedFromString(embedString);
+                    if (embed is null)
+                    {
+                        return new InvalidOperationException("Could not parse the embed");
+                    }
+
+                    return Result<Embed>.FromSuccess(embed);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    await command.RespondAsync("There was an error editing the embed, check permissions",
-                        ephemeral: true, options: new RequestOptions() { CancelToken = token });
-                    throw;
+                    await _feedbackService.SendContextualErrorAsync($"Could not parse the embed: {e.Message}");
+                    return e;
                 }
             }
-        }
 
-        public async Task HandleEditEmbedFromFile(SocketInteraction command, IChannel? channel, string messageId,
-            string fileName, CancellationToken token = default)
-        {
-            Verified<EmbedData> verified = await
-                new CommandVerifier<EmbedData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .VerifyMessageId(messageId)
-                    .VerifyUserMessage(token: token)
-                    .VerifyMessageAuthorChristofel()
-                    .VerifyUserMessageHasEmbeds()
-                    .VerifyFile(_embeds.EmbedsFolder, fileName, ".json")
-                    .VerifyFileIsEmbedJson(_embeds, fileName)
-                    .FinishVerificationAsync();
-
-            await HandleEditEmbed(command, verified, token);
-        }
-
-        public async Task HandleEditEmbedFromMessage(SocketInteraction command, IChannel? channel, string messageId,
-            string embed, CancellationToken token = default)
-        {
-            Verified<EmbedData> verified = await
-                new CommandVerifier<EmbedData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .VerifyMessageId(messageId)
-                    .VerifyUserMessage(token: token)
-                    .VerifyMessageAuthorChristofel()
-                    .VerifyUserMessageHasEmbeds()
-                    .VerifyIsEmbedJson(_embeds, embed)
-                    .FinishVerificationAsync();
-
-            await HandleEditEmbed(command, verified, token);
-        }
-
-        public async Task HandleCreateEmbedFromMessage(SocketInteraction command, IChannel? channel, string embed,
-            CancellationToken token = default)
-        {
-            Verified<EmbedData> verified = await
-                new CommandVerifier<EmbedData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .VerifyIsEmbedJson(_embeds, embed)
-                    .FinishVerificationAsync();
-
-            await HandleCreateEmbed(command, verified, token);
-        }
-
-        public async Task HandleCreateEmbedFromFile(SocketInteraction command, IChannel? channel, string fileName,
-            CancellationToken token = default)
-        {
-            Verified<EmbedData> verified = await
-                new CommandVerifier<EmbedData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .VerifyFile(_embeds.EmbedsFolder, fileName, ".json")
-                    .VerifyFileIsEmbedJson(_embeds, fileName)
-                    .FinishVerificationAsync();
-
-            await HandleCreateEmbed(command, verified, token);
-        }
-
-        public async Task HandleDeleteEmbed(SocketInteraction command, IChannel? channel, string messageId,
-            CancellationToken token)
-        {
-            Verified<EmbedData> verified = await
-                new CommandVerifier<EmbedData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .VerifyMessageId(messageId)
-                    .VerifyUserMessage(token: token)
-                    .VerifyMessageAuthorChristofel()
-                    .FinishVerificationAsync();
-
-            if (verified.Success)
+            [Command("edit")]
+            [Description("Edit message with embed using json")]
+            [RequirePermission("messages.embed.msg.edit")]
+            public async Task<Result> HandleEditEmbedFromMessage(
+                [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
+                Optional<Snowflake> channel,
+                [Description("What message to edit"), DiscordTypeHint(TypeHint.String)]
+                Snowflake messageId,
+                [Description("Embed json")]
+                string embed)
             {
-                EmbedData data = verified.Result;
-                if (data.UserMessage == null)
+                var parseResult = await ParseEmbed(embed);
+                if (!parseResult.IsSuccess)
                 {
-                    throw new InvalidOperationException("Verification failed");
+                    return Result.FromError(parseResult);
                 }
 
-                try
-                {
-                    await data.UserMessage.DeleteAsync();
-                }
-                catch (Exception)
-                {
-                    await command.RespondAsync("Message could not be deleted, check permissions");
-                    throw;
-                }
-
-                await command.RespondAsync("Embed deleted!");
+                return await HandleEditEmbed(_feedbackService, _channelApi,
+                    channel.HasValue ? channel.Value : _context.ChannelID,
+                    messageId, parseResult.Entity, CancellationToken);
             }
-        }
 
+            [RequirePermission("messages.embed.msg.create")]
+            public async Task<Result> HandleCreateEmbedFromMessage(
+                [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
+                Optional<Snowflake> channel,
+                [Description("Embed json to send")] string embed)
+            {
+                var parseResult = await ParseEmbed(embed);
+                if (!parseResult.IsSuccess)
+                {
+                    return Result.FromError(parseResult);
+                }
 
-        public SlashCommandOptionBuilder GetMsgSubcommandBuilder()
-        {
-            return new SlashCommandOptionBuilder()
-                .WithName("msg")
-                .WithDescription("Send or edit embeds using text in message")
-                .WithType(ApplicationCommandOptionType.SubCommandGroup)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("send")
-                    .WithDescription("Send an embed using json message")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("embed")
-                        .WithDescription("Embed json to send")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("channel")
-                        .WithDescription("Channel to send the message to")
-                        .WithType(ApplicationCommandOptionType.Channel))
-                )
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("edit")
-                    .WithDescription("Edit an embed using a json file from the disk")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("messageid")
-                        .WithDescription("Id of the message to edit")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("embed")
-                        .WithDescription("Embed json to send")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("channel")
-                        .WithDescription("Channel to send the message to")
-                        .WithType(ApplicationCommandOptionType.Channel)
-                    ))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("delete")
-                    .WithDescription("Delete an embed")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("messageid")
-                        .WithDescription("Message id to delete")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("channel")
-                        .WithDescription("Channel to delete the message from. Default is the current one")
-                        .WithType(ApplicationCommandOptionType.Channel))
-                );
-        }
-
-        public SlashCommandOptionBuilder GetFileSubcommandBuilder()
-        {
-            return new SlashCommandOptionBuilder()
-                .WithName("file")
-                .WithDescription("Send or edit embeds using files on the server")
-                .WithType(ApplicationCommandOptionType.SubCommandGroup)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("send")
-                    .WithDescription("Send an embed using a json file from the disk")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("filename")
-                        .WithDescription("File name on the disk without extension where the embed is stored")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("channel")
-                        .WithDescription("Channel to send the message to")
-                        .WithType(ApplicationCommandOptionType.Channel))
-                )
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("edit")
-                    .WithDescription("Edit an embed using a json file from the disk")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("messageid")
-                        .WithDescription("Id of the message to edit")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("filename")
-                        .WithDescription("File name on the disk without extension where the embed is stored")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("channel")
-                        .WithDescription("Channel to send the message to")
-                        .WithType(ApplicationCommandOptionType.Channel)
-                    ))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("delete")
-                    .WithDescription("Delete an embed")
-                    .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("messageid")
-                        .WithDescription("Message id to delete")
-                        .WithRequired(true)
-                        .WithType(ApplicationCommandOptionType.String))
-                    .AddOption(new SlashCommandOptionBuilder()
-                        .WithName("channel")
-                        .WithDescription("Channel to delete the message from. Default is the current one")
-                        .WithType(ApplicationCommandOptionType.Channel))
-                );
-        }
-
-
-        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
-        {
-            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
-                .WithLogger(_logger)
-                .WithPermissionCheck(_resolver)
-                .WithThreadPool()
-                .Build();
-
-            DiscordInteractionHandler handler = new SubCommandHandlerCreator()
-                .CreateHandlerForCommand(
-                    ("file send", (CommandDelegate<IChannel?, string>)HandleCreateEmbedFromFile),
-                    ("file edit", (CommandDelegate<IChannel?, string, string>)HandleEditEmbedFromFile),
-                    ("file delete", (CommandDelegate<IChannel?, string>)HandleDeleteEmbed),
-                    ("msg send", (CommandDelegate<IChannel?, string>)HandleCreateEmbedFromMessage),
-                    ("msg edit", (CommandDelegate<IChannel?, string, string>)HandleEditEmbedFromMessage),
-                    ("msg delete", (CommandDelegate<IChannel?, string>)HandleDeleteEmbed)
-                );
-
-            PermissionSlashInfoBuilder commandBuilder = new PermissionSlashInfoBuilder()
-                .WithHandler(handler)
-                .WithPermission("messages.embed")
-                .WithBuilder(new SlashCommandBuilder()
-                    .WithName("embed")
-                    .WithDescription("Manage embeds")
-                    .AddOption(GetFileSubcommandBuilder())
-                    .AddOption(GetMsgSubcommandBuilder()));
-
-            holder.AddInteraction(commandBuilder.Build(), executor);
-            return Task.CompletedTask;
+                return await HandleCreateEmbed(_feedbackService, channel.HasValue ? channel.Value : _context.ChannelID,
+                    parseResult.Entity, CancellationToken);
+            }
         }
     }
 }

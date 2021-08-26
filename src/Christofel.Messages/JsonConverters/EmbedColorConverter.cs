@@ -1,6 +1,6 @@
 using System;
+using System.Drawing;
 using Newtonsoft.Json;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace Christofel.Messages.JsonConverters
 {
@@ -8,13 +8,13 @@ namespace Christofel.Messages.JsonConverters
     {
         public override void WriteJson(JsonWriter writer, Color? value, JsonSerializer serializer)
         {
-            writer.WriteValueAsync(value?.RawValue ?? 0);
+            writer.WriteValueAsync(value?.ToArgb() ?? 0);
         }
 
         public override Color? ReadJson(JsonReader reader, Type objectType, Color? existingValue, bool hasExistingValue,
             JsonSerializer serializer)
         {
-            return new Color((Convert.ToUInt32((long?) reader.Value ?? 0)));
+            return Color.FromArgb(((int?)reader.Value) ?? 0);
         }
     }
 }

@@ -1,218 +1,99 @@
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.CommandsLib;
 using Microsoft.Extensions.Logging;
+using Remora.Commands.Attributes;
+using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Conditions;
+using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Core;
+using Remora.Results;
 
 namespace Christofel.Messages.Commands
 {
-    public class EchoCommandGroup : ICommandGroup
+    [Group("echo")]
+    [Description]
+    [Ephemeral]
+    [RequirePermission("messages.echo")]
+    public class EchoCommandGroup : CommandGroup
     {
-        private class EchoData : IHasMessageChannel, IHasMessageId, IHasUserMessage
-        {
-            public IMessageChannel? Channel { get; set; }
-            public ulong? MessageId { get; set; }
-            public IUserMessage? UserMessage { get; set; }
-        }
-
         private readonly ILogger<ReactCommandGroup> _logger;
-        private readonly ICommandPermissionsResolver<PermissionSlashInfo> _resolver;
-        private readonly DiscordSocketClient _client;
+        private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly FeedbackService _feedbackService;
+        private readonly ICommandContext _context;
 
-        public EchoCommandGroup(ILogger<ReactCommandGroup> logger,
-            ICommandPermissionsResolver<PermissionSlashInfo> resolver, DiscordSocketClient client)
+        public EchoCommandGroup(ILogger<ReactCommandGroup> logger, IDiscordRestChannelAPI channelApi,
+            ICommandContext context, FeedbackService feedbackService)
         {
+            _context = context;
+            _feedbackService = feedbackService;
+            _channelApi = channelApi;
             _logger = logger;
-            _resolver = resolver;
-            _client = client;
         }
 
-        public async Task HandleEcho(SocketInteraction command, IChannel? channel, string text,
-            CancellationToken token = default)
+        [Command("send")]
+        [Description("Send a message")]
+        [RequirePermission("messages.echo.send")]
+        public async Task<Result> HandleEcho(
+            [Description("Where to send the message. Default is current channel"), DiscordTypeHint(TypeHint.Channel)]
+            Optional<Snowflake> channel,
+            [Description("Text of the message to send")]
+            string text)
         {
-            Verified<EchoData> verified = await
-                new CommandVerifier<EchoData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .FinishVerificationAsync();
-
-            if (verified.Success)
+            var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
+            var messageResult = await _channelApi.CreateMessageAsync(channel.Value, text, ct: CancellationToken);
+            if (!messageResult.IsSuccess)
             {
-                EchoData data = verified.Result;
-                if (data.Channel == null)
-                {
-                    throw new InvalidOperationException("Verification failed");
-                }
-
-                try
-                {
-                    await data.Channel.SendMessageAsync(text);
-                    await command.RespondAsync("Message sent", ephemeral: true,
-                        options: new RequestOptions { CancelToken = token });
-                }
-                catch (Exception)
-                {
-                    await command.RespondAsync("Message could not be sent, check permissions", ephemeral: true,
-                        options: new RequestOptions { CancelToken = token });
-                    throw;
-                }
-            }
-        }
-
-        public async Task HandleEdit(SocketInteraction command, IChannel? channel, string messageId, string text,
-            CancellationToken token = default)
-        {
-            Verified<EchoData> verified = await
-                new CommandVerifier<EchoData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .VerifyMessageId(messageId)
-                    .VerifyUserMessage(token: token)
-                    .VerifyMessageAuthorChristofel()
-                    .FinishVerificationAsync();
-
-            if (verified.Success)
-            {
-                EchoData data = verified.Result;
-                if (data.UserMessage == null)
-                {
-                    throw new InvalidOperationException("Verification failed");
-                }
-
-                try
-                {
-                    await data.UserMessage.ModifyAsync(x => x.Content = text);
-                    await command.RespondAsync("Message edited", ephemeral: true,
-                        options: new RequestOptions { CancelToken = token });
-                }
-                catch (Exception)
-                {
-                    await command.RespondAsync("Message could not be edited, check permissions", ephemeral: true,
-                        options: new RequestOptions { CancelToken = token });
-                    throw;
-                }
-            }
-        }
-
-        public async Task HandleDelete(SocketInteraction command, IChannel? channel, string messageId,
-            CancellationToken token = default)
-        {
-            Verified<EchoData> verified = await
-                new CommandVerifier<EchoData>(_client, command, _logger)
-                    .VerifyMessageChannel(channel ?? command.Channel)
-                    .VerifyMessageId(messageId)
-                    .VerifyUserMessage(token: token)
-                    .VerifyMessageAuthorChristofel()
-                    .FinishVerificationAsync();
-            if (verified.Success)
-            {
-                EchoData data = verified.Result;
-                if (data.UserMessage == null)
-                {
-                    throw new InvalidOperationException("Verification failed");
-                }
-
-                try
-                {
-                    await data.UserMessage.DeleteAsync();
-                }
-                catch (Exception)
-                {
-                    await command.RespondAsync("Message could not be deleted, check permissions");
-                    throw;
-                }
+                // Ignore as message not sent is more critical
+                await _feedbackService.SendContextualErrorAsync("Could not send the message, check permissions",
+                    ct: CancellationToken);
+                return Result.FromError(messageResult);
             }
 
-
-            await command.RespondAsync("Message deleted");
+            var feedbackResult =
+                await _feedbackService.SendContextualSuccessAsync("Message sent", ct: CancellationToken);
+            return feedbackResult.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(feedbackResult);
         }
 
-        public SlashCommandOptionBuilder GetSendSubcommandBuilder()
+        [Command("edit")]
+        [Description("Edit a message sent by the bot")]
+        [RequirePermission("messages.echo.edit")]
+        public async Task<Result> HandleEdit(
+            [Description("Where to send the message. Default is current channel"), DiscordTypeHint(TypeHint.Channel)]
+            Optional<Snowflake> channel,
+            [Description("What message to edit"), DiscordTypeHint(TypeHint.String)]
+            Snowflake messageId,
+            [Description("New text of the message")]
+            string text)
         {
-            return new SlashCommandOptionBuilder()
-                .WithName("send")
-                .WithDescription("Send a new message")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("text")
-                    .WithRequired(true)
-                    .WithDescription("Text to send")
-                    .WithType(ApplicationCommandOptionType.String))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("channel")
-                    .WithDescription("Channel to send the text to. Default current channel")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Channel));
-        }
+            var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
 
-        public SlashCommandOptionBuilder GetEditSubcommandBuilder()
-        {
-            return new SlashCommandOptionBuilder()
-                .WithName("edit")
-                .WithDescription("Edit existing message by the bot")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("messageid")
-                    .WithDescription("Message id to edit")
-                    .WithRequired(true)
-                    .WithType(ApplicationCommandOptionType.String))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("text")
-                    .WithDescription("Text to send")
-                    .WithRequired(true)
-                    .WithType(ApplicationCommandOptionType.String)
-                )
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("channel")
-                    .WithDescription("Channel to send the text to. Default is current channel")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Channel));
-        }
+            var messageResult =
+                await _channelApi.GetChannelMessageAsync(channelId, messageId, CancellationToken);
+            if (!messageResult.IsSuccess)
+            {
+                // Ignore as message not loaded is more critical
+                await _feedbackService.SendContextualErrorAsync("Could not load the message");
+                return Result.FromError(messageResult);
+            }
 
-        public SlashCommandOptionBuilder GetDeleteSubcommandBuilder()
-        {
-            return new SlashCommandOptionBuilder()
-                .WithName("delete")
-                .WithDescription("Delete existing message")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("messageid")
-                    .WithDescription("Message id to edit")
-                    .WithRequired(true)
-                    .WithType(ApplicationCommandOptionType.String))
-                .AddOption(new SlashCommandOptionBuilder()
-                    .WithName("channel")
-                    .WithDescription("Channel to send the text to. Default is current channel")
-                    .WithRequired(false)
-                    .WithType(ApplicationCommandOptionType.Channel));
-        }
+            var editResult = await _channelApi.EditMessageAsync(channelId, messageId, text, ct: CancellationToken);
+            if (!editResult.IsSuccess)
+            {
+                // Ignore as message not modified is more critical
+                await _feedbackService.SendContextualErrorAsync("Could not edit the message");
+                return Result.FromError(messageResult);
+            }
 
-        public Task SetupCommandsAsync(IInteractionHolder holder, CancellationToken token = new CancellationToken())
-        {
-            SubCommandHandlerCreator handlerCreator = new SubCommandHandlerCreator();
-            DiscordInteractionHandler handler = handlerCreator.CreateHandlerForCommand(
-                ("send", (CommandDelegate<IChannel?, string>)HandleEcho),
-                ("edit", (CommandDelegate<IChannel?, string, string>)HandleEdit),
-                ("delete", (CommandDelegate<IChannel?, string>)HandleDelete)
-            );
-
-            PermissionSlashInfoBuilder echoBuilder =
-                new PermissionSlashInfoBuilder()
-                    .WithPermission("messages.echo")
-                    .WithHandler(handler)
-                    .WithBuilder(new SlashCommandBuilder()
-                        .WithName("echo")
-                        .WithDescription("Echo messages as the bot")
-                        .AddOption(GetSendSubcommandBuilder())
-                        .AddOption(GetEditSubcommandBuilder())
-                        .AddOption(GetDeleteSubcommandBuilder()));
-
-            IInteractionExecutor executor = new InteractionExecutorBuilder<PermissionSlashInfo>()
-                .WithPermissionCheck(_resolver)
-                .WithThreadPool()
-                .WithLogger(_logger)
-                .Build();
-
-            holder.AddInteraction(echoBuilder.Build(), executor);
-            return Task.CompletedTask;
+            return Result.FromSuccess();
         }
     }
 }
