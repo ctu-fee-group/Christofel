@@ -106,9 +106,9 @@ namespace Christofel.Management.Commands
         [Description("Disables slowmode in specified channel")]
         public async Task<IResult> HandleSlowmodeDisable(
             [Description("Channel to disable slowmode in. Current channel if omitted."), DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel)
+            Snowflake? channel = null)
         {
-            var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
+            var channelId = channel ?? _context.ChannelID;
             return await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: null, ct: CancellationToken);
         }
     }

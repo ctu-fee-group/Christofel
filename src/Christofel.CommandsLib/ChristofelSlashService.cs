@@ -276,7 +276,7 @@ namespace Christofel.CommandsLib
         {
             if (command.Name != commandData.Name ||
                 command.Description != commandData.Description && command.Type != commandData.Type ||
-                (command.DefaultPermission != defaultPermission) ||
+                ((command.DefaultPermission.HasValue ? command.DefaultPermission : false) != defaultPermission) ||
                 !HasSameLength(commandData.Options, command.Options))
             {
                 return false;
@@ -352,11 +352,17 @@ namespace Christofel.CommandsLib
             return !left.HasValue || (left.Value.Count == right.Value.Count);
         }
 
+        private bool CheckOptionalMatches(Optional<bool> left, Optional<bool> right, bool @default)
+        {
+            return (left.HasValue ? left.Value : @default) == (right.HasValue ? right.Value : @default);
+        }
+
         private bool CommandOptionMatches(IApplicationCommandOption left,
             IApplicationCommandOption right)
         {
             if (left.Name != right.Name || left.Description != right.Description || left.Type != right.Type ||
-                left.IsDefault != right.IsDefault || left.IsRequired != right.IsRequired ||
+                !CheckOptionalMatches(left.IsDefault, right.IsDefault, false) ||
+                !CheckOptionalMatches(left.IsRequired, right.IsRequired, false) ||
                 !HasSameLength(left.Options, right.Options) || !HasSameLength(left.Choices, right.Choices))
             {
                 return false;
@@ -402,9 +408,12 @@ namespace Christofel.CommandsLib
                         break;
                     default:
                         throw new InvalidOperationException("Invalid root type");
-                        // Handle shomehow?
+                    // Handle shomehow?
                 }
 
+                commandData = new BulkApplicationCommandData(commandData.Name,
+                    commandData.Description.HasValue ? commandData.Description : string.Empty, commandData.Options,
+                    commandData.DefaultPermission.HasValue ? commandData.DefaultPermission : false, commandData.Type);
                 returnData.Add(new CommandInfo(commandData, defaultPermission, permissions.ToList()));
             }
 
