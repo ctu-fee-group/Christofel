@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
+using Christofel.BaseLib.Implementations.Responders;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
@@ -62,6 +63,7 @@ namespace Christofel.Messages
         protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<MessagesPlugin>>();
+            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
 
@@ -71,6 +73,7 @@ namespace Christofel.Messages
                 .AddDiscordState(State)
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
                 .AddSingleton<EmbedsProvider>()
+                .AddSingleton<PluginResponder>()
                 .Configure<EmbedsOptions>(State.Configuration.GetSection("Messages:Embeds"))
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"))
                 .AddChristofelCommands()
