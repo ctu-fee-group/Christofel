@@ -81,7 +81,7 @@ namespace Christofel.Messages.Commands
             if (!messageResult.IsSuccess)
             {
                 // Ignore as message not loaded is more critical
-                await _feedbackService.SendContextualErrorAsync("Could not load the message");
+                await _feedbackService.SendContextualErrorAsync("Could not load the message", ct: CancellationToken);
                 return Result.FromError(messageResult);
             }
 
@@ -89,7 +89,7 @@ namespace Christofel.Messages.Commands
             if (!editResult.IsSuccess)
             {
                 // Ignore as message not modified is more critical
-                await _feedbackService.SendContextualErrorAsync("Could not edit the message");
+                await _feedbackService.SendContextualErrorAsync("Could not edit the message", ct: CancellationToken);
                 return Result.FromError(messageResult);
             }
 
