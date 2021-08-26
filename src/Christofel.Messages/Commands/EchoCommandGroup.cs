@@ -47,7 +47,7 @@ namespace Christofel.Messages.Commands
             Optional<Snowflake> channel = default)
         {
             var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
-            var messageResult = await _channelApi.CreateMessageAsync(channel.Value, text, ct: CancellationToken);
+            var messageResult = await _channelApi.CreateMessageAsync(channelId, text, ct: CancellationToken);
             if (!messageResult.IsSuccess)
             {
                 // Ignore as message not sent is more critical
