@@ -50,6 +50,7 @@ namespace Christofel.Application.Commands
 
         [Command("attach")]
         [Description("Attach given plugin by name")]
+        [RequirePermission("application.plugins.attach")]
         public async Task<IResult> HandleAttach([Description("Name of the plugin to attach")] string pluginName)
         {
             _logger.LogDebug("Handling command /plugin attach");
@@ -91,6 +92,7 @@ namespace Christofel.Application.Commands
 
         [Command("detach")]
         [Description("Detach given plugin by name")]
+        [RequirePermission("application.plugins.detach")]
         public async Task<IResult> HandleDetach([Description("Name of the plugin to detach")] string pluginName)
         {
             _logger.LogDebug("Handling command /module detach");
@@ -125,6 +127,7 @@ namespace Christofel.Application.Commands
 
         [Command("reattach")]
         [Description("Reattach given plugin by name")]
+        [RequirePermission("application.plugins.reattach")]
         public async Task<IResult> HandleReattach([Description("Name of the plugin to reattach")] string pluginName)
         {
             bool reattach = true;
@@ -157,6 +160,7 @@ namespace Christofel.Application.Commands
         
         [Command("list")]
         [Description("List all attached plugins")]
+        [RequirePermission("application.plugins.list")]
         public Task<Result<IReadOnlyList<IMessage>>> HandleList()
         {
             IEnumerable<string> plugins = _storage.AttachedPlugins
@@ -169,6 +173,7 @@ namespace Christofel.Application.Commands
         
         [Command("check")]
         [Description("Check if detached plugins freed the memory")]
+        [RequirePermission("application.plugins.check")]
         public Task<Result<IReadOnlyList<IMessage>>> HandleCheck()
         {
             _plugins.CheckDetached();
