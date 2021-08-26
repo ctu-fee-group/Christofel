@@ -202,7 +202,7 @@ namespace Christofel.Application.Plugins
             plugin.DetachedPlugin = detached;
             _storage.DetachAttachedPlugin(plugin);
 
-            await _lifetimeService.DetachPluginAsync(plugin, detached);
+            await _lifetimeService.DetachPluginAsync(plugin, detached, token);
 
             return detached;
         }
