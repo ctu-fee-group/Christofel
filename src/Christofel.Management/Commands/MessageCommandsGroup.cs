@@ -49,7 +49,7 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.slowmode.for")]
         [Description("Enables slowmode for specified duration (hours, minutes, seconds)")]
         public async Task<IResult> HandleSlowmodeFor(int interval, long? hours, long? minutes,
-            long? seconds, Optional<IChannel> channel)
+            long? seconds, [DiscordTypeHint(TypeHint.Channel)] Optional<Snowflake> channel)
         {
             long totalSeconds = ((hours ?? 0) * 60 + (minutes ?? 0)) * 60 + (seconds ?? 0);
 
@@ -73,8 +73,8 @@ namespace Christofel.Management.Commands
         public async Task<IResult> HandleSlowmodeEnable(
             [Description("Rate limit per user (seconds)")]
             int interval,
-            [Description("Channel to enable slowmode in. Current channel if omitted.")]
-            Optional<IChannel> channel)
+            [Description("Channel to enable slowmode in. Current channel if omitted."), DiscordTypeHint(TypeHint.Channel)]
+            Optional<Snowflake> channel)
         {
             var validationResult = new CommandValidator()
                 .MakeSure("interval", interval, o => o.InclusiveBetween(1, 3600))
@@ -86,7 +86,7 @@ namespace Christofel.Management.Commands
                 return validationResult;
             }
 
-            var channelId = channel.HasValue ? channel.Value.ID : _context.ChannelID;
+            var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
 
             var result =
                 await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: interval, ct: CancellationToken);
@@ -105,9 +105,10 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.slowmode.disable")]
         [Description("Disables slowmode in specified channel")]
         public async Task<IResult> HandleSlowmodeDisable(
-            [Description("Channel to disable slowmode in. Current channel if omitted.")] Optional<IChannel> channel)
+            [Description("Channel to disable slowmode in. Current channel if omitted."), DiscordTypeHint(TypeHint.Channel)]
+            Optional<Snowflake> channel)
         {
-            var channelId = channel.HasValue ? channel.Value.ID : _context.ChannelID;
+            var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
             return await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: null, ct: CancellationToken);
         }
     }
