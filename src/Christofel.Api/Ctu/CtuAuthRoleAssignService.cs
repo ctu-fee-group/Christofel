@@ -1,10 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Database;
+using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
+using Remora.Discord.Core;
+using Remora.Results;
 
 namespace Christofel.Api.Ctu
 {
@@ -17,13 +24,16 @@ namespace Christofel.Api.Ctu
         private readonly IDbContextFactory<ApiCacheContext> _dbContextFactory;
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly CtuAuthRoleAssignProcessor _roleAssignProcessor;
+        private readonly ILogger _logger;
 
         public CtuAuthRoleAssignService(IDbContextFactory<ApiCacheContext> dbContextFactory,
-            IDiscordRestGuildAPI guildApi, CtuAuthRoleAssignProcessor roleAssignProcessor)
+            IDiscordRestGuildAPI guildApi, CtuAuthRoleAssignProcessor roleAssignProcessor,
+            ILogger<CtuAuthRoleAssignService> logger)
         {
             _roleAssignProcessor = roleAssignProcessor;
             _guildApi = guildApi;
             _dbContextFactory = dbContextFactory;
+            _logger = logger;
         }
 
         /// <summary>
@@ -34,10 +44,19 @@ namespace Christofel.Api.Ctu
         /// <param name="guildId">Id of the guild where the roles should be assigned</param>
         /// <param name="assignRoles">What roles should be assigned to the member</param>
         /// <param name="removeRoles">What roles should be removed from the member</param>
-        public void EnqueueRoles(IGuildMember guildMember, ulong userId, ulong guildId, IReadOnlyList<ulong> assignRoles,
-            IReadOnlyList<ulong> removeRoles)
+        public void EnqueueRoles(IGuildMember guildMember, ulong userId, ulong guildId,
+            IReadOnlyList<ulong> assignRoles, IReadOnlyList<ulong> removeRoles)
         {
-            throw new System.NotImplementedException();
+            var assignMissingRoles = assignRoles.Select(x => new Snowflake(x)).Except(guildMember.Roles);
+            var removeIntersectedRoles = removeRoles.Select(x => new Snowflake(x)).Intersect(guildMember.Roles);
+
+            _roleAssignProcessor.EnqueueAssignJob(
+                new Snowflake(userId),
+                new Snowflake(guildId),
+                assignMissingRoles.ToArray(),
+                removeIntersectedRoles.ToArray(),
+                () => Task.Run(async () => await RemoveRoles(userId, guildId))
+            );
         }
 
         /// <summary>
@@ -48,10 +67,34 @@ namespace Christofel.Api.Ctu
         /// <param name="assignRoles">What roles should be assigned</param>
         /// <param name="removeRoles">What roles should be deleted</param>
         /// <returns>Task saving the information to the database</returns>
-        public Task SaveRoles(ulong userId, ulong guildId, IReadOnlyList<ulong> assignRoles,
-            IReadOnlyList<ulong> removeRoles)
+        public async Task SaveRoles(ulong userId, ulong guildId, IReadOnlyList<ulong> assignRoles,
+            IReadOnlyList<ulong> removeRoles, CancellationToken ct = default)
         {
-            throw new System.NotImplementedException();
+            await using var dbContext = _dbContextFactory.CreateDbContext();
+
+            foreach (var assignRole in assignRoles)
+            {
+                dbContext.Add(new AssignRole
+                {
+                    Add = true,
+                    RoleId = assignRole,
+                    UserDiscordId = userId,
+                    GuildDiscordId = guildId
+                });
+            }
+
+            foreach (var removeRole in removeRoles)
+            {
+                dbContext.Add(new AssignRole
+                {
+                    Add = false,
+                    RoleId = removeRole,
+                    UserDiscordId = userId,
+                    GuildDiscordId = guildId
+                });
+            }
+
+            await dbContext.SaveChangesAsync(ct);
         }
 
         /// <summary>
@@ -60,9 +103,21 @@ namespace Christofel.Api.Ctu
         /// <param name="userId">What user should be removed from the database</param>
         /// <param name="guildId">What guild is the user in</param>
         /// <returns>Task removing the information from the database</returns>
-        public Task RemoveRoles(ulong userId, ulong guildId)
+        public async Task RemoveRoles(ulong userId, ulong guildId, CancellationToken ct = default)
         {
-            throw new System.NotImplementedException();
+            try
+            {
+                await using var dbContext = _dbContextFactory.CreateDbContext();
+                await dbContext.AssignRoles
+                    .Where(x => x.UserDiscordId == userId && x.GuildDiscordId == guildId)
+                    .BatchDeleteAsync(ct);
+
+                await dbContext.SaveChangesAsync(ct);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Could not remove roles of user {UserId} from the database", userId);
+            }
         }
 
         /// <summary>
@@ -74,9 +129,52 @@ namespace Christofel.Api.Ctu
         /// will get roles assigned in this one.
         /// </remarks>
         /// <returns>Number of users that were enqueued for role addition</returns>
-        public Task<uint> EnqueueRemainingRoles()
+        public async Task<uint> EnqueueRemainingRoles(CancellationToken ct = default)
         {
-            throw new System.NotImplementedException();
+            await using var dbContext = _dbContextFactory.CreateDbContext();
+            var rolesToAssign = (await dbContext.AssignRoles
+                    .ToListAsync(ct))
+                .GroupBy(x => new { x.UserDiscordId, x.GuildDiscordId }, x => new { x.RoleId, x.Add });
+
+            uint remaining = 0;
+            foreach (var userGrouping in rolesToAssign)
+            {
+                var guildId = userGrouping.Key.GuildDiscordId;
+                var userId = userGrouping.Key.UserDiscordId;
+                var assignRoles = userGrouping.Where(x => x.Add).Select(x => x.RoleId).ToArray();
+                var removeRoles = userGrouping.Where(x => !x.Add).Select(x => x.RoleId).ToArray();
+
+                var guildMemberResult =
+                    await _guildApi.GetGuildMemberAsync(new Snowflake(guildId), new Snowflake(userId), ct);
+                IGuildMember guildMember;
+                if (!guildMemberResult.IsSuccess)
+                {
+                    switch (guildMemberResult.Error)
+                    {
+                        case NotFoundError:
+                            _logger.LogWarning(
+                                $"Could not add remaining roles to user <@{userId}> in guild {guildId} as the user is not present in the guild. Going to remove the roles from database");
+                            await RemoveRoles(userId, guildId, ct);
+                            continue;
+                        default:
+                            _logger.LogWarning(
+                                "There was an error obtaining user from api: {Error}, but going to enqueue for addition anyway",
+                                guildMemberResult.Error.Message);
+                            guildMember = new GuildMember(default, default, new List<Snowflake>(0),
+                                DateTimeOffset.MinValue, default, default, default);
+                            break;
+                    }
+                }
+                else
+                {
+                    guildMember = guildMemberResult.Entity;
+                }
+
+                remaining++;
+                EnqueueRoles(guildMember, userId, guildId, assignRoles, removeRoles);
+            }
+
+            return remaining;
         }
     }
 }

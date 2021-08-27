@@ -17,6 +17,11 @@ namespace Christofel.Api.Ctu.Database
         /// Id of the user to assign the role to
         /// </summary>
         public ulong UserDiscordId { get; set; }
+        
+        /// <summary>
+        /// Id of the guild the user is located in
+        /// </summary>
+        public ulong GuildDiscordId { get; set; }
 
         /// <summary>
         /// Id of the role to be added/removed
