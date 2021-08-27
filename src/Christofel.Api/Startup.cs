@@ -1,14 +1,15 @@
+using System;
 using Christofel.Api.Ctu;
+using Christofel.Api.Ctu.Auth.Conditions;
+using Christofel.Api.Ctu.Auth.Steps;
+using Christofel.Api.Ctu.Auth.Tasks;
 using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Ctu.Steps;
-using Christofel.Api.Ctu.Steps.Roles;
 using Christofel.Api.Discord;
 using Christofel.Api.GraphQL.Authentication;
 using Christofel.Api.GraphQL.DataLoaders;
 using Christofel.Api.GraphQL.Types;
 using Christofel.Api.OAuth;
 using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Extensions;
 using Kos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -56,21 +57,45 @@ namespace Christofel.Api
             services
                 .AddSingleton<CtuAuthRoleAssignProcessor>();
 
+            // scoped authorized apis
+            services
+                .AddScoped<ICtuTokenProvider, CtuTokenProvider>()
+                .AddScoped<AuthorizedUsermapApi>(p =>
+                {
+                    var tokenProvider = p.GetRequiredService<ICtuTokenProvider>();
+                    if (tokenProvider.AccessToken is null)
+                    {
+                        throw new InvalidOperationException("No access token is provided for ctu services");
+                    }
+
+                    return p.GetRequiredService<UsermapApi>().GetAuthorizedApi(tokenProvider.AccessToken);
+                })
+                .AddScoped<AuthorizedKosApi>(p =>
+                {
+                    var tokenProvider = p.GetRequiredService<ICtuTokenProvider>();
+                    if (tokenProvider.AccessToken is null)
+                    {
+                        throw new InvalidOperationException("No access token is provided for ctu services");
+                    }
+
+                    return p.GetRequiredService<KosApi>().GetAuthorizedApi(tokenProvider.AccessToken);
+                });
+            
             // add CTU authentication process along with all the steps
             services
                 .AddCtuAuthProcess()
-                .AddCtuAuthStep<
-                    VerifyCtuUsernameStep>() // If ctu username is set and new auth user does not match, error
-                .AddCtuAuthStep<VerifyDuplicityStep>() // Handle duplicate
-                .AddCtuAuthStep<SpecificRolesStep>() // Add specific roles
-                .AddCtuAuthStep<UsermapRolesStep>() // Add usermap roles
-                .AddCtuAuthStep<TitlesRoleStep>() // Add roles based on title rules
-                .AddCtuAuthStep<ProgrammeRoleStep>() // Obtain programme and its roles
-                .AddCtuAuthStep<YearRoleStep>() // Obtain study start year and its roles
-                .AddCtuAuthStep<
-                    RemoveOldRolesStep>() // Remove all assigned roles by the auth process that weren't added by the previous steps
-                .AddCtuAuthStep<AssignRolesStep>() // Assign roles to the user in queue
-                .AddCtuAuthStep<FinishVerificationStep>();
+                .AddAuthCondition<CtuUsernameFilledCondition>()
+                .AddAuthCondition<MemberMatchesUserCondition>()
+                .AddAuthCondition<NoDuplicateCondition>()
+                .AddAuthCondition<CtuUsernameMatchesCondition>()
+                .AddAuthStep<ProgrammeRoleStep>()
+                .AddAuthStep<SetUserDataStep>()
+                .AddAuthStep<SpecificRolesStep>()
+                .AddAuthStep<TitlesRoleStep>()
+                .AddAuthStep<UsermapRolesStep>()
+                .AddAuthStep<YearRoleStep>()
+                .AddAuthStep<RemoveOldRolesStep>()
+                .AddAuthTask<AssignRolesAuthTask>();
 
             // GraphQL
             services

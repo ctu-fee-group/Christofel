@@ -7,10 +7,11 @@ using Kos;
 using Kos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Remora.Results;
 using Usermap;
 using Usermap.Data;
 
-namespace Christofel.Api.Ctu.Steps.Roles
+namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
     /// Assign roles from TitleRoleAssignment table
@@ -19,32 +20,27 @@ namespace Christofel.Api.Ctu.Steps.Roles
     /// Obtains titles either from kos (safer as there are titlesPre and titlesPost fields)
     /// or from usermap if kos user is not found (not safe, because the titles have to be parsed from full name)
     /// </remarks>
-    public class TitlesRoleStep : CtuAuthStep
+    public class TitlesRoleStep : IAuthStep
     {
         private record Titles(IEnumerable<string> Pre, IEnumerable<string> Post);
 
-        private readonly UsermapApi _usermapApi;
-        private readonly KosApi _kosApi;
+        private readonly AuthorizedUsermapApi _usermapApi;
+        private readonly AuthorizedKosApi _kosApi;
 
-        public TitlesRoleStep(ILogger<CtuAuthProcess> logger, UsermapApi usermapApi, KosApi kosApi) : base(logger)
+        public TitlesRoleStep(AuthorizedUsermapApi usermapApi, AuthorizedKosApi kosApi)
         {
             _kosApi = kosApi;
             _usermapApi = usermapApi;
         }
-
-        protected override async Task<bool> HandleStep(CtuAuthProcessData data)
+        
+        public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            if (data.DbUser.CtuUsername is null)
-            {
-                throw new InvalidOperationException("CtuUsername is null");
-            }
-
-            Titles? titles = await GetKosTitles(data.AccessToken, data.DbUser.CtuUsername, data.CancellationToken) ??
-                             await GetUsermapTitles(data.AccessToken, data.DbUser.CtuUsername, data.CancellationToken);
+            Titles? titles = await GetKosTitles(data.LoadedUser.CtuUsername, ct) ??
+                             await GetUsermapTitles(data.LoadedUser.CtuUsername, ct);
 
             if (titles is null)
             {
-                return true;
+                return Result.FromSuccess();
             }
 
             List<CtuAuthRole> roles = await data.DbContext.TitleRoleAssignment
@@ -57,25 +53,21 @@ namespace Christofel.Api.Ctu.Steps.Roles
                     RoleId = x.Assignment.RoleId,
                     Type = x.Assignment.RoleType
                 })
-                .ToListAsync();
+                .ToListAsync(ct);
 
             data.Roles.AddRange(roles);
-
-            return true;
+            return Result.FromSuccess();
         }
 
-        private async Task<Titles?> GetKosTitles(string accessToken, string username, CancellationToken token)
+        private async Task<Titles?> GetKosTitles(string username, CancellationToken token)
         {
-            AuthorizedKosApi kosApi = _kosApi.GetAuthorizedApi(accessToken);
-            KosPerson? person = await kosApi.People.GetPersonAsync(username, token: token);
-
+            KosPerson? person = await _kosApi.People.GetPersonAsync(username, token: token);
             return CreateTitles(person?.TitlesPre, person?.TitlesPost);
         }
 
-        private async Task<Titles?> GetUsermapTitles(string accessToken, string username, CancellationToken token)
+        private async Task<Titles?> GetUsermapTitles(string username, CancellationToken token)
         {
-            AuthorizedUsermapApi usermapApi = _usermapApi.GetAuthorizedApi(accessToken);
-            UsermapPerson? person = await usermapApi.People.GetPersonAsync(username, token: token);
+            UsermapPerson? person = await _usermapApi.People.GetPersonAsync(username, token: token);
 
             if (person?.FullName is null)
             {

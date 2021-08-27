@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
 using Christofel.Api.Discord;
-using Christofel.Api.Exceptions;
 using Christofel.Api.GraphQL.Attributes;
 using Christofel.Api.GraphQL.Common;
 using Christofel.Api.OAuth;
@@ -16,9 +15,7 @@ using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
 using Remora.Results;
 
@@ -284,15 +281,33 @@ namespace Christofel.Api.GraphQL.Authentication
             {
                 try
                 {
-                    await ctuAuthProcess.FinishAuthAsync(accessToken, ctuOauthHandler,
+                    var authResult = await ctuAuthProcess.FinishAuthAsync(accessToken, ctuOauthHandler,
                         dbContext, _botOptions.GuildId,
                         dbUser, memberResult.Entity, cancellationToken);
+
+                    if (!authResult.IsSuccess)
+                    {
+                        switch (authResult.Error)
+                        {
+                            case UserError userError:
+                                _logger.LogWarning(
+                                    "User error has occured during finalization of authentication of a user: {Error}",
+                                    authResult.Error.Message);
+                                
+                                return new RegisterCtuPayload(userError);
+                            case ExceptionError exceptionError:
+                                _logger.LogError(exceptionError.Exception,
+                                    "Could not register user using CTU, exception is not sent to the user");
+                                
+                                return new RegisterCtuPayload(new UserError("Unspecified error",
+                                    UserErrorCode.Unspecified));
+                            default:
+                                return new RegisterCtuPayload(new UserError("Unspecified error",
+                                    UserErrorCode.Unspecified));
+                        }
+                    }
+
                     return new RegisterCtuPayload(dbUser);
-                }
-                catch (UserException e)
-                {
-                    _logger.LogError(e, "Could not register user using CTU, sending him the error");
-                    return new RegisterCtuPayload(new UserError(e.Message, e.ErrorCode));
                 }
                 catch (Exception e)
                 {

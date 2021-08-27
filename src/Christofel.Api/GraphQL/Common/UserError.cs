@@ -1,3 +1,5 @@
+using Remora.Results;
+
 namespace Christofel.Api.GraphQL.Common
 {
     /// <summary>
@@ -8,7 +10,7 @@ namespace Christofel.Api.GraphQL.Common
     public record UserError(
         string Message,
         UserErrorCode ErrorCode
-    );
+    ) : ResultError(Message);
 
     /// <summary>
     /// 

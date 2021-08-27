@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Kos;
 using Kos.Atom;
 using Kos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Remora.Results;
 
-namespace Christofel.Api.Ctu.Steps.Roles
+namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
     /// Assign roles from YearRoleAssignments table
@@ -19,34 +21,32 @@ namespace Christofel.Api.Ctu.Steps.Roles
     /// If there are more student records in the record, earliest one of the same type will be
     /// obtained.
     /// </remarks>
-    public class YearRoleStep : CtuAuthStep
+    public class YearRoleStep : IAuthStep
     {
-        private readonly KosApi _kosApi;
+        private readonly AuthorizedKosApi _kosApi;
+        private readonly ILogger _logger;
 
-        public YearRoleStep(ILogger<CtuAuthProcess> logger, KosApi kosApi)
-            : base(logger)
+        public YearRoleStep(ILogger<CtuAuthProcess> logger, AuthorizedKosApi kosApi)
         {
             _kosApi = kosApi;
+            _logger = logger;
         }
-
-        protected override async Task<bool> HandleStep(CtuAuthProcessData data)
+        
+        public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            AuthorizedKosApi kosApi = _kosApi.GetAuthorizedApi(data.AccessToken);
-            KosPerson? kosPerson = await kosApi.People.GetPersonAsync(data.DbUser.CtuUsername ??
-                                                                 throw new InvalidOperationException(
-                                                                     "CtuUsername is null"), token: data.CancellationToken);
+            KosPerson? kosPerson = await _kosApi.People.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
 
             AtomLoadableEntity<KosStudent>? studentLoadable = kosPerson?.Roles.Students.FirstOrDefault();
             if (studentLoadable is not null)
             {
-                KosStudent? student = await kosApi.LoadEntityAsync(studentLoadable);
+                KosStudent? student = await _kosApi.LoadEntityAsync(studentLoadable, token: ct);
                 if (student is null)
                 {
-                    return true;
+                    return Result.FromSuccess();
                 }
                 
                 int year = student.StartDate.Year; 
-                    // First student is the one with lowest date (to not make so many requests, this is sufficient)
+                // First student is the one with lowest date (to not make so many requests, this is sufficient)
 
                 List<CtuAuthRole> roles = await data.DbContext.YearRoleAssignments
                     .AsNoTracking()
@@ -57,7 +57,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
                         RoleId = x.Assignment.RoleId,
                         Type = x.Assignment.RoleType
                     })
-                    .ToListAsync();
+                    .ToListAsync(ct);
 
                 if (roles.Count == 0)
                 {
@@ -66,9 +66,8 @@ namespace Christofel.Api.Ctu.Steps.Roles
 
                 data.Roles.AddRange(roles);
             }
-
-
-            return true;
+            
+            return Result.FromSuccess();
         }
     }
 }

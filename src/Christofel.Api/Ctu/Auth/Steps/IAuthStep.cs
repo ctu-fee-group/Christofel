@@ -1,13 +1,14 @@
-using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Remora.Results;
 
-namespace Christofel.Api.Ctu
+namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
     /// Individual step of the auth process used to
-    /// validate, assign roles etc.
+    /// assign roles etc.
     /// </summary>
-    public interface ICtuAuthStep
+    public interface IAuthStep
     {
         /// <summary>
         /// Handle the step, call next if the process
@@ -16,6 +17,6 @@ namespace Christofel.Api.Ctu
         /// <param name="data"></param>
         /// <param name="next">Callback to start next step</param>
         /// <returns></returns>
-        public Task Handle(CtuAuthProcessData data, Func<CtuAuthProcessData, Task> next);
+        public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default);
     }
 }

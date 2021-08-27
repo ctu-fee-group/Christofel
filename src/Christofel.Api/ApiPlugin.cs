@@ -2,25 +2,16 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Ctu.Steps;
-using Christofel.Api.Ctu.Steps.Roles;
-using Christofel.Api.Discord;
-using Christofel.Api.OAuth;
 using Christofel.BaseLib;
-using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using HotChocolate.Execution;
-using Kos;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Usermap;
 
 namespace Christofel.Api
 {

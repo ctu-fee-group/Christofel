@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Remora.Results;
 using Usermap;
 using Usermap.Data;
 
-namespace Christofel.Api.Ctu.Steps.Roles
+namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
     /// Assign roles from UsermapRoleAssignment table
@@ -17,30 +18,23 @@ namespace Christofel.Api.Ctu.Steps.Roles
     /// Obtains usermap roles if possible, then tries to match them against the ones
     /// in database. If there are matches, they are added
     /// </remarks>
-    public class UsermapRolesStep : CtuAuthStep
+    public class UsermapRolesStep : IAuthStep
     {
-        private readonly UsermapApi _usermapApi;
+        private readonly AuthorizedUsermapApi _usermapApi;
 
-        public UsermapRolesStep(ILogger<CtuAuthProcess> logger, UsermapApi usermapApi)
-            : base(logger)
+        public UsermapRolesStep(AuthorizedUsermapApi usermapApi)
         {
             _usermapApi = usermapApi;
         }
-
-        protected override async Task<bool> HandleStep(CtuAuthProcessData data)
+        
+        public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            AuthorizedUsermapApi usermapApi = _usermapApi.GetAuthorizedApi(data.AccessToken);
-            if (data.DbUser.CtuUsername is null)
-            {
-                throw new InvalidOperationException("CtuUsername is null");
-            }
-
             UsermapPerson? person =
-                await usermapApi.People.GetPersonAsync(data.DbUser.CtuUsername, token: data.CancellationToken);
+                await _usermapApi.People.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
 
             if (person is null)
             {
-                return true;
+                return Result.FromSuccess();
             }
 
             List<CtuAuthRole> nonRegexRoleIds = await data.DbContext.UsermapRoleAssignments
@@ -53,14 +47,14 @@ namespace Christofel.Api.Ctu.Steps.Roles
                     RoleId = x.Assignment.RoleId,
                     Type = x.Assignment.RoleType
                 })
-                .ToListAsync();
+                .ToListAsync(ct);
 
             IEnumerable<CtuAuthRole> regexRoleIds = (await data.DbContext.UsermapRoleAssignments
                     .AsNoTracking()
                     .Where(x => x.RegexMatch)
                     .Include(x => x.Assignment)
                     .Select(x => new { x.Assignment.RoleId, x.UsermapRole, x.Assignment.RoleType })
-                    .ToListAsync())
+                    .ToListAsync(ct))
                 .Where(databaseMatch =>
                     person.Roles.Any(personRole => Regex.IsMatch(personRole, databaseMatch.UsermapRole)))
                 .Select(x => new CtuAuthRole
@@ -71,8 +65,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
 
             data.Roles.AddRange(nonRegexRoleIds);
             data.Roles.AddRange(regexRoleIds);
-
-            return true;
+            return Result.FromSuccess();
         }
     }
 }

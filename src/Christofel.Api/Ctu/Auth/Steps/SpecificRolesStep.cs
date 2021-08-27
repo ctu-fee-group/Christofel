@@ -7,8 +7,9 @@ using Kos;
 using Kos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Remora.Results;
 
-namespace Christofel.Api.Ctu.Steps.Roles
+namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
     /// Assign roles from SpecificRoleAssignment table
@@ -17,31 +18,32 @@ namespace Christofel.Api.Ctu.Steps.Roles
     /// Adds authenticated role to everyone
     /// Uses kos api to obtain whether the user is a teacher, assigns teacher role if he is
     /// </remarks>
-    public class SpecificRolesStep : CtuAuthStep
+    public class SpecificRolesStep : IAuthStep
     {
-        private readonly KosApi _kosApi;
+        private readonly AuthorizedKosApi _kosApi;
+        private readonly ILogger _logger;
 
-        public SpecificRolesStep(ILogger<CtuAuthProcess> logger, KosApi kosApi)
-            : base(logger)
+        public SpecificRolesStep(AuthorizedKosApi kosApi, ILogger<SpecificRolesStep> logger)
         {
+            _logger = logger;
             _kosApi = kosApi;
         }
-
-        protected override async Task<bool> HandleStep(CtuAuthProcessData data)
+        
+        public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             List<string> assignRoleNames = new List<string>();
             assignRoleNames.Add("Authentication");
 
             // Check if is teacher
             if (await IsTeacherAsync(
-                data.DbUser.CtuUsername ?? throw new InvalidOperationException("CtuUsername is null"), data.AccessToken,
-                data.CancellationToken))
+                data.LoadedUser.CtuUsername,
+                ct))
             {
                 assignRoleNames.Add("Teacher");
             }
 
             string? currentStudiesRole =
-                await ObtainCurrentStudies(data.DbUser.CtuUsername, data.AccessToken, data.CancellationToken);
+                await ObtainCurrentStudies(data.LoadedUser.CtuUsername, ct);
 
             if (currentStudiesRole is not null)
             {
@@ -58,7 +60,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
                     Type = x.Assignment.RoleType,
                     Description = x.Name
                 })
-                .ToListAsync();
+                .ToListAsync(ct);
 
             if (assignRoleNames.Count > assignRoleIds.Count)
             {
@@ -71,22 +73,20 @@ namespace Christofel.Api.Ctu.Steps.Roles
 
                     if (notFoundRole == "Authentication")
                     {
-                        throw new InvalidOperationException("Could not find mandatory Authentication role mapping");
+                        return new InvalidOperationError("Could not find mandatory Authentication role mapping");
                     }
                 }
             }
 
             data.Roles.AddRange(assignRoleIds);
-
-            return true;
+            return Result.FromSuccess();
         }
-
-        private async Task<string?> ObtainCurrentStudies(string username, string accessToken,
+        
+        private async Task<string?> ObtainCurrentStudies(string username,
             CancellationToken token = default)
         {
-            AuthorizedKosApi authorizedKosApi = _kosApi.GetAuthorizedApi(accessToken);
-            KosPerson? person = await authorizedKosApi.People.GetPersonAsync(username, token: token);
-            KosStudent? student = await authorizedKosApi
+            KosPerson? person = await _kosApi.People.GetPersonAsync(username, token: token);
+            KosStudent? student = await _kosApi
                 .LoadEntityAsync(person?.Roles?.Students?.LastOrDefault(), token: token);
 
             if (student is null)
@@ -94,7 +94,7 @@ namespace Christofel.Api.Ctu.Steps.Roles
                 return null;
             }
 
-            KosProgramme? programme = await authorizedKosApi.LoadEntityAsync(student.Programme);
+            KosProgramme? programme = await _kosApi.LoadEntityAsync(student.Programme, token: token);
 
             if (programme is null)
             {
@@ -111,11 +111,9 @@ namespace Christofel.Api.Ctu.Steps.Roles
             };
         }
 
-        private async Task<bool> IsTeacherAsync(string username, string accessToken, CancellationToken token = default)
+        private async Task<bool> IsTeacherAsync(string username, CancellationToken token = default)
         {
-            KosPerson? person = await _kosApi.GetAuthorizedApi(accessToken)
-                .People.GetPersonAsync(username, token: token);
-
+            KosPerson? person = await _kosApi.People.GetPersonAsync(username, token: token);
             return person?.Roles?.Teacher != null;
         }
     }
