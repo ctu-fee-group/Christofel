@@ -92,7 +92,7 @@ namespace Christofel.Api.Ctu
             );
 
             // 3. run conditions (if any failed, abort)
-            var conditionsResult = await ExecuteConditionsAsync(_services, authData, ct);
+            var conditionsResult = await ExecuteConditionsAsync(services, authData, ct);
             
             dbUser.CtuUsername ??= loadedUser.CtuUsername;
             var databaseResult = await SaveToDatabase(dbContext, authData, ct);
@@ -109,7 +109,7 @@ namespace Christofel.Api.Ctu
             }
 
             // 4. run steps (if any failed, abort)
-            var stepsResult = await ExecuteStepsAsync(_services, authData, ct);
+            var stepsResult = await ExecuteStepsAsync(services, authData, ct);
             if (!conditionsResult.IsSuccess)
             {
                 return stepsResult;
