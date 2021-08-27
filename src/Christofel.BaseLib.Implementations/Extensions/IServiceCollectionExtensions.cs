@@ -2,6 +2,7 @@ using System;
 using Christofel.BaseLib.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.Gateway.Extensions;
 
@@ -18,17 +19,17 @@ namespace Christofel.BaseLib.Extensions
         public static IServiceCollection AddDiscordState(this IServiceCollection provider, IChristofelState state)
         {
             return provider
+                .AddDiscordGateway(_ => throw new InvalidOperationException("Token is obtained in the application"))
+                .Replace(ServiceDescriptor.Singleton(state.Bot.Client))
+                .Replace(ServiceDescriptor.Singleton(state.Bot.HttpClientFactory))
+                .Replace(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)))
+                .Replace(ServiceDescriptor.Singleton(state.LoggerFactory))
+                .Replace(ServiceDescriptor.Singleton(state.Configuration))
                 .AddSingleton(state)
                 .AddSingleton(state.Permissions.Resolver)
-                .AddSingleton(state.Configuration)
                 .AddSingleton(state.Bot)
-                .AddSingleton(state.Bot.Client)
-                .AddSingleton(state.Bot.HttpClientFactory)
                 .AddSingleton(state.Lifetime)
-                .AddSingleton(state.LoggerFactory)
-                .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
-                .AddSingleton(state.Permissions)
-                .AddDiscordGateway(_ => throw new InvalidOperationException("Token is obtained in the application"));
+                .AddSingleton(state.Permissions);
         }
 
         /// <summary>
