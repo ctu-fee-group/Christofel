@@ -124,6 +124,7 @@ namespace Christofel.Api.Ctu
             bool error = false;
             var removeRoles = assignJob.RemoveRoles
                 .Select(x => new Snowflake(x.RoleId))
+                .Intersect(assignJob.GuildMember.Roles)
                 .Distinct();
 
             await HandleRolesEdit(assignJob, removeRoles, (roleId) => _guildApi
