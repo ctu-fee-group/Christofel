@@ -1,12 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Christofel.Messages.JsonConverters;
 using Christofel.Messages.Options;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Christofel.Messages.Services
 {
@@ -14,22 +16,20 @@ namespace Christofel.Messages.Services
     {
         private EmbedsOptions _embedsOptions;
         private readonly IDisposable _embedsOptionsUpdateToken;
-        private readonly JsonSerializerSettings _jsonSerializerSettings;
+        private readonly JsonSerializerOptions _jsonOptions;
 
-        public EmbedsProvider(IOptionsMonitor<EmbedsOptions> options)
+        public EmbedsProvider(IOptionsMonitor<EmbedsOptions> options, IOptions<JsonSerializerOptions> jsonOptions)
         {
             _embedsOptionsUpdateToken = options.OnChange(c => _embedsOptions = c);
             _embedsOptions = options.CurrentValue;
-
-            _jsonSerializerSettings = new JsonSerializerSettings();
-            _jsonSerializerSettings.Converters.Add(new EmbedColorConverter());
+            _jsonOptions = jsonOptions.Value;
         }
 
         public string EmbedsFolder => _embedsOptions.Folder;
 
         public Embed? GetEmbedFromString(string embedString)
         {
-            return JsonConvert.DeserializeObject<Embed>(embedString, _jsonSerializerSettings);
+            return (Embed?)JsonSerializer.Deserialize<IEmbed>(embedString, _jsonOptions);
         }
 
         public async Task<Embed?> GetEmbedFromFile(string embedName)
