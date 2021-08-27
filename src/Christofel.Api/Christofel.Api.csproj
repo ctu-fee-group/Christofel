@@ -26,6 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="EFCore.BulkExtensions" Version="5.3.7" />
       <PackageReference Include="HotChocolate.AspNetCore" Version="11.3.4" />
       <PackageReference Include="HotChocolate.Types.Scalars" Version="11.3.4" />
       <PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.2.1" />
