@@ -10,6 +10,7 @@ using Christofel.Api.GraphQL.Authentication;
 using Christofel.Api.GraphQL.DataLoaders;
 using Christofel.Api.GraphQL.Types;
 using Christofel.Api.OAuth;
+using Christofel.Api.Services;
 using Christofel.BaseLib.Configuration;
 using Kos;
 using Microsoft.AspNetCore.Builder;
@@ -35,6 +36,9 @@ namespace Christofel.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services
+                .AddHostedService<RestoreAssignRolesService>();
+            
             // cache database
             services
                 .AddPooledDbContextFactory<ApiCacheContext>(options => options
