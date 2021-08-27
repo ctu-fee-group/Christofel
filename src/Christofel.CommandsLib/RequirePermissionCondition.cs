@@ -62,6 +62,12 @@ namespace Christofel.CommandsLib
                 return interactionContext.Data.Name.Value;
             }
 
+            if (_context is MessageContext messageContext && messageContext.Message.Content.HasValue)
+            {
+                return messageContext.Message.Content.Value.Split(' ', 2).FirstOrDefault() ??
+                       "(Unknown message command)";
+            }
+
             return "(Unknown name)";
         }
 
