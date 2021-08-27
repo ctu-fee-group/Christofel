@@ -1,4 +1,4 @@
-namespace Christofel.Api.Ctu.Steps.Enums
+namespace Christofel.Api.Ctu.Auth
 {
     public enum DuplicityType
     {
@@ -19,4 +19,7 @@ namespace Christofel.Api.Ctu.Steps.Enums
         /// </summary>
         Both,
     }
+    
+    private record Duplicate(DuplicityType Type, DbUser User);
+
 }

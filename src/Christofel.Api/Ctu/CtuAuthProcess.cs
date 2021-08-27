@@ -1,12 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Ctu.Auth.Conditions;
+using Christofel.Api.Ctu.Auth.Steps;
+using Christofel.Api.Ctu.Auth.Tasks;
 using Christofel.Api.OAuth;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
+using Christofel.BaseLib.User;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Remora.Commands.Services;
 using Remora.Discord.API.Abstractions.Objects;
+using Remora.Results;
 
 namespace Christofel.Api.Ctu
 {
@@ -15,18 +24,29 @@ namespace Christofel.Api.Ctu
     /// </summary>
     public class CtuAuthProcess
     {
-        private readonly CtuAuthStepProvider _stepProvider;
+        private readonly IServiceProvider _services;
         private readonly ILogger<CtuAuthProcess> _logger;
+
+        private readonly TypeRepository<IPreAuthCondition> _conditionRepository;
+        private readonly TypeRepository<IAuthTask> _taskRepository;
+        private readonly TypeRepository<IAuthStep> _stepRepository;
 
         /// <summary>
         /// Initialize CtuAuthProcess
         /// </summary>
-        /// <param name="stepProvider">Provider of CtuAuthStep to get all needed steps</param>
-        /// <param name="logger">Logger to log with</param>
-        public CtuAuthProcess(CtuAuthStepProvider stepProvider, ILogger<CtuAuthProcess> logger)
+        public CtuAuthProcess(
+            IServiceProvider services,
+            ILogger<CtuAuthProcess> logger,
+            IOptions<TypeRepository<IPreAuthCondition>> conditionRepository,
+            IOptions<TypeRepository<IAuthTask>> taskRepository,
+            IOptions<TypeRepository<IAuthStep>> stepRepository
+        )
         {
             _logger = logger;
-            _stepProvider = stepProvider;
+            _services = services;
+            _conditionRepository = conditionRepository.Value;
+            _taskRepository = taskRepository.Value;
+            _stepRepository = stepRepository.Value;
         }
 
         /// <summary>
@@ -39,69 +59,177 @@ namespace Christofel.Api.Ctu
         /// <param name="guildId">Id of the guild we are workikng in</param>
         /// <param name="dbUser">Database user to be edited and saved</param>
         /// <param name="guildUser">Discord user used for auth purposes. Should be user with the id of dbUser</param>
-        /// <param name="token">Cancellation token in case the request is cancelled</param>
-        public async Task FinishAuthAsync(string accessToken, CtuOauthHandler ctuOauthHandler,
+        /// <param name="ct">Cancellation token in case the request is cancelled</param>
+        public async Task<Result> FinishAuthAsync(string accessToken, CtuOauthHandler ctuOauthHandler,
             ChristofelBaseContext dbContext, ulong guildId, DbUser dbUser,
-            IGuildMember guildUser, CancellationToken token = default)
+            IGuildMember guildUser, CancellationToken ct = default)
         {
-            IEnumerable<ICtuAuthStep> steps = _stepProvider.GetSteps();
-            using IEnumerator<ICtuAuthStep> stepsEnumerator = steps.GetEnumerator();
+            using var scope = _services.CreateScope();
+            var services = scope.ServiceProvider;
+            services.GetRequiredService<ICtuTokenProvider>().AccessToken = accessToken;
 
-            CtuAuthProcessData data = new CtuAuthProcessData(
+            // 1. set ctu username
+            ICtuUser loadedUser;
+            try
+            {
+                loadedUser = await ctuOauthHandler.CheckTokenAsync(accessToken, ct);
+                
+            }
+            catch (Exception e)
+            {
+                return e;
+            }
+            
+            CtuAuthProcessData authData = new CtuAuthProcessData(
                 accessToken,
-                ctuOauthHandler,
-                dbContext,
+                loadedUser,
                 guildId,
+                dbContext,
                 dbUser,
                 guildUser,
                 new CtuAuthAssignedRoles(),
-                token
+                new Dictionary<string, object>()
             );
 
-            try
+            // 3. run conditions (if any failed, abort)
+            var conditionsResult = await ExecuteConditionsAsync(_services, authData, ct);
+            
+            dbUser.CtuUsername ??= loadedUser.CtuUsername;
+            var databaseResult = await SaveToDatabase(dbContext, authData, ct);
+            
+            if (!conditionsResult.IsSuccess)
             {
-                if (stepsEnumerator.MoveNext())
-                {
-                    await stepsEnumerator.Current.Handle(data, GetNextHandler(stepsEnumerator));
-                }
+                return conditionsResult;
             }
-            finally
+
+            // Save filled username to the database
+            if (!databaseResult.IsSuccess)
+            {
+                return databaseResult;
+            }
+
+            // 4. run steps (if any failed, abort)
+            var stepsResult = await ExecuteStepsAsync(_services, authData, ct);
+            if (!conditionsResult.IsSuccess)
+            {
+                return stepsResult;
+            }
+
+            // 5. save to database
+            databaseResult = await SaveToDatabase(dbContext, authData, ct);
+            if (!databaseResult.IsSuccess)
+            {
+                return databaseResult;
+            }
+
+            // 6. run tasks (if any failed, log it, but continue)
+            return await ExecuteTasks(services, authData, ct);
+        }
+
+        private async Task<Result> ExecuteConditionsAsync(IServiceProvider services, IAuthData authData,
+            CancellationToken ct = default)
+        {
+            var conditionTasks = _conditionRepository
+                .GetTypes<IPreAuthCondition>()
+                .Select(services.GetRequiredService)
+                .Cast<IPreAuthCondition>()
+                .Select(x => x.CheckPreAsync(authData, ct));
+
+            foreach (var conditionTask in conditionTasks)
             {
                 try
                 {
-                    await dbContext.SaveChangesAsync(token);
-
-                    if (data.Finished)
+                    var conditionResult = await conditionTask;
+                    if (!conditionResult.IsSuccess)
                     {
-                        _logger.LogInformation("User was successfully authenticated");
+                        return conditionResult;
                     }
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e,
-                        $"database context save changes has thrown an exception while saving user data ({data.DbUser.UserId} {data.DbUser.DiscordId} {data.DbUser.CtuUsername})");
+                    return e;
                 }
             }
+
+            return Result.FromSuccess();
         }
 
-        private Func<CtuAuthProcessData, Task> GetNextHandler(IEnumerator<ICtuAuthStep> stepsEnumerator)
+        private async Task<Result> ExecuteStepsAsync(IServiceProvider services, IAuthData authData,
+            CancellationToken ct = default)
         {
-            bool used = false;
-            return data =>
-            {
-                if (used)
-                {
-                    throw new InvalidOperationException("Next was already called");
-                }
-                used = true;
-                
-                if (stepsEnumerator.MoveNext())
-                {
-                    return stepsEnumerator.Current.Handle(data, GetNextHandler(stepsEnumerator));
-                }
+            var stepTasks = _stepRepository
+                .GetTypes<IAuthStep>()
+                .Select(services.GetRequiredService)
+                .Cast<IAuthStep>()
+                .Select(x => x.FillDataAsync(authData, ct));
 
-                return Task.CompletedTask;
-            };
+            foreach (var stepTask in stepTasks)
+            {
+                try
+                {
+                    var stepResult = await stepTask;
+                    if (!stepResult.IsSuccess)
+                    {
+                        return stepResult;
+                    }
+                }
+                catch (Exception e)
+                {
+                    return e;
+                }
+            }
+
+            return Result.FromSuccess();
+        }
+
+        private async Task<Result> ExecuteTasks(IServiceProvider services, IAuthData authData,
+            CancellationToken ct = default)
+        {
+            var tasks = _taskRepository
+                .GetTypes<IAuthTask>()
+                .Select(services.GetRequiredService)
+                .Cast<IAuthTask>()
+                .Select(x => x.ExecuteAsync(authData, ct));
+
+            bool error = false;
+            foreach (var task in tasks)
+            {
+                Result taskResult;
+                try
+                {
+                    taskResult = await task;
+                }
+                catch (Exception e)
+                {
+                    taskResult = e;
+                }
+                
+                if (!taskResult.IsSuccess)
+                {
+                    error = true;
+                    _logger.LogError($"Could not finish auth task: {taskResult.Error.Message}");
+                }
+            }
+
+            return error 
+                ? new GenericError("Could not finish tasks execution successfully")
+                : Result.FromSuccess();
+        }
+
+        private async Task<Result> SaveToDatabase(ChristofelBaseContext dbContext, IAuthData data,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                await dbContext.SaveChangesAsync(ct);
+                return Result.FromSuccess();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e,
+                    $"Database context save changes has thrown an exception while saving user data ({data.DbUser.UserId} {data.DbUser.DiscordId} {data.DbUser.CtuUsername})");
+                return e;
+            }
         }
     }
 }
