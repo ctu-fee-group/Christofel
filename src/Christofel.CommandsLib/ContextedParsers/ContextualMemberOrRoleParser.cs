@@ -14,12 +14,14 @@ namespace Christofel.CommandsLib.ContextedParsers
 {
     public interface IGuildMemberOrRole
     {
-        public Optional<IPartialGuildMember> Member { get; }
+        public IUser? User { get; }
 
-        public Optional<IRole> Role { get; }
+        public IPartialGuildMember? Member { get; }
+
+        public IRole? Role { get; }
     }
 
-    public record GuildMemberOrRole(Optional<IPartialGuildMember> Member, Optional<IRole> Role) : IGuildMemberOrRole;
+    public record GuildMemberOrRole(IUser? User, IPartialGuildMember? Member, IRole? Role) : IGuildMemberOrRole;
 
     public class ContextualMemberOrRoleParser : AbstractTypeParser<IGuildMemberOrRole>
     {
@@ -37,29 +39,36 @@ namespace Christofel.CommandsLib.ContextedParsers
                 return ValueTask.FromResult<Result<IGuildMemberOrRole>>(new ParsingError<IGuildMemberOrRole>(value));
             }
 
+            IRole? role = null;
+            IUser? user = null;
+            IPartialGuildMember? member = null;
+
+            bool success = false;
             if (_commandContext is InteractionContext interactionContext &&
                 interactionContext.Data.Resolved.IsDefined(out var resolved))
             {
                 if (resolved.Roles.IsDefined(out var roles) &&
-                    roles.TryGetValue(unknownID.Value, out var role))
-                {
-                    return ValueTask.FromResult(
-                        Result<IGuildMemberOrRole>.FromSuccess(
-                            new GuildMemberOrRole(default, new Optional<IRole>(role))));
+                    roles.TryGetValue(unknownID.Value, out role))
+                { 
+                    success = true;
                 }
 
                 if (resolved.Members.IsDefined(out var members) &&
-                    members.TryGetValue(unknownID.Value, out var member))
+                    members.TryGetValue(unknownID.Value, out member))
                 {
-                    return ValueTask.FromResult(Result<IGuildMemberOrRole>.FromSuccess(
-                        new GuildMemberOrRole(new Optional<IPartialGuildMember>(member), default)));
+                    success = true;
                 }
+
+                if (resolved.Users.IsDefined(out var users) &&
+                    users.TryGetValue(unknownID.Value, out user)) ;
             }
 
             // TODO: maybe try to get user or role from the API if it isn't found in the resolved data?
-
+            
             return ValueTask.FromResult<Result<IGuildMemberOrRole>>(
-                new ParsingError<IGuildMemberOrRole>("Could not find matching user or role"));
+                success 
+                    ? Result<IGuildMemberOrRole>.FromSuccess(new GuildMemberOrRole(user, member, role))
+                    : new ParsingError<IGuildMemberOrRole>("Could not find matching user or role"));
         }
     }
 }
