@@ -4,8 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.Api.Ctu.Database
 {
-    public class ApiCacheContext : DbContext, IReadableDbContext
+    public sealed class ApiCacheContext : DbContext, IReadableDbContext
     {
+        public ApiCacheContext(DbContextOptions<ApiCacheContext> options)
+            : base(options)
+        {
+        }
+        
         /// <summary>
         /// Cache of roles to assign
         /// </summary>
