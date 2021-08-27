@@ -95,23 +95,22 @@ namespace Christofel.Api.Ctu
         public CtuAuthAssignedRoles()
         {
             AddRoles = new HashSet<CtuAuthRole>();
-            RemoveRoles = new HashSet<CtuAuthRole>();
+            SoftRemoveRoles = new HashSet<CtuAuthRole>();
         }
         
         public HashSet<CtuAuthRole> AddRoles { get; }
 
-        public HashSet<CtuAuthRole> RemoveRoles { get; }
+        public HashSet<CtuAuthRole> SoftRemoveRoles { get; }
 
         public void AddRole(CtuAuthRole roleId)
         {
             AddRoles.Add(roleId);
-            RemoveRoles.Remove(roleId);
+            SoftRemoveRoles.Remove(roleId);
         }
 
-        public void RemoveRole(CtuAuthRole roleId)
+        public void SoftRemoveRole(CtuAuthRole roleId)
         {
-            AddRoles.Remove(roleId);
-            RemoveRoles.Add(roleId);
+            SoftRemoveRoles.Add(roleId);
         }
 
         public void AddRange(IEnumerable<CtuAuthRole> roleIds)
@@ -122,11 +121,11 @@ namespace Christofel.Api.Ctu
             }
         }
 
-        public void RemoveRange(IEnumerable<CtuAuthRole> roleIds)
+        public void SoftRemoveRange(IEnumerable<CtuAuthRole> roleIds)
         {
             foreach (CtuAuthRole roleId in roleIds)
             {
-                RemoveRole(roleId);
+                SoftRemoveRole(roleId);
             }
         }
     }
