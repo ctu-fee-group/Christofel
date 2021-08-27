@@ -7,6 +7,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\libs\kos-api\src\Kos\Kos.csproj" />
+      <ProjectReference Include="..\Christofel.Api\Christofel.Api.csproj" />
       <ProjectReference Include="..\Christofel.Application\Christofel.Application.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
