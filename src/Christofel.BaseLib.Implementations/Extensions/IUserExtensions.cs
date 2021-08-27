@@ -4,6 +4,7 @@ using System.Linq;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
 using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -25,18 +26,26 @@ namespace Christofel.BaseLib.Extensions
 
         public static IEnumerable<DiscordTarget> GetAllDiscordTargets(this IGuildMember guildMember)
         {
+            return GetAllDiscordTargets(guildMember.Roles, guildMember.User);
+        }
+
+        public static IEnumerable<DiscordTarget> GetAllDiscordTargets(this IPartialGuildMember guildMember)
+        {
+            return GetAllDiscordTargets(
+                guildMember.Roles.Value, guildMember.User);
+        }
+
+        private static IEnumerable<DiscordTarget> GetAllDiscordTargets(IEnumerable<Snowflake> roles,
+            Optional<IUser> userOptional)
+        {
             List<DiscordTarget> targets = new List<DiscordTarget>();
 
-            targets.AddRange(guildMember.Roles.Select(x => new DiscordTarget(x.Value, TargetType.Role)));
+            targets.AddRange(roles.Select(x => new DiscordTarget(x, TargetType.Role)));
             targets.Add(DiscordTarget.Everyone);
-            
-            if (guildMember.User.HasValue)
+
+            if (userOptional.IsDefined(out var user))
             {
-                targets.Add(guildMember.User.Value.ToDiscordTarget());
-            }
-            else
-            {
-                throw new InvalidOperationException("Will get to this");
+                targets.Add(user.ToDiscordTarget());
             }
 
             return targets;
