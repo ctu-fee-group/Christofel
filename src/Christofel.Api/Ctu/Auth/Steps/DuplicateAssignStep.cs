@@ -21,6 +21,10 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 duplicate.User.AuthenticatedAt = DateTime.Now;
                 data.DbContext.Remove(data.DbUser);
             }
+            else if (duplicate.Type != DuplicityType.None)
+            {
+                duplicate.User.DuplicitUserId = duplicate.User.UserId;
+            }
 
             return Task.FromResult(Result.FromSuccess());
         }
