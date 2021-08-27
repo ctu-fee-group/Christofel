@@ -102,19 +102,19 @@ namespace Christofel.Api.Ctu
                     }
 
                     await ProcessAssignJob(assignJob);
-
-                    lock (_queueLock)
-                    {
-                        if (_queue.Count == 0)
-                        {
-                            shouldRun = false;
-                            _threadRunning = false;
-                        }
-                    }
                 }
                 catch (Exception e)
                 {
                     _logger.LogCritical(e, "Role assign job has thrown an exception.");
+                }
+                
+                lock (_queueLock)
+                {
+                    if (_queue.Count == 0)
+                    {
+                        shouldRun = false;
+                        _threadRunning = false;
+                    }
                 }
             }
 
