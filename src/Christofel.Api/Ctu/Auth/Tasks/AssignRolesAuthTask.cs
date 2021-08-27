@@ -32,7 +32,8 @@ namespace Christofel.Api.Ctu.Auth.Tasks
                 data.DbUser.DiscordId,
                 data.GuildId,
                 assignRoles,
-                removeRoles);
+                removeRoles,
+                ct);
 
             _roleAssignService.EnqueueRoles(
                 data.GuildUser,
