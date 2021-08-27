@@ -107,11 +107,14 @@ namespace Christofel.Api.Ctu
         {
             try
             {
+                // TODO: use batch delete
                 await using var dbContext = _dbContextFactory.CreateDbContext();
-                await dbContext.AssignRoles
+                var entries = await dbContext.AssignRoles
                     .Where(x => x.UserDiscordId == userId && x.GuildDiscordId == guildId)
-                    .BatchDeleteAsync(ct);
-
+                    .ToListAsync(ct);
+                //.BatchDeleteAsync(ct);
+                
+                dbContext.RemoveRange(entries);
                 await dbContext.SaveChangesAsync(ct);
             }
             catch (Exception e)
