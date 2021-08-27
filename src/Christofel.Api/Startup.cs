@@ -105,6 +105,7 @@ namespace Christofel.Api
                 .AddAuthStep<TitlesRoleStep>()
                 .AddAuthStep<UsermapRolesStep>()
                 .AddAuthStep<YearRoleStep>()
+                .AddAuthStep<DuplicateAssignStep>()
                 .AddAuthStep<RemoveOldRolesStep>()
                 .AddAuthTask<AssignRolesAuthTask>();
 
