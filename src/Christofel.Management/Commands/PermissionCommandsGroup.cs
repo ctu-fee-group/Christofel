@@ -10,6 +10,8 @@ using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib;
+using Christofel.CommandsLib.ContextedParsers;
+using Christofel.CommandsLib.Extensions;
 using Christofel.CommandsLib.Validator;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -46,40 +48,19 @@ namespace Christofel.Management.Commands
             _permissions = permissions;
         }
 
-        private Result ExactlyOneValidation<T, U>(string name, T? left, U? right)
-        {
-            var validationResult = new CommandValidator()
-                .MakeSure(name, (left, right),
-                    o => o
-                        .Must(x => (x.left is not null) ^ (x.right is not null))
-                        .WithMessage("Exactly one must be specified."))
-                .Validate()
-                .GetResult();
-
-            return validationResult;
-        }
-
         [Command("grant")]
         [RequirePermission("management.permissions.grant")]
         [Description("Grant specified permission to user or role. Specify either user or role only")]
         public async Task<Result> HandleGrant(
             [Description("Permission to grant to the user or role")]
             string permission,
-            [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
-            Snowflake? userId = null,
-            [Description("Role to assign permission to")]
-            Snowflake? roleId = null)
+            [Description("Entity (user or role) to assign permission to"), DiscordTypeHint(TypeHint.Mentionable)]
+            IGuildMemberOrRole entity)
         {
-            var validationResult = ExactlyOneValidation("user, role", userId, roleId);
-            if (!validationResult.IsSuccess)
-            {
-                return validationResult;
-            }
-
             PermissionAssignment assignment = new PermissionAssignment()
             {
                 PermissionName = permission,
-                Target = GetUserOrRoleTarget(userId, roleId)
+                Target = entity.ToDiscordTarget()
             };
 
             try
@@ -114,21 +95,13 @@ namespace Christofel.Management.Commands
         public async Task<Result> HandleRevoke(
             [Description("Permission to revoke from the user or role")]
             string permission,
-            [Description("User to assign permission to"), DiscordTypeHint(TypeHint.User)]
-            Snowflake? user = null,
-            [Description("Role to assign permission to")]
-            Snowflake? roleId = null)
+            [Description("Entity (user or role) to assign permission to"), DiscordTypeHint(TypeHint.Mentionable)]
+            IGuildMemberOrRole entity)
         {
-            var validationResult = ExactlyOneValidation("user, role", user, roleId);
-            if (!validationResult.IsSuccess)
-            {
-                return validationResult;
-            }
-
             Result<IReadOnlyList<IMessage>> feedbackResult;
             try
             {
-                DiscordTarget target = GetUserOrRoleTarget(user, roleId);
+                DiscordTarget target = entity.ToDiscordTarget();
 
                 IQueryable<PermissionAssignment> assignments = _dbContext.Permissions
                     .AsQueryable()
@@ -161,7 +134,7 @@ namespace Christofel.Management.Commands
                 feedbackResult =
                     await _feedbackService.SendContextualErrorAsync("Could not save the permission");
             }
-
+            
             return feedbackResult.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(feedbackResult);
@@ -206,19 +179,10 @@ namespace Christofel.Management.Commands
         [Description("Show permissions of role or user. For users their role permissions will be shown as well")]
         [RequirePermission("management.permissions.show")]
         public async Task<Result> HandleShow(
-            [Description("Show permissions of user and all their roles")]
-            IGuildMember? user = null,
-            [Description("Show permissions of role")]
-            Snowflake? roleId = null)
+            [Description("Show permissions of entity (user or role)"), DiscordTypeHint(TypeHint.Mentionable)]
+            IGuildMemberOrRole entity)
         {
-            var validationResult = ExactlyOneValidation("user, role", user, roleId);
-            if (!validationResult.IsSuccess)
-            {
-                return validationResult;
-            }
-
-            var targets = user?.GetAllDiscordTargets() ?? new[]
-                { roleId.HasValue ? new DiscordTarget(roleId.Value.Value, TargetType.Role) : throw new InvalidOperationException("Validation failed") };
+            var targets = entity.GetAllDiscordTargets();
 
             Result<IReadOnlyList<IMessage>> feedbackResult;
             try
@@ -258,18 +222,6 @@ namespace Christofel.Management.Commands
             return feedbackResult.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(feedbackResult);
-        }
-        
-        private DiscordTarget GetUserOrRoleTarget(Snowflake? user, Snowflake? role)
-        {
-            if (user.HasValue)
-            {
-                return new DiscordTarget(user.Value.Value, TargetType.User);
-            }
-
-            return role.HasValue
-                ? new DiscordTarget(role.Value.Value, TargetType.Role)
-                : throw new InvalidOperationException("Validation failed");
         }
     }
 }
