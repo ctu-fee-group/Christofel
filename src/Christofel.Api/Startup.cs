@@ -59,6 +59,7 @@ namespace Christofel.Api
 
             // scoped authorized apis
             services
+                .AddScoped<ICtuTokenProvider, CtuTokenProvider>()
                 .AddScoped<AuthorizedUsermapApi>(p =>
                 {
                     var tokenProvider = p.GetRequiredService<ICtuTokenProvider>();
