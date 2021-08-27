@@ -53,8 +53,6 @@ namespace Christofel.Application.Commands
         [RequirePermission("application.plugins.attach")]
         public async Task<IResult> HandleAttach([Description("Name of the plugin to attach")] string pluginName)
         {
-            _logger.LogDebug("Handling command /plugin attach");
-
             bool attach = true;
             if (!_plugins.Exists(pluginName))
             {
@@ -95,8 +93,6 @@ namespace Christofel.Application.Commands
         [RequirePermission("application.plugins.detach")]
         public async Task<IResult> HandleDetach([Description("Name of the plugin to detach")] string pluginName)
         {
-            _logger.LogDebug("Handling command /module detach");
-
             bool detach = true;
             if (!_plugins.IsAttached(pluginName))
             {

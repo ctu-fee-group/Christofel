@@ -44,7 +44,6 @@ namespace Christofel.Application.Commands
         [Ephemeral]
         public async Task<IResult> HandleRefreshCommand()
         {
-            _logger.LogInformation("Handling command /refresh");
             await _refresh(CancellationToken);
             _logger.LogInformation("Refreshed successfully");
             
@@ -57,7 +56,6 @@ namespace Christofel.Application.Commands
         [Ephemeral]
         public Task<Result<IReadOnlyList<IMessage>>> HandleQuitCommand()
         {
-            _logger.LogInformation("Handling command /quit");
             _applicationLifetime.RequestStop();
 
             return _feedbackService.SendContextualSuccessAsync("Goodbye", ct: CancellationToken);
