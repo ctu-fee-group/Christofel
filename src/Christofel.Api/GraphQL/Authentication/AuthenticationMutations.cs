@@ -80,10 +80,7 @@ namespace Christofel.Api.GraphQL.Authentication
                 {
                     _logger.LogWarning(
                         $"User trying to register using Discord is not on the server ({user.Username}#{user.Discriminator})");
-                    return new RegisterDiscordPayload(
-                        new UserError(
-                            $"User you are trying to log in with ({user.Username}#{user.Discriminator}) is not on the Discord server. Are you sure you are logging in with the correct user?",
-                            UserErrorCode.UserNotInGuild));
+                    return new RegisterDiscordPayload(UserErrors.UserNotInGuild);
                 }
                 else
                 {
@@ -129,9 +126,7 @@ namespace Christofel.Api.GraphQL.Authentication
 
             if (dbUser == null)
             {
-                return new RegisterCtuPayload(
-                    new UserError(
-                        $"Specified registration code is not valid", UserErrorCode.InvalidRegistrationCode));
+                return new RegisterCtuPayload(UserErrors.InvalidRegistrationCode);
             }
 
             OauthResponse response =
@@ -178,9 +173,7 @@ namespace Christofel.Api.GraphQL.Authentication
 
             if (dbUser == null)
             {
-                return new RegisterCtuPayload(
-                    new UserError(
-                        $"Specified registration code is not valid", UserErrorCode.InvalidRegistrationCode));
+                return new RegisterCtuPayload(UserErrors.InvalidRegistrationCode);
             }
 
             return await HandleRegistration(input.AccessToken, dbContext, dbUser, ctuOauthHandler, ctuAuthProcess,
@@ -268,10 +261,7 @@ namespace Christofel.Api.GraphQL.Authentication
                 {
                     _logger.LogWarning(
                         $"User trying to register using CTU is not on the server (discord id: {dbUser.DiscordId}, user id: {dbUser.UserId}).");
-                    return new RegisterCtuPayload(
-                        new UserError(
-                            $"User you are trying to log in is not on the Discord server. Are you sure you are logging in with the correct user?",
-                            UserErrorCode.UserNotInGuild));
+                    return new RegisterCtuPayload(UserErrors.UserNotInGuild);
                 }
                 else
                 {

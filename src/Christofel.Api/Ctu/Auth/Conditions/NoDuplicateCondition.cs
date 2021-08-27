@@ -23,9 +23,7 @@ namespace Christofel.Api.Ctu.Auth.Conditions
                 case DuplicityType.DiscordSide:
                     if (!authData.DbUser.DuplicityApproved)
                     {
-                        return new UserError(
-                            "There is a duplicate user stored, contact administrators, if you want to proceed",
-                            UserErrorCode.RejectedDuplicateUser);
+                        return UserErrors.RejectedDuplicateUser;
                     }
 
                     break;
