@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
 using Christofel.Api.Discord;
-using Christofel.Api.Discord.Entities;
 using Christofel.Api.GraphQL.Attributes;
 using Christofel.Api.GraphQL.Common;
 using Christofel.Api.OAuth;
@@ -16,9 +15,7 @@ using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
 using Remora.Results;
 
