@@ -21,7 +21,7 @@ namespace Christofel.Api.Ctu.Auth.Tasks
         public Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
         {
             _logger.LogDebug(
-                $"Going to enqueue role assignments for user {data.GuildUser}. Add roles: {string.Join(", ", data.Roles.AddRoles.Select(x => x.RoleId))}. Remove roles: {string.Join(", ", data.Roles.SoftRemoveRoles.Select(x => x.RoleId))}");
+                $"Going to enqueue role assignments for user <@{data.DbUser.DiscordId}>. Add roles: {string.Join(", ", data.Roles.AddRoles.Select(x => x.RoleId))}. Remove roles: {string.Join(", ", data.Roles.SoftRemoveRoles.Select(x => x.RoleId))}");
 
             var assignRoles = data.Roles.AddRoles.ToList();
             var removeRoles = data.Roles.SoftRemoveRoles.Except(assignRoles).ToList();
