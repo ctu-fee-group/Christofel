@@ -244,6 +244,13 @@ namespace Christofel.Api.GraphQL.Authentication
                     $"User trying to register was not found in the database.");
             }
 
+            if (dbUser?.AuthenticatedAt is not null)
+            {
+                _logger.LogWarning(
+                    $"User trying to register was already registered. Aborting");
+                dbUser = null;
+            }
+
             return dbUser;
         }
 
