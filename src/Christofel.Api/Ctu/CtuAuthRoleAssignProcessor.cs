@@ -24,8 +24,8 @@ namespace Christofel.Api.Ctu
     {
         private const int MaxRetryCount = 5;
 
-        private record CtuAuthRoleAssign(IGuildMember GuildMember, Snowflake UserId, Snowflake GuildId,
-            IReadOnlyList<CtuAuthRole> AddRoles, IReadOnlyList<CtuAuthRole> RemoveRoles, Action DoneCallback,
+        private record CtuAuthRoleAssign(Snowflake UserId, Snowflake GuildId,
+            IReadOnlyList<Snowflake> AddRoles, IReadOnlyList<Snowflake> RemoveRoles, Action DoneCallback,
             int RetryCount);
 
         private readonly object _queueLock = new object();
@@ -47,10 +47,10 @@ namespace Christofel.Api.Ctu
             _pluginLifetime = pluginLifetime;
         }
 
-        public void EnqueueAssignJob(IGuildMember guildMember, Snowflake userId, Snowflake guildId,
-            IReadOnlyList<CtuAuthRole> addRoles, IReadOnlyList<CtuAuthRole> removeRoles, Action doneCallback)
+        public void EnqueueAssignJob(Snowflake userId, Snowflake guildId,
+            IReadOnlyList<Snowflake> addRoles, IReadOnlyList<Snowflake> removeRoles, Action doneCallback)
         {
-            var assignJob = new CtuAuthRoleAssign(guildMember, userId, guildId, addRoles, removeRoles, doneCallback, 0);
+            var assignJob = new CtuAuthRoleAssign(userId, guildId, addRoles, removeRoles, doneCallback, 0);
             EnqueueAssignJob(assignJob);
         }
 
@@ -125,8 +125,6 @@ namespace Christofel.Api.Ctu
         {
             bool error = false;
             var removeRoles = assignJob.RemoveRoles
-                .Select(x => new Snowflake(x.RoleId))
-                .Intersect(assignJob.GuildMember.Roles)
                 .Distinct();
 
             await HandleRolesEdit(assignJob, removeRoles, (roleId) => _guildApi
@@ -134,8 +132,6 @@ namespace Christofel.Api.Ctu
                     "CTU Authentication", _pluginLifetime.Stopping));
 
             var assignRoles = assignJob.AddRoles
-                .Select(x => new Snowflake(x.RoleId))
-                .Except(assignJob.GuildMember.Roles)
                 .Distinct();
 
             await HandleRolesEdit(assignJob, assignRoles, (roleId) => _guildApi
@@ -176,7 +172,7 @@ namespace Christofel.Api.Ctu
         {
             if (error && assignJob.RetryCount < MaxRetryCount)
             {
-                EnqueueAssignJob(new CtuAuthRoleAssign(assignJob.GuildMember, assignJob.UserId, assignJob.GuildId,
+                EnqueueAssignJob(new CtuAuthRoleAssign(assignJob.UserId, assignJob.GuildId,
                     assignJob.AddRoles, assignJob.RemoveRoles, assignJob.DoneCallback, assignJob.RetryCount + 1));
 
                 _logger.LogError(
@@ -185,7 +181,7 @@ namespace Christofel.Api.Ctu
             else if (error)
             {
                 _logger.LogError(
-                    $"Could not assign roles to user <@{assignJob.UserId}> and maximal number of retries was reached. Roles to add: {string.Join(",", assignJob.AddRoles.Select(x => x.RoleId))}, Roles to remove: {string.Join(", ", assignJob.RemoveRoles.Select(x => x.RoleId))}.");
+                    $"Could not assign roles to user <@{assignJob.UserId}> and maximal number of retries was reached. Roles to add: {string.Join(",", assignJob.AddRoles.Select(x => x.Value))}, Roles to remove: {string.Join(", ", assignJob.RemoveRoles.Select(x => x.Value))}.");
                 assignJob.DoneCallback();
             }
             else
