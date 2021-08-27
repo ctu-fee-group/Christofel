@@ -34,8 +34,8 @@ namespace Christofel.Api.Ctu
         /// <param name="guildId">Id of the guild where the roles should be assigned</param>
         /// <param name="assignRoles">What roles should be assigned to the member</param>
         /// <param name="removeRoles">What roles should be removed from the member</param>
-        public void EnqueueRoles(IGuildMember guildMember, ulong userId, ulong guildId, IReadOnlyList<CtuAuthRole> assignRoles,
-            IReadOnlyList<CtuAuthRole> removeRoles)
+        public void EnqueueRoles(IGuildMember guildMember, ulong userId, ulong guildId, IReadOnlyList<ulong> assignRoles,
+            IReadOnlyList<ulong> removeRoles)
         {
             throw new System.NotImplementedException();
         }
@@ -48,8 +48,8 @@ namespace Christofel.Api.Ctu
         /// <param name="assignRoles">What roles should be assigned</param>
         /// <param name="removeRoles">What roles should be deleted</param>
         /// <returns>Task saving the information to the database</returns>
-        public Task SaveRoles(ulong userId, ulong guildId, IReadOnlyList<CtuAuthRole> assignRoles,
-            IReadOnlyList<CtuAuthRole> removeRoles)
+        public Task SaveRoles(ulong userId, ulong guildId, IReadOnlyList<ulong> assignRoles,
+            IReadOnlyList<ulong> removeRoles)
         {
             throw new System.NotImplementedException();
         }
