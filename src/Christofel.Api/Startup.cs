@@ -1,5 +1,6 @@
 using System;
 using Christofel.Api.Ctu;
+using Christofel.Api.Ctu.Database;
 using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Auth.Steps;
 using Christofel.Api.Ctu.Auth.Tasks;
@@ -9,10 +10,12 @@ using Christofel.Api.GraphQL.Authentication;
 using Christofel.Api.GraphQL.DataLoaders;
 using Christofel.Api.GraphQL.Types;
 using Christofel.Api.OAuth;
+using Christofel.Api.Services;
 using Christofel.BaseLib.Configuration;
 using Kos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,7 +28,7 @@ namespace Christofel.Api
     public class Startup
     {
         private readonly IConfiguration _configuration;
-        
+
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -33,6 +36,17 @@ namespace Christofel.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services
+                .AddHostedService<RestoreAssignRolesService>();
+            
+            // cache database
+            services
+                .AddPooledDbContextFactory<ApiCacheContext>(options => options
+                    .UseMySql(
+                        _configuration.GetConnectionString("ApiCache"),
+                        ServerVersion.AutoDetect(_configuration.GetConnectionString("ApiCache")
+                        )));
+
             // bot options containing guild id
             services
                 .Configure<BotOptions>(_configuration.GetSection("Bot"));
@@ -43,7 +57,7 @@ namespace Christofel.Api
                 .AddScoped<DiscordOauthHandler>()
                 .Configure<CtuOauthOptions>("Ctu", _configuration.GetSection("Oauth:Ctu"))
                 .Configure<OauthOptions>("Discord", _configuration.GetSection("Oauth:Discord"));
-            
+
             // Apis used for auth
             services
                 .AddScoped<DiscordApi>()
@@ -55,7 +69,8 @@ namespace Christofel.Api
 
             // processors of queues
             services
-                .AddSingleton<CtuAuthRoleAssignProcessor>();
+                .AddSingleton<CtuAuthRoleAssignProcessor>()
+                .AddSingleton<CtuAuthRoleAssignService>();
 
             // scoped authorized apis
             services
@@ -94,6 +109,7 @@ namespace Christofel.Api
                 .AddAuthStep<TitlesRoleStep>()
                 .AddAuthStep<UsermapRolesStep>()
                 .AddAuthStep<YearRoleStep>()
+                .AddAuthStep<DuplicateAssignStep>()
                 .AddAuthStep<RemoveOldRolesStep>()
                 .AddAuthTask<AssignRolesAuthTask>();
 
