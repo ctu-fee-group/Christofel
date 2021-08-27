@@ -21,11 +21,27 @@ namespace Christofel.Api.Ctu.Auth.Tasks
 
         public async Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
         {
-            _logger.LogDebug(
-                $"Going to enqueue role assignments for user <@{data.DbUser.DiscordId}>. Add roles: {string.Join(", ", data.Roles.AddRoles.Select(x => x.RoleId))}. Remove roles: {string.Join(", ", data.Roles.SoftRemoveRoles.Select(x => x.RoleId))}");
 
-            var assignRoles = data.Roles.AddRoles.Select(x => x.RoleId).ToArray();
-            var removeRoles = data.Roles.SoftRemoveRoles.Select(x => x.RoleId).Except(assignRoles).ToArray();
+            var guildMemberRoles = data.GuildUser.Roles.Select(x => x.Value).ToArray();
+            
+            var assignRoles = data.Roles.AddRoles
+                .Select(x => x.RoleId)
+                .Except(guildMemberRoles)
+                .ToArray();
+            var removeRoles = data.Roles.SoftRemoveRoles
+                .Select(x => x.RoleId)
+                .Except(assignRoles)
+                .Intersect(guildMemberRoles)
+                .ToArray();
+
+            if (assignRoles.Length == 0 && removeRoles.Length == 0)
+            {
+                _logger.LogDebug("Not going to enqueue roles to assign as the member already has correct roles");
+                return Result.FromSuccess();
+            }
+
+            _logger.LogDebug(
+                $"Going to enqueue role assignments for member <@{data.DbUser.DiscordId}>. Add roles: {string.Join(", ", data.Roles.AddRoles.Select(x => x.RoleId))}. Remove roles: {string.Join(", ", data.Roles.SoftRemoveRoles.Select(x => x.RoleId))}");
 
             // Save to cache
             await _roleAssignService.SaveRoles(
