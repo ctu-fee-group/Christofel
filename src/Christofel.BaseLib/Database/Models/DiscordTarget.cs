@@ -1,5 +1,6 @@
 using Christofel.BaseLib.Database.Models.Enums;
 using Microsoft.EntityFrameworkCore;
+using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.Database.Models
 {
@@ -13,6 +14,11 @@ namespace Christofel.BaseLib.Database.Models
         public static DiscordTarget Everyone => new DiscordTarget(0, TargetType.Everyone);
 
         public DiscordTarget() {}
+
+        public DiscordTarget(Snowflake discordId, TargetType type)
+            : this(discordId.Value, type)
+        {
+        }
         
         public DiscordTarget(ulong discordId, TargetType type)
         {
