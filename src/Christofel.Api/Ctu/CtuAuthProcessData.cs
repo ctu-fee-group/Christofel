@@ -54,7 +54,7 @@ namespace Christofel.Api.Ctu
         /// <summary>
         /// Data persistent throughout steps for passing valuable information
         /// </summary>
-        Dictionary<string, object> StepData { get; }
+        Dictionary<string, object?> StepData { get; }
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ namespace Christofel.Api.Ctu
             DbUser DbUser,
             IGuildMember GuildUser,
             CtuAuthAssignedRoles Roles,
-            Dictionary<string, object> StepData)
+            Dictionary<string, object?> StepData)
         : IAuthData;
 
     /// <summary>

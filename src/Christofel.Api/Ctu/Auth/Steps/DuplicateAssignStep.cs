@@ -9,7 +9,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
     {
         public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            if (!data.StepData.TryGetValue("Duplicate", out var duplicateObj))
+            if (!data.StepData.TryGetValue("Duplicate", out var duplicateObj) || duplicateObj is null)
             {
                 return Task.FromResult<Result>(new InvalidOperationError(
                     "Could not find duplicate in step data. Did you forget to register duplicate condition?"));
