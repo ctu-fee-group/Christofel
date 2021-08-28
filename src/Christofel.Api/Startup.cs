@@ -71,6 +71,7 @@ namespace Christofel.Api
             // processors of queues
             services
                 .AddSingleton<IJobQueue<CtuAuthRoleAssign>, CtuAuthRoleAssignProcessor>()
+                .AddSingleton<IJobQueue<CtuAuthNicknameSet>, CtuAuthNicknameSetProcessor>()
                 .AddSingleton<CtuAuthRoleAssignService>();
 
             // scoped authorized apis
