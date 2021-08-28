@@ -111,9 +111,11 @@ namespace Christofel.Api
                 .AddAuthStep<TitlesRoleStep>()
                 .AddAuthStep<UsermapRolesStep>()
                 .AddAuthStep<YearRoleStep>()
+                .AddAuthStep<SetNicknameAuthStep>()
                 .AddAuthStep<DuplicateAssignStep>()
                 .AddAuthStep<RemoveOldRolesStep>()
-                .AddAuthTask<AssignRolesAuthTask>();
+                .AddAuthTask<AssignRolesAuthTask>()
+                .AddAuthTask<SetNicknameAuthTask>();
 
             // GraphQL
             services
