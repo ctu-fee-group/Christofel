@@ -25,24 +25,9 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 .Where(x => data.GuildUser.Roles.Select(r => r.Value).Contains(x.RoleId))
                 .ToListAsync(ct);
 
-            data.Roles.SoftRemoveRange(
-                roleDiscordIds.Except(data.Roles.AddRoles, new RoleEqualityComparer())
-            );
+            data.Roles.SoftRemoveRange(roleDiscordIds);
             
             return Result.FromSuccess();
-        }
-
-        private class RoleEqualityComparer : IEqualityComparer<CtuAuthRole>
-        {
-            public bool Equals(CtuAuthRole? x, CtuAuthRole? y)
-            {
-                return x?.RoleId == y?.RoleId;
-            }
-
-            public int GetHashCode(CtuAuthRole obj)
-            {
-                return obj.RoleId.GetHashCode();
-            }
         }
     }
 }
