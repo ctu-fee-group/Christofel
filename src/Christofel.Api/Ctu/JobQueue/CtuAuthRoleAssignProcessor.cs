@@ -2,17 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu.Database;
 using Christofel.BaseLib.Lifetime;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
 using Remora.Results;
 
-namespace Christofel.Api.Ctu
+namespace Christofel.Api.Ctu.JobQueue
 {
+    public record CtuAuthRoleAssign(
+        Snowflake UserId,
+        Snowflake GuildId,
+        IReadOnlyList<Snowflake> AddRoles,
+        IReadOnlyList<Snowflake> RemoveRoles,
+        Action DoneCallback,
+        int RetryCount = 0);
+
     /// <summary>
     /// Processor of role assigns, works on different thread
     /// </summary>
@@ -20,108 +25,24 @@ namespace Christofel.Api.Ctu
     /// Creates thread only if there is job assigned,
     /// if there isn't, the thread is freed (thread pool is used)
     /// </remarks>
-    public class CtuAuthRoleAssignProcessor
+    public class CtuAuthRoleAssignProcessor : ThreadPoolJobQueue<CtuAuthRoleAssign>
     {
         private const int MaxRetryCount = 5;
 
-        private record CtuAuthRoleAssign(Snowflake UserId, Snowflake GuildId,
-            IReadOnlyList<Snowflake> AddRoles, IReadOnlyList<Snowflake> RemoveRoles, Action DoneCallback,
-            int RetryCount);
-
-        private readonly object _queueLock = new object();
-        private readonly Queue<CtuAuthRoleAssign> _queue;
-
-        private bool _threadRunning;
-
-        private ICurrentPluginLifetime _pluginLifetime;
-
         private readonly ILogger _logger;
         private readonly IDiscordRestGuildAPI _guildApi;
-        
+        private readonly ILifetime _pluginLifetime;
+
         public CtuAuthRoleAssignProcessor(ILogger<CtuAuthRoleAssignProcessor> logger,
             ICurrentPluginLifetime pluginLifetime, IDiscordRestGuildAPI guildApi)
+            : base(pluginLifetime, logger)
         {
+            _pluginLifetime = pluginLifetime;
             _logger = logger;
             _guildApi = guildApi;
-            _queue = new Queue<CtuAuthRoleAssign>();
-            _pluginLifetime = pluginLifetime;
         }
-
-        public void EnqueueAssignJob(Snowflake userId, Snowflake guildId,
-            IReadOnlyList<Snowflake> addRoles, IReadOnlyList<Snowflake> removeRoles, Action doneCallback)
-        {
-            var assignJob = new CtuAuthRoleAssign(userId, guildId, addRoles, removeRoles, doneCallback, 0);
-            EnqueueAssignJob(assignJob);
-        }
-
-        private void EnqueueAssignJob(CtuAuthRoleAssign assignJob)
-        {
-            if (_pluginLifetime.Stopping.IsCancellationRequested)
-            {
-                _logger.LogWarning("Cannot enqueue more assignment jobs as application is stopping.");
-                return;
-            }
-
-            bool createThread = false;
-            lock (_queueLock)
-            {
-                _queue.Enqueue(assignJob);
-
-                if (!_threadRunning)
-                {
-                    createThread = true;
-                    _threadRunning = true;
-                    Task.Run(ProcessQueue);
-                }
-            }
-
-            if (createThread)
-            {
-                _logger.LogDebug("Creating new job thread");
-            }
-        }
-
-        private async Task ProcessQueue()
-        {
-            bool shouldRun = true;
-            while (shouldRun)
-            {
-                try
-                {
-                    CtuAuthRoleAssign assignJob;
-
-                    if (_pluginLifetime.Stopping.IsCancellationRequested)
-                    {
-                        _logger.LogWarning("Could not finish roles assignments");
-                        return;
-                    }
-
-                    lock (_queueLock)
-                    {
-                        assignJob = _queue.Dequeue();
-                    }
-
-                    await ProcessAssignJob(assignJob);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogCritical(e, "Role assign job has thrown an exception.");
-                }
-                
-                lock (_queueLock)
-                {
-                    if (_queue.Count == 0)
-                    {
-                        shouldRun = false;
-                        _threadRunning = false;
-                    }
-                }
-            }
-
-            _logger.LogDebug("Destroying job thread, because no job is queued");
-        }
-
-        private async Task ProcessAssignJob(CtuAuthRoleAssign assignJob)
+        
+        protected override async Task ProcessAssignJob(CtuAuthRoleAssign assignJob)
         {
             bool error = false;
             var removeRoles = assignJob.RemoveRoles
@@ -172,9 +93,14 @@ namespace Christofel.Api.Ctu
         {
             if (error && assignJob.RetryCount < MaxRetryCount)
             {
-                EnqueueAssignJob(new CtuAuthRoleAssign(assignJob.UserId, assignJob.GuildId,
+                EnqueueJob(new CtuAuthRoleAssign(assignJob.UserId, assignJob.GuildId,
                     assignJob.AddRoles, assignJob.RemoveRoles, assignJob.DoneCallback, assignJob.RetryCount + 1));
 
+                EnqueueJob(assignJob with
+                {
+                    RetryCount = assignJob.RetryCount + 1
+                });
+                
                 _logger.LogError(
                     $"Going to retry assigning roles to <@{assignJob.UserId}>.");
             }

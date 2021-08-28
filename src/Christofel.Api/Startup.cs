@@ -5,6 +5,7 @@ using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Auth.Steps;
 using Christofel.Api.Ctu.Auth.Tasks;
 using Christofel.Api.Ctu.Extensions;
+using Christofel.Api.Ctu.JobQueue;
 using Christofel.Api.Discord;
 using Christofel.Api.GraphQL.Authentication;
 using Christofel.Api.GraphQL.DataLoaders;
@@ -69,7 +70,7 @@ namespace Christofel.Api
 
             // processors of queues
             services
-                .AddSingleton<CtuAuthRoleAssignProcessor>()
+                .AddSingleton<IJobQueue<CtuAuthRoleAssign>, CtuAuthRoleAssignProcessor>()
                 .AddSingleton<CtuAuthRoleAssignService>();
 
             // scoped authorized apis

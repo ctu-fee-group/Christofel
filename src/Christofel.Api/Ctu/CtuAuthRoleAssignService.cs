@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Database;
+using Christofel.Api.Ctu.JobQueue;
 using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -23,11 +24,11 @@ namespace Christofel.Api.Ctu
     {
         private readonly IDbContextFactory<ApiCacheContext> _dbContextFactory;
         private readonly IDiscordRestGuildAPI _guildApi;
-        private readonly CtuAuthRoleAssignProcessor _roleAssignProcessor;
+        private readonly IJobQueue<CtuAuthRoleAssign> _roleAssignProcessor;
         private readonly ILogger _logger;
 
         public CtuAuthRoleAssignService(IDbContextFactory<ApiCacheContext> dbContextFactory,
-            IDiscordRestGuildAPI guildApi, CtuAuthRoleAssignProcessor roleAssignProcessor,
+            IDiscordRestGuildAPI guildApi, IJobQueue<CtuAuthRoleAssign> roleAssignProcessor,
             ILogger<CtuAuthRoleAssignService> logger)
         {
             _roleAssignProcessor = roleAssignProcessor;
@@ -50,12 +51,14 @@ namespace Christofel.Api.Ctu
             var assignMissingRoles = assignRoles.Select(x => new Snowflake(x)).Except(guildMember.Roles);
             var removeIntersectedRoles = removeRoles.Select(x => new Snowflake(x)).Intersect(guildMember.Roles);
 
-            _roleAssignProcessor.EnqueueAssignJob(
+            _roleAssignProcessor.EnqueueJob(
+                new CtuAuthRoleAssign(
                 new Snowflake(userId),
                 new Snowflake(guildId),
                 assignMissingRoles.ToArray(),
                 removeIntersectedRoles.ToArray(),
                 () => Task.Run(async () => await RemoveRoles(userId, guildId))
+                )
             );
         }
 
