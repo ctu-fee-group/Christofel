@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Christofel.Api.OAuth;
 using Christofel.BaseLib.Database;
@@ -94,34 +95,56 @@ namespace Christofel.Api.Ctu
     {
         public CtuAuthAssignedRoles()
         {
-            AddRoles = new HashSet<CtuAuthRole>();
-            SoftRemoveRoles = new HashSet<CtuAuthRole>();
+            _addRoles = new HashSet<CtuAuthRole>();
+            _softRemoveRoles = new HashSet<CtuAuthRole>();
+        }
+
+        private readonly HashSet<CtuAuthRole> _addRoles;
+
+        private readonly HashSet<CtuAuthRole> _softRemoveRoles;
+
+        public IReadOnlyList<CtuAuthRole> AddRoles
+        {
+            get
+            {
+                lock (AddRoles)
+                {
+                    return new List<CtuAuthRole>(_addRoles);
+                }
+            }
         }
         
-        public HashSet<CtuAuthRole> AddRoles { get; }
-
-        public HashSet<CtuAuthRole> SoftRemoveRoles { get; }
+        public IReadOnlyList<CtuAuthRole> SoftRemoveRoles
+        {
+            get
+            {
+                lock (AddRoles)
+                {
+                    return new List<CtuAuthRole>(_softRemoveRoles);
+                }
+            }
+        }
 
         public void AddRole(CtuAuthRole roleId)
         {
-            lock (AddRoles)
+            lock (_addRoles)
             {
-                AddRoles.Add(roleId);
-                SoftRemoveRoles.Remove(roleId);
+                _addRoles.Add(roleId);
+                _softRemoveRoles.Remove(roleId);
             }
         }
 
         public void SoftRemoveRole(CtuAuthRole roleId)
         {
-            lock (AddRoles)
+            lock (_addRoles)
             {
-                SoftRemoveRoles.Add(roleId);
+                _softRemoveRoles.Add(roleId);
             }
         }
 
         public void AddRange(IEnumerable<CtuAuthRole> roleIds)
         {
-            lock (AddRoles)
+            lock (_addRoles)
             {
                 foreach (CtuAuthRole roleId in roleIds)
                 {
@@ -132,7 +155,7 @@ namespace Christofel.Api.Ctu
 
         public void SoftRemoveRange(IEnumerable<CtuAuthRole> roleIds)
         {
-            lock (AddRoles)
+            lock (_addRoles)
             {
                 foreach (CtuAuthRole roleId in roleIds)
                 {
