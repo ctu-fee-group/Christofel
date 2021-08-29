@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu.Database
 {
@@ -16,17 +17,17 @@ namespace Christofel.Api.Ctu.Database
         /// <summary>
         /// Id of the user to assign the role to
         /// </summary>
-        public ulong UserDiscordId { get; set; }
+        public Snowflake UserDiscordId { get; set; }
         
         /// <summary>
         /// Id of the guild the user is located in
         /// </summary>
-        public ulong GuildDiscordId { get; set; }
+        public Snowflake GuildDiscordId { get; set; }
 
         /// <summary>
         /// Id of the role to be added/removed
         /// </summary>
-        public ulong RoleId { get; set; }
+        public Snowflake RoleId { get; set; }
         
         /// <summary>
         /// Add if true, Remove if false

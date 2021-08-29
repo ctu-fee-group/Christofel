@@ -22,7 +22,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
                     RoleId = x.RoleId,
                     Type = x.RoleType
                 })
-                .Where(x => data.GuildUser.Roles.Select(r => r.Value).Contains(x.RoleId))
+                .Where(x => data.GuildUser.Roles.Contains(x.RoleId))
                 .ToListAsync(ct);
 
             data.Roles.SoftRemoveRange(roleDiscordIds);

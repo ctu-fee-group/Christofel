@@ -96,7 +96,7 @@ namespace Christofel.Management.Commands
                 {
                     DbUser? dbUser =
                         await EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(_dbContext.Users,
-                            x => x.DiscordId == user.ID.Value && x.DuplicitUserId != null && x.AuthenticatedAt == null,
+                            x => x.DiscordId == user.ID && x.DuplicitUserId != null && x.AuthenticatedAt == null,
                             CancellationToken);
 
                     if (dbUser == null)
@@ -140,14 +140,14 @@ namespace Christofel.Management.Commands
                 List<Embed> embeds = new List<Embed>();
                 try
                 {
-                    List<ulong> duplicities =
-                        await _identityResolver.GetDuplicitiesDiscordIdsList(user.ID.Value, CancellationToken);
+                    List<Snowflake> duplicities =
+                        await _identityResolver.GetDuplicitiesDiscordIdsList(user.ID, CancellationToken);
 
-                    foreach (ulong targetUser in duplicities)
+                    foreach (Snowflake targetUser in duplicities)
                     {
                         Optional<IEmbedAuthor> embedAuthor = default;
 
-                        var currentUserResult = await _userApi.GetUserAsync(new Snowflake(targetUser));
+                        var currentUserResult = await _userApi.GetUserAsync(targetUser);
                         if (!currentUserResult.IsSuccess)
                         {
                             embedAuthor =
@@ -223,7 +223,7 @@ namespace Christofel.Management.Commands
             DbUser dbUser = new DbUser()
             {
                 CtuUsername = ctuUsername,
-                DiscordId = user.Value,
+                DiscordId = user,
                 AuthenticatedAt = DateTime.Now
             };
 
@@ -272,7 +272,7 @@ namespace Christofel.Management.Commands
                 var userId = user ?? discordId ?? throw new InvalidOperationException("Validation failed");
 
                 List<string> identities =
-                    (await _identityResolver.GetIdentitiesCtuUsernamesList(userId.Value))
+                    (await _identityResolver.GetIdentitiesCtuUsernamesList(userId))
                     .Select(x => $@"CTU username: {x}")
                     .ToList();
 
@@ -298,7 +298,7 @@ namespace Christofel.Management.Commands
                     try
                     {
                         ILinkUser? commandUserIdentity =
-                            await _identityResolver.GetFirstIdentity(_context.User.ID.Value);
+                            await _identityResolver.GetFirstIdentity(_context.User.ID);
                         var dmFeedbackResult = await _feedbackService.SendPrivateNeutralAsync(userId,
                             $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {_context.User.Username}#{_context.User.Discriminator} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu.");
 

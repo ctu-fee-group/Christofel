@@ -1,8 +1,10 @@
+using Remora.Discord.Core;
+
 namespace Christofel.BaseLib.User
 {
     public interface IDiscordUser : IUser
     {
-        public ulong DiscordId { get; }
+        public Snowflake DiscordId { get; }
     }
     
     /// <summary>

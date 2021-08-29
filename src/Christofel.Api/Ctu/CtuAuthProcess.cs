@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Services;
 using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.Core;
 using Remora.Results;
 
 namespace Christofel.Api.Ctu
@@ -83,7 +84,7 @@ namespace Christofel.Api.Ctu
             CtuAuthProcessData authData = new CtuAuthProcessData(
                 accessToken,
                 loadedUser,
-                guildId,
+                new Snowflake(guildId),
                 dbContext,
                 dbUser,
                 guildUser,

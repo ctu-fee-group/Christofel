@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Christofel.BaseLib.Database.Models.Enums;
+using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.Database.Models
 {
@@ -12,7 +13,7 @@ namespace Christofel.BaseLib.Database.Models
         /// <summary>
         /// Discord role id
         /// </summary>
-        public ulong RoleId { get; set; }
+        public Snowflake RoleId { get; set; }
 
         /// <summary>
         /// Type of the role for special behaviors

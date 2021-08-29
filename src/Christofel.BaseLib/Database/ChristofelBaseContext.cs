@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.Database
 {
@@ -19,6 +20,18 @@ namespace Christofel.BaseLib.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<DbUser>()
+                .Property(x => x.DiscordId)
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+            
+            modelBuilder.Entity<DiscordTarget>()
+                .Property(x => x.DiscordId)
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+            
+            modelBuilder.Entity<RoleAssignment>()
+                .Property(x => x.RoleId)
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+            
             modelBuilder.Entity<DbUser>()
                 .HasOne<DbUser>(x => x.DuplicitUser!)
                 .WithMany(x => x.DuplicitUsersBack!)

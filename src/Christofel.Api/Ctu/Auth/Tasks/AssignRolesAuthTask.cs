@@ -22,7 +22,7 @@ namespace Christofel.Api.Ctu.Auth.Tasks
         public async Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
         {
 
-            var guildMemberRoles = data.GuildUser.Roles.Select(x => x.Value).ToArray();
+            var guildMemberRoles = data.GuildUser.Roles.ToArray();
             
             var assignRoles = data.Roles.AddRoles
                 .Select(x => x.RoleId)

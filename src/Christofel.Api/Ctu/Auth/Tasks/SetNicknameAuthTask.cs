@@ -50,8 +50,8 @@ namespace Christofel.Api.Ctu.Auth.Tasks
                 return Task.FromResult(Result.FromSuccess());
             }
 
-            _jobQueue.EnqueueJob(new CtuAuthNicknameSet(new Snowflake(data.DbUser.DiscordId),
-                new Snowflake(data.GuildId), (string)nickname));
+            _jobQueue.EnqueueJob(new CtuAuthNicknameSet(data.DbUser.DiscordId,
+                data.GuildId, (string)nickname));
             return Task.FromResult(Result.FromSuccess());
         }
     }

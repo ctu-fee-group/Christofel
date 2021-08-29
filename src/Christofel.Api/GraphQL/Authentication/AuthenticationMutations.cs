@@ -92,7 +92,7 @@ namespace Christofel.Api.GraphQL.Authentication
 
             DbUser dbUser = new DbUser()
             {
-                DiscordId = user.Id,
+                DiscordId = new Snowflake(user.Id),
                 RegistrationCode = Guid.NewGuid().ToString()
             };
 
@@ -253,7 +253,7 @@ namespace Christofel.Api.GraphQL.Authentication
             CancellationToken cancellationToken)
         {
             var memberResult = await guildApi.GetGuildMemberAsync(new Snowflake(_botOptions.GuildId),
-                new Snowflake(dbUser.DiscordId), cancellationToken);
+                dbUser.DiscordId, cancellationToken);
 
             if (!memberResult.IsSuccess)
             {

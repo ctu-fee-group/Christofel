@@ -16,17 +16,19 @@ namespace Christofel.BaseLib.Database.Models
         public DiscordTarget() {}
 
         public DiscordTarget(Snowflake discordId, TargetType type)
-            : this(discordId.Value, type)
-        {
-        }
-        
-        public DiscordTarget(ulong discordId, TargetType type)
         {
             DiscordId = discordId;
             TargetType = type;
         }
         
-        public ulong DiscordId { get; set; }
+        public DiscordTarget(ulong discordId, TargetType type)
+            : this(new Snowflake(discordId), type)
+        {
+            DiscordId = new Snowflake(discordId);
+            TargetType = type;
+        }
+        
+        public Snowflake DiscordId { get; set; }
         
         public ulong? GuildId { get; set; }
 

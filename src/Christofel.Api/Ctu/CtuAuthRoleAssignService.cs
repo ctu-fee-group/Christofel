@@ -45,16 +45,16 @@ namespace Christofel.Api.Ctu
         /// <param name="guildId">Id of the guild where the roles should be assigned</param>
         /// <param name="assignRoles">What roles should be assigned to the member</param>
         /// <param name="removeRoles">What roles should be removed from the member</param>
-        public void EnqueueRoles(IGuildMember guildMember, ulong userId, ulong guildId,
-            IReadOnlyList<ulong> assignRoles, IReadOnlyList<ulong> removeRoles)
+        public void EnqueueRoles(IGuildMember guildMember, Snowflake userId, Snowflake guildId,
+            IReadOnlyList<Snowflake> assignRoles, IReadOnlyList<Snowflake> removeRoles)
         {
-            var assignMissingRoles = assignRoles.Select(x => new Snowflake(x)).Except(guildMember.Roles);
-            var removeIntersectedRoles = removeRoles.Select(x => new Snowflake(x)).Intersect(guildMember.Roles);
+            var assignMissingRoles = assignRoles.Except(guildMember.Roles);
+            var removeIntersectedRoles = removeRoles.Intersect(guildMember.Roles);
 
             _roleAssignProcessor.EnqueueJob(
                 new CtuAuthRoleAssign(
-                new Snowflake(userId),
-                new Snowflake(guildId),
+                userId,
+                guildId,
                 assignMissingRoles.ToArray(),
                 removeIntersectedRoles.ToArray(),
                 () => Task.Run(async () => await RemoveRoles(userId, guildId))
@@ -70,8 +70,8 @@ namespace Christofel.Api.Ctu
         /// <param name="assignRoles">What roles should be assigned</param>
         /// <param name="removeRoles">What roles should be deleted</param>
         /// <returns>Task saving the information to the database</returns>
-        public async Task SaveRoles(ulong userId, ulong guildId, IReadOnlyList<ulong> assignRoles,
-            IReadOnlyList<ulong> removeRoles, CancellationToken ct = default)
+        public async Task SaveRoles(Snowflake userId, Snowflake guildId, IReadOnlyList<Snowflake> assignRoles,
+            IReadOnlyList<Snowflake> removeRoles, CancellationToken ct = default)
         {
             await using var dbContext = _dbContextFactory.CreateDbContext();
 
@@ -106,7 +106,7 @@ namespace Christofel.Api.Ctu
         /// <param name="userId">What user should be removed from the database</param>
         /// <param name="guildId">What guild is the user in</param>
         /// <returns>Task removing the information from the database</returns>
-        public async Task RemoveRoles(ulong userId, ulong guildId, CancellationToken ct = default)
+        public async Task RemoveRoles(Snowflake userId, Snowflake guildId, CancellationToken ct = default)
         {
             try
             {
@@ -151,7 +151,7 @@ namespace Christofel.Api.Ctu
                 var removeRoles = userGrouping.Where(x => !x.Add).Select(x => x.RoleId).ToArray();
 
                 var guildMemberResult =
-                    await _guildApi.GetGuildMemberAsync(new Snowflake(guildId), new Snowflake(userId), ct);
+                    await _guildApi.GetGuildMemberAsync(guildId, userId, ct);
                 IGuildMember guildMember;
                 if (!guildMemberResult.IsSuccess)
                 {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Christofel.BaseLib.Database.Models.Abstractions;
 using Christofel.BaseLib.User;
+using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.Database.Models
 {
@@ -27,7 +28,7 @@ namespace Christofel.BaseLib.Database.Models
         /// <summary>
         /// Id of the user on Discord
         /// </summary>
-        public ulong DiscordId { get; set; }
+        public Snowflake DiscordId { get; set; }
 
         /// <summary>
         /// CTU account username

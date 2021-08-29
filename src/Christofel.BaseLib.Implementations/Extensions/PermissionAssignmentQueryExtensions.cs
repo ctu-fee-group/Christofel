@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
+using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -23,8 +24,8 @@ namespace Christofel.BaseLib.Extensions
             IEnumerable<DiscordTarget> targets)
         {
             bool everyone = false;
-            List<ulong> roles = new List<ulong>();
-            List<ulong> users = new List<ulong>();
+            List<Snowflake> roles = new List<Snowflake>();
+            List<Snowflake> users = new List<Snowflake>();
 
             foreach (DiscordTarget target in targets)
             {

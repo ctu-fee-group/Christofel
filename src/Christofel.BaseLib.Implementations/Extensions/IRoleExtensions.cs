@@ -23,7 +23,7 @@ namespace Christofel.BaseLib.Extensions
             
             return new DiscordTarget
             {
-                DiscordId = role.ID.Value,
+                DiscordId = role.ID,
                 TargetType = TargetType.Role
             };
         }

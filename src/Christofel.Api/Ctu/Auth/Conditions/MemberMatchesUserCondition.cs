@@ -17,7 +17,7 @@ namespace Christofel.Api.Ctu.Auth.Conditions
             }
 
             var user = authData.GuildUser.User.Value;
-            return ValueTask.FromResult<Result>(user.ID.Value == authData.DbUser.DiscordId
+            return ValueTask.FromResult<Result>(user.ID == authData.DbUser.DiscordId
                 ? Result.FromSuccess()
                 : new InvalidOperationError("Cannot proceed with guild member ID not matching db user discord ID"));
         }

@@ -28,7 +28,7 @@ namespace Christofel.CommandsLib.Extensions
             return allowedDiscordTargets
                 .Where(x => x.TargetType != TargetType.Everyone)
                 .Select(x =>
-                    new ApplicationCommandPermissions(new Snowflake(x.DiscordId), x.TargetType.AsApplicationCommandPermission(), true));
+                    new ApplicationCommandPermissions(x.DiscordId, x.TargetType.AsApplicationCommandPermission(), true));
         }
     }
 }

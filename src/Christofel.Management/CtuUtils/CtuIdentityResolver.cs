@@ -7,6 +7,7 @@ using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.User;
 using Microsoft.EntityFrameworkCore;
+using Remora.Discord.Core;
 
 namespace Christofel.Management.CtuUtils
 {
@@ -16,7 +17,7 @@ namespace Christofel.Management.CtuUtils
         {
             public int UserId { get; init; }
             public string CtuUsername { get; init; } = null!;
-            public ulong DiscordId { get; init; }
+            public Snowflake DiscordId { get; init; }
         }
 
         private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;
@@ -26,7 +27,7 @@ namespace Christofel.Management.CtuUtils
             _dbContextFactory = dbContextFactory;
         }
         
-        public IQueryable<DbUser> GetDuplicities(IReadableDbContext context, ulong userDiscordId)
+        public IQueryable<DbUser> GetDuplicities(IReadableDbContext context, Snowflake userDiscordId)
         {
             return context.Set<DbUser>()
                 .AsQueryable()
@@ -34,26 +35,26 @@ namespace Christofel.Management.CtuUtils
                             (x.DuplicitUser != null && x.DuplicitUser.DiscordId == userDiscordId));
         }
 
-        public IQueryable<ulong> GetDuplicitiesDiscordIds(IReadableDbContext context, ulong userDiscordId)
+        public IQueryable<Snowflake> GetDuplicitiesDiscordIds(IReadableDbContext context, Snowflake userDiscordId)
         {
             return GetDuplicities(context, userDiscordId)
                 .Where(x => x.DuplicitUser != null || x.DiscordId != userDiscordId)
                 .Select(x => x.DiscordId == userDiscordId ? x.DuplicitUser!.DiscordId : x.DiscordId);
         }
 
-        public async Task<List<ulong>> GetDuplicitiesDiscordIdsList(ulong userDiscordId, CancellationToken token = default)
+        public async Task<List<Snowflake>> GetDuplicitiesDiscordIdsList(Snowflake userDiscordId, CancellationToken token = default)
         {
             await using IReadableDbContext context = _dbContextFactory.CreateDbContext();
             return await GetDuplicitiesDiscordIds(context, userDiscordId).ToListAsync(token);
         }
 
-        public async Task<ILinkUser?> GetFirstIdentity(ulong userDiscordId)
+        public async Task<ILinkUser?> GetFirstIdentity(Snowflake userDiscordId)
         {
             await using IReadableDbContext context = _dbContextFactory.CreateDbContext();
             return await GetIdentities(context, userDiscordId).FirstOrDefaultAsync();
         }
         
-        public IQueryable<ILinkUser> GetIdentities(IReadableDbContext context, ulong userDiscordId)
+        public IQueryable<ILinkUser> GetIdentities(IReadableDbContext context, Snowflake userDiscordId)
         {
             return context.Set<DbUser>()
                 .AsQueryable()
@@ -67,13 +68,13 @@ namespace Christofel.Management.CtuUtils
                 .Where(x => userDiscordId == x.DiscordId);
         }
 
-        public IQueryable<string> GetIdentitiesCtuUsernames(IReadableDbContext context, ulong userDiscordId)
+        public IQueryable<string> GetIdentitiesCtuUsernames(IReadableDbContext context, Snowflake userDiscordId)
         {
             return GetIdentities(context, userDiscordId)
                 .Select(x => x.CtuUsername);
         }
         
-        public async Task<List<string>> GetIdentitiesCtuUsernamesList(ulong userDiscordId)
+        public async Task<List<string>> GetIdentitiesCtuUsernamesList(Snowflake userDiscordId)
         {
             await using IReadableDbContext context = _dbContextFactory.CreateDbContext();
             return await GetIdentitiesCtuUsernames(context, userDiscordId)

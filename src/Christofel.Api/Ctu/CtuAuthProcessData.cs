@@ -9,6 +9,7 @@ using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.User;
 using Microsoft.EntityFrameworkCore;
 using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu
 {
@@ -32,7 +33,7 @@ namespace Christofel.Api.Ctu
         /// <summary>
         /// Id of the guild where the user is located
         /// </summary>
-        ulong GuildId { get; }
+        Snowflake GuildId { get; }
         
         ChristofelBaseContext DbContext { get; }
         
@@ -68,7 +69,7 @@ namespace Christofel.Api.Ctu
     public record CtuAuthProcessData(
             string AccessToken,
             ICtuUser LoadedUser,
-            ulong GuildId,
+            Snowflake GuildId,
             ChristofelBaseContext DbContext,
             DbUser DbUser,
             IGuildMember GuildUser,
@@ -81,7 +82,7 @@ namespace Christofel.Api.Ctu
     /// </summary>
     public record CtuAuthRole
     {
-        public ulong RoleId { get; init; }
+        public Snowflake RoleId { get; init; }
         public RoleType Type { get; init; }
         
         public string? Description { get; init; }
