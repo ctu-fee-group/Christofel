@@ -192,7 +192,7 @@ namespace Christofel.Messages.Commands
             public async Task<Result> HandleEditEmbedFromMessage(
                 [Description("What message to edit"), DiscordTypeHint(TypeHint.String)]
                 Snowflake messageId,
-                [Description("Embed json")]
+                [Description("Embed json"), Greedy]
                 string embed,
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
                 Snowflake? channel = null)
@@ -212,7 +212,7 @@ namespace Christofel.Messages.Commands
             [Command("send")]
             [Description("Create an embed from json string")]
             public async Task<Result> HandleCreateEmbedFromMessage(
-                [Description("Embed json to send")]
+                [Description("Embed json to send"), Greedy]
                 string embed,
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
                 Optional<Snowflake> channel = default)
