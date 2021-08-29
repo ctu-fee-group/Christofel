@@ -14,7 +14,7 @@ namespace Christofel.Api.Ctu.JobQueue
         private readonly ILifetime _lifetime;
         private readonly IDiscordRestGuildAPI _guildApi;
 
-        public CtuAuthNicknameSetProcessor(ICurrentPluginLifetime lifetime, ILogger logger,
+        public CtuAuthNicknameSetProcessor(ICurrentPluginLifetime lifetime, ILogger<CtuAuthNicknameSetProcessor> logger,
             IDiscordRestGuildAPI guildApi)
             : base(lifetime, logger)
         {
