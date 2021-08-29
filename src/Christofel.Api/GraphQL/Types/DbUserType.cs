@@ -16,7 +16,7 @@ namespace Christofel.Api.GraphQL.Types
                     null!);
 
             descriptor.Field(x => x.DiscordId)
-                .Type<UnsignedLongType>();
+                .Type<SnowflakeType>();
 
             descriptor
                 .Ignore(x => x.DuplicitUsersBack)
