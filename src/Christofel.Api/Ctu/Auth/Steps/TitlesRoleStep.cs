@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kos;
+using Kos.Abstractions;
 using Kos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,11 +26,11 @@ namespace Christofel.Api.Ctu.Auth.Steps
         private record Titles(IEnumerable<string> Pre, IEnumerable<string> Post);
 
         private readonly AuthorizedUsermapApi _usermapApi;
-        private readonly AuthorizedKosApi _kosApi;
+        private readonly IKosPeopleApi _kosPeopleApi;
 
-        public TitlesRoleStep(AuthorizedUsermapApi usermapApi, AuthorizedKosApi kosApi)
+        public TitlesRoleStep(AuthorizedUsermapApi usermapApi, IKosPeopleApi kosPeopleApi)
         {
-            _kosApi = kosApi;
+            _kosPeopleApi = kosPeopleApi;
             _usermapApi = usermapApi;
         }
         
@@ -61,7 +62,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
         private async Task<Titles?> GetKosTitles(string username, CancellationToken token)
         {
-            KosPerson? person = await _kosApi.People.GetPersonAsync(username, token: token);
+            KosPerson? person = await _kosPeopleApi.GetPersonAsync(username, token: token);
             return CreateTitles(person?.TitlesPre, person?.TitlesPost);
         }
 

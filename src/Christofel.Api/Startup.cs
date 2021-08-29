@@ -14,6 +14,7 @@ using Christofel.Api.OAuth;
 using Christofel.Api.Services;
 using Christofel.BaseLib.Configuration;
 using Kos;
+using Kos.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +40,7 @@ namespace Christofel.Api
         {
             services
                 .AddHostedService<RestoreAssignRolesService>();
-            
+
             // cache database
             services
                 .AddPooledDbContextFactory<ApiCacheContext>(options => options
@@ -65,7 +66,10 @@ namespace Christofel.Api
                 .Configure<DiscordApiOptions>(_configuration.GetSection("Apis:Discord"))
                 .AddScoped<UsermapApi>()
                 .Configure<UsermapApiOptions>(_configuration.GetSection("Apis:Usermap"))
-                .AddScoped<KosApi>()
+                .AddScopedKosApi(p =>
+                    p.GetRequiredService<ICtuTokenProvider>().AccessToken ??
+                    throw new InvalidOperationException("No access token is provided for ctu services"))
+                .AddKosCaching()
                 .Configure<KosApiOptions>(_configuration.GetSection("Apis:Kos"));
 
             // processors of queues
@@ -86,18 +90,8 @@ namespace Christofel.Api
                     }
 
                     return p.GetRequiredService<UsermapApi>().GetAuthorizedApi(tokenProvider.AccessToken);
-                })
-                .AddScoped<AuthorizedKosApi>(p =>
-                {
-                    var tokenProvider = p.GetRequiredService<ICtuTokenProvider>();
-                    if (tokenProvider.AccessToken is null)
-                    {
-                        throw new InvalidOperationException("No access token is provided for ctu services");
-                    }
-
-                    return p.GetRequiredService<KosApi>().GetAuthorizedApi(tokenProvider.AccessToken);
                 });
-            
+
             // add CTU authentication process along with all the steps
             services
                 .AddCtuAuthProcess()

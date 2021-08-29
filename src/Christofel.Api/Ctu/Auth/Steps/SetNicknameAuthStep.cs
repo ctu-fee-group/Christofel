@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Christofel.Api.Ctu.Auth.Tasks;
 using HotChocolate.Types;
 using Kos;
+using Kos.Abstractions;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Results;
 using RTools_NTS.Util;
@@ -14,12 +15,12 @@ namespace Christofel.Api.Ctu.Auth.Steps
     public class SetNicknameAuthStep : IAuthStep
     {
         private readonly AuthorizedUsermapApi _usermapApi;
-        private readonly AuthorizedKosApi _kosApi;
+        private readonly IKosPeopleApi _kosPeopleApi;
         
-        public SetNicknameAuthStep(AuthorizedUsermapApi usermapApi, AuthorizedKosApi kosApi)
+        public SetNicknameAuthStep(AuthorizedUsermapApi usermapApi, IKosPeopleApi kosPeopleApi)
         {
             _usermapApi = usermapApi;
-            _kosApi = kosApi;
+            _kosPeopleApi = kosPeopleApi;
         }
 
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
@@ -32,7 +33,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
         private async Task<string?> GetNicknameFromKos(IAuthData data, CancellationToken ct)
         {
-            var kosPerson = await _kosApi.People.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
+            var kosPerson = await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
 
             return kosPerson is null
                 ? null

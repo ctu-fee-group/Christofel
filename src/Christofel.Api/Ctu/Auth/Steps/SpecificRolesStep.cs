@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kos;
+using Kos.Abstractions;
 using Kos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,12 +21,14 @@ namespace Christofel.Api.Ctu.Auth.Steps
     /// </remarks>
     public class SpecificRolesStep : IAuthStep
     {
-        private readonly AuthorizedKosApi _kosApi;
+        private readonly IKosPeopleApi _kosPeopleApi;
+        private readonly IKosAtomApi _kosApi;
         private readonly ILogger _logger;
 
-        public SpecificRolesStep(AuthorizedKosApi kosApi, ILogger<SpecificRolesStep> logger)
+        public SpecificRolesStep(IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi, ILogger<SpecificRolesStep> logger)
         {
             _logger = logger;
+            _kosPeopleApi = kosPeopleApi;
             _kosApi = kosApi;
         }
         
@@ -85,7 +88,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
         private async Task<string?> ObtainCurrentStudies(string username,
             CancellationToken token = default)
         {
-            KosPerson? person = await _kosApi.People.GetPersonAsync(username, token: token);
+            KosPerson? person = await _kosPeopleApi.GetPersonAsync(username, token: token);
             KosStudent? student = await _kosApi
                 .LoadEntityAsync(person?.Roles?.Students?.LastOrDefault(), token: token);
 
@@ -113,7 +116,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
         private async Task<bool> IsTeacherAsync(string username, CancellationToken token = default)
         {
-            KosPerson? person = await _kosApi.People.GetPersonAsync(username, token: token);
+            KosPerson? person = await _kosPeopleApi.GetPersonAsync(username, token: token);
             return person?.Roles?.Teacher != null;
         }
     }

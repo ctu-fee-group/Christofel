@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kos;
+using Kos.Abstractions;
 using Kos.Atom;
 using Kos.Data;
 using Microsoft.EntityFrameworkCore;
@@ -20,24 +21,25 @@ namespace Christofel.Api.Ctu.Auth.Steps
     /// </remarks>
     public class ProgrammeRoleStep : IAuthStep
     {
-        private readonly AuthorizedKosApi _authorizedKosApi;
+        private readonly IKosPeopleApi _kosPeopleApi;
+        private readonly IKosAtomApi _kosApi;
         private readonly ILogger _logger;
 
-        public ProgrammeRoleStep(ILogger<CtuAuthProcess> logger, AuthorizedKosApi authorizedKosApi)
+        public ProgrammeRoleStep(ILogger<CtuAuthProcess> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
         {
-            _authorizedKosApi = authorizedKosApi;
+            _kosPeopleApi = kosPeopleApi;
             _logger = logger;
         }
 
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             KosPerson? kosPerson =
-                await _authorizedKosApi.People.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
+                await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
 
             AtomLoadableEntity<KosStudent>? studentLoadable = kosPerson?.Roles.Students.LastOrDefault();
             if (studentLoadable is not null)
             {
-                KosStudent? student = await _authorizedKosApi.LoadEntityAsync(studentLoadable, token: ct);
+                KosStudent? student = await _kosApi.LoadEntityAsync(studentLoadable, token: ct);
 
                 if (student is null)
                 {
