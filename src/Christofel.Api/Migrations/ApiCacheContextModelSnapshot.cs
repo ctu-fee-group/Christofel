@@ -25,14 +25,14 @@ namespace Christofel.Api.Migrations
                     b.Property<bool>("Add")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<ulong>("GuildDiscordId")
-                        .HasColumnType("bigint unsigned");
+                    b.Property<long>("GuildDiscordId")
+                        .HasColumnType("bigint");
 
-                    b.Property<ulong>("RoleId")
-                        .HasColumnType("bigint unsigned");
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint");
 
-                    b.Property<ulong>("UserDiscordId")
-                        .HasColumnType("bigint unsigned");
+                    b.Property<long>("UserDiscordId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("AssignRoleId");
 
