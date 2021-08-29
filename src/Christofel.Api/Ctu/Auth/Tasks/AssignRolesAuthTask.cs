@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,12 +45,20 @@ namespace Christofel.Api.Ctu.Auth.Tasks
                 $"Going to enqueue role assignments for member <@{data.DbUser.DiscordId}>. Add roles: {string.Join(", ", data.Roles.AddRoles.Select(x => x.RoleId))}. Remove roles: {string.Join(", ", data.Roles.SoftRemoveRoles.Select(x => x.RoleId))}");
 
             // Save to cache
-            await _roleAssignService.SaveRoles(
-                data.DbUser.DiscordId,
-                data.GuildId,
-                assignRoles,
-                removeRoles,
-                ct);
+            try
+            {
+                await _roleAssignService.SaveRoles(
+                    data.DbUser.DiscordId,
+                    data.GuildId,
+                    assignRoles,
+                    removeRoles,
+                    ct);
+
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Could not save roles to assign/remove to database, going to enqueue them anyway");
+            }
 
             _roleAssignService.EnqueueRoles(
                 data.GuildUser,
