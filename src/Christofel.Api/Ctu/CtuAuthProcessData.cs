@@ -108,7 +108,7 @@ namespace Christofel.Api.Ctu
         {
             get
             {
-                lock (AddRoles)
+                lock (_addRoles)
                 {
                     return new List<CtuAuthRole>(_addRoles);
                 }
@@ -119,7 +119,7 @@ namespace Christofel.Api.Ctu
         {
             get
             {
-                lock (AddRoles)
+                lock (_addRoles)
                 {
                     return new List<CtuAuthRole>(_softRemoveRoles);
                 }
