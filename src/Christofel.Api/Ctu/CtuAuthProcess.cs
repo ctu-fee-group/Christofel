@@ -89,7 +89,7 @@ namespace Christofel.Api.Ctu
                 dbUser,
                 guildUser,
                 new CtuAuthAssignedRoles(),
-                new Dictionary<string, object>()
+                new Dictionary<string, object?>()
             );
 
             // 3. run conditions (if any failed, abort)
