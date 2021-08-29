@@ -25,21 +25,6 @@ namespace Christofel.Messages.Commands
     [DiscordDefaultPermission(false)]
     public class EmbedCommandGroup : CommandGroup
     {
-        private readonly ILogger<ReactCommandGroup> _logger;
-        private readonly EmbedsProvider _embeds;
-        private readonly FeedbackService _feedbackService;
-        private readonly ICommandContext _context;
-
-
-        public EmbedCommandGroup(ILogger<ReactCommandGroup> logger, EmbedsProvider embeds,
-            FeedbackService feedbackService, ICommandContext context)
-        {
-            _feedbackService = feedbackService;
-            _context = context;
-            _embeds = embeds;
-            _logger = logger;
-        }
-
         private static async Task<Result> HandleEditEmbed(FeedbackService feedbackService,
             IDiscordRestChannelAPI channelApi,
             Snowflake channelId, Snowflake messageId, Embed embed, CancellationToken ct)
