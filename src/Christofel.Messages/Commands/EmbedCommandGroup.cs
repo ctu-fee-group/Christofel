@@ -215,7 +215,7 @@ namespace Christofel.Messages.Commands
                 [Description("Embed json to send"), Greedy]
                 string embed,
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
-                Optional<Snowflake> channel = default)
+                Snowflake? channel = default)
             {
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
@@ -223,7 +223,7 @@ namespace Christofel.Messages.Commands
                     return Result.FromError(parseResult);
                 }
 
-                return await HandleCreateEmbed(_feedbackService, channel.HasValue ? channel.Value : _context.ChannelID,
+                return await HandleCreateEmbed(_feedbackService, channel ?? _context.ChannelID,
                     parseResult.Entity, CancellationToken);
             }
         }
