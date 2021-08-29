@@ -19,21 +19,21 @@ namespace Christofel.Api.Ctu.Auth.Tasks
             _logger = logger;
         }
 
-        public Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
+        public async Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
         {
             if (!data.StepData.TryGetValue("Duplicate", out var duplicateObj) || duplicateObj is null)
             {
-                return Task.FromResult<Result>(new InvalidOperationError(
-                    "Could not find duplicate in step data. Did you forget to register duplicate condition?"));
+                return new InvalidOperationError(
+                    "Could not find duplicate in step data. Did you forget to register duplicate condition?");
             }
 
             var duplicate = (Duplicate)duplicateObj;
             if (duplicate.Type == DuplicityType.None)
             {
-                // First registration, change nickname
+                await EnqueueChange(data, ct);
             }
 
-            return Task.FromResult(Result.FromSuccess());
+            return Result.FromSuccess();
         }
 
         private Task<Result> EnqueueChange(IAuthData data, CancellationToken ct)
