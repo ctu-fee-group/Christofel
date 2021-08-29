@@ -153,9 +153,6 @@ namespace Christofel.Application
         protected override Task InitializeServices(IServiceProvider services,
             CancellationToken token = new CancellationToken())
         {
-            var test = services.GetRequiredService<RefreshChristofel>();
-            var client = services.GetRequiredService<DiscordGatewayClient>();
-            
             _logger = services.GetRequiredService<ILogger<ChristofelApp>>();
             _lifetimeHandler.Logger = _logger;
             return Task.CompletedTask;
