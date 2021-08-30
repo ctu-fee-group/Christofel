@@ -27,6 +27,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
         public ProgrammeRoleStep(ILogger<CtuAuthProcess> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
         {
+            _kosApi = kosApi;
             _kosPeopleApi = kosPeopleApi;
             _logger = logger;
         }
