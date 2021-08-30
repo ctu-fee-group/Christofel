@@ -111,7 +111,7 @@ namespace Christofel.Api.Ctu
 
             // 4. run steps (if any failed, abort)
             var stepsResult = await ExecuteStepsAsync(services, authData, ct);
-            if (!conditionsResult.IsSuccess)
+            if (!stepsResult.IsSuccess)
             {
                 return stepsResult;
             }
