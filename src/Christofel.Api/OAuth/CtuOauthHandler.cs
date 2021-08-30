@@ -9,7 +9,7 @@ using RestSharp;
 
 namespace Christofel.Api.OAuth
 {
-    public class CtuOauthHandler : OauthHandler<CtuOauthOptions>
+    public class CtuOauthHandler : OauthHandler<CtuOauthOptions>, ICtuTokenApi
     {
         private class CheckTokenResponse : ICtuUser
         {

@@ -61,7 +61,7 @@ namespace Christofel.Api.Ctu
         /// <param name="dbUser">Database user to be edited and saved</param>
         /// <param name="guildUser">Discord user used for auth purposes. Should be user with the id of dbUser</param>
         /// <param name="ct">Cancellation token in case the request is cancelled</param>
-        public async Task<Result> FinishAuthAsync(string accessToken, CtuOauthHandler ctuOauthHandler,
+        public async Task<Result> FinishAuthAsync(string accessToken, ICtuTokenApi ctuOauthHandler,
             ChristofelBaseContext dbContext, ulong guildId, DbUser dbUser,
             IGuildMember guildUser, CancellationToken ct = default)
         {
