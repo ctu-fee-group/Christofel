@@ -17,7 +17,8 @@ namespace Christofel.Api.Ctu.Extensions
             collection.AddOptions<TypeRepository<IAuthTask>>();
             
             collection
-                .AddScoped<CtuAuthProcess>();
+                .AddScoped<CtuAuthProcess>()
+                .AddScoped<ICtuTokenProvider, CtuTokenProvider>();
 
             return collection;
         }

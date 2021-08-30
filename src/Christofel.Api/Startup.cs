@@ -84,10 +84,6 @@ namespace Christofel.Api
                 .AddSingleton<IJobQueue<CtuAuthNicknameSet>, CtuAuthNicknameSetProcessor>()
                 .AddSingleton<CtuAuthRoleAssignService>();
 
-            // scoped authorized apis
-            services
-                .AddScoped<ICtuTokenProvider, CtuTokenProvider>();
-
             // add CTU authentication process along with all the steps
             services
                 .AddCtuAuthProcess()
