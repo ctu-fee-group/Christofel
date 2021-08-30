@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 using Usermap;
+using Usermap.Controllers;
 using Usermap.Data;
 
 namespace Christofel.Api.Ctu.Auth.Steps
@@ -25,13 +26,13 @@ namespace Christofel.Api.Ctu.Auth.Steps
     {
         private record Titles(IEnumerable<string> Pre, IEnumerable<string> Post);
 
-        private readonly AuthorizedUsermapApi _usermapApi;
+        private readonly IUsermapPeopleApi _usermapPeopleApi;
         private readonly IKosPeopleApi _kosPeopleApi;
 
-        public TitlesRoleStep(AuthorizedUsermapApi usermapApi, IKosPeopleApi kosPeopleApi)
+        public TitlesRoleStep(IUsermapPeopleApi usermapPeopleApi, IKosPeopleApi kosPeopleApi)
         {
             _kosPeopleApi = kosPeopleApi;
-            _usermapApi = usermapApi;
+            _usermapPeopleApi = usermapPeopleApi;
         }
         
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
@@ -68,7 +69,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
         private async Task<Titles?> GetUsermapTitles(string username, CancellationToken token)
         {
-            UsermapPerson? person = await _usermapApi.People.GetPersonAsync(username, token: token);
+            UsermapPerson? person = await _usermapPeopleApi.GetPersonAsync(username, token: token);
 
             if (person?.FullName is null)
             {

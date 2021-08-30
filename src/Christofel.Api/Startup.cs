@@ -24,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Usermap;
+using Usermap.Extensions;
 using DiagnosticEventListener = Christofel.Api.GraphQL.Diagnostics.DiagnosticEventListener;
 
 namespace Christofel.Api
@@ -65,9 +66,12 @@ namespace Christofel.Api
             services
                 .AddScoped<DiscordApi>()
                 .Configure<DiscordApiOptions>(_configuration.GetSection("Apis:Discord"))
-                .AddScoped<UsermapApi>()
                 .Configure<UsermapApiOptions>(_configuration.GetSection("Apis:Usermap"))
                 .AddScoped<IMemoryCache, MemoryCache>()
+                .AddScopedUsermapApi(p => p.GetRequiredService<ICtuTokenProvider>().AccessToken ??
+                                          throw new InvalidOperationException(
+                                              "No access token is provided for ctu services"))
+                .AddScopedUsermapCaching()
                 .AddScopedKosApi(p =>
                     p.GetRequiredService<ICtuTokenProvider>().AccessToken ??
                     throw new InvalidOperationException("No access token is provided for ctu services"))
@@ -82,17 +86,7 @@ namespace Christofel.Api
 
             // scoped authorized apis
             services
-                .AddScoped<ICtuTokenProvider, CtuTokenProvider>()
-                .AddScoped<AuthorizedUsermapApi>(p =>
-                {
-                    var tokenProvider = p.GetRequiredService<ICtuTokenProvider>();
-                    if (tokenProvider.AccessToken is null)
-                    {
-                        throw new InvalidOperationException("No access token is provided for ctu services");
-                    }
-
-                    return p.GetRequiredService<UsermapApi>().GetAuthorizedApi(tokenProvider.AccessToken);
-                });
+                .AddScoped<ICtuTokenProvider, CtuTokenProvider>();
 
             // add CTU authentication process along with all the steps
             services

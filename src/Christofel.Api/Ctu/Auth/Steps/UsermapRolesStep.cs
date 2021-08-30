@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Remora.Results;
 using Usermap;
+using Usermap.Controllers;
 using Usermap.Data;
 
 namespace Christofel.Api.Ctu.Auth.Steps
@@ -20,17 +21,17 @@ namespace Christofel.Api.Ctu.Auth.Steps
     /// </remarks>
     public class UsermapRolesStep : IAuthStep
     {
-        private readonly AuthorizedUsermapApi _usermapApi;
+        private readonly IUsermapPeopleApi _usermapPeopleApi;
 
-        public UsermapRolesStep(AuthorizedUsermapApi usermapApi)
+        public UsermapRolesStep(IUsermapPeopleApi usermapPeopleApi)
         {
-            _usermapApi = usermapApi;
+            _usermapPeopleApi = usermapPeopleApi;
         }
         
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             UsermapPerson? person =
-                await _usermapApi.People.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
+                await _usermapPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
 
             if (person is null)
             {

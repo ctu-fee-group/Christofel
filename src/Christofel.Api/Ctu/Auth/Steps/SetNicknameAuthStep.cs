@@ -9,17 +9,18 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Results;
 using RTools_NTS.Util;
 using Usermap;
+using Usermap.Controllers;
 
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     public class SetNicknameAuthStep : IAuthStep
     {
-        private readonly AuthorizedUsermapApi _usermapApi;
+        private readonly IUsermapPeopleApi _usermapPeopleApi;
         private readonly IKosPeopleApi _kosPeopleApi;
         
-        public SetNicknameAuthStep(AuthorizedUsermapApi usermapApi, IKosPeopleApi kosPeopleApi)
+        public SetNicknameAuthStep(IUsermapPeopleApi usermapPeopleApi, IKosPeopleApi kosPeopleApi)
         {
-            _usermapApi = usermapApi;
+            _usermapPeopleApi = usermapPeopleApi;
             _kosPeopleApi = kosPeopleApi;
         }
 
@@ -42,7 +43,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
         
         private async Task<string?> GetNicknameFromUsermap(IAuthData data, CancellationToken ct)
         {
-            var usermapPerson = await _usermapApi.People.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
+            var usermapPerson = await _usermapPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
 
             return usermapPerson is null
                 ? null
