@@ -17,10 +17,34 @@ namespace Christofel.Api.Ctu.Extensions
             collection.AddOptions<TypeRepository<IAuthTask>>();
             
             collection
-                .AddScoped<CtuAuthProcess>()
-                .AddScoped<ICtuTokenProvider, CtuTokenProvider>();
+                .TryAddScoped<CtuAuthProcess>();
+            
+            collection
+                .TryAddScoped<ICtuTokenProvider, CtuTokenProvider>();
 
             return collection;
+        }
+        
+        public static IServiceCollection AddDefaultCtuAuthProcess(this IServiceCollection services)
+        {
+            services
+                .AddAuthCondition<CtuUsernameFilledCondition>()
+                .AddAuthCondition<MemberMatchesUserCondition>()
+                .AddAuthCondition<NoDuplicateCondition>()
+                .AddAuthCondition<CtuUsernameMatchesCondition>()
+                .AddAuthStep<ProgrammeRoleStep>()
+                .AddAuthStep<SetUserDataStep>()
+                .AddAuthStep<SpecificRolesStep>()
+                .AddAuthStep<TitlesRoleStep>()
+                .AddAuthStep<UsermapRolesStep>()
+                .AddAuthStep<YearRoleStep>()
+                .AddAuthStep<SetNicknameAuthStep>()
+                .AddAuthStep<DuplicateAssignStep>()
+                .AddAuthStep<RemoveOldRolesStep>()
+                .AddAuthTask<AssignRolesAuthTask>()
+                .AddAuthTask<SetNicknameAuthTask>();
+
+            return services;
         }
         
         public static IServiceCollection AddAuthStep<T>(this IServiceCollection collection)

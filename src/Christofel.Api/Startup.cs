@@ -87,21 +87,7 @@ namespace Christofel.Api
             // add CTU authentication process along with all the steps
             services
                 .AddCtuAuthProcess()
-                .AddAuthCondition<CtuUsernameFilledCondition>()
-                .AddAuthCondition<MemberMatchesUserCondition>()
-                .AddAuthCondition<NoDuplicateCondition>()
-                .AddAuthCondition<CtuUsernameMatchesCondition>()
-                .AddAuthStep<ProgrammeRoleStep>()
-                .AddAuthStep<SetUserDataStep>()
-                .AddAuthStep<SpecificRolesStep>()
-                .AddAuthStep<TitlesRoleStep>()
-                .AddAuthStep<UsermapRolesStep>()
-                .AddAuthStep<YearRoleStep>()
-                .AddAuthStep<SetNicknameAuthStep>()
-                .AddAuthStep<DuplicateAssignStep>()
-                .AddAuthStep<RemoveOldRolesStep>()
-                .AddAuthTask<AssignRolesAuthTask>()
-                .AddAuthTask<SetNicknameAuthTask>();
+                .AddDefaultCtuAuthProcess();
 
             // GraphQL
             services
