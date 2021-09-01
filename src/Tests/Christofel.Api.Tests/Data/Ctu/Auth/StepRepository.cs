@@ -32,5 +32,14 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
                 throw new InvalidOperationException();
             }
         }
+        
+        public class SetAuthenticatedAtStep : IAuthStep
+        {
+            public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
+            {
+                data.DbUser.AuthenticatedAt = DateTime.Now;
+                return Task.FromResult(Result.FromSuccess());
+            }
+        }
     }
 }

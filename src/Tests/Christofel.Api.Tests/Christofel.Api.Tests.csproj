@@ -26,4 +26,22 @@
       <ProjectReference Include="..\..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Data.cs">
+        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Ctu\Auth\CtuAtuhProcessLogicTests.Exceptions.cs">
+        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.TokenApi.cs">
+        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Continuity.cs">
+        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Returns.cs">
+        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>
