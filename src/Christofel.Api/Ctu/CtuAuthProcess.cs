@@ -74,13 +74,12 @@ namespace Christofel.Api.Ctu
             try
             {
                 loadedUser = await ctuOauthHandler.CheckTokenAsync(accessToken, ct);
-                
             }
             catch (Exception e)
             {
                 return e;
             }
-            
+
             CtuAuthProcessData authData = new CtuAuthProcessData(
                 accessToken,
                 loadedUser,
@@ -94,10 +93,10 @@ namespace Christofel.Api.Ctu
 
             // 3. run conditions (if any failed, abort)
             var conditionsResult = await ExecuteConditionsAsync(services, authData, ct);
-            
+
             dbUser.CtuUsername ??= loadedUser.CtuUsername;
             var databaseResult = await SaveToDatabase(dbContext, authData, ct);
-            
+
             if (!conditionsResult.IsSuccess)
             {
                 return conditionsResult;
@@ -130,17 +129,16 @@ namespace Christofel.Api.Ctu
         private async Task<Result> ExecuteConditionsAsync(IServiceProvider services, IAuthData authData,
             CancellationToken ct = default)
         {
-            var conditionTasks = _conditionRepository
+            var conditions = _conditionRepository
                 .GetTypes<IPreAuthCondition>()
                 .Select(services.GetRequiredService)
-                .Cast<IPreAuthCondition>()
-                .Select(x => x.CheckPreAsync(authData, ct));
+                .Cast<IPreAuthCondition>();
 
-            foreach (var conditionTask in conditionTasks)
+            foreach (var condition in conditions)
             {
                 try
                 {
-                    var conditionResult = await conditionTask;
+                    var conditionResult = await condition.CheckPreAsync(authData, ct);
                     if (!conditionResult.IsSuccess)
                     {
                         return conditionResult;
@@ -158,17 +156,16 @@ namespace Christofel.Api.Ctu
         private async Task<Result> ExecuteStepsAsync(IServiceProvider services, IAuthData authData,
             CancellationToken ct = default)
         {
-            var stepTasks = _stepRepository
+            var steps = _stepRepository
                 .GetTypes<IAuthStep>()
                 .Select(services.GetRequiredService)
-                .Cast<IAuthStep>()
-                .Select(x => x.FillDataAsync(authData, ct));
+                .Cast<IAuthStep>();
 
-            foreach (var stepTask in stepTasks)
+            foreach (var step in steps)
             {
                 try
                 {
-                    var stepResult = await stepTask;
+                    var stepResult = await step.FillDataAsync(authData, ct);
                     if (!stepResult.IsSuccess)
                     {
                         return stepResult;
@@ -189,22 +186,21 @@ namespace Christofel.Api.Ctu
             var tasks = _taskRepository
                 .GetTypes<IAuthTask>()
                 .Select(services.GetRequiredService)
-                .Cast<IAuthTask>()
-                .Select(x => x.ExecuteAsync(authData, ct));
-
+                .Cast<IAuthTask>();
+            
             bool error = false;
             foreach (var task in tasks)
             {
                 Result taskResult;
                 try
                 {
-                    taskResult = await task;
+                    taskResult = await task.ExecuteAsync(authData, ct);
                 }
                 catch (Exception e)
                 {
                     taskResult = e;
                 }
-                
+
                 if (!taskResult.IsSuccess)
                 {
                     error = true;
@@ -212,7 +208,7 @@ namespace Christofel.Api.Ctu
                 }
             }
 
-            return error 
+            return error
                 ? new GenericError("Could not finish tasks execution successfully")
                 : Result.FromSuccess();
         }
