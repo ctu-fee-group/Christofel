@@ -9,11 +9,10 @@ namespace Christofel.Api.Ctu.Auth.Conditions
     {
         public ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = new CancellationToken())
         {
-            bool matchedUser = !authData.GuildUser.User.HasValue;
-
-            if (matchedUser)
+            if (!authData.GuildUser.User.HasValue)
             {
-                return ValueTask.FromResult<Result>(Result.FromSuccess());
+                return ValueTask.FromResult<Result>(new InvalidOperationError(
+                    "Cannot proceed as guild member user is not set, cannot check for match with database"));
             }
 
             var user = authData.GuildUser.User.Value;
