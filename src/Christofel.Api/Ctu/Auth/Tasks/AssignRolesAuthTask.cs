@@ -31,7 +31,7 @@ namespace Christofel.Api.Ctu.Auth.Tasks
                 .ToArray();
             var removeRoles = data.Roles.SoftRemoveRoles
                 .Select(x => x.RoleId)
-                .Except(assignRoles)
+                .Except(data.Roles.AddRoles.Select(x => x.RoleId))
                 .Intersect(guildMemberRoles)
                 .ToArray();
 
