@@ -16,6 +16,7 @@ using Christofel.CommandsLib.Validator;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OneOf;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
@@ -55,7 +56,7 @@ namespace Christofel.Management.Commands
             [Description("Permission to grant to the user or role")]
             string permission,
             [Description("Entity (user or role) to assign permission to"), DiscordTypeHint(TypeHint.Mentionable)]
-            IGuildMemberOrRole entity)
+            OneOf<IPartialGuildMember, IRole> entity)
         {
             PermissionAssignment assignment = new PermissionAssignment()
             {
@@ -96,7 +97,7 @@ namespace Christofel.Management.Commands
             [Description("Permission to revoke from the user or role")]
             string permission,
             [Description("Entity (user or role) to assign permission to"), DiscordTypeHint(TypeHint.Mentionable)]
-            IGuildMemberOrRole entity)
+            OneOf<IPartialGuildMember, IRole> entity)
         {
             Result<IReadOnlyList<IMessage>> feedbackResult;
             try
@@ -180,7 +181,7 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.permissions.show")]
         public async Task<Result> HandleShow(
             [Description("Show permissions of entity (user or role)"), DiscordTypeHint(TypeHint.Mentionable)]
-            IGuildMemberOrRole entity)
+            OneOf<IPartialGuildMember, IRole> entity)
         {
             var targets = entity.GetAllDiscordTargets();
 

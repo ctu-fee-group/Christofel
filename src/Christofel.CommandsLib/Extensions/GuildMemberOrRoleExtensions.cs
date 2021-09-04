@@ -4,62 +4,73 @@ using System.Linq;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
-using Christofel.CommandsLib.ContextedParsers;
+using OneOf;
+using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.CommandsLib.Extensions
 {
     public static class GuildMemberOrRoleExtensions
     {
-        public static DiscordTarget ToDiscordTarget(this IGuildMemberOrRole memberOrRole)
+        public static DiscordTarget ToDiscordTarget(this OneOf<IPartialGuildMember, IRole> memberOrRole)
         {
-            if (memberOrRole.User is not null)
+            if (memberOrRole.IsT0)
             {
-                return new DiscordTarget(memberOrRole.User.ID, TargetType.User);
+                var guildMember = memberOrRole.AsT0;
+                var user = guildMember.User;
+
+                if (!user.HasValue)
+                {
+                    throw new ArgumentException("GuildMember User must be set");
+                }
+
+                return new DiscordTarget(user.Value.ID, TargetType.User);
             }
 
-            if (memberOrRole.Role is not null)
+            if (memberOrRole.IsT1)
             {
-                if (memberOrRole.Role.Name == "@everyone")
+                var role = memberOrRole.AsT1;
+
+                if (role.Name == "@everyone")
                 {
                     return DiscordTarget.Everyone;
                 }
-                else
-                {
-                    return new DiscordTarget(memberOrRole.Role.ID, TargetType.Role);
-                }
+
+                return new DiscordTarget(role.ID, TargetType.Role);
             }
 
             throw new InvalidOperationException("Nor User, nor role is set");
         }
 
-        public static IEnumerable<DiscordTarget> GetAllDiscordTargets(this IGuildMemberOrRole memberOrRole)
+        public static IEnumerable<DiscordTarget> GetAllDiscordTargets(
+            this OneOf<IPartialGuildMember, IRole> memberOrRole)
         {
-            var targets = memberOrRole.Member?.GetAllDiscordTargets().ToList();
-
-            if (targets is null && memberOrRole.Role is not null)
+            if (memberOrRole.IsT0)
             {
-                targets = new List<DiscordTarget>();
-                if (memberOrRole.Role.Name == "@everyone")
+                var member = memberOrRole.AsT0;
+                var targets = member.GetAllDiscordTargets().ToList();
+                
+                targets.Add(DiscordTarget.Everyone);
+                return targets;
+            }
+
+            if (memberOrRole.IsT1)
+            {
+                var targets = new List<DiscordTarget>();
+                var role = memberOrRole.AsT1; 
+                
+                if (role.Name == "@everyone")
                 {
                     targets.Add(DiscordTarget.Everyone);
                 }
                 else
                 {
-                    targets.Add(new DiscordTarget(memberOrRole.Role.ID, TargetType.Role));
+                    targets.Add(new DiscordTarget(role.ID, TargetType.Role));
                 }
-            }
-            else if (targets is null)
-            {
-                throw new InvalidOperationException("Parsing of member or role failed");
-            }
 
-            if (memberOrRole.User is not null)
-            {
-                targets.Add(DiscordTarget.Everyone);
-                targets.Add(new DiscordTarget(memberOrRole.User.ID, TargetType.User));
+                return targets;
             }
-
-            return targets;
+            
+            throw new InvalidOperationException("Parsing of member or role failed");
         }
     }
 }
