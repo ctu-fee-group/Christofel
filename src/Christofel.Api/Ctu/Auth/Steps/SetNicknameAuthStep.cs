@@ -7,7 +7,6 @@ using Kos;
 using Kos.Abstractions;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Results;
-using RTools_NTS.Util;
 using Usermap;
 using Usermap.Controllers;
 

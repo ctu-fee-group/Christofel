@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Database;
 using Christofel.Api.Ctu.JobQueue;
-using EFCore.BulkExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Objects;
