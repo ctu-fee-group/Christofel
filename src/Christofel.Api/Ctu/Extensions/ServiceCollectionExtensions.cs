@@ -47,7 +47,7 @@ namespace Christofel.Api.Ctu.Extensions
             where T : class, IAuthStep
         {
             collection
-                .TryAddTransient<IAuthStep, T>();
+                .AddTransient<IAuthStep, T>();
 
             return collection;
         }
@@ -56,7 +56,7 @@ namespace Christofel.Api.Ctu.Extensions
             where T : class, IAuthTask
         {
             collection
-                .TryAddTransient<IAuthTask, T>();
+                .AddTransient<IAuthTask, T>();
 
             return collection;
         }
@@ -65,7 +65,7 @@ namespace Christofel.Api.Ctu.Extensions
             where T : class, IPreAuthCondition
         {
             collection
-                .TryAddTransient<IPreAuthCondition, T>();
+                .AddTransient<IPreAuthCondition, T>();
             
             return collection;
         }
