@@ -52,18 +52,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
         protected IGuildMember CreateDummyGuildMember(DbUser user)
         {
-            return new GuildMember(new User(user.DiscordId, "DummyUser", 1234, default), default, new List<Snowflake>(),
-                default, default, default, default);
+            return GuildMemberRepository.CreateDummyGuildMember(user);
         }
 
         protected Mock<ICtuTokenApi> GetMockedTokenApi(DbUser user)
         {
-            var successfulOauthHandler = new Mock<ICtuTokenApi>();
-            successfulOauthHandler
-                .Setup(tokenApi => tokenApi.CheckTokenAsync(_dummyAccessToken, It.IsAny<CancellationToken>()).Result)
-                .Returns(new CtuUser(user.UserId, _dummyUsername));
-
-            return successfulOauthHandler;
+            return OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
         }
         
         [Fact]

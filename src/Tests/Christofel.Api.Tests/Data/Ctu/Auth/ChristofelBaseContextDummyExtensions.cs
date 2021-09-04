@@ -8,7 +8,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
 {
     public static class ChristofelBaseContextDummyExtensions
     {
-        public static async Task<DbUser> SetupUserToAuthenticateAsync(this ChristofelBaseContext ctx)
+        public static async Task<DbUser> SetupUserToAuthenticateAsync(this ChristofelBaseContext ctx, string username = null)
         {
             var user = new DbUser()
             {
@@ -17,7 +17,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
                 DiscordId = new Snowflake(12348671238986),
                 RegistrationCode = "2345-234",
                 AuthenticatedAt = null,
-                CtuUsername = null,
+                CtuUsername = username,
                 DuplicitUser = null,
                 DuplicitUserId = null,
                 DuplicitUsersBack = null,
