@@ -120,8 +120,7 @@ namespace Christofel.Api.Ctu
             CancellationToken ct = default)
         {
             var conditions = services
-                .GetServices(typeof(IPreAuthCondition))
-                .Cast<IPreAuthCondition>();
+                .GetServices<IPreAuthCondition>();
 
             foreach (var condition in conditions)
             {
