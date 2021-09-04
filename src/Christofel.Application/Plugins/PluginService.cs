@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -40,7 +41,7 @@ namespace Christofel.Application.Plugins
             _options = options.CurrentValue;
             _onOptionsChange = options.OnChange(o => _options = o);
         }
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -59,6 +60,20 @@ namespace Christofel.Application.Plugins
         public bool Exists(string name)
         {
             return File.Exists(GetModulePath(name));
+        }
+
+        /// <summary>
+        /// Returns names of plugins that can be attached (excluding these that are attached)
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> GetAttachablePluginNames()
+        {
+            string pluginsPath = Path.GetFullPath(_options.Folder);
+            return Directory.GetDirectories(pluginsPath)
+                .Select(Path.GetFileName)
+                .Where(x => x is not null)
+                .Cast<string>()
+                .Except(_storage.AttachedPlugins.Select(x => x.Name));
         }
 
         /// <summary>
@@ -84,10 +99,11 @@ namespace Christofel.Application.Plugins
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
         /// <exception cref="FileNotFoundException"></exception>
-        public Task<IHasPluginInfo> AttachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
+        public Task<IHasPluginInfo> AttachAsync(IChristofelState state, string name,
+            CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();
-            
+
             if (!Regex.IsMatch(name, ModuleNameRegex))
             {
                 throw new InvalidOperationException("Name cannot be accepted.");
@@ -136,7 +152,8 @@ namespace Christofel.Application.Plugins
         /// <param name="token"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public Task<IHasPluginInfo> ReattachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
+        public Task<IHasPluginInfo> ReattachAsync(IChristofelState state, string name,
+            CancellationToken token = new CancellationToken())
         {
             if (!IsAttached(name))
             {
@@ -147,7 +164,8 @@ namespace Christofel.Application.Plugins
             return InternalReattachAsync(state, _storage.GetAttachedPlugin(name), token);
         }
 
-        private async Task<IHasPluginInfo> InternalAttachAsync(IChristofelState state, string name, CancellationToken token = new CancellationToken())
+        private async Task<IHasPluginInfo> InternalAttachAsync(IChristofelState state, string name,
+            CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();
             using (_logger.BeginScope(@$"Attaching {name} plugin"))
@@ -175,7 +193,7 @@ namespace Christofel.Application.Plugins
         {
             GC.Collect();
             GC.WaitForPendingFinalizers();
-            
+
             foreach (DetachedPlugin plugin in _storage.DetachedPlugins.ToList())
             {
                 if (plugin.AssemblyContextReference?.IsAlive ?? false)
@@ -189,11 +207,12 @@ namespace Christofel.Application.Plugins
                 }
             }
         }
-        
-        private async Task<IHasPluginInfo> InternalDetachAsync(AttachedPlugin plugin, CancellationToken token = new CancellationToken())
+
+        private async Task<IHasPluginInfo> InternalDetachAsync(AttachedPlugin plugin,
+            CancellationToken token = new CancellationToken())
         {
             DetachedPlugin detached = new DetachedPlugin(plugin);
-            
+
             if (plugin.DetachedPlugin != null)
             {
                 return plugin.DetachedPlugin;
@@ -206,8 +225,9 @@ namespace Christofel.Application.Plugins
 
             return detached;
         }
-        
-        private async Task<IHasPluginInfo> InternalReattachAsync(IChristofelState state, AttachedPlugin plugin, CancellationToken token = new CancellationToken())
+
+        private async Task<IHasPluginInfo> InternalReattachAsync(IChristofelState state, AttachedPlugin plugin,
+            CancellationToken token = new CancellationToken())
         {
             _logger.LogInformation($@"Reattaching plugin {plugin}");
             DetachedPlugin detached = (DetachedPlugin)await InternalDetachAsync(plugin, token);
@@ -218,7 +238,7 @@ namespace Christofel.Application.Plugins
                 _logger.LogError("Cannot finish reattach as the plugin did not stop in time");
                 throw new InvalidOperationException("Could not detach the plugin in time, aborting reattach");
             }
-            
+
             return await AttachAsync(state, plugin.Name, token);
         }
 

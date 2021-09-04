@@ -157,13 +157,25 @@ namespace Christofel.Application.Commands
         [Command("list")]
         [Description("List all attached plugins")]
         [RequirePermission("application.plugins.list")]
-        public Task<Result<IReadOnlyList<IMessage>>> HandleList()
+        public async Task<Result<IReadOnlyList<IMessage>>> HandleList()
         {
-            IEnumerable<string> plugins = _storage.AttachedPlugins
-                .Select(x => $@"**{x.Name}** ({x.Version}) - {x.Description}");
-            string pluginMessage = "List of attached plugins:\n  " + string.Join("\n  ", plugins);
+            IEnumerable<string> attachedPlugins = _storage.AttachedPlugins
+                .Select(x => $@"  - **{x.Name}** ({x.Version}) - _{x.Description}_");
+            IEnumerable<string> attachablePlugins = _plugins.GetAttachablePluginNames()
+                .Select(x => $"  - **{x}**");
 
-            return _feedbackService.SendContextualSuccessAsync(pluginMessage,
+            string pluginMessage = "List of attached plugins:\n" + string.Join("\n", attachedPlugins) + "\n";
+            string attachablePluginMessage = "List of attachable plugins:\n" + string.Join("\n", attachablePlugins);
+            
+            var result = await _feedbackService.SendContextualSuccessAsync(pluginMessage,
+                ct: CancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                return result;
+            }
+            
+            return await _feedbackService.SendContextualSuccessAsync(attachablePluginMessage,
                 ct: CancellationToken);
         }
         
