@@ -32,5 +32,10 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
                 throw new InvalidOperationException();
             }
         }
+
+        public abstract class MockTask : IAuthTask
+        {
+            public abstract Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default);
+        }
     }
 }

@@ -19,13 +19,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
         [Fact]
         public async Task FailedConditionDoesntStartTasks()
         {
-            var taskMock = new Mock<IAuthTask>();
+            var taskMock = new Mock<TaskRepository.MockTask>();
 
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddAuthCondition<ConditionRepository.FailingCondition>()
-                .AddScoped<IAuthTask>(p => taskMock.Object)
-                .AddAuthTask<IAuthTask>()
+                .AddScoped<IAuthTask, TaskRepository.MockTask>(p => taskMock.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
@@ -47,13 +46,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
         [Fact]
         public async Task FailedConditionDoesntStartSteps()
         {
-            var stepMock = new Mock<IAuthStep>();
+            var stepMock = new Mock<StepRepository.MockStep>();
 
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddAuthCondition<ConditionRepository.FailingCondition>()
-                .AddScoped<IAuthStep>(p => stepMock.Object)
-                .AddAuthStep<IAuthStep>()
+                .AddScoped<IAuthStep, StepRepository.MockStep>(p => stepMock.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
@@ -76,13 +74,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
         [Fact]
         public async Task FailedStepDoesntStartTasks()
         {
-            var taskMock = new Mock<IAuthTask>();
+            var taskMock = new Mock<TaskRepository.MockTask>();
 
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddAuthStep<StepRepository.FailingStep>()
-                .AddScoped<IAuthTask>(p => taskMock.Object)
-                .AddAuthTask<IAuthTask>()
+                .AddScoped<IAuthTask, TaskRepository.MockTask>(p => taskMock.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 

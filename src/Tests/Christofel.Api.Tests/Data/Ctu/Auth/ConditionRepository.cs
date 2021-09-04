@@ -32,5 +32,10 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
                 throw new InvalidOperationException();
             }
         }
+
+        public abstract class MockCondition : IPreAuthCondition
+        {
+            public abstract ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = new CancellationToken());
+        }
     }
 }

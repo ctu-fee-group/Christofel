@@ -42,13 +42,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
         [Fact]
         public async Task FailedTaskFinishesAllTasks()
         {
-            var mockTask = new Mock<IAuthTask>();
+            var mockTask = new Mock<TaskRepository.MockTask>();
 
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddAuthTask<TaskRepository.FailingTask>()
-                .AddScoped<IAuthTask>(p => mockTask.Object)
-                .AddAuthTask<IAuthTask>()
+                .AddScoped<IAuthTask, TaskRepository.MockTask>(p => mockTask.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
@@ -65,12 +64,11 @@ namespace Christofel.Api.Tests.Ctu.Auth
             mockTask.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
                 Times.Once);
 
-            mockTask = new Mock<IAuthTask>();
+            mockTask = new Mock<TaskRepository.MockTask>();
 
             services = new ServiceCollection()
                 .AddCtuAuthProcess()
-                .AddScoped<IAuthTask>(p => mockTask.Object)
-                .AddAuthTask<IAuthTask>()
+                .AddScoped<IAuthTask, TaskRepository.MockTask>(p => mockTask.Object)
                 .AddAuthTask<TaskRepository.FailingTask>()
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();

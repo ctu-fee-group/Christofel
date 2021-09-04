@@ -59,16 +59,15 @@ namespace Christofel.Api.Tests.Ctu.Auth
         {
             return OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
         }
-        
+
         [Fact]
         public async Task CallsCondition()
         {
-            var mockCondition = new Mock<IPreAuthCondition>();
+            var mockCondition = new Mock<ConditionRepository.MockCondition>();
 
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
-                .AddScoped<IPreAuthCondition>(p => mockCondition.Object)
-                .AddAuthCondition<IPreAuthCondition>()
+                .AddScoped<IPreAuthCondition, ConditionRepository.MockCondition>(p => mockCondition.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
@@ -89,12 +88,11 @@ namespace Christofel.Api.Tests.Ctu.Auth
         [Fact]
         public async Task CallsTask()
         {
-            var mockTask = new Mock<IAuthTask>();
+            var mockTask = new Mock<TaskRepository.MockTask>();
 
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
-                .AddScoped<IAuthTask>(p => mockTask.Object)
-                .AddAuthTask<IAuthTask>()
+                .AddScoped<IAuthTask, TaskRepository.MockTask>(p => mockTask.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
@@ -115,12 +113,11 @@ namespace Christofel.Api.Tests.Ctu.Auth
         [Fact]
         public async Task CallsStep()
         {
-            var mockStep = new Mock<IAuthStep>();
+            var mockStep = new Mock<StepRepository.MockStep>();
 
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
-                .AddScoped<IAuthStep>(p => mockStep.Object)
-                .AddAuthStep<IAuthStep>()
+                .AddScoped<IAuthStep, StepRepository.MockStep>(p => mockStep.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 

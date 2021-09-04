@@ -41,5 +41,10 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
                 return Task.FromResult(Result.FromSuccess());
             }
         }
+
+        public abstract class MockStep : IAuthStep
+        {
+            public abstract Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default);
+        }
     }
 }
