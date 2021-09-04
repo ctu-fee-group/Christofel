@@ -27,27 +27,17 @@ namespace Christofel.Api.Ctu
     {
         private readonly IServiceProvider _services;
         private readonly ILogger<CtuAuthProcess> _logger;
-
-        private readonly TypeRepository<IPreAuthCondition> _conditionRepository;
-        private readonly TypeRepository<IAuthTask> _taskRepository;
-        private readonly TypeRepository<IAuthStep> _stepRepository;
-
+        
         /// <summary>
         /// Initialize CtuAuthProcess
         /// </summary>
         public CtuAuthProcess(
             IServiceProvider services,
-            ILogger<CtuAuthProcess> logger,
-            IOptions<TypeRepository<IPreAuthCondition>> conditionRepository,
-            IOptions<TypeRepository<IAuthTask>> taskRepository,
-            IOptions<TypeRepository<IAuthStep>> stepRepository
+            ILogger<CtuAuthProcess> logger
         )
         {
             _logger = logger;
             _services = services;
-            _conditionRepository = conditionRepository.Value;
-            _taskRepository = taskRepository.Value;
-            _stepRepository = stepRepository.Value;
         }
 
         /// <summary>
@@ -129,9 +119,8 @@ namespace Christofel.Api.Ctu
         private async Task<Result> ExecuteConditionsAsync(IServiceProvider services, IAuthData authData,
             CancellationToken ct = default)
         {
-            var conditions = _conditionRepository
-                .GetTypes<IPreAuthCondition>()
-                .Select(services.GetRequiredService)
+            var conditions = services
+                .GetServices(typeof(IPreAuthCondition))
                 .Cast<IPreAuthCondition>();
 
             foreach (var condition in conditions)
@@ -156,10 +145,8 @@ namespace Christofel.Api.Ctu
         private async Task<Result> ExecuteStepsAsync(IServiceProvider services, IAuthData authData,
             CancellationToken ct = default)
         {
-            var steps = _stepRepository
-                .GetTypes<IAuthStep>()
-                .Select(services.GetRequiredService)
-                .Cast<IAuthStep>();
+            var steps = services
+                .GetServices<IAuthStep>();
 
             foreach (var step in steps)
             {
@@ -183,10 +170,8 @@ namespace Christofel.Api.Ctu
         private async Task<Result> ExecuteTasks(IServiceProvider services, IAuthData authData,
             CancellationToken ct = default)
         {
-            var tasks = _taskRepository
-                .GetTypes<IAuthTask>()
-                .Select(services.GetRequiredService)
-                .Cast<IAuthTask>();
+            var tasks = services
+                .GetServices<IAuthTask>();
             
             bool error = false;
             foreach (var task in tasks)

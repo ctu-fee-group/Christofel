@@ -12,10 +12,6 @@ namespace Christofel.Api.Ctu.Extensions
     {
         public static IServiceCollection AddCtuAuthProcess(this IServiceCollection collection)
         {
-            collection.AddOptions<TypeRepository<IPreAuthCondition>>();
-            collection.AddOptions<TypeRepository<IAuthStep>>();
-            collection.AddOptions<TypeRepository<IAuthTask>>();
-            
             collection
                 .TryAddScoped<CtuAuthProcess>();
             
@@ -51,11 +47,7 @@ namespace Christofel.Api.Ctu.Extensions
             where T : class, IAuthStep
         {
             collection
-                .TryAddTransient<T>();
-
-            collection.Configure<TypeRepository<IAuthStep>>(
-                provider => provider.RegisterType<T>()
-            );
+                .TryAddTransient<IAuthStep, T>();
 
             return collection;
         }
@@ -64,11 +56,7 @@ namespace Christofel.Api.Ctu.Extensions
             where T : class, IAuthTask
         {
             collection
-                .TryAddTransient<T>();
-
-            collection.Configure<TypeRepository<IAuthTask>>(
-                provider => provider.RegisterType<T>()
-            );
+                .TryAddTransient<IAuthTask, T>();
 
             return collection;
         }
@@ -77,12 +65,8 @@ namespace Christofel.Api.Ctu.Extensions
             where T : class, IPreAuthCondition
         {
             collection
-                .TryAddTransient<T>();
-
-            collection.Configure<TypeRepository<IPreAuthCondition>>(
-                provider => provider.RegisterType<T>()
-            );
-
+                .TryAddTransient<IPreAuthCondition, T>();
+            
             return collection;
         }
     }
