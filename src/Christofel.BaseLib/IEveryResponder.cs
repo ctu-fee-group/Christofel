@@ -55,9 +55,6 @@ namespace Christofel.BaseLib
     {}
     
     public interface IInteractionsResponder :
-        IResponder<IApplicationCommandCreate>,
-        IResponder<IApplicationCommandDelete>,
-        IResponder<IApplicationCommandUpdate>,
         IResponder<IInteractionCreate>
     {}
     

@@ -270,21 +270,6 @@ namespace Christofel.BaseLib.Implementations.Responders
             return RespondAnyAsync(gatewayEvent, ct);
         }
 
-        public Task<Result> RespondAsync(IApplicationCommandCreate gatewayEvent, CancellationToken ct = new CancellationToken())
-        {
-            return RespondAnyAsync(gatewayEvent, ct);
-        }
-
-        public Task<Result> RespondAsync(IApplicationCommandDelete gatewayEvent, CancellationToken ct = new CancellationToken())
-        {
-            return RespondAnyAsync(gatewayEvent, ct);
-        }
-
-        public Task<Result> RespondAsync(IApplicationCommandUpdate gatewayEvent, CancellationToken ct = new CancellationToken())
-        {
-            return RespondAnyAsync(gatewayEvent, ct);
-        }
-
         public Task<Result> RespondAsync(IInteractionCreate gatewayEvent, CancellationToken ct = new CancellationToken())
         {
             return RespondAnyAsync(gatewayEvent, ct);
