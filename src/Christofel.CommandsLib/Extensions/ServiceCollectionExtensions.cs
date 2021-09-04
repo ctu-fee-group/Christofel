@@ -22,8 +22,10 @@ namespace Christofel.CommandsLib.Extensions
                 .AddTransient<ChristofelCommandPermissionResolver>()
                 .AddTransient<ChristofelCommandRegistrator>()
                 // parsers
-                .AddParser<IGuildMemberOrRole, ContextualMemberOrRoleParser>()
-                //.AddParser<IUser, ContextualUserParser>()
+                .AddParser<ContextualUserParser>()
+                .AddParser<ContextualGuildMemberParser>()
+                .AddParser<ContextualRoleParser>()
+                .AddParser<ContextualChannelParser>()
                 // conditions
                 .AddCondition<RequirePermissionCondition>()
                 // execution events

@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Remora.Commands.Parsers;
+using Remora.Commands.Results;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Parsers;
@@ -23,7 +25,7 @@ namespace Christofel.CommandsLib.ContextedParsers
             _commandContext = commandContext.FirstOrDefault();
         }
         
-        public override ValueTask<Result<IUser>> TryParse(string value, CancellationToken ct)
+        public override ValueTask<Result<IUser>> TryParseAsync(string value, CancellationToken ct)
         {
             if (_commandContext is InteractionContext interactionContext &&
                 Snowflake.TryParse(value, out var userID) &&
@@ -34,7 +36,12 @@ namespace Christofel.CommandsLib.ContextedParsers
                 return ValueTask.FromResult(Result<IUser>.FromSuccess(user));
             }
 
-            return new UserParser(_userApi).TryParse(value, ct);
+            if (_commandContext is InteractionContext)
+            {
+                return ValueTask.FromResult<Result<IUser>>(new ParsingError<IUser>("Could not find specified user in resolved data"));
+            }
+
+            return new UserParser(_userApi).TryParseAsync(value, ct);
         }
     }
 }
