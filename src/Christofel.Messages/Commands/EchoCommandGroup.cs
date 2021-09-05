@@ -2,12 +2,14 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Implementations.Helpers;
 using Christofel.CommandsLib;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
@@ -47,7 +49,7 @@ namespace Christofel.Messages.Commands
             Snowflake? channel = null)
         {
             var channelId = channel ?? _context.ChannelID;
-            var messageResult = await _channelApi.CreateMessageAsync(channelId, text, ct: CancellationToken);
+            var messageResult = await _channelApi.CreateMessageAsync(channelId, text, allowedMentions: AllowedMentionsHelper.None, ct: CancellationToken);
             if (!messageResult.IsSuccess)
             {
                 // Ignore as message not sent is more critical
@@ -84,7 +86,7 @@ namespace Christofel.Messages.Commands
                 return Result.FromError(messageResult);
             }
 
-            var editResult = await _channelApi.EditMessageAsync(channelId, messageId, text, ct: CancellationToken);
+            var editResult = await _channelApi.EditMessageAsync(channelId, messageId, text, allowedMentions: AllowedMentionsHelper.None, ct: CancellationToken);
             if (!editResult.IsSuccess)
             {
                 // Ignore as message not modified is more critical
