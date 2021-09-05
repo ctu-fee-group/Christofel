@@ -32,7 +32,7 @@ namespace Christofel.Api.Ctu.Auth.Tasks
             var duplicate = await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
             if (duplicate.Type == DuplicityType.None)
             {
-                await EnqueueChange(data, ct);
+                return await EnqueueChange(data, ct);
             }
 
             return Result.FromSuccess();
