@@ -25,6 +25,8 @@ namespace Christofel.Api.Ctu
     /// </summary>
     public class CtuAuthProcess
     {
+        private record LinkUser(int UserId, string CtuUsername, Snowflake DiscordId) : ILinkUser;
+        
         private readonly IServiceProvider _services;
         private readonly ILogger<CtuAuthProcess> _logger;
         
@@ -72,7 +74,7 @@ namespace Christofel.Api.Ctu
 
             CtuAuthProcessData authData = new CtuAuthProcessData(
                 accessToken,
-                loadedUser,
+                new LinkUser(0, loadedUser.CtuUsername, dbUser.DiscordId),
                 new Snowflake(guildId),
                 dbContext,
                 dbUser,

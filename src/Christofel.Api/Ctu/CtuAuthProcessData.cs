@@ -28,7 +28,7 @@ namespace Christofel.Api.Ctu
         /// <summary>
         /// Loaded user from oauth check token
         /// </summary>
-        ICtuUser LoadedUser { get; }
+        ILinkUser LoadedUser { get; }
         
         /// <summary>
         /// Id of the guild where the user is located
@@ -68,7 +68,7 @@ namespace Christofel.Api.Ctu
     /// <param name="Roles"></param>
     public record CtuAuthProcessData(
             string AccessToken,
-            ICtuUser LoadedUser,
+            ILinkUser LoadedUser,
             Snowflake GuildId,
             ChristofelBaseContext DbContext,
             DbUser DbUser,

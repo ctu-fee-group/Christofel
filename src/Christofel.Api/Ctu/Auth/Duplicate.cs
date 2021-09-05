@@ -22,6 +22,6 @@ namespace Christofel.Api.Ctu.Auth
         Both,
     }
     
-    public record Duplicate(DuplicityType Type, DbUser User);
+    public record Duplicate(DuplicityType Type, DbUser? User);
 
 }

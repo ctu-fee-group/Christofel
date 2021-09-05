@@ -1,32 +1,39 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Ctu.Resolvers;
 using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     public class DuplicateAssignStep : IAuthStep
     {
-        public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
+        private readonly DuplicateResolver _duplicates;
+        
+        public DuplicateAssignStep(DuplicateResolver duplicates)
         {
-            if (!data.StepData.TryGetValue("Duplicate", out var duplicateObj) || duplicateObj is null)
+            _duplicates = duplicates;
+        }
+        
+        public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
+        {
+            var duplicate =  await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
+            if (duplicate.Type != DuplicityType.None && duplicate.User is null)
             {
-                return Task.FromResult<Result>(new InvalidOperationError(
-                    "Could not find duplicate in step data. Did you forget to register duplicate condition?"));
+                return new InvalidOperationError("User cannot be null for non-none duplicate");
             }
 
-            var duplicate = (Duplicate)duplicateObj;
             if (duplicate.Type == DuplicityType.Both)
             {
-                duplicate.User.AuthenticatedAt = DateTime.Now;
+                duplicate.User!.AuthenticatedAt = DateTime.Now;
                 data.DbContext.Remove(data.DbUser);
             }
             else if (duplicate.Type != DuplicityType.None)
             {
-                duplicate.User.DuplicitUserId = duplicate.User.UserId;
+                data.DbUser.DuplicitUserId = duplicate.User!.UserId;
             }
 
-            return Task.FromResult(Result.FromSuccess());
+            return Result.FromSuccess();
         }
     }
 }

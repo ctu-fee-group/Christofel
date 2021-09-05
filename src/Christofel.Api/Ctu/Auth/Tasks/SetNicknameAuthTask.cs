@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.JobQueue;
+using Christofel.Api.Ctu.Resolvers;
 using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.Core;
@@ -12,22 +13,20 @@ namespace Christofel.Api.Ctu.Auth.Tasks
     {
         private readonly IJobQueue<CtuAuthNicknameSet> _jobQueue;
         private readonly ILogger _logger;
+        private readonly DuplicateResolver _duplicates;
 
-        public SetNicknameAuthTask(IJobQueue<CtuAuthNicknameSet> jobQueue, ILogger<SetNicknameAuthTask> logger)
+        public SetNicknameAuthTask(IJobQueue<CtuAuthNicknameSet> jobQueue, ILogger<SetNicknameAuthTask> logger,
+            DuplicateResolver duplicates)
         {
+            _duplicates = duplicates;
+            
             _jobQueue = jobQueue;
             _logger = logger;
         }
 
         public async Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
         {
-            if (!data.StepData.TryGetValue("Duplicate", out var duplicateObj) || duplicateObj is null)
-            {
-                return new InvalidOperationError(
-                    "Could not find duplicate in step data. Did you forget to register duplicate condition?");
-            }
-
-            var duplicate = (Duplicate)duplicateObj;
+            var duplicate = await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
             if (duplicate.Type == DuplicityType.None)
             {
                 await EnqueueChange(data, ct);

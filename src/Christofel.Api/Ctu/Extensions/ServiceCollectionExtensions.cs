@@ -24,6 +24,7 @@ namespace Christofel.Api.Ctu.Extensions
         public static IServiceCollection AddDefaultCtuAuthProcess(this IServiceCollection services)
         {
             services
+                .AddScoped<DuplicateResolver>()
                 .AddAuthCondition<CtuUsernameFilledCondition>()
                 .AddAuthCondition<MemberMatchesUserCondition>()
                 .AddAuthCondition<NoDuplicateCondition>()
