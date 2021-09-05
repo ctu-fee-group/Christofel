@@ -99,7 +99,8 @@ namespace Christofel.Api
                 .AddDataLoader<UserByIdDataLoader>()
                 .AddDiagnosticEventListener<DiagnosticEventListener>(sp =>
                     new DiagnosticEventListener(sp.GetApplicationService<ILogger<DiagnosticEventListener>>()))
-                .EnableRelaySupport();
+                .EnableRelaySupport()
+                .ModifyRequestOptions(x => x.ExecutionTimeout = TimeSpan.FromMinutes(2));
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
