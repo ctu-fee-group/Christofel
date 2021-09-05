@@ -1,6 +1,7 @@
 using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Auth.Steps;
 using Christofel.Api.Ctu.Auth.Tasks;
+using Christofel.Api.Ctu.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -25,6 +26,7 @@ namespace Christofel.Api.Ctu.Extensions
         {
             services
                 .AddScoped<DuplicateResolver>()
+                .AddScoped<NicknameResolver>()
                 .AddAuthCondition<CtuUsernameFilledCondition>()
                 .AddAuthCondition<MemberMatchesUserCondition>()
                 .AddAuthCondition<NoDuplicateCondition>()
@@ -35,7 +37,6 @@ namespace Christofel.Api.Ctu.Extensions
                 .AddAuthStep<TitlesRoleStep>()
                 .AddAuthStep<UsermapRolesStep>()
                 .AddAuthStep<YearRoleStep>()
-                .AddAuthStep<SetNicknameAuthStep>()
                 .AddAuthStep<DuplicateAssignStep>()
                 .AddAuthStep<RemoveOldRolesStep>()
                 .AddAuthTask<AssignRolesAuthTask>()

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.JobQueue;
@@ -13,12 +14,14 @@ namespace Christofel.Api.Ctu.Auth.Tasks
     {
         private readonly IJobQueue<CtuAuthNicknameSet> _jobQueue;
         private readonly ILogger _logger;
+        private readonly NicknameResolver _nickname;
         private readonly DuplicateResolver _duplicates;
 
         public SetNicknameAuthTask(IJobQueue<CtuAuthNicknameSet> jobQueue, ILogger<SetNicknameAuthTask> logger,
             DuplicateResolver duplicates)
         {
             _duplicates = duplicates;
+            _nickname = nickname;
             
             _jobQueue = jobQueue;
             _logger = logger;
@@ -35,23 +38,19 @@ namespace Christofel.Api.Ctu.Auth.Tasks
             return Result.FromSuccess();
         }
 
-        private Task<Result> EnqueueChange(IAuthData data, CancellationToken ct)
+        private async Task<Result> EnqueueChange(IAuthData data, CancellationToken ct)
         {
-            if (!data.StepData.TryGetValue("Nickname", out var nickname))
-            {
-                return Task.FromResult<Result>(new InvalidOperationError(
-                    "Could not find nickname in step data. Did you forget to register set nickname step?"));
-            }
+            var nickname = await _nickname.ResolveNicknameAsync(data.LoadedUser, data.GuildUser, ct);
 
             if (nickname is null)
             {
                 _logger.LogWarning("Could not obtain what the user's nickname should be");
-                return Task.FromResult(Result.FromSuccess());
+                return Result.FromSuccess();
             }
 
             _jobQueue.EnqueueJob(new CtuAuthNicknameSet(data.DbUser.DiscordId,
-                data.GuildId, (string)nickname));
-            return Task.FromResult(Result.FromSuccess());
+                data.GuildId, nickname));
+            return Result.FromSuccess();
         }
     }
 }
