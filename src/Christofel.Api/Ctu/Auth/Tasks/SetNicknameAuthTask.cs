@@ -18,7 +18,7 @@ namespace Christofel.Api.Ctu.Auth.Tasks
         private readonly DuplicateResolver _duplicates;
 
         public SetNicknameAuthTask(IJobQueue<CtuAuthNicknameSet> jobQueue, ILogger<SetNicknameAuthTask> logger,
-            DuplicateResolver duplicates)
+            DuplicateResolver duplicates, NicknameResolver nickname)
         {
             _duplicates = duplicates;
             _nickname = nickname;
