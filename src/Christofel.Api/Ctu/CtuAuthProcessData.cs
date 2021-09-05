@@ -51,11 +51,6 @@ namespace Christofel.Api.Ctu
         /// What roles should be assigned and removed at the end of the process
         /// </summary>
         CtuAuthAssignedRoles Roles { get; }
-        
-        /// <summary>
-        /// Data persistent throughout steps for passing valuable information
-        /// </summary>
-        Dictionary<string, object?> StepData { get; }
     }
 
     /// <summary>
@@ -73,8 +68,7 @@ namespace Christofel.Api.Ctu
             ChristofelBaseContext DbContext,
             DbUser DbUser,
             IGuildMember GuildUser,
-            CtuAuthAssignedRoles Roles,
-            Dictionary<string, object?> StepData)
+            CtuAuthAssignedRoles Roles)
         : IAuthData;
 
     /// <summary>
