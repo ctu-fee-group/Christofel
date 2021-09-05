@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Implementations.Helpers;
 using Christofel.CommandsLib;
 using Christofel.Messages.Services;
 using Microsoft.Extensions.Logging;
@@ -46,9 +47,11 @@ namespace Christofel.Messages.Commands
         }
 
         private static async Task<Result> HandleCreateEmbed(FeedbackService feedbackService,
+            IDiscordRestChannelAPI channelApi,
             Snowflake channelId, Embed embed, CancellationToken ct)
         {
-            var messageResult = await feedbackService.SendEmbedAsync(channelId, embed, ct);
+            var messageResult = await channelApi.CreateMessageAsync(channelId, embeds: new[] { embed },
+                allowedMentions: AllowedMentionsHelper.None, ct: ct);
             if (!messageResult.IsSuccess)
             {
                 await feedbackService.SendContextualErrorAsync("Could not send the embed, check permissions", ct: ct);
@@ -83,7 +86,7 @@ namespace Christofel.Messages.Commands
                 _embeds = embeds;
                 _logger = logger;
             }
-            
+
             private async Task<Result<Embed>> ParseEmbed(string file)
             {
                 try
@@ -102,7 +105,7 @@ namespace Christofel.Messages.Commands
                     return e;
                 }
             }
-            
+
             [Command("edit")]
             [Description("Edit an embed from json file")]
             [RequirePermission("messages.embed.file.edit")]
@@ -130,7 +133,8 @@ namespace Christofel.Messages.Commands
             [Description("Create an embed from json file")]
             [RequirePermission("messages.embed.file.send")]
             public async Task<Result> HandleCreateEmbedFromFile(
-                [Description("File with json to send")] string embed,
+                [Description("File with json to send")]
+                string embed,
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
                 Snowflake? channel = null)
             {
@@ -140,7 +144,7 @@ namespace Christofel.Messages.Commands
                     return Result.FromError(parseResult);
                 }
 
-                return await HandleCreateEmbed(_feedbackService, channel ?? _context.ChannelID,
+                return await HandleCreateEmbed(_feedbackService, _channelApi, channel ?? _context.ChannelID,
                     parseResult.Entity, CancellationToken);
             }
         }
@@ -192,8 +196,7 @@ namespace Christofel.Messages.Commands
             public async Task<Result> HandleEditEmbedFromMessage(
                 [Description("What message to edit"), DiscordTypeHint(TypeHint.String)]
                 Snowflake messageId,
-                [Description("Embed json"), Greedy]
-                string embed,
+                [Description("Embed json"), Greedy] string embed,
                 [Description("Where to send the message. Default current channel"), DiscordTypeHint(TypeHint.Channel)]
                 Snowflake? channel = null)
             {
@@ -223,7 +226,7 @@ namespace Christofel.Messages.Commands
                     return Result.FromError(parseResult);
                 }
 
-                return await HandleCreateEmbed(_feedbackService, channel ?? _context.ChannelID,
+                return await HandleCreateEmbed(_feedbackService, _channelApi, channel ?? _context.ChannelID,
                     parseResult.Entity, CancellationToken);
             }
         }
