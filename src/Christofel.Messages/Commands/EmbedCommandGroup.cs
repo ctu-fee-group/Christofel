@@ -67,14 +67,14 @@ namespace Christofel.Messages.Commands
         [RequirePermission("messages.embed.file")]
         public class FileInner : CommandGroup
         {
-            private readonly ILogger<ReactCommandGroup> _logger;
+            private readonly ILogger<EmbedCommandGroup> _logger;
             private readonly EmbedsProvider _embeds;
             private readonly FeedbackService _feedbackService;
             private readonly ICommandContext _context;
             private readonly IDiscordRestChannelAPI _channelApi;
 
 
-            public FileInner(ILogger<ReactCommandGroup> logger, EmbedsProvider embeds,
+            public FileInner(ILogger<EmbedCommandGroup> logger, EmbedsProvider embeds,
                 FeedbackService feedbackService, ICommandContext context, IDiscordRestChannelAPI channelApi)
             {
                 _channelApi = channelApi;
@@ -150,14 +150,14 @@ namespace Christofel.Messages.Commands
         [RequirePermission("messages.embed.msg")]
         public class MessageInner : CommandGroup
         {
-            private readonly ILogger<ReactCommandGroup> _logger;
+            private readonly ILogger<EmbedCommandGroup> _logger;
             private readonly EmbedsProvider _embeds;
             private readonly FeedbackService _feedbackService;
             private readonly ICommandContext _context;
             private readonly IDiscordRestChannelAPI _channelApi;
 
 
-            public MessageInner(ILogger<ReactCommandGroup> logger, EmbedsProvider embeds,
+            public MessageInner(ILogger<EmbedCommandGroup> logger, EmbedsProvider embeds,
                 FeedbackService feedbackService, ICommandContext context, IDiscordRestChannelAPI channelApi)
             {
                 _channelApi = channelApi;
