@@ -15,6 +15,7 @@ using Christofel.ReactHandler.Commands;
 using Christofel.ReactHandler.Database;
 using Christofel.ReactHandler.Responders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
@@ -35,7 +36,10 @@ namespace Christofel.ReactHandler
         }
 
         public override string Name => "Christofel.ReactHandler";
-        public override string Description => "Plugin for handling reacts on messages, marking messages to assign channels/roles on react";
+
+        public override string Description =>
+            "Plugin for handling reacts on messages, marking messages to assign channels/roles on react";
+
         public override string Version => "v1.0.0";
 
         protected override IEnumerable<IRefreshable> Refreshable
@@ -65,7 +69,13 @@ namespace Christofel.ReactHandler
                 .AddResponder<DeleteReactHandlerResponder>()
                 .AddResponder<HandleReactResponder>()
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
-                .AddDbContextFactory<ReactHandlerContext>()
+                .AddDbContextFactory<ReactHandlerContext>(options =>
+                        options
+                            .UseMySql(
+                                State.Configuration.GetConnectionString("ReactHandler"),
+                                ServerVersion.AutoDetect(State.Configuration.GetConnectionString("ReactHandler")
+                                ))
+                    )
                 .AddTransient<ReactHandlerContext>(p =>
                     p.GetRequiredService<IDbContextFactory<ReactHandlerContext>>().CreateDbContext())
                 .AddReadOnlyDbContext<ReactHandlerContext>()
