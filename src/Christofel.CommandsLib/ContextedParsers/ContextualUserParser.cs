@@ -7,6 +7,7 @@ using Remora.Commands.Results;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Parsers;
 using Remora.Discord.Core;
 using Remora.Results;
@@ -28,7 +29,7 @@ namespace Christofel.CommandsLib.ContextedParsers
         public override ValueTask<Result<IUser>> TryParseAsync(string value, CancellationToken ct)
         {
             if (_commandContext is InteractionContext interactionContext &&
-                Snowflake.TryParse(value, out var userID) &&
+                Snowflake.TryParse(value.Unmention(), out var userID) &&
                 interactionContext.Data.Resolved.IsDefined(out var resolved) &&
                 resolved.Users.IsDefined(out var users) &&
                 users.TryGetValue(userID.Value, out var user))
