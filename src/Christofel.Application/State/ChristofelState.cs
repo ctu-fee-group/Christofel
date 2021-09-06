@@ -11,22 +11,19 @@ namespace Christofel.Application.State
 {
     public class ChristofelState : IChristofelState
     {
-        public ChristofelState(IBot bot, IDbContextFactory<ChristofelBaseContext> factory,
-            ReadonlyDbContextFactory<ChristofelBaseContext> readOnlyDatabaseFactory, IConfiguration config,
+        public ChristofelState(IBot bot, IDbContextFactory<ChristofelBaseContext> factory, IConfiguration config,
             IPermissionService permissions, ILoggerFactory loggerFactory, IApplicationLifetime lifetime)
         {
             Bot = bot;
             DatabaseFactory = factory;
             Configuration = config;
             Permissions = permissions;
-            ReadOnlyDatabaseFactory = readOnlyDatabaseFactory;
             LoggerFactory = loggerFactory;
             Lifetime = lifetime;
         }
         
         public IBot Bot { get; }
         public IDbContextFactory<ChristofelBaseContext> DatabaseFactory { get; }
-        public ReadonlyDbContextFactory<ChristofelBaseContext> ReadOnlyDatabaseFactory { get; }
         public IConfiguration Configuration { get; }
         public IPermissionService Permissions { get; }
         
