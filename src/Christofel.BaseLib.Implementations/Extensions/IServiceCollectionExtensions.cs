@@ -1,5 +1,6 @@
 using System;
 using Christofel.BaseLib.Database;
+using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -49,7 +50,8 @@ namespace Christofel.BaseLib.Extensions
             }
 
             return provider
-                .AddSingleton(state.ReadOnlyDatabaseFactory);
+                .AddReadOnlyDbContextFactory<ChristofelBaseContext>()
+                .AddReadOnlyDbContext<ChristofelBaseContext>();
         }
     }
 }
