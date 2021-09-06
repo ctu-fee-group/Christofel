@@ -38,14 +38,14 @@ namespace Christofel.ReactHandler.Responders
             _dbContext = dbContext;
         }
 
-        public async Task<Result> RespondAsync(IMessageReactionRemove gatewayEvent,
+        public async Task<Result> RespondAsync(IMessageReactionAdd gatewayEvent,
             CancellationToken ct = new CancellationToken())
         {
             if (!gatewayEvent.GuildID.IsDefined(out var guildId))
             {
                 return Result.FromSuccess();
             }
-
+            
             string emoji = EmojiFormatter.GetEmojiString(gatewayEvent.Emoji);
             var matchingHandlers = await _dbContext.Set<HandleReact>()
                 .Where(x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID &&
@@ -93,7 +93,7 @@ namespace Christofel.ReactHandler.Responders
         }
 
         // TODO: somehow merge respond methods to one?
-        public async Task<Result> RespondAsync(IMessageReactionAdd gatewayEvent,
+        public async Task<Result> RespondAsync(IMessageReactionRemove gatewayEvent,
             CancellationToken ct = new CancellationToken())
         {
             if (!gatewayEvent.GuildID.IsDefined(out var guildId))
