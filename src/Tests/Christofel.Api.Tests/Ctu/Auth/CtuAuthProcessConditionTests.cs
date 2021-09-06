@@ -3,6 +3,7 @@ using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Extensions;
 using Christofel.Api.Tests.Data.Ctu.Auth;
 using Christofel.BaseLib.Database;
+using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

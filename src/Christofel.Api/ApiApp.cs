@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database;
+using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.Logger;
@@ -106,7 +107,7 @@ namespace Christofel.Api
                     
                     services
                         // db
-                        .AddPooledDbContextFactory<ChristofelBaseContext>(options =>
+                        .AddDbContextFactory<ChristofelBaseContext>(options =>
                             options
                                 .UseMySql(
                                     configuration.GetConnectionString("ChristofelBase"),

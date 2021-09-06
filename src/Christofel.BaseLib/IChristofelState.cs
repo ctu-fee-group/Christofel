@@ -22,12 +22,7 @@ namespace Christofel.BaseLib
         /// Factory of the base context
         /// </summary>
         public IDbContextFactory<ChristofelBaseContext> DatabaseFactory { get; }
-        
-        /// <summary>
-        /// Factory of read only base context
-        /// </summary>
-        public ReadonlyDbContextFactory<ChristofelBaseContext> ReadOnlyDatabaseFactory { get; }
-        
+
         /// <summary>
         /// Shared configuration linking name/key to value 
         /// </summary>

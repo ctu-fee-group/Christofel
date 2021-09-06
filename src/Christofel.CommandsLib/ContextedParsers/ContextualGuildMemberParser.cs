@@ -8,6 +8,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Parsers;
 using Remora.Discord.Core;
 using Remora.Results;
@@ -32,7 +33,7 @@ namespace Christofel.CommandsLib.ContextedParsers
             PartialGuildMember? retrievedMember = null;
             
             if (_commandContext is InteractionContext interactionContext &&
-                Snowflake.TryParse(value, out var guildMemberID) &&
+                Snowflake.TryParse(value.Unmention(), out var guildMemberID) &&
                 interactionContext.Data.Resolved.IsDefined(out var resolved))
             {
                 if (resolved.Members.IsDefined(out var members) &&

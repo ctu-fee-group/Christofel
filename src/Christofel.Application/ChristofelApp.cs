@@ -12,6 +12,7 @@ using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
+using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
@@ -24,6 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Extensions;
+using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
 using Remora.Results;
@@ -109,7 +111,7 @@ namespace Christofel.Application
                 .Configure<PluginServiceOptions>(_configuration.GetSection("Plugins"))
                 .AddSingleton<IBot, DiscordBot>()
                 // db
-                .AddPooledDbContextFactory<ChristofelBaseContext>(options =>
+                .AddDbContextFactory<ChristofelBaseContext>(options =>
                     options
                         .UseMySql(
                             _configuration.GetConnectionString("ChristofelBase"),
@@ -139,6 +141,8 @@ namespace Christofel.Application
                 })
                 // discord
                 .AddDiscordGateway(p => p.GetRequiredService<IOptions<DiscordBotOptions>>().Value.Token)
+                .Configure<DiscordGatewayClientOptions>(o =>
+                    o.Intents |= GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessages)
                 // events
                 .AddResponder<ChristofelReadyResponder>()
                 .AddResponder<ApplicationResponder>()
@@ -198,7 +202,7 @@ namespace Christofel.Application
 
                     return new InvalidOperationError("Christofel could not start");
                 }
-                
+
                 _running = true;
             }
 

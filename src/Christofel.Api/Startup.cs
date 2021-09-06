@@ -45,7 +45,7 @@ namespace Christofel.Api
 
             // cache database
             services
-                .AddPooledDbContextFactory<ApiCacheContext>(options => options
+                .AddDbContextFactory<ApiCacheContext>(options => options
                     .UseMySql(
                         _configuration.GetConnectionString("ApiCache"),
                         ServerVersion.AutoDetect(_configuration.GetConnectionString("ApiCache")

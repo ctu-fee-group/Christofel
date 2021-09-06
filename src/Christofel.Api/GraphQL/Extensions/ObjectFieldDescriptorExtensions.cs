@@ -1,4 +1,5 @@
 using Christofel.BaseLib.Database;
+using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
