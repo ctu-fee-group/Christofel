@@ -68,9 +68,7 @@ namespace Christofel.ReactHandler
                 .AddDbContextFactory<ReactHandlerContext>()
                 .AddTransient<ReactHandlerContext>(p =>
                     p.GetRequiredService<IDbContextFactory<ReactHandlerContext>>().CreateDbContext())
-                .AddTransient<ReadOnlyDbContext<ReactHandlerContext>>(p =>
-                    p.GetRequiredService<ReadonlyDbContextFactory<ReactHandlerContext>>().CreateDbContext())
-                .AddSingleton<ReadonlyDbContextFactory<ReactHandlerContext>>()
+                .AddReadOnlyDbContext<ReactHandlerContext>()
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
