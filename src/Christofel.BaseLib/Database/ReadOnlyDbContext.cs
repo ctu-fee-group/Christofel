@@ -11,6 +11,20 @@ namespace Christofel.BaseLib.Database
     /// <remarks>
     /// Should be used everywhere where only reading from db is needed.
     /// </remarks>
+    public class ReadOnlyDbContext<TContext> : ReadOnlyDbContext
+        where TContext : DbContext
+    {
+        public ReadOnlyDbContext(IReadableDbContext dbContext, bool ownsContext = true) : base(dbContext, ownsContext)
+        {
+        }
+    }
+    
+    /// <summary>
+    /// Context-like class that allows only reading of DbSets.
+    /// </summary>
+    /// <remarks>
+    /// Should be used everywhere where only reading from db is needed.
+    /// </remarks>
     public class ReadOnlyDbContext : IDisposable, IAsyncDisposable, IReadableDbContext
     {
         private IReadableDbContext _dbContext;

@@ -16,9 +16,9 @@ namespace Christofel.BaseLib.Database
             _dbContextFactory = dbContextFactory;
         }
 
-        public virtual ReadOnlyDbContext CreateDbContext()
+        public virtual ReadOnlyDbContext<TContext> CreateDbContext()
         {
-            return new ReadOnlyDbContext(_dbContextFactory.CreateDbContext(), true);
+            return new ReadOnlyDbContext<TContext>(_dbContextFactory.CreateDbContext(), true);
         }
     }
 }
