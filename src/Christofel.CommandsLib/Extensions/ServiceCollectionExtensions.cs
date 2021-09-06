@@ -26,6 +26,7 @@ namespace Christofel.CommandsLib.Extensions
                 .AddParser<ContextualGuildMemberParser>()
                 .AddParser<ContextualRoleParser>()
                 .AddParser<ContextualChannelParser>()
+                .AddParser<SnowflakeParser>()
                 // conditions
                 .AddCondition<RequirePermissionCondition>()
                 // execution events
