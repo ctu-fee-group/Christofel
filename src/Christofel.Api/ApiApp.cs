@@ -106,7 +106,7 @@ namespace Christofel.Api
                     
                     services
                         // db
-                        .AddPooledDbContextFactory<ChristofelBaseContext>(options =>
+                        .AddDbContextFactory<ChristofelBaseContext>(options =>
                             options
                                 .UseMySql(
                                     configuration.GetConnectionString("ChristofelBase"),
