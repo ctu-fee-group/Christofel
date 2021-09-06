@@ -25,6 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Extensions;
+using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
 using Remora.Results;
@@ -140,6 +141,8 @@ namespace Christofel.Application
                 })
                 // discord
                 .AddDiscordGateway(p => p.GetRequiredService<IOptions<DiscordBotOptions>>().Value.Token)
+                .Configure<DiscordGatewayClientOptions>(o =>
+                    o.Intents |= GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessages)
                 // events
                 .AddResponder<ChristofelReadyResponder>()
                 .AddResponder<ApplicationResponder>()
@@ -199,7 +202,7 @@ namespace Christofel.Application
 
                     return new InvalidOperationError("Christofel could not start");
                 }
-                
+
                 _running = true;
             }
 
