@@ -67,7 +67,7 @@ namespace Christofel.ReactHandler.Responders
             }
 
             // We want only messages where this was the last remaining reaction
-            var containsEmoji = reactions.All(x => EmojiFormatter.GetEmojiString(x.Emoji) != emoji);
+            var containsEmoji = reactions.Any(x => EmojiFormatter.GetEmojiString(x.Emoji) == emoji);
             if (containsEmoji)
             {
                 return Result.FromSuccess();
