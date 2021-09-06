@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace Christofel.BaseLib.Database
+namespace Christofel.BaseLib.Implementations.ReadOnlyDatabase
 {
     /// <summary>
     /// Context-like class that allows only reading of DbSets.

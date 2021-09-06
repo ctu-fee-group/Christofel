@@ -1,6 +1,7 @@
+using Christofel.BaseLib.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace Christofel.BaseLib.Database
+namespace Christofel.BaseLib.Implementations.ReadOnlyDatabase
 {
     /// <summary>
     /// Creates ReadonlyDbContext for specified DbContextFactory

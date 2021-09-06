@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Extensions;
+using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Christofel.BaseLib.Implementations.Responders;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
