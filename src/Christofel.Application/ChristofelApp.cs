@@ -109,7 +109,7 @@ namespace Christofel.Application
                 .Configure<PluginServiceOptions>(_configuration.GetSection("Plugins"))
                 .AddSingleton<IBot, DiscordBot>()
                 // db
-                .AddPooledDbContextFactory<ChristofelBaseContext>(options =>
+                .AddDbContextFactory<ChristofelBaseContext>(options =>
                     options
                         .UseMySql(
                             _configuration.GetConnectionString("ChristofelBase"),
