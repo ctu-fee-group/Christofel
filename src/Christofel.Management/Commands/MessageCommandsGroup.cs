@@ -57,7 +57,7 @@ namespace Christofel.Management.Commands
             Snowflake? channel = null)
         {
             var validationResult = new CommandValidator()
-                .MakeSure("interval", interval.TotalSeconds, o => o.GreaterThan(0).LessThanOrEqualTo(6))
+                .MakeSure("interval", interval.TotalHours, o => o.GreaterThan(0).LessThanOrEqualTo(6))
                 .MakeSure("totalSeconds", duration.TotalHours, o => o.GreaterThan(0).LessThanOrEqualTo(48))
                 .Validate()
                 .GetResult();
