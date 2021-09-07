@@ -71,13 +71,14 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.slowmode.enable")]
         [Description("Enables slowmode **permanently** in specified channel")]
         public async Task<IResult> HandleSlowmodeEnable(
-            [Description("Rate limit per user (seconds)")]
-            int interval,
-            [Description("Channel to enable slowmode in. Current channel if omitted."), DiscordTypeHint(TypeHint.Channel)]
+            [Description("Rate limit per user (formatted time 3m, 3m20s, 1h20m etc.). Maximum is 6 hours.")]
+            TimeSpan interval,
+            [Description("Channel to enable slowmode in. Current channel if omitted."),
+             DiscordTypeHint(TypeHint.Channel)]
             Optional<Snowflake> channel = default)
         {
             var validationResult = new CommandValidator()
-                .MakeSure("interval", interval, o => o.InclusiveBetween(1, 3600))
+                .MakeSure("interval", interval.TotalHours, o => o.GreaterThan(0).LessThanOrEqualTo(6))
                 .Validate()
                 .GetResult();
 
@@ -89,7 +90,8 @@ namespace Christofel.Management.Commands
             var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
 
             var result =
-                await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: interval, ct: CancellationToken);
+                await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: (int)interval.TotalSeconds,
+                    ct: CancellationToken);
 
             if (result.IsSuccess)
             {
