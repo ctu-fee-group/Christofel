@@ -172,7 +172,7 @@ namespace Christofel.ReactHandler.Commands
             try
             {
                 var matchingHandlersQuery = _dbContext.HandleReacts
-                    .Where(x => x.ChannelId == channelId && x.MessageId == messageId);
+                    .Where(x => x.ChannelId == channelId.Value && x.MessageId == messageId);
 
                 if (reactEmoji is not null)
                 {
