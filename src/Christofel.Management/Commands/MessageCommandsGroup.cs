@@ -82,7 +82,7 @@ namespace Christofel.Management.Commands
             RegisteredTemporalSlowmode temporalSlowmode;
             try
             {
-                temporalSlowmode = await _slowmodeService.RegisterTemporalSlowmodeAsync(channelId, interval, duration);
+                temporalSlowmode = await _slowmodeService.RegisterTemporalSlowmodeAsync(channelId, _context.User.ID, interval, duration);
             }
             catch (Exception e)
             {

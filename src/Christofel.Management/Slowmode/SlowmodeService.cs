@@ -73,7 +73,7 @@ namespace Christofel.Management.Slowmode
             return unregistered;
         }
 
-        public async Task<RegisteredTemporalSlowmode> RegisterTemporalSlowmodeAsync(Snowflake channelId, TimeSpan interval,
+        public async Task<RegisteredTemporalSlowmode> RegisterTemporalSlowmodeAsync(Snowflake channelId, Snowflake userId, TimeSpan interval,
             TimeSpan duration, CancellationToken ct = default)
         {
             await using var dbContext = _dbContextFactory.CreateDbContext();
@@ -82,6 +82,7 @@ namespace Christofel.Management.Slowmode
             {
                 ActivationDate = DateTime.Now,
                 ChannelId = channelId,
+                UserId = userId,
                 DeactivationDate = DateTime.Now.Add(duration),
                 Interval = interval
             };
