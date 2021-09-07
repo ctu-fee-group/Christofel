@@ -110,7 +110,16 @@ namespace Christofel.Management.Commands
             Snowflake? channel = null)
         {
             var channelId = channel ?? _context.ChannelID;
-            return await _slowmodeService.DisableSlowmodeAsync(channelId, CancellationToken);
+            var result = await _slowmodeService.DisableSlowmodeAsync(channelId, CancellationToken);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogError($"Could not disable slowmode in channel <#{channelId}>: {result.Error?.Message}");
+                await _feedbackService.SendContextualErrorAsync($"Could not disable slowmode in channel <#{channelId}>: {result.Error?.Message}.");
+                return result;
+            }
+
+            return await _feedbackService.SendContextualInfoAsync($"Slowmode in channel <#{channelId}> successfully disabled.");
         }
     }
 }
