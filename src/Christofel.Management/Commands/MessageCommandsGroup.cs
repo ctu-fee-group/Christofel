@@ -30,18 +30,16 @@ namespace Christofel.Management.Commands
     public class MessageCommandsGroup : CommandGroup
     {
         private readonly ILogger<MessageCommandsGroup> _logger;
-        private readonly IDiscordRestChannelAPI _channelApi;
         private readonly FeedbackService _feedbackService;
         private readonly ICommandContext _context;
         private readonly SlowmodeService _slowmodeService;
 
-        public MessageCommandsGroup(ILogger<MessageCommandsGroup> logger, IDiscordRestChannelAPI channelApi,
+        public MessageCommandsGroup(ILogger<MessageCommandsGroup> logger,
             FeedbackService feedbackService, ICommandContext context, SlowmodeService slowmodeService)
         {
             _slowmodeService = slowmodeService;
             _logger = logger;
             _context = context;
-            _channelApi = channelApi;
             _feedbackService = feedbackService;
         }
 
