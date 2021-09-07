@@ -8,9 +8,9 @@ namespace Christofel.ReactHandler.Formatters
         public static string FormatHandlerTarget(HandleReact handler)
             => handler.Type switch
             {
-                HandleReactType.Channel => $"{handler.Emoji} - <#{handler.EntityId}>",
-                HandleReactType.Role => $"{handler.Emoji} - <@&{handler.EntityId}>",
-                _ => throw new InvalidOperationException("Invalid handler type")
+                HandleReactType.Channel => $"<#{handler.EntityId}>",
+                HandleReactType.Role => $"<@&{handler.EntityId}>",
+                _ => $"invalid {handler.EntityId}"
             };
     }
 }
