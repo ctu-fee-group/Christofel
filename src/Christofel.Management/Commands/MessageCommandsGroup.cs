@@ -89,11 +89,9 @@ namespace Christofel.Management.Commands
 
             var channelId = channel.HasValue ? channel.Value : _context.ChannelID;
 
-            var result =
-                await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: (int)interval.TotalSeconds,
-                    ct: CancellationToken);
+            var result = await _slowmodeService.EnableSlowmodeAsync(channelId, interval, CancellationToken);
 
-            if (result.IsSuccess)
+            if (!result.IsSuccess)
             {
                 _logger.LogError($"Could not enable slowmode in channel <#{channelId}>: {result.Error?.Message}");
                 return await _feedbackService.SendContextualErrorAsync("Something has gone wrong",
@@ -107,11 +105,12 @@ namespace Christofel.Management.Commands
         [RequirePermission("management.slowmode.disable")]
         [Description("Disables slowmode in specified channel")]
         public async Task<IResult> HandleSlowmodeDisable(
-            [Description("Channel to disable slowmode in. Current channel if omitted."), DiscordTypeHint(TypeHint.Channel)]
+            [Description("Channel to disable slowmode in. Current channel if omitted."),
+             DiscordTypeHint(TypeHint.Channel)]
             Snowflake? channel = null)
         {
             var channelId = channel ?? _context.ChannelID;
-            return await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: null, ct: CancellationToken);
+            return await _slowmodeService.DisableSlowmodeAsync(channelId, CancellationToken);
         }
     }
 }
