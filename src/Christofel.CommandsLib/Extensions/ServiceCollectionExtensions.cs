@@ -31,7 +31,8 @@ namespace Christofel.CommandsLib.Extensions
                 .AddCondition<RequirePermissionCondition>()
                 // execution events
                 .AddPostExecutionEvent<ValidationErrorHandler>()
-                .AddPostExecutionEvent<ErrorExecutionEvent>();
+                .AddPostExecutionEvent<ErrorExecutionEvent>()
+                .AddPostExecutionEvent<ParsingErrorExecutionEvent>();
         }
     }
 }
