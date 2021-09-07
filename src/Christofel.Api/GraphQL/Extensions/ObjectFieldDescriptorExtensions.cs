@@ -33,7 +33,7 @@ namespace Christofel.Api.GraphQL.Extensions
         /// <returns></returns>
         public static IObjectFieldDescriptor UseReadOnlyDbContext<TDbContext>(
             this IObjectFieldDescriptor descriptor)
-            where TDbContext : DbContext, IReadableDbContext
+            where TDbContext : DbContext, IReadableDbContext<TDbContext>
         {
             return descriptor.UseScopedService<IReadableDbContext>(
                 create: s => s.GetRequiredService<ReadonlyDbContextFactory<TDbContext>>().CreateDbContext(),

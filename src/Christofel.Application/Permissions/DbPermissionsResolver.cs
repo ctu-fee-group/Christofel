@@ -27,7 +27,7 @@ namespace Christofel.Application.Permissions
 
         public async Task<IEnumerable<DiscordTarget>> GetPermissionTargetsAsync(string permissionName, CancellationToken token = new CancellationToken())
         {
-            await using ReadOnlyDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
+            await using IReadableDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
             return await readOnlyContext.Set<PermissionAssignment>()
                 .Where(x => GetPossiblePermissions(permissionName).Contains(x.PermissionName))
                 .Select(x => x.Target)
@@ -36,7 +36,7 @@ namespace Christofel.Application.Permissions
 
         public async Task<bool> HasPermissionAsync(string permissionName, DiscordTarget target, CancellationToken token = new CancellationToken())
         {
-            await using ReadOnlyDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
+            await using IReadableDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
             return await readOnlyContext.Set<PermissionAssignment>()
                 .Where(x => GetPossiblePermissions(permissionName).Contains(x.PermissionName))
                 .AnyAsync(x =>  x.Target.TargetType == TargetType.Everyone || 
@@ -47,7 +47,7 @@ namespace Christofel.Application.Permissions
         {
             
 
-            await using ReadOnlyDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
+            await using IReadableDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
             return await readOnlyContext.Set<PermissionAssignment>()
                 .Where(x => GetPossiblePermissions(permissionName).Contains(x.PermissionName))
                 .WhereTargetAnyOf(targets)

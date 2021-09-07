@@ -6,7 +6,7 @@ using Remora.Discord.Core;
 
 namespace Christofel.ReactHandler.Database
 {
-    public sealed class ReactHandlerContext : DbContext, IReadableDbContext
+    public sealed class ReactHandlerContext : DbContext, IReadableDbContext<ReactHandlerContext>
     {
         public ReactHandlerContext(DbContextOptions<ReactHandlerContext> options)
             : base(options)

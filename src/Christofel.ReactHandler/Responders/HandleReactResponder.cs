@@ -29,7 +29,7 @@ namespace Christofel.ReactHandler.Responders
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly IDiscordRestChannelAPI _channelApi;
 
-        public HandleReactResponder(ReadOnlyDbContext<ReactHandlerContext> dbContext,
+        public HandleReactResponder(IReadableDbContext<ReactHandlerContext> dbContext,
             ILogger<HandleReactResponder> logger, IDiscordRestGuildAPI guildApi, IDiscordRestChannelAPI channelApi)
         {
             _channelApi = channelApi;

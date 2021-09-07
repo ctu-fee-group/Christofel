@@ -1,15 +1,21 @@
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.BaseLib.Database
 {
     /// <summary>
-    /// Context that supports reading
+    /// Representing database context that supports reading
     /// </summary>
-    /// <remarks>
-    /// May be used in cases when it isn't known/important whether
-    /// the context is ReadOnlyDbContext or regular DbContext
-    /// </remarks>
+    public interface IReadableDbContext<TContext> : IReadableDbContext
+        where TContext : DbContext
+    {
+    }
+    
+    
+    /// <summary>
+    /// Representing database context that supports reading
+    /// </summary>
     public interface IReadableDbContext : IDisposable, IAsyncDisposable
     {
         public IQueryable<TEntity> Set<TEntity>()

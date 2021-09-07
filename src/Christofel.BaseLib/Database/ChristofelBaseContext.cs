@@ -11,7 +11,7 @@ namespace Christofel.BaseLib.Database
     /// <summary>
     /// Context for base database holding users, permissions and information about roles
     /// </summary>
-    public sealed class ChristofelBaseContext : DbContext, IReadableDbContext
+    public sealed class ChristofelBaseContext : DbContext, IReadableDbContext<ChristofelBaseContext>
     {
         public ChristofelBaseContext(DbContextOptions<ChristofelBaseContext> options)
             : base(options)

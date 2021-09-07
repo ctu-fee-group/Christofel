@@ -8,7 +8,7 @@ namespace Christofel.BaseLib.Implementations.ReadOnlyDatabase
     /// </summary>
     /// <typeparam name="TContext"></typeparam>
     public class ReadonlyDbContextFactory<TContext>
-        where TContext : DbContext, IReadableDbContext
+        where TContext : DbContext, IReadableDbContext<TContext>
     {
         protected readonly IDbContextFactory<TContext> _dbContextFactory;
         
@@ -17,9 +17,9 @@ namespace Christofel.BaseLib.Implementations.ReadOnlyDatabase
             _dbContextFactory = dbContextFactory;
         }
 
-        public virtual ReadOnlyDbContext<TContext> CreateDbContext()
+        public virtual IReadableDbContext<TContext> CreateDbContext()
         {
-            return new ReadOnlyDbContext<TContext>(_dbContextFactory.CreateDbContext(), true);
+            return _dbContextFactory.CreateDbContext();
         }
     }
 }
