@@ -32,7 +32,7 @@ namespace Christofel.Management.Slowmode
 
         public async Task<Result> EnableSlowmodeAsync(Snowflake channelId, TimeSpan interval, CancellationToken ct = default)
         {
-            await UnregisterTemporalSlowmodeAsync(channelId);
+            await UnregisterTemporalSlowmodeAsync(channelId, ct);
 
             var result = await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: (int)interval.TotalSeconds,
                 ct: ct);
@@ -44,7 +44,7 @@ namespace Christofel.Management.Slowmode
 
         public async Task<Result> DisableSlowmodeAsync(Snowflake channelId, CancellationToken ct)
         {
-            await UnregisterTemporalSlowmodeAsync(channelId);
+            await UnregisterTemporalSlowmodeAsync(channelId, ct);
             return await EnableSlowmodeAsync(channelId, TimeSpan.Zero, ct);
         }
 
