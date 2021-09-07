@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Implementations.Storages;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.CommandsLib.Validator;
@@ -33,10 +35,13 @@ namespace Christofel.Management.Commands
         private readonly FeedbackService _feedbackService;
         private readonly ICommandContext _context;
         private readonly SlowmodeService _slowmodeService;
+        private readonly IThreadSafeStorage<RegisteredTemporalSlowmode> _slowmodeStorage;
 
         public MessageCommandsGroup(ILogger<MessageCommandsGroup> logger,
-            FeedbackService feedbackService, ICommandContext context, SlowmodeService slowmodeService)
+            FeedbackService feedbackService, ICommandContext context, SlowmodeService slowmodeService,
+            IThreadSafeStorage<RegisteredTemporalSlowmode> slowmodeStorage)
         {
+            _slowmodeStorage = slowmodeStorage;
             _slowmodeService = slowmodeService;
             _logger = logger;
             _context = context;
@@ -98,6 +103,24 @@ namespace Christofel.Management.Commands
             return feedbackResult.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(feedbackResult);
+        }
+
+        [Command("show")]
+        [RequirePermission("management.slowmode.show")]
+        [Description("Shows what temporal slowmodes are currently enabled")]
+        public async Task<IResult> HandleSlowmodeShow()
+        {
+            var channels = _slowmodeStorage.Data.Select(x =>
+                $"- <#{x.TemporalSlowmodeEntity.ChannelId}> - expires <t:{((DateTimeOffset)(x.TemporalSlowmodeEntity.DeactivationDate)).ToUnixTimeSeconds()}:R> with rate limit of {x.TemporalSlowmodeEntity.Interval}")
+                .ToList();
+
+            if (channels.Count == 0)
+            {
+                return await _feedbackService.SendContextualInfoAsync("There are currently no temporal slowmodes enabled.");
+            }
+            
+            var message = "Temporal slowmodes are currently enabled in following channels: ";
+            return await _feedbackService.SendContextualInfoAsync(message + "\n" + string.Join("\n", channels));
         }
 
         [Command("enable")]
