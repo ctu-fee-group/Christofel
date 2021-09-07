@@ -8,6 +8,12 @@ namespace Christofel.Management.Database
 {
     public class ManagementContext : DbContext, IReadableDbContext<ManagementContext>
     {
+        public ManagementContext(DbContextOptions<ManagementContext> options)
+            : base(options)
+        {
+            
+        }
+        
         public DbSet<TemporalSlowmode> TemporalSlowmodes => Set<TemporalSlowmode>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
