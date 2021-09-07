@@ -49,7 +49,7 @@ namespace Christofel.Management
             get
             {
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
-
+                yield return Services.GetRequiredService<SlowmodeAutorestore>();
             }
         }
 
@@ -58,6 +58,7 @@ namespace Christofel.Management
             get
             {
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
+                yield return Services.GetRequiredService<SlowmodeAutorestore>();
             }
         }
 
@@ -78,6 +79,7 @@ namespace Christofel.Management
                 .AddSingleton<IThreadSafeStorage<RegisteredTemporalSlowmode>,
                     ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
                 .AddTransient<SlowmodeService>()
+                .AddTransient<SlowmodeAutorestore>()
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
