@@ -67,7 +67,9 @@ namespace Christofel.Management
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
+                // Christofel
                 .AddDiscordState(State)
+                // Databases
                 .AddChristofelDatabase(State)
                 .AddDbContextFactory<ManagementContext>(options => options
                     .UseMySql(
@@ -78,8 +80,11 @@ namespace Christofel.Management
                 .AddTransient<ManagementContext>(p =>
                     p.GetRequiredService<IDbContextFactory<ManagementContext>>().CreateDbContext())
                 .AddReadOnlyDbContext<ManagementContext>()
+                // Service for resolving ctu identities
                 .AddSingleton<CtuIdentityResolver>()
+                // Responder for every event to delegate to other registered responders
                 .AddSingleton<PluginResponder>()
+                // Commands
                 .AddChristofelCommands()
                 .AddCommandGroup<MessageCommandsGroup>()
                 .AddCommandGroup<PermissionCommandsGroup>()
@@ -89,7 +94,9 @@ namespace Christofel.Management
                     ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
                 .AddTransient<SlowmodeService>()
                 .AddTransient<SlowmodeAutorestore>()
+                // Misc
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
+                // Configurations
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
