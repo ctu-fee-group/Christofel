@@ -1,18 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
+using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Christofel.BaseLib.Implementations.Responders;
+using Christofel.BaseLib.Implementations.Storages;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
+using Christofel.Management.Database;
+using Christofel.Management.Slowmode;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Pomelo.EntityFrameworkCore.MySql.Metadata.Internal;
 using Remora.Commands.Extensions;
 
 namespace Christofel.Management
@@ -49,7 +57,7 @@ namespace Christofel.Management
             get
             {
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
-
+                yield return Services.GetRequiredService<SlowmodeAutorestore>();
             }
         }
 
@@ -58,6 +66,7 @@ namespace Christofel.Management
             get
             {
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
+                yield return Services.GetRequiredService<SlowmodeAutorestore>();
             }
         }
 
@@ -66,15 +75,36 @@ namespace Christofel.Management
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
+                // Christofel
                 .AddDiscordState(State)
+                // Databases
                 .AddChristofelDatabase(State)
+                .AddDbContextFactory<ManagementContext>(options => options
+                    .UseMySql(
+                        State.Configuration.GetConnectionString("Management"),
+                        ServerVersion.AutoDetect(State.Configuration.GetConnectionString("Management")
+                        ))
+                )
+                .AddTransient<ManagementContext>(p =>
+                    p.GetRequiredService<IDbContextFactory<ManagementContext>>().CreateDbContext())
+                .AddReadOnlyDbContext<ManagementContext>()
+                // Service for resolving ctu identities
                 .AddSingleton<CtuIdentityResolver>()
+                // Responder for every event to delegate to other registered responders
                 .AddSingleton<PluginResponder>()
+                // Commands
                 .AddChristofelCommands()
                 .AddCommandGroup<MessageCommandsGroup>()
                 .AddCommandGroup<PermissionCommandsGroup>()
                 .AddCommandGroup<UserCommandsGroup>()
+                // Slowmodes
+                .AddSingleton<IThreadSafeStorage<RegisteredTemporalSlowmode>,
+                    ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
+                .AddTransient<SlowmodeService>()
+                .AddTransient<SlowmodeAutorestore>()
+                // Misc
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
+                // Configurations
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
