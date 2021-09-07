@@ -74,6 +74,10 @@ namespace Christofel.Management
                 .AddCommandGroup<MessageCommandsGroup>()
                 .AddCommandGroup<PermissionCommandsGroup>()
                 .AddCommandGroup<UserCommandsGroup>()
+                // Slowmodes
+                .AddSingleton<IThreadSafeStorage<RegisteredTemporalSlowmode>,
+                    ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
+                .AddTransient<SlowmodeService>()
                 .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
