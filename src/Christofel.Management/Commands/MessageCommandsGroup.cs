@@ -92,7 +92,7 @@ namespace Christofel.Management.Commands
             }
 
             var feedbackResult = await _feedbackService.SendContextualSuccessAsync(
-                $"Enabled slowmode in channel <#{channelId}> for {interval} (until {temporalSlowmode.TemporalSlowmodeEntity.DeactivationDate})",
+                $"Enabled slowmode in channel <#{channelId}> for {duration} (until {temporalSlowmode.TemporalSlowmodeEntity.DeactivationDate})",
                 ct: CancellationToken);
 
             return feedbackResult.IsSuccess
