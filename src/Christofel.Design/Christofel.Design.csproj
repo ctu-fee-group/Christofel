@@ -12,6 +12,7 @@
       <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
       <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
       <ProjectReference Include="..\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
+      <ProjectReference Include="..\Christofel.Management\Christofel.Management.csproj" />
       <ProjectReference Include="..\Christofel.ReactHandler\Christofel.ReactHandler.csproj" />
     </ItemGroup>
 
