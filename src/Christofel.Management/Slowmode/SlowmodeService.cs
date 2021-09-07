@@ -111,7 +111,7 @@ namespace Christofel.Management.Slowmode
                 new RegisteredTemporalSlowmode(temporalSlowmodeEntity, new CancellationTokenSource());
             _slowmodeStorage.Add(registeredTemporalSlowmode);
             
-            TimeSpan duration = temporalSlowmodeEntity.ActivationDate - DateTime.Now;
+            TimeSpan duration = temporalSlowmodeEntity.DeactivationDate - DateTime.Now;
 
             Task.Run(async () =>
             {
