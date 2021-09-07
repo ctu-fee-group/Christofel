@@ -126,7 +126,7 @@ namespace Christofel.Management.Slowmode
                     _logger.LogDebug("Temporal slowmode disable was canceled");
                 }
 
-                if (canceled)
+                if (!canceled)
                 {
                     var result = await DisableSlowmodeAsync(registeredTemporalSlowmode.TemporalSlowmodeEntity.ChannelId,
                         default); // Cannot use cancellation token from registered slowmode, as that one will be canceled.
