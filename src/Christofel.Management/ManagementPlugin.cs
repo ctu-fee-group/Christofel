@@ -69,6 +69,15 @@ namespace Christofel.Management
             return serviceCollection
                 .AddDiscordState(State)
                 .AddChristofelDatabase(State)
+                .AddDbContextFactory<ManagementContext>(options => options
+                    .UseMySql(
+                        State.Configuration.GetConnectionString("Management"),
+                        ServerVersion.AutoDetect(State.Configuration.GetConnectionString("Management")
+                        ))
+                )
+                .AddTransient<ManagementContext>(p =>
+                    p.GetRequiredService<IDbContextFactory<ManagementContext>>().CreateDbContext())
+                .AddReadOnlyDbContext<ManagementContext>()
                 .AddSingleton<CtuIdentityResolver>()
                 .AddSingleton<PluginResponder>()
                 .AddChristofelCommands()
