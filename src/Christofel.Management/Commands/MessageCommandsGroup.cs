@@ -101,7 +101,6 @@ namespace Christofel.Management.Commands
                 ? Result.FromSuccess()
                 : Result.FromError(feedbackResult);
         }
-        }
 
         [Command("enable")]
         [RequirePermission("management.slowmode.enable")]
