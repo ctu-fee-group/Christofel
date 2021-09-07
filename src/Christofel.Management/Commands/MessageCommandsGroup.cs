@@ -94,8 +94,9 @@ namespace Christofel.Management.Commands
             if (!result.IsSuccess)
             {
                 _logger.LogError($"Could not enable slowmode in channel <#{channelId}>: {result.Error?.Message}");
-                return await _feedbackService.SendContextualErrorAsync("Something has gone wrong",
+                await _feedbackService.SendContextualErrorAsync("Something has gone wrong",
                     ct: CancellationToken);
+                return result;
             }
 
             return await _feedbackService.SendContextualSuccessAsync("Slowmode enabled", ct: CancellationToken);
