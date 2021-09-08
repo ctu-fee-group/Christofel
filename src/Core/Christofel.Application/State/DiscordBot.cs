@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
+using Christofel.Plugins.Extensions;
+using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.Caching.Services;

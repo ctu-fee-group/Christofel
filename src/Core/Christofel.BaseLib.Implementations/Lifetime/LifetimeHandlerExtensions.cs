@@ -1,3 +1,5 @@
+using Christofel.Plugins.Lifetime;
+
 namespace Christofel.BaseLib.Lifetime
 {
     public static class LifetimeHandlerExtensions

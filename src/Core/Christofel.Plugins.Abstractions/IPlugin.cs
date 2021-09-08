@@ -1,4 +1,4 @@
-namespace Christofel.BaseLib.Plugins
+namespace Christofel.Plugins
 {
     public interface IPlugin : IHasPluginInfo
     {

@@ -1,4 +1,4 @@
-namespace Christofel.BaseLib.Lifetime
+namespace Christofel.Plugins.Lifetime
 {
     public enum LifetimeState
     {

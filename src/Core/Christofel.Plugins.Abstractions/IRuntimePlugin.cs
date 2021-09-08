@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Lifetime;
+using Christofel.Plugins.Lifetime;
 
-namespace Christofel.BaseLib.Plugins
+namespace Christofel.Plugins
 {
     /// <summary>
     /// Interface for implementing plugin

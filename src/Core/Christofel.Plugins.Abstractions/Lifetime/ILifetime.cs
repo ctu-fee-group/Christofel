@@ -1,7 +1,6 @@
 using System.Threading;
-using Christofel.BaseLib.Plugins;
 
-namespace Christofel.BaseLib.Lifetime
+namespace Christofel.Plugins.Lifetime
 {
     /// <summary>
     /// Interface for providing lifetime support

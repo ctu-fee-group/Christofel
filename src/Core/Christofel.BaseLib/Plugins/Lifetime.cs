@@ -1,4 +1,5 @@
-using Christofel.BaseLib.Lifetime;
+using Christofel.Plugins;
+using Christofel.Plugins.Lifetime;
 
 namespace Christofel.BaseLib.Plugins
 {
