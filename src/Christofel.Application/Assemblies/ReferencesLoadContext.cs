@@ -58,13 +58,13 @@ namespace Christofel.Application.Assemblies
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
-                return ctx.LoadFromAssemblyPath(assemblyPath);
+                return ctx.LoadFromStream(GetAssemblyMemoryStream(assemblyPath));
             }
 
             assemblyPath = Path.Combine(_pluginLoadDirectory, assemblyName.Name + ".dll");
             if (File.Exists(assemblyPath))
             {
-                return ctx.LoadFromAssemblyPath(assemblyPath);
+                return ctx.LoadFromStream(GetAssemblyMemoryStream(assemblyPath));
             }
 
             return null;
@@ -79,6 +79,12 @@ namespace Christofel.Application.Assemblies
             }
 
             return IntPtr.Zero;
+        }
+
+        public MemoryStream GetAssemblyMemoryStream(string fileName)
+        {
+            var fileData = File.ReadAllBytes(fileName);
+            return new MemoryStream(fileData);
         }
     }
 }
