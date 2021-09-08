@@ -13,6 +13,7 @@
         <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
         <ProjectReference Include="..\..\Plugins\Christofel.Management\Christofel.Management.csproj" />
         <ProjectReference Include="..\..\Plugins\Christofel.ReactHandler\Christofel.ReactHandler.csproj" />
+        <ProjectReference Include="..\Christofel.DatabaseMigrator\Christofel.DatabaseMigrator.csproj" />
     </ItemGroup>
 
     <ItemGroup>
