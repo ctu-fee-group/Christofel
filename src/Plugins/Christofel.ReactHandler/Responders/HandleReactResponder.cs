@@ -52,7 +52,7 @@ namespace Christofel.ReactHandler.Responders
                             x.Emoji == emoji)
                 .ToListAsync(ct);
             
-            List<IResultError> errors = new List<IResultError>();
+            List<IResult> errors = new List<IResult>();
             foreach (var matchingHandler in matchingHandlers)
             {
                 Result result;
@@ -75,7 +75,7 @@ namespace Christofel.ReactHandler.Responders
                 {
                     _logger.LogWarning("Could not assign channel or role ({ChannelOrRole}) to user. {Error}",
                         matchingHandler.EntityId, result.Error.Message);
-                    errors.Add(result.Error);
+                    errors.Add(result);
                 }
                 else
                 {
@@ -107,7 +107,7 @@ namespace Christofel.ReactHandler.Responders
                             x.Emoji == emoji)
                 .ToListAsync(ct);
             
-            List<IResultError> errors = new List<IResultError>();
+            List<IResult> errors = new List<IResult>();
             foreach (var matchingHandler in matchingHandlers)
             {
                 Result result;
@@ -130,7 +130,7 @@ namespace Christofel.ReactHandler.Responders
                 {
                     _logger.LogWarning("Could not deassign channel or role ({ChannelOrRole}) from user. {Error}",
                         matchingHandler.EntityId, result.Error.Message);
-                    errors.Add(result.Error);
+                    errors.Add(result);
                 }
                 else
                 {
