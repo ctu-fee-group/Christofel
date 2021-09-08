@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Lifetime;
+using Christofel.Plugins.Lifetime;
 
-namespace Christofel.BaseLib.Plugins
+namespace Christofel.Plugins
 {
     /// <summary>
     /// Interface for implementing plugin
@@ -12,19 +12,21 @@ namespace Christofel.BaseLib.Plugins
     /// Plugin lifetime goes from uninitialized, initialized (InitAsync), running (RunAsync), stopped (StopAsync), destroyed (DestroyAsync).
     /// Separation of Init/Run and Stop/Destroy is not needed, but chosen to better separate what happens where
     /// </summary>
-    public interface IPlugin : IHasPluginInfo
+    public interface IRuntimePlugin<in TState, TContext> : IPlugin
     {
         /// <summary>
         /// Lifetime of the plugin allowing to stop the plugin
         /// and check its state.
         /// </summary>
         public ILifetime Lifetime { get; }
-
+        
+        public TContext Context { get; }
+        
         /// <summary>
         /// Used for initializing the module services
         /// </summary>
         /// <returns>Context of the plugin for registering responders</returns>
-        public Task<IPluginContext> InitAsync(IChristofelState state, CancellationToken token = new CancellationToken());
+        public Task InitAsync(TState state, CancellationToken token = new CancellationToken());
 
         /// <summary>
         /// Run should register the plugin to the application by assigning its handlers and starting its purpose 
@@ -35,7 +37,6 @@ namespace Christofel.BaseLib.Plugins
         /// </remarks>
         /// <returns></returns>
         public Task RunAsync(CancellationToken token = new CancellationToken());
-        
 
         /// <summary>
         /// Refresh should reload the configuration where needed.

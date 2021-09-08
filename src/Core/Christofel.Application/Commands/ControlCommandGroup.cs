@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Lifetime;
+using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;

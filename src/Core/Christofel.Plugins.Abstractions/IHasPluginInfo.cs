@@ -1,4 +1,4 @@
-namespace Christofel.BaseLib.Plugins
+namespace Christofel.Plugins
 {
     /// <summary>
     /// Abstraction of plugin info to be able to use info about plugin even after plugin was destroyed

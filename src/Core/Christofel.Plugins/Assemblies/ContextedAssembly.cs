@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 
-namespace Christofel.Application.Assemblies
+namespace Christofel.Plugins.Assemblies
 {
     /// <summary>
     /// Class for holding loaded assembly in AssemblyLoadContext

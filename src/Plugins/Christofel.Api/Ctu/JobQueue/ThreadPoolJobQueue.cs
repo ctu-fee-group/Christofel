@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Lifetime;
+using Christofel.BaseLib.Plugins;
+using Christofel.Plugins.Lifetime;
 using HotChocolate.Types;
 using Microsoft.Extensions.Logging;
 

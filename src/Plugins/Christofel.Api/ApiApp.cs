@@ -6,6 +6,7 @@ using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.Logger;
+using Christofel.Plugins.Lifetime;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.Rest.Extensions;
-using IApplicationLifetime = Christofel.BaseLib.Lifetime.IApplicationLifetime;
+using IApplicationLifetime = Christofel.BaseLib.Plugins.IApplicationLifetime;
 
 namespace Christofel.Api
 {

@@ -1,7 +1,6 @@
 using System;
-using Christofel.BaseLib.Plugins;
 
-namespace Christofel.Application.Plugins
+namespace Christofel.Plugins.Data
 {
     /// <summary>
     /// Holding state of detached plugin

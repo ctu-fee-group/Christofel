@@ -1,7 +1,6 @@
 using System.Threading;
-using Christofel.BaseLib.Plugins;
 
-namespace Christofel.BaseLib.Lifetime
+namespace Christofel.Plugins.Lifetime
 {
     /// <summary>
     /// Interface for providing lifetime support
@@ -70,17 +69,4 @@ namespace Christofel.BaseLib.Lifetime
     /// </summary>
     /// <typeparam name="T"></typeparam>
     public interface ILifetime<T> : ILifetime { }
-    
-    /// <summary>
-    /// Should be used for lifetime of the whole application.
-    /// </summary>
-    public interface IApplicationLifetime : ILifetime<IChristofelState> {}
-    
-    /// <summary>
-    /// Should be used for lifetime of the current plugin.
-    /// </summary>
-    /// <remarks>
-    /// Current plugin means the one of which the current instance of service etc. is part of
-    /// </remarks>
-    public interface ICurrentPluginLifetime : ILifetime<IPlugin> {}
 }
