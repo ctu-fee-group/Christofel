@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api
 {
-    public class ApiPlugin : IPlugin
+    public class ApiPlugin : IChristofelRuntimePlugin
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ApiPlugin>? _logger;
@@ -37,6 +37,7 @@ namespace Christofel.Api
         public string Description => "GraphQL API for Christofel";
         public string Version => "v0.0.1";
         public ILifetime Lifetime => _lifetimeHandler.Lifetime;
+        public IPluginContext Context => new PluginContext();
 
         private IHostBuilder CreateHostBuilder(IChristofelState state) =>
             Host.CreateDefaultBuilder()
@@ -55,7 +56,7 @@ namespace Christofel.Api
                     webBuilder.UseStartup<Startup>();
                 });
 
-        public async Task<IPluginContext> InitAsync(IChristofelState state, CancellationToken token)
+        public async Task InitAsync(IChristofelState state, CancellationToken token)
         {
             try
             {
@@ -84,8 +85,6 @@ namespace Christofel.Api
                 _lifetimeHandler.MoveToError(e);
                 throw;
             }
-
-            return new PluginContext();
         }
 
         public async Task RunAsync(CancellationToken token = new CancellationToken())
