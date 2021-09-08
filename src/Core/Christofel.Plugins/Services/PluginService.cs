@@ -238,7 +238,7 @@ namespace Christofel.Plugins.Services
             plugin.DetachedPlugin = detached;
             _storage.DetachAttachedPlugin(plugin);
 
-            await _lifetimeService.DestroyAsync(plugin, token);
+            detached.DestroyedInTime = await _lifetimeService.DestroyAsync(plugin, token);
             
             _assemblyService.UnloadPlugin(plugin, detached);
 
