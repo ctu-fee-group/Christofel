@@ -10,11 +10,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\libs\kos-api\src\Kos\Kos.csproj" />
-      <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
-      <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
-      <ProjectReference Include="..\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
-      <ProjectReference Include="..\Christofel.Logger\Christofel.Logger.csproj" />
+      <ProjectReference Include="..\..\..\libs\kos-api\src\Kos\Kos.csproj" />
+      <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
+      <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+      <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
+      <ProjectReference Include="..\..\Libs\Christofel.Logger\Christofel.Logger.csproj" />
     </ItemGroup>
 
     <ItemGroup>

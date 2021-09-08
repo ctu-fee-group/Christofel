@@ -10,8 +10,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
-      <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+      <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
+      <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj" />
     </ItemGroup>
 
     <ItemGroup>
