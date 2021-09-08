@@ -81,23 +81,29 @@ namespace Christofel.Application.Assemblies
             return IntPtr.Zero;
         }
 
-        private Assembly? LoadAssemblyFromFileByStream(AssemblyLoadContext ctx, string fileName)
+        private Assembly LoadAssemblyFromFileByStream(AssemblyLoadContext ctx, string fileName)
         {
             var symbolsPath = Path.ChangeExtension(fileName, ".pdb");
-            Stream? symbols = null;
+            Stream? symbolsStream = null;
 
             if (File.Exists(symbolsPath))
             {
-                symbols = GetAssemblyMemoryStream(symbolsPath);
+                symbolsStream = GetAssemblyMemoryStream(symbolsPath);
             }
 
-            return LoadFromStream(GetAssemblyMemoryStream(fileName), symbols);
+            var assemblyStream = GetAssemblyMemoryStream(fileName);
+            var assembly = ctx.LoadFromStream(assemblyStream, symbolsStream);
+            
+            assemblyStream.Dispose();
+            symbolsStream?.Dispose();
+
+            return assembly;
         }
 
         public MemoryStream GetAssemblyMemoryStream(string fileName)
         {
             var fileData = File.ReadAllBytes(fileName);
-            return new MemoryStream(fileData);
+            return new CustomStream(fileData);
         }
     }
 }
