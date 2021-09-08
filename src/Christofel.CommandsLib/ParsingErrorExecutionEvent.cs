@@ -31,19 +31,25 @@ namespace Christofel.CommandsLib
             if (!commandResult.IsSuccess &&
                 commandResult.Error is ParameterParsingError parsingError)
             {
+                var message = parsingError.Message;
+                if (commandResult.Inner?.Error is not null)
+                {
+                    message += "\n" + commandResult.Inner.Error.Message;
+                }
+                
                 if (_commandContext is InteractionContext interactionContext)
                 {
                     var result = await _interactionApi.CreateInteractionResponseAsync
                     (interactionContext.ID, interactionContext.Token,
                         new InteractionResponse(InteractionCallbackType.ChannelMessageWithSource,
-                            new InteractionCallbackData(Content: parsingError.Message,
+                            new InteractionCallbackData(Content: message,
                                 Flags: InteractionCallbackDataFlags.Ephemeral)), ct);
 
                     return result;
                 }
 
                 var feedbackResult =
-                    await _feedbackService.SendContextualErrorAsync(commandResult.Error.Message, ct: ct);
+                    await _feedbackService.SendContextualErrorAsync(message, ct: ct);
 
                 return feedbackResult.IsSuccess
                     ? Result.FromSuccess()
