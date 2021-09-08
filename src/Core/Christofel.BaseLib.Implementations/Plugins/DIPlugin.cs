@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Lifetime;
+using Christofel.Plugins;
+using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -30,6 +32,8 @@ namespace Christofel.BaseLib.Plugins
 
         protected abstract LifetimeHandler LifetimeHandler { get; }
         public ILifetime Lifetime => LifetimeHandler.Lifetime;
+
+        IPluginContext IRuntimePlugin<IChristofelState, IPluginContext>.Context => Context;
 
         protected PluginContext Context
         {
@@ -152,7 +156,7 @@ namespace Christofel.BaseLib.Plugins
         /// <param name="state"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public virtual Task<IPluginContext> InitAsync(IChristofelState state, CancellationToken token = new CancellationToken())
+        public virtual Task InitAsync(IChristofelState state, CancellationToken token = new CancellationToken())
         {
             State = state;
             return InitAsync(token);

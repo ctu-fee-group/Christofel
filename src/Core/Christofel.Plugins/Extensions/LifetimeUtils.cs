@@ -1,8 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Plugins.Lifetime;
 
-namespace Christofel.BaseLib.Lifetime
+namespace Christofel.Plugins.Extensions
 {
     public static class LifetimeUtils
     {

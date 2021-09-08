@@ -6,6 +6,7 @@ using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.Logger;
+using Christofel.Plugins.Lifetime;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

@@ -6,6 +6,8 @@ using Christofel.BaseLib;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
+using Christofel.Plugins;
+using Christofel.Plugins.Lifetime;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

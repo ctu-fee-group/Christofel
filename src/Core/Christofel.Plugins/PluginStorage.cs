@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Christofel.Plugins.Data;
 
-namespace Christofel.Application.Plugins
+namespace Christofel.Plugins
 {
     /// <summary>
     /// Stores attached and detached plugins thread-safely

@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace Christofel.Application.Assemblies
+namespace Christofel.Plugins.Assemblies
 {
     public class AssemblyLoader
     {

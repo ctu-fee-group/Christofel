@@ -1,4 +1,4 @@
-namespace Christofel.Application.Plugins
+namespace Christofel.Plugins
 {
     /// <summary>
     /// Options for loading plugins
@@ -9,10 +9,5 @@ namespace Christofel.Application.Plugins
         /// Folder where to look for plugins
         /// </summary>
         public string Folder { get; set; } = null!;
-
-        /// <summary>
-        /// What plugins to autoload when starting
-        /// </summary>
-        public string[]? AutoLoad { get; set; } = null!;
     }
 }
