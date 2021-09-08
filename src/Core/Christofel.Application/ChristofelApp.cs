@@ -19,6 +19,8 @@ using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.Logger;
+using Christofel.Plugins;
+using Christofel.Plugins.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,7 +70,7 @@ namespace Christofel.Application
             get
             {
                 yield return this;
-                yield return Services.GetRequiredService<PluginService>();
+                yield return Services.GetRequiredService<PluginAutoloader>();
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
@@ -78,7 +80,7 @@ namespace Christofel.Application
             get
             {
                 yield return this;
-                yield return Services.GetRequiredService<PluginService>();
+                yield return Services.GetRequiredService<PluginAutoloader>();
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
@@ -104,11 +106,16 @@ namespace Christofel.Application
             return serviceCollection
                 .AddSingleton<IChristofelState, ChristofelState>()
                 .AddSingleton<IApplicationLifetime>(_lifetimeHandler.LifetimeSpecific)
+                // plugins
+                .AddPlugins()
+                .AddTransient<PluginAutoloader>()
+                .AddRuntimePlugins<IChristofelState, IPluginContext>()
                 // config
                 .AddSingleton<IConfiguration>(_configuration)
                 .Configure<BotOptions>(_configuration.GetSection("Bot"))
                 .Configure<DiscordBotOptions>(_configuration.GetSection("Bot"))
                 .Configure<PluginServiceOptions>(_configuration.GetSection("Plugins"))
+                .Configure<PluginAutoloaderOptions>(_configuration.GetSection("Plugins"))
                 .AddSingleton<IBot, DiscordBot>()
                 // db
                 .AddDbContextFactory<ChristofelBaseContext>(options =>
@@ -124,11 +131,6 @@ namespace Christofel.Application
                 // permissions
                 .AddSingleton<IPermissionService, ListPermissionService>()
                 .AddTransient<IPermissionsResolver, DbPermissionsResolver>()
-                // plugins
-                .AddSingleton<PluginService>()
-                .AddSingleton<PluginStorage>()
-                .AddSingleton<PluginLifetimeService>()
-                .AddTransient<PluginAutoloader>()
                 // loggings
                 .AddLogging(builder =>
                 {
