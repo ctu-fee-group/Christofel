@@ -74,7 +74,17 @@ namespace Christofel.BaseLib.Implementations.Responders
                 return;
             }
 
-            switch (responderResult.Error)
+            LogResult(responderResult);
+        }
+
+        private void LogResult(IResult result)
+        {
+            if (result.IsSuccess)
+            {
+                return;
+            }
+            
+            switch (result.Error)
             {
                 case ExceptionError exe:
                 {
@@ -87,12 +97,20 @@ namespace Christofel.BaseLib.Implementations.Responders
 
                     break;
                 }
+                case AggregateError aggregateError:
+                {
+                    foreach (var errorResult in aggregateError.Errors)
+                    {
+                        LogResult(errorResult);
+                    }
+                    break;
+                }
                 default:
                 {
                     _logger.LogWarning
                     (
                         "Error in plugin responder event responder.\n{Reason}",
-                        responderResult.Error.Message
+                        result.Error?.Message
                     );
 
                     break;
