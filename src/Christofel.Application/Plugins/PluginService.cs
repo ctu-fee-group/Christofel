@@ -239,7 +239,7 @@ namespace Christofel.Application.Plugins
                 throw new InvalidOperationException("Could not detach the plugin in time, aborting reattach");
             }
 
-            return await AttachAsync(state, plugin.Name, token);
+            return await AttachAsync(state, detached.Name, token);
         }
 
         public void Dispose()

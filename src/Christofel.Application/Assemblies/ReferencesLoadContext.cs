@@ -18,48 +18,12 @@ namespace Christofel.Application.Assemblies
     {
         private readonly string _pluginLoadDirectory;
         private readonly AssemblyDependencyResolver _resolver;
-        
-        private readonly string[] _sharedAssemblies = new[]
-        {
-            // Global
-            "System.Runtime",
-            "System.ComponentModel",
-            // Base lib
-            "Christofel.BaseLib",
-            // Discord
-            "Discord.Net",
-            "Discord.Net.Webhook",
-            "Discord.Net.Core",
-            "Discord.Net.Rest",
-            "Discord.Net.WebSocket",
-            "Discord.Net.Labs",
-            "Discord.Net.Labs.Webhook",
-            "Discord.Net.Labs.Core",
-            "Discord.Net.Labs.Rest",
-            "Discord.Net.Labs.WebSocket",
-            // MS
-            // Configuration
-            "Microsoft.Extensions.Configuration",
-            "Microsoft.Extensions.Configuration.Abstractions",
-            "Microsoft.Extensions.Primitives",
-            // Logging
-            "Microsoft.Extensions.Logging",
-            "Microsoft.Extensions.Logging.Abstractions",
-            // DI
-            "Microsoft.Extensions.DependencyInjection",
-            "Microsoft.Extensions.DependencyInjection.Abstractions",
-            // EF Core
-            "Microsoft.EntityFrameworkCore",
-            "Microsoft.EntityFrameworkCore.Relational",
-            "Microsoft.EntityFrameworkCore.Abstractions",
-        };
 
         private readonly string[] _loadAlways = new[]
         {
             "Christofel.CommandsLib",
-            "Discord.Net.Interactions",
-            "Discord.Net.Interactions.Abstractions",
-            "Discord.Net.Interactions.DI",
+            "Remora.Commands",
+            "Remora.Discord.Commands",
             "Christofel.BaseLib.Implementations",
         };
 
@@ -91,21 +55,16 @@ namespace Christofel.Application.Assemblies
 
         private Assembly? LoadAssembly(AssemblyLoadContext ctx, AssemblyName assemblyName)
         {
-            if (_sharedAssemblies.Contains(assemblyName.Name))
-            {
-                return null;
-            }
-            
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
-                return ctx.LoadFromAssemblyPath(assemblyPath);
+                return LoadAssemblyFromFileByStream(ctx, assemblyPath);
             }
 
             assemblyPath = Path.Combine(_pluginLoadDirectory, assemblyName.Name + ".dll");
             if (File.Exists(assemblyPath))
             {
-                return ctx.LoadFromAssemblyPath(assemblyPath);
+                return LoadAssemblyFromFileByStream(ctx, assemblyPath);
             }
 
             return null;
@@ -113,8 +72,6 @@ namespace Christofel.Application.Assemblies
 
         private IntPtr LoadUnmanagedDllAssembly(Assembly? assembly, string unmanagedDllName)
         {
-            File.AppendAllText("/tmp/resolve_unmanaged.txt", "\n" + unmanagedDllName);
-
             string? libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
             if (libraryPath != null)
             {
@@ -122,6 +79,25 @@ namespace Christofel.Application.Assemblies
             }
 
             return IntPtr.Zero;
+        }
+
+        private Assembly? LoadAssemblyFromFileByStream(AssemblyLoadContext ctx, string fileName)
+        {
+            var symbolsPath = Path.ChangeExtension(fileName, ".pdb");
+            Stream? symbols = null;
+
+            if (File.Exists(symbolsPath))
+            {
+                symbols = GetAssemblyMemoryStream(symbolsPath);
+            }
+
+            return LoadFromStream(GetAssemblyMemoryStream(fileName), symbols);
+        }
+
+        public MemoryStream GetAssemblyMemoryStream(string fileName)
+        {
+            var fileData = File.ReadAllBytes(fileName);
+            return new MemoryStream(fileData);
         }
     }
 }

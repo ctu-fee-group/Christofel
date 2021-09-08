@@ -15,7 +15,7 @@ namespace Christofel.Application.Assemblies
         public static ContextedAssembly Load(string path)
         {
             ReferencesLoadContext context = new ReferencesLoadContext(path);
-            Assembly assembly = context.LoadFromAssemblyPath(path);
+            Assembly assembly = context.LoadFromStream(context.GetAssemblyMemoryStream(path));
 
             return new ContextedAssembly(context, assembly);
         }
