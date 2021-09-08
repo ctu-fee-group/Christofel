@@ -8,6 +8,8 @@ using Christofel.Application.Plugins;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
+using Christofel.Plugins;
+using Christofel.Plugins.Services;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -28,13 +30,11 @@ namespace Christofel.Application.Commands
     public class PluginCommands : CommandGroup
     {
         private readonly PluginService _plugins;
-        private readonly IChristofelState _state;
         private readonly PluginStorage _storage;
         private readonly ILogger<PluginCommands> _logger;
         private readonly FeedbackService _feedbackService;
 
         public PluginCommands(
-            IChristofelState state,
             PluginService plugins,
             PluginStorage storage,
             ILogger<PluginCommands> logger,
@@ -43,7 +43,6 @@ namespace Christofel.Application.Commands
         {
             _feedbackService = feedbackService;
             _storage = storage;
-            _state = state;
             _plugins = plugins;
             _logger = logger;
         }
@@ -72,7 +71,7 @@ namespace Christofel.Application.Commands
             {
                 try
                 {
-                    IHasPluginInfo plugin = await _plugins.AttachAsync(_state, pluginName, CancellationToken);
+                    IHasPluginInfo plugin = await _plugins.AttachAsync(pluginName, CancellationToken);
                     await _feedbackService.SendContextualSuccessAsync($"Plugin {plugin} was attached",
                         ct: CancellationToken);
                 }
@@ -138,7 +137,7 @@ namespace Christofel.Application.Commands
             {
                 try
                 {
-                    IHasPluginInfo plugin = await _plugins.ReattachAsync(_state, pluginName, CancellationToken);
+                    IHasPluginInfo plugin = await _plugins.ReattachAsync(pluginName, CancellationToken);
                     await _feedbackService.SendContextualSuccessAsync($"Plugin {plugin} was reattached",
                         ct: CancellationToken);
                 }
