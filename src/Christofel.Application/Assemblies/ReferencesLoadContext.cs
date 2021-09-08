@@ -103,7 +103,7 @@ namespace Christofel.Application.Assemblies
         public MemoryStream GetAssemblyMemoryStream(string fileName)
         {
             var fileData = File.ReadAllBytes(fileName);
-            return new CustomStream(fileData);
+            return new MemoryStream(fileData);
         }
     }
 }
