@@ -20,11 +20,13 @@ namespace Christofel.Plugins
         /// </summary>
         public ILifetime Lifetime { get; }
         
+        public TContext Context { get; }
+        
         /// <summary>
         /// Used for initializing the module services
         /// </summary>
         /// <returns>Context of the plugin for registering responders</returns>
-        public Task<TContext> InitAsync(TState state, CancellationToken token = new CancellationToken());
+        public Task InitAsync(TState state, CancellationToken token = new CancellationToken());
 
         /// <summary>
         /// Run should register the plugin to the application by assigning its handlers and starting its purpose 
