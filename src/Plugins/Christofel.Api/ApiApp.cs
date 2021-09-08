@@ -14,7 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.Rest.Extensions;
-using IApplicationLifetime = Christofel.BaseLib.Lifetime.IApplicationLifetime;
+using IApplicationLifetime = Christofel.BaseLib.Plugins.IApplicationLifetime;
 
 namespace Christofel.Api
 {

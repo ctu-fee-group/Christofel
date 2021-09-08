@@ -18,4 +18,8 @@
       <PackageReference Include="Remora.Discord.Gateway" Version="4.0.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Christofel.Plugins.Abstractions\Christofel.Plugins.Abstractions.csproj" />
+    </ItemGroup>
+
 </Project>

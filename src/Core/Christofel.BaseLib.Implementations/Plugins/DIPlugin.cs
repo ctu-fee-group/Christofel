@@ -14,7 +14,7 @@ namespace Christofel.BaseLib.Plugins
     /// Contains DI using default Microsoft DI,
     /// can be used as base for plugins to start developing plugin faster
     /// </summary>
-    public abstract class DIPlugin : IPlugin
+    public abstract class DIPlugin : IChristofelRuntimePlugin
     {
         private IServiceProvider? _services;
         private IChristofelState? _state;
