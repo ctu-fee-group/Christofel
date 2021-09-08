@@ -58,13 +58,13 @@ namespace Christofel.Application.Assemblies
             string? assemblyPath = _resolver.ResolveAssemblyToPath(assemblyName);
             if (assemblyPath != null)
             {
-                return ctx.LoadFromStream(GetAssemblyMemoryStream(assemblyPath));
+                return LoadAssemblyFromFileByStream(ctx, assemblyPath);
             }
 
             assemblyPath = Path.Combine(_pluginLoadDirectory, assemblyName.Name + ".dll");
             if (File.Exists(assemblyPath))
             {
-                return ctx.LoadFromStream(GetAssemblyMemoryStream(assemblyPath));
+                return LoadAssemblyFromFileByStream(ctx, assemblyPath);
             }
 
             return null;
@@ -79,6 +79,19 @@ namespace Christofel.Application.Assemblies
             }
 
             return IntPtr.Zero;
+        }
+
+        private Assembly? LoadAssemblyFromFileByStream(AssemblyLoadContext ctx, string fileName)
+        {
+            var symbolsPath = Path.ChangeExtension(fileName, ".pdb");
+            Stream? symbols = null;
+
+            if (File.Exists(symbolsPath))
+            {
+                symbols = GetAssemblyMemoryStream(symbolsPath);
+            }
+
+            return LoadFromStream(GetAssemblyMemoryStream(fileName), symbols);
         }
 
         public MemoryStream GetAssemblyMemoryStream(string fileName)
