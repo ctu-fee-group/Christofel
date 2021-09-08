@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Plugins;
@@ -8,6 +9,7 @@ using Christofel.BaseLib.Plugins;
 using Christofel.Plugins;
 using Christofel.Plugins.Data;
 using Microsoft.Extensions.Logging;
+using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
 namespace Christofel.Application.Responders
@@ -25,9 +27,10 @@ namespace Christofel.Application.Responders
 
         public override async Task<Result> RespondAnyAsync<TEvent>(TEvent gatewayEvent, CancellationToken ct = default)
         {
-            var tasks = new List<Task>(); 
-            
-            foreach (AttachedPlugin plugin in _plugins.AttachedPlugins)
+            var tasks = new List<Task>();
+
+            foreach (var plugin in _plugins.AttachedPlugins.Select(x => x.Plugin)
+                .OfType<IRuntimePlugin<IChristofelState, IPluginContext>>())
             {
                 var responder = plugin.Context.PluginResponder;
 
@@ -37,7 +40,7 @@ namespace Christofel.Application.Responders
                 }
             }
 
-            await Task.WhenAll(tasks); 
+            await Task.WhenAll(tasks);
             return Result.FromSuccess(); // Everything is handled in HandleEventResult
         }
 
