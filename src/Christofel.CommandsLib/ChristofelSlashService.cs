@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.CommandsLib.Extensions;
 using Remora.Commands.Trees;
 using Remora.Commands.Trees.Nodes;
 using Remora.Discord.API.Abstractions.Objects;
@@ -197,7 +198,7 @@ namespace Christofel.CommandsLib
 
                 registeredCommand = result.Entity;
             }
-            else if (!CommandMatches(registeredCommand, command.DefaultPermission, command.Data))
+            else if (!registeredCommand.MatchesBulkCommand(command.DefaultPermission, command.Data))
             {
                 Optional<IReadOnlyList<IApplicationCommandOption>?> options = default;
                 if (command.Data.Options.HasValue)
@@ -225,7 +226,9 @@ namespace Christofel.CommandsLib
 
             var commandPermissions = guildCommandPermissions.FirstOrDefault(x => x.ID == registeredCommand.ID);
 
-            if (commandPermissions is null || !PermissionsMatch(command.Permissions, commandPermissions.Permissions))
+            if (commandPermissions is null || !command.Permissions.OrderBy(x => x.ID).ToList()
+                .CollectionMatches(commandPermissions.Permissions.OrderBy(x => x.ID).ToList(),
+                    ApplicationCommandPermissionsExtensions.PermissionMatches))
             {
                 var permissionsResult = await _applicationAPI.EditApplicationCommandPermissionsAsync(
                     applicationID,
@@ -242,140 +245,6 @@ namespace Christofel.CommandsLib
             }
 
             return Result.FromSuccess();
-        }
-
-        private bool PermissionsMatch(IReadOnlyList<IApplicationCommandPermissions> left,
-            IReadOnlyList<IApplicationCommandPermissions> right)
-        {
-            if (left.Count != right.Count)
-            {
-                return false;
-            }
-
-            using var leftPermissionEnumerator = left.OrderBy(x => x.ID.Value).GetEnumerator();
-            using var rightPermissionEnumerator = right.OrderBy(x => x.ID.Value).GetEnumerator();
-
-            while (leftPermissionEnumerator.MoveNext() && rightPermissionEnumerator.MoveNext())
-            {
-                var leftPermission = leftPermissionEnumerator.Current;
-                var rightPermission = rightPermissionEnumerator.Current;
-
-                if (leftPermission.ID != rightPermission.ID ||
-                    leftPermission.HasPermission != rightPermission.HasPermission ||
-                    leftPermission.Type != rightPermission.Type)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool CommandMatches(IApplicationCommand command, bool defaultPermission,
-            IBulkApplicationCommandData commandData)
-        {
-            if (command.Name != commandData.Name ||
-                command.Description != commandData.Description && command.Type != commandData.Type ||
-                ((command.DefaultPermission.HasValue ? command.DefaultPermission : false) != defaultPermission) ||
-                !HasSameLength(commandData.Options, command.Options))
-            {
-                return false;
-            }
-
-            return !command.Options.HasValue || !commandData.Options.HasValue ||
-                   CommandOptionsMatch(command.Options.Value, commandData.Options.Value);
-        }
-
-        private bool CommandOptionsMatch(IReadOnlyList<IApplicationCommandOption> left,
-            IReadOnlyList<IApplicationCommandOption> right)
-        {
-            if (left.Count != right.Count)
-            {
-                return false;
-            }
-
-            using var leftOptionEnumerator = left.OrderBy(x => x.Name).GetEnumerator();
-            using var rightOptionEnumerator = right.OrderBy(x => x.Name).GetEnumerator();
-
-            while (leftOptionEnumerator.MoveNext() && rightOptionEnumerator.MoveNext())
-            {
-                var leftOption = leftOptionEnumerator.Current;
-                var rightOption = rightOptionEnumerator.Current;
-
-                if (!CommandOptionMatches(leftOption, rightOption))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool CommandChoicesMatch(IReadOnlyList<IApplicationCommandOptionChoice> left,
-            IReadOnlyList<IApplicationCommandOptionChoice> right)
-        {
-            if (left.Count != right.Count)
-            {
-                return false;
-            }
-
-            using var leftChoiceEnumerator = left.OrderBy(x => x.Name).GetEnumerator();
-            using var rightChoiceEnumerator = right.OrderBy(x => x.Name).GetEnumerator();
-
-            while (leftChoiceEnumerator.MoveNext() && rightChoiceEnumerator.MoveNext())
-            {
-                var leftChoice = leftChoiceEnumerator.Current;
-                var rightChoice = rightChoiceEnumerator.Current;
-
-                if (!leftChoice.Value.Equals(rightChoice.Value) || leftChoice.Name != rightChoice.Name)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private bool HasSameLength<T>(Optional<IReadOnlyList<T>> left, Optional<IReadOnlyList<T>> right)
-        {
-            if ((!left.HasValue && right.HasValue && right.Value.Count == 0) ||
-                (!right.HasValue && left.HasValue && left.Value.Count == 0))
-            {
-                return true;
-            }
-
-            if (left.HasValue != right.HasValue)
-            {
-                return false;
-            }
-
-            return !left.HasValue || (left.Value.Count == right.Value.Count);
-        }
-
-        private bool CheckOptionalMatches(Optional<bool> left, Optional<bool> right, bool @default)
-        {
-            return (left.HasValue ? left.Value : @default) == (right.HasValue ? right.Value : @default);
-        }
-
-        private bool CommandOptionMatches(IApplicationCommandOption left,
-            IApplicationCommandOption right)
-        {
-            if (left.Name != right.Name || left.Description != right.Description || left.Type != right.Type ||
-                !CheckOptionalMatches(left.IsDefault, right.IsDefault, false) ||
-                !CheckOptionalMatches(left.IsRequired, right.IsRequired, false) ||
-                !HasSameLength(left.Options, right.Options) || !HasSameLength(left.Choices, right.Choices))
-            {
-                return false;
-            }
-
-            if (left.Options.HasValue && right.Options.HasValue &&
-                !CommandOptionsMatch(left.Options.Value, right.Options.Value))
-            {
-                return false;
-            }
-
-            return !left.Choices.HasValue || !right.Choices.HasValue ||
-                   CommandChoicesMatch(left.Choices.Value, right.Choices.Value);
         }
 
         private async Task<IReadOnlyCollection<CommandInfo>>
