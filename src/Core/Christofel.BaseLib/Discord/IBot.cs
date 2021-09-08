@@ -1,5 +1,4 @@
 using System.Net.Http;
-using Remora.Discord.Caching.Services;
 using Remora.Discord.Gateway;
 
 namespace Christofel.BaseLib.Discord
