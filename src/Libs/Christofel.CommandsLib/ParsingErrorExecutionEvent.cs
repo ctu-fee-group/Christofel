@@ -32,9 +32,9 @@ namespace Christofel.CommandsLib
                 commandResult.Error is ParameterParsingError parsingError)
             {
                 var message = parsingError.Message;
-                if (commandResult.Inner?.Error is not null)
+                if (commandResult.Inner?.Inner?.Inner?.Error is not null)
                 {
-                    message += "\n" + commandResult.Inner.Error.Message;
+                    message += "\n" + commandResult.Inner.Inner.Inner.Error.Message;
                 }
                 
                 if (_commandContext is InteractionContext interactionContext)
