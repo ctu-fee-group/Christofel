@@ -22,9 +22,8 @@ namespace Christofel.Application.Assemblies
         private readonly string[] _loadAlways = new[]
         {
             "Christofel.CommandsLib",
-            "Discord.Net.Interactions",
-            "Discord.Net.Interactions.Abstractions",
-            "Discord.Net.Interactions.DI",
+            "Remora.Commands",
+            "Remora.Discord.Commands",
             "Christofel.BaseLib.Implementations",
         };
 
