@@ -1,3 +1,9 @@
+//
+//   RoleAssignment.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Christofel.BaseLib.Database.Models.Enums;
@@ -7,16 +13,15 @@ namespace Christofel.BaseLib.Database.Models
 {
     public class RoleAssignment
     {
-        [Key]
-        public int RoleAssignmentId { get; set; }
+        [Key] public int RoleAssignmentId { get; set; }
 
         /// <summary>
-        /// Discord role id
+        ///     Discord role id
         /// </summary>
         public Snowflake RoleId { get; set; }
 
         /// <summary>
-        /// Type of the role for special behaviors
+        ///     Type of the role for special behaviors
         /// </summary>
         public RoleType RoleType { get; set; }
 

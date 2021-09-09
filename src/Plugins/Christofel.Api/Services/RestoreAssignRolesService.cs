@@ -1,3 +1,9 @@
+//
+//   RestoreAssignRolesService.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,14 +14,15 @@ using Microsoft.Extensions.Logging;
 namespace Christofel.Api.Services
 {
     /// <summary>
-    /// Restores process of assigning roles where it was left
+    ///     Restores process of assigning roles where it was left
     /// </summary>
     public class RestoreAssignRolesService : IHostedService
     {
-        private CtuAuthRoleAssignService _roleAssignService;
-        private ILogger _logger;
-        
-        public RestoreAssignRolesService(CtuAuthRoleAssignService roleAssignService, ILogger<RestoreAssignRolesService> logger)
+        private readonly ILogger _logger;
+        private readonly CtuAuthRoleAssignService _roleAssignService;
+
+        public RestoreAssignRolesService
+            (CtuAuthRoleAssignService roleAssignService, ILogger<RestoreAssignRolesService> logger)
         {
             _logger = logger;
             _roleAssignService = roleAssignService;
@@ -34,10 +41,8 @@ namespace Christofel.Api.Services
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
+        public Task StopAsync(CancellationToken cancellationToken) =>
             // Nothing is needed to stop
-            return Task.CompletedTask;
-        }
+            Task.CompletedTask;
     }
 }

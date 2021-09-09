@@ -1,3 +1,9 @@
+//
+//   CommandValidator.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using FluentValidation;
@@ -7,7 +13,7 @@ namespace Christofel.CommandsLib.Validator
 {
     public class CommandValidator
     {
-        private List<ValidationFailure> _results;
+        private readonly List<ValidationFailure> _results;
 
         public CommandValidator()
         {
@@ -21,15 +27,12 @@ namespace Christofel.CommandsLib.Validator
             {
                 error.PropertyName = name;
             }
-            
+
             _results.AddRange(errors);
             return this;
         }
 
-        public ValidationResult Validate()
-        {
-            return new ValidationResult(_results);
-        }
+        public ValidationResult Validate() => new ValidationResult(_results);
 
         private class ElementValidator<T> : AbstractValidator<T>
         {

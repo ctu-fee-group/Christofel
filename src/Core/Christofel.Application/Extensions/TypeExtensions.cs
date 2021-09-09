@@ -1,3 +1,9 @@
+//
+//   TypeExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 
 namespace Christofel.Application.Extensions
@@ -5,7 +11,7 @@ namespace Christofel.Application.Extensions
     public static class TypeExtensions
     {
         /// <summary>
-        /// Check whether the type given implements the given interface
+        ///     Check whether the type given implements the given interface
         /// </summary>
         /// <param name="type"></param>
         /// <typeparam name="T"></typeparam>
@@ -16,7 +22,7 @@ namespace Christofel.Application.Extensions
             {
                 return false;
             }
-            
+
             foreach (Type iface in type.GetInterfaces())
             {
                 if (iface == typeof(T))
@@ -26,6 +32,6 @@ namespace Christofel.Application.Extensions
             }
 
             return false;
-        }   
+        }
     }
 }

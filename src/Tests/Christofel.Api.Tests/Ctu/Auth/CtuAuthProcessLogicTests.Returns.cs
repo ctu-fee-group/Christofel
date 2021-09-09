@@ -1,3 +1,9 @@
+//
+//   CtuAuthProcessLogicTests.Returns.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
@@ -27,9 +33,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result =
-                await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+                await process.FinishAuthAsync
+                (
+                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                     _dummyGuildId,
-                    user, dummyGuildMember);
+                    user, dummyGuildMember
+                );
 
             Assert.False(result.IsSuccess);
         }
@@ -50,9 +59,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result =
-                await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+                await process.FinishAuthAsync
+                (
+                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                     _dummyGuildId,
-                    user, dummyGuildMember);
+                    user, dummyGuildMember
+                );
 
             Assert.True(result.IsSuccess);
         }
@@ -73,9 +85,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result =
-                await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+                await process.FinishAuthAsync
+                (
+                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                     _dummyGuildId,
-                    user, dummyGuildMember);
+                    user, dummyGuildMember
+                );
 
             Assert.False(result.IsSuccess);
         }
@@ -96,9 +111,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result =
-                await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+                await process.FinishAuthAsync
+                (
+                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                     _dummyGuildId,
-                    user, dummyGuildMember);
+                    user, dummyGuildMember
+                );
 
             Assert.False(result.IsSuccess);
         }

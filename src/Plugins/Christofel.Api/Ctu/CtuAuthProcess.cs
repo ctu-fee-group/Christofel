@@ -1,6 +1,10 @@
+//
+//   CtuAuthProcess.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Auth.Conditions;
@@ -12,8 +16,6 @@ using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.User;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Remora.Commands.Services;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Core;
 using Remora.Results;
@@ -21,19 +23,19 @@ using Remora.Results;
 namespace Christofel.Api.Ctu
 {
     /// <summary>
-    /// Used to iterate through all steps of auth process
+    ///     Used to iterate through all steps of auth process
     /// </summary>
     public class CtuAuthProcess
     {
-        private record LinkUser(int UserId, string CtuUsername, Snowflake DiscordId) : ILinkUser;
-        
-        private readonly IServiceProvider _services;
         private readonly ILogger<CtuAuthProcess> _logger;
-        
+
+        private readonly IServiceProvider _services;
+
         /// <summary>
-        /// Initialize CtuAuthProcess
+        ///     Initialize CtuAuthProcess
         /// </summary>
-        public CtuAuthProcess(
+        public CtuAuthProcess
+        (
             IServiceProvider services,
             ILogger<CtuAuthProcess> logger
         )
@@ -43,8 +45,8 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        /// Proceed to do all the steps
-        /// If step fails, exception will be thrown
+        ///     Proceed to do all the steps
+        ///     If step fails, exception will be thrown
         /// </summary>
         /// <param name="accessToken">Valid token that can be used for Kos and Usermap</param>
         /// <param name="ctuOauthHandler"></param>
@@ -53,9 +55,16 @@ namespace Christofel.Api.Ctu
         /// <param name="dbUser">Database user to be edited and saved</param>
         /// <param name="guildUser">Discord user used for auth purposes. Should be user with the id of dbUser</param>
         /// <param name="ct">Cancellation token in case the request is cancelled</param>
-        public async Task<Result> FinishAuthAsync(string accessToken, ICtuTokenApi ctuOauthHandler,
-            ChristofelBaseContext dbContext, ulong guildId, DbUser dbUser,
-            IGuildMember guildUser, CancellationToken ct = default)
+        public async Task<Result> FinishAuthAsync
+        (
+            string accessToken,
+            ICtuTokenApi ctuOauthHandler,
+            ChristofelBaseContext dbContext,
+            ulong guildId,
+            DbUser dbUser,
+            IGuildMember guildUser,
+            CancellationToken ct = default
+        )
         {
             using var scope = _services.CreateScope();
             var services = scope.ServiceProvider;
@@ -72,7 +81,8 @@ namespace Christofel.Api.Ctu
                 return e;
             }
 
-            CtuAuthProcessData authData = new CtuAuthProcessData(
+            CtuAuthProcessData authData = new CtuAuthProcessData
+            (
                 accessToken,
                 new LinkUser(0, loadedUser.CtuUsername, dbUser.DiscordId),
                 new Snowflake(guildId),
@@ -117,8 +127,12 @@ namespace Christofel.Api.Ctu
             return await ExecuteTasks(services, authData, ct);
         }
 
-        private async Task<Result> ExecuteConditionsAsync(IServiceProvider services, IAuthData authData,
-            CancellationToken ct = default)
+        private async Task<Result> ExecuteConditionsAsync
+        (
+            IServiceProvider services,
+            IAuthData authData,
+            CancellationToken ct = default
+        )
         {
             var conditions = services
                 .GetServices<IPreAuthCondition>();
@@ -142,8 +156,12 @@ namespace Christofel.Api.Ctu
             return Result.FromSuccess();
         }
 
-        private async Task<Result> ExecuteStepsAsync(IServiceProvider services, IAuthData authData,
-            CancellationToken ct = default)
+        private async Task<Result> ExecuteStepsAsync
+        (
+            IServiceProvider services,
+            IAuthData authData,
+            CancellationToken ct = default
+        )
         {
             var steps = services
                 .GetServices<IAuthStep>();
@@ -167,13 +185,17 @@ namespace Christofel.Api.Ctu
             return Result.FromSuccess();
         }
 
-        private async Task<Result> ExecuteTasks(IServiceProvider services, IAuthData authData,
-            CancellationToken ct = default)
+        private async Task<Result> ExecuteTasks
+        (
+            IServiceProvider services,
+            IAuthData authData,
+            CancellationToken ct = default
+        )
         {
             var tasks = services
                 .GetServices<IAuthTask>();
-            
-            bool error = false;
+
+            var error = false;
             foreach (var task in tasks)
             {
                 Result taskResult;
@@ -198,8 +220,12 @@ namespace Christofel.Api.Ctu
                 : Result.FromSuccess();
         }
 
-        private async Task<Result> SaveToDatabase(ChristofelBaseContext dbContext, IAuthData data,
-            CancellationToken ct = default)
+        private async Task<Result> SaveToDatabase
+        (
+            ChristofelBaseContext dbContext,
+            IAuthData data,
+            CancellationToken ct = default
+        )
         {
             try
             {
@@ -208,10 +234,15 @@ namespace Christofel.Api.Ctu
             }
             catch (Exception e)
             {
-                _logger.LogError(e,
-                    $"Database context save changes has thrown an exception while saving user data ({data.DbUser.UserId} {data.DbUser.DiscordId} {data.DbUser.CtuUsername})");
+                _logger.LogError
+                (
+                    e,
+                    $"Database context save changes has thrown an exception while saving user data ({data.DbUser.UserId} {data.DbUser.DiscordId} {data.DbUser.CtuUsername})"
+                );
                 return e;
             }
         }
+
+        private record LinkUser(int UserId, string CtuUsername, Snowflake DiscordId) : ILinkUser;
     }
 }

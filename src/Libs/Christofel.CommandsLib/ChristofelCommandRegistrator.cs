@@ -1,3 +1,9 @@
+//
+//   ChristofelCommandRegistrator.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
@@ -11,26 +17,23 @@ namespace Christofel.CommandsLib
 {
     public class ChristofelCommandRegistrator : IStartable, IRefreshable, IStoppable
     {
-        private readonly ChristofelSlashService _slashService;
-        private readonly BotOptions _options;
-        private readonly ILogger _logger;
         private readonly IApplicationLifetime _lifetime;
+        private readonly ILogger _logger;
+        private readonly BotOptions _options;
+        private readonly ChristofelSlashService _slashService;
 
-        public ChristofelCommandRegistrator(
+        public ChristofelCommandRegistrator
+        (
             ILogger<ChristofelCommandRegistrator> logger,
             ChristofelSlashService slashService,
             IApplicationLifetime lifetime,
-            IOptionsSnapshot<BotOptions> options)
+            IOptionsSnapshot<BotOptions> options
+        )
         {
             _lifetime = lifetime;
             _logger = logger;
             _slashService = slashService;
             _options = options.Value;
-        }
-
-        public Task StartAsync(CancellationToken token = new CancellationToken())
-        {
-            return RefreshAsync(token);
         }
 
         public async Task RefreshAsync(CancellationToken token = new CancellationToken())
@@ -54,6 +57,8 @@ namespace Christofel.CommandsLib
             }
         }
 
+        public Task StartAsync(CancellationToken token = new CancellationToken()) => RefreshAsync(token);
+
         public async Task StopAsync(CancellationToken token = new CancellationToken())
         {
             if (_lifetime.State >= LifetimeState.Stopping)
@@ -61,7 +66,7 @@ namespace Christofel.CommandsLib
                 // Do not unregister commands on application exit
                 return;
             }
-            
+
             var checkSlashSupport = _slashService.SupportsSlashCommands();
             if (!checkSlashSupport.IsSuccess)
             {

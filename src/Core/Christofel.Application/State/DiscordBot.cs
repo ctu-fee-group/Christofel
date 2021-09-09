@@ -1,9 +1,14 @@
+//
+//   DiscordBot.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Discord;
-using Christofel.BaseLib.Plugins;
 using Christofel.Plugins.Extensions;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
@@ -15,12 +20,17 @@ namespace Christofel.Application.State
 {
     public class DiscordBot : IBot, IDisposable
     {
-        private readonly ILogger<DiscordBot> _logger;
         private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
         private readonly IApplicationLifetime _lifetime;
+        private readonly ILogger<DiscordBot> _logger;
 
-        public DiscordBot(IHttpClientFactory httpClientFactory, DiscordGatewayClient client,
-            ILogger<DiscordBot> logger, IApplicationLifetime lifetime)
+        public DiscordBot
+        (
+            IHttpClientFactory httpClientFactory,
+            DiscordGatewayClient client,
+            ILogger<DiscordBot> logger,
+            IApplicationLifetime lifetime
+        )
         {
             Client = client;
             HttpClientFactory = httpClientFactory;
@@ -29,11 +39,16 @@ namespace Christofel.Application.State
             _logger = logger;
         }
 
-        public DiscordGatewayClient Client { get; } 
+        public DiscordGatewayClient Client { get; }
         public IHttpClientFactory HttpClientFactory { get; }
 
+        public void Dispose()
+        {
+            _applicationRunningToken.Dispose();
+        }
+
         /// <summary>
-        /// Runs application in delay task until stop is requested using cancellation token
+        ///     Runs application in delay task until stop is requested using cancellation token
         /// </summary>
         /// <param name="token"></param>
         public async Task RunApplication(CancellationToken token = new CancellationToken())
@@ -41,7 +56,7 @@ namespace Christofel.Application.State
             _logger.LogInformation("Running application");
             CancellationTokenSource tokenSource =
                 CancellationTokenSource.CreateLinkedTokenSource(_applicationRunningToken.Token, token);
-            
+
             var runResult = await Client.RunAsync(token);
             if (!runResult.IsSuccess)
             {
@@ -80,11 +95,6 @@ namespace Christofel.Application.State
                 // Await destroyed at all costs
                 // If the application is not exiting, the user can just kill it
             }
-        }
-
-        public void Dispose()
-        {
-            _applicationRunningToken.Dispose();
         }
     }
 }

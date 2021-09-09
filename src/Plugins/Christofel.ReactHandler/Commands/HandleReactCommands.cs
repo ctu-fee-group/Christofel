@@ -1,17 +1,21 @@
+//
+//   HandleReactCommands.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Christofel.BaseLib.Database;
-using Christofel.CommandsLib;
 using Christofel.CommandsLib.Permissions;
 using Christofel.ReactHandler.Database;
 using Christofel.ReactHandler.Database.Models;
 using Christofel.ReactHandler.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OneOf;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
@@ -31,14 +35,20 @@ namespace Christofel.ReactHandler.Commands
     [Ephemeral]
     public class HandleReactCommands : CommandGroup
     {
-        private readonly ReactHandlerContext _dbContext;
+        private readonly IDiscordRestChannelAPI _channelApi;
         private readonly ICommandContext _commandContext;
+        private readonly ReactHandlerContext _dbContext;
         private readonly FeedbackService _feedbackService;
         private readonly ILogger _logger;
-        private readonly IDiscordRestChannelAPI _channelApi;
 
-        public HandleReactCommands(ReactHandlerContext dbContext, ICommandContext commandContext,
-            FeedbackService feedbackService, ILogger<HandleReactCommands> logger, IDiscordRestChannelAPI channelApi)
+        public HandleReactCommands
+        (
+            ReactHandlerContext dbContext,
+            ICommandContext commandContext,
+            FeedbackService feedbackService,
+            ILogger<HandleReactCommands> logger,
+            IDiscordRestChannelAPI channelApi
+        )
         {
             _logger = logger;
             _commandContext = commandContext;
@@ -49,14 +59,16 @@ namespace Christofel.ReactHandler.Commands
 
         [Command("unmark")]
         [Description("Unmark specified message to not be handled by the bot on user reaction.")]
-        public async Task<Result> HandleReactRemove(
+        public async Task<Result> HandleReactRemove
+        (
             [Description("Message that the bot should not react to")]
             Snowflake messageId,
             [Description("Emoji that the bot should not react to anymore")]
             string reactEmoji,
-            [Description("Channel that the message is in. If omitted, current channel will be used"),
-             DiscordTypeHint(TypeHint.Channel)]
-            IPartialChannel? channel = default)
+            [Description("Channel that the message is in. If omitted, current channel will be used")]
+            [DiscordTypeHint(TypeHint.Channel)]
+            IPartialChannel? channel = default
+        )
         {
             var channelId = channel?.ID ?? _commandContext.ChannelID;
             if (!channelId.HasValue)
@@ -77,14 +89,20 @@ namespace Christofel.ReactHandler.Commands
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not match/save reaction handlers that should be deleted");
-                await _feedbackService.SendContextualErrorAsync("Could not delete matching handlers from database.",
-                    ct: CancellationToken);
+                await _feedbackService.SendContextualErrorAsync
+                (
+                    "Could not delete matching handlers from database.",
+                    ct: CancellationToken
+                );
                 return new ExceptionError(e);
             }
 
             var feedbackResult =
-                await _feedbackService.SendContextualSuccessAsync($"Deleted {matchingHandlers.Count} handlers.",
-                    ct: CancellationToken);
+                await _feedbackService.SendContextualSuccessAsync
+                (
+                    $"Deleted {matchingHandlers.Count} handlers.",
+                    ct: CancellationToken
+                );
 
             return feedbackResult.IsSuccess
                 ? Result.FromSuccess()
@@ -93,16 +111,18 @@ namespace Christofel.ReactHandler.Commands
 
         [Command("mark")]
         [Description("Mark specified message to be handled by the bot to add channel or role on user reaction.")]
-        public async Task<Result> HandleReactAdd(
+        public async Task<Result> HandleReactAdd
+        (
             [Description("Message that the bot should react to")]
             Snowflake messageId,
             [Description("Emoji that the bot should react to")]
             string reactEmoji,
             [Description("Entity to be added/removed on reaction")]
-            OneOf.OneOf<IRole, IPartialChannel> entity,
-            [Description("Channel that the message is in. If omitted, current channel will be used"),
-             DiscordTypeHint(TypeHint.Channel)]
-            IPartialChannel? channel = default)
+            OneOf<IRole, IPartialChannel> entity,
+            [Description("Channel that the message is in. If omitted, current channel will be used")]
+            [DiscordTypeHint(TypeHint.Channel)]
+            IPartialChannel? channel = default
+        )
         {
             var channelId = channel?.ID ?? _commandContext.ChannelID;
             if (!channelId.HasValue)
@@ -115,22 +135,28 @@ namespace Christofel.ReactHandler.Commands
                 await _channelApi.CreateReactionAsync(channelId.Value, messageId, reactEmoji, CancellationToken);
             if (!reactionResult.IsSuccess)
             {
-                await _feedbackService.SendContextualErrorAsync(
+                await _feedbackService.SendContextualErrorAsync
+                (
                     $"Could not react to the message, check permissions and whether you sent correct emoji. {reactionResult.Error.Message}",
-                    ct: CancellationToken);
+                    ct: CancellationToken
+                );
                 return reactionResult;
             }
 
             // 2. save to database
             try
             {
-                var handleReact = new HandleReact()
+                var handleReact = new HandleReact
                 {
                     ChannelId = channelId.Value,
                     Emoji = reactEmoji,
-                    EntityId = entity.IsT0 ? entity.AsT0.ID : entity.AsT1.ID.Value,
+                    EntityId = entity.IsT0
+                        ? entity.AsT0.ID
+                        : entity.AsT1.ID.Value,
                     MessageId = messageId,
-                    Type = entity.IsT0 ? HandleReactType.Role : HandleReactType.Channel
+                    Type = entity.IsT0
+                        ? HandleReactType.Role
+                        : HandleReactType.Channel,
                 };
 
                 _dbContext.Add(handleReact);
@@ -145,8 +171,8 @@ namespace Christofel.ReactHandler.Commands
 
             // 3. send information to the user
             var feedbackResult =
-                await _feedbackService.SendContextualSuccessAsync(
-                    "Correctly marked the message and reacted with the specified emoji");
+                await _feedbackService.SendContextualSuccessAsync
+                    ("Correctly marked the message and reacted with the specified emoji");
 
             return feedbackResult.IsSuccess
                 ? Result.FromSuccess()
@@ -155,13 +181,15 @@ namespace Christofel.ReactHandler.Commands
 
         [Command("show")]
         [Description("Show information about reacts of the specified message that are handled by the bot.")]
-        public async Task<Result> HandleReactShow(
+        public async Task<Result> HandleReactShow
+        (
             [Description("Message target")] Snowflake messageId,
             [Description("Filter for emoji, if empty, all will be shown")]
             string? reactEmoji = null,
-            [Description("Channel that the message is in. If omitted, current channel will be used"),
-             DiscordTypeHint(TypeHint.Channel)]
-            IPartialChannel? channel = default)
+            [Description("Channel that the message is in. If omitted, current channel will be used")]
+            [DiscordTypeHint(TypeHint.Channel)]
+            IPartialChannel? channel = default
+        )
         {
             var channelId = channel?.ID ?? _commandContext.ChannelID;
             if (!channelId.HasValue)
@@ -186,8 +214,11 @@ namespace Christofel.ReactHandler.Commands
             catch (Exception e)
             {
                 _logger.LogInformation(e, "Could not retrieve reaction handlers");
-                await _feedbackService.SendContextualErrorAsync("Could not retrieve reaction handlers from database.",
-                    ct: CancellationToken);
+                await _feedbackService.SendContextualErrorAsync
+                (
+                    "Could not retrieve reaction handlers from database.",
+                    ct: CancellationToken
+                );
                 return new ExceptionError(e);
             }
 

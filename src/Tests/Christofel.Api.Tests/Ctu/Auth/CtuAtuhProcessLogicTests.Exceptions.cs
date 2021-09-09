@@ -1,3 +1,9 @@
+//
+//   CtuAtuhProcessLogicTests.Exceptions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,13 +35,16 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
-            
+                user, dummyGuildMember
+            );
+
             Assert.False(result.IsSuccess);
         }
-        
+
         [Fact]
         public async Task DoesNotPropagateStepException()
         {
@@ -51,13 +60,16 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
-            
+                user, dummyGuildMember
+            );
+
             Assert.False(result.IsSuccess);
         }
-        
+
         [Fact]
         public async Task DoesNotPropagateTaskException()
         {
@@ -73,10 +85,13 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
-            
+                user, dummyGuildMember
+            );
+
             Assert.False(result.IsSuccess);
         }
 
@@ -93,15 +108,21 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = new Mock<ICtuTokenApi>();
-            successfulOauthHandler.Setup(handler =>
-                    handler.CheckTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            successfulOauthHandler.Setup
+                (
+                    handler =>
+                        handler.CheckTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                )
                 .Throws<InvalidOperationException>();
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
-            
+                user, dummyGuildMember
+            );
+
             Assert.False(result.IsSuccess);
         }
     }

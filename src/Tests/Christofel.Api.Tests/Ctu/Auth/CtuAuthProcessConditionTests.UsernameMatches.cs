@@ -1,3 +1,9 @@
+//
+//   CtuAuthProcessConditionTests.UsernameMatches.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
 using Christofel.Api.Ctu.Auth.Conditions;
@@ -21,9 +27,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, "real username");
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
             Assert.False(result.IsSuccess);
         }
@@ -36,17 +45,20 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var user = await _dbContext
                 .SetupUserToAuthenticateAsync(_dummyUsername);
             var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user);
-            
+
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
             Assert.True(result.IsSuccess);
         }
-        
+
         [Fact]
         public async Task AllowsNonFilledUsername()
         {
@@ -59,9 +71,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
             Assert.True(result.IsSuccess);
         }

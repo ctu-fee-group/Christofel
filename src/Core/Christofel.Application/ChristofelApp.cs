@@ -1,3 +1,9 @@
+//
+//   ChristofelApp.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +27,6 @@ using Christofel.Logger;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
-using Christofel.Plugins.Services;
 using Christofel.Remora;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -40,22 +45,10 @@ namespace Christofel.Application
 
     public class ChristofelApp : ChristofelDIPlugin, IRefreshable, IStoppable
     {
+        private readonly IConfigurationRoot _configuration;
+        private readonly ChristofelLifetimeHandler _lifetimeHandler;
         private ILogger<ChristofelApp>? _logger;
-        private IConfigurationRoot _configuration;
         private bool _running;
-        private ChristofelLifetimeHandler _lifetimeHandler;
-
-        public static IConfigurationRoot CreateConfiguration(string[] commandArgs)
-        {
-            string environment = Environment.GetEnvironmentVariable("ENV") ?? "production";
-
-            return new ConfigurationBuilder()
-                .AddJsonFile("config.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($@"config.{environment}.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
-                .AddCommandLine(commandArgs)
-                .Build();
-        }
 
         public ChristofelApp(string[] commandArgs)
         {
@@ -90,7 +83,7 @@ namespace Christofel.Application
         protected override IEnumerable<IStartable> Startable => Enumerable.Empty<IStartable>();
 
         /// <summary>
-        /// Start after Ready event was received
+        ///     Start after Ready event was received
         /// </summary>
         private IEnumerable<IStartable> DeferStartable
         {
@@ -103,11 +96,36 @@ namespace Christofel.Application
 
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
+        Task IRefreshable.RefreshAsync(CancellationToken token)
+        {
+            _logger.LogInformation("Refreshing Christofel");
+            _configuration.Reload();
+            return Task.CompletedTask;
+        }
+
+        Task IStoppable.StopAsync(CancellationToken token)
+        {
+            _logger.LogInformation("Stopping Christofel");
+            return Task.CompletedTask;
+        }
+
+        public static IConfigurationRoot CreateConfiguration(string[] commandArgs)
+        {
+            string environment = Environment.GetEnvironmentVariable("ENV") ?? "production";
+
+            return new ConfigurationBuilder()
+                .AddJsonFile("config.json", false, true)
+                .AddJsonFile($@"config.{environment}.json", true, true)
+                .AddEnvironmentVariables()
+                .AddCommandLine(commandArgs)
+                .Build();
+        }
+
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
                 .AddSingleton<IChristofelState, ChristofelState>()
-                .AddSingleton<IApplicationLifetime>(_lifetimeHandler.LifetimeSpecific)
+                .AddSingleton(_lifetimeHandler.LifetimeSpecific)
                 // plugins
                 .AddPlugins()
                 .AddTransient<PluginAutoloader>()
@@ -120,63 +138,77 @@ namespace Christofel.Application
                 .Configure<PluginAutoloaderOptions>(_configuration.GetSection("Plugins"))
                 .AddSingleton<IBot, DiscordBot>()
                 // db
-                .AddDbContextFactory<ChristofelBaseContext>(options =>
-                    options
-                        .UseMySql(
-                            _configuration.GetConnectionString("ChristofelBase"),
-                            ServerVersion.AutoDetect(_configuration.GetConnectionString("ChristofelBase")
-                            ))
+                .AddDbContextFactory<ChristofelBaseContext>
+                (
+                    options =>
+                        options
+                            .UseMySql
+                            (
+                                _configuration.GetConnectionString("ChristofelBase"),
+                                ServerVersion.AutoDetect(_configuration.GetConnectionString("ChristofelBase"))
+                            )
                 )
-                .AddTransient<ChristofelBaseContext>(p =>
-                    p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext())
+                .AddTransient
+                (
+                    p =>
+                        p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext()
+                )
                 .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
                 // permissions
                 .AddSingleton<IPermissionService, ListPermissionService>()
                 .AddTransient<IPermissionsResolver, DbPermissionsResolver>()
                 // loggings
-                .AddLogging(builder =>
-                {
-                    builder
-                        .AddConfiguration(_configuration.GetSection("Logging"))
-                        .ClearProviders()
-                        .AddFile()
-                        .AddSimpleConsole(options => options.IncludeScopes = true)
-                        .AddDiscordLogger();
-                })
+                .AddLogging
+                (
+                    builder =>
+                    {
+                        builder
+                            .AddConfiguration(_configuration.GetSection("Logging"))
+                            .ClearProviders()
+                            .AddFile()
+                            .AddSimpleConsole(options => options.IncludeScopes = true)
+                            .AddDiscordLogger();
+                    }
+                )
                 // discord
                 .AddDiscordGateway(p => p.GetRequiredService<IOptions<DiscordBotOptions>>().Value.Token)
-                .Configure<DiscordGatewayClientOptions>(o =>
-                    o.Intents |= GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessages)
+                .Configure<DiscordGatewayClientOptions>
+                (
+                    o =>
+                        o.Intents |= GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessages
+                )
                 // events
                 .AddResponder<ChristofelReadyResponder>()
                 .AddResponder<ApplicationResponder<IChristofelState, IPluginContext>>()
-                .AddScoped<ChristofelReadyResponder>(p => new ChristofelReadyResponder(this))
+                .AddScoped(p => new ChristofelReadyResponder(this))
                 // commands
                 .AddChristofelCommands()
                 .AddCommandGroup<ControlCommands>()
                 .AddCommandGroup<PluginCommands>()
-                .AddSingleton<RefreshChristofel>(this.RefreshAsync);
+                .AddSingleton<RefreshChristofel>(RefreshAsync);
         }
 
-        protected override Task InitializeServices(IServiceProvider services,
-            CancellationToken token = new CancellationToken())
+        protected override Task InitializeServices
+        (
+            IServiceProvider services,
+            CancellationToken token = new CancellationToken()
+        )
         {
             _logger = services.GetRequiredService<ILogger<ChristofelApp>>();
             _lifetimeHandler.Logger = _logger;
             return Task.CompletedTask;
         }
 
-        public Task InitAsync()
-        {
-            return base.InitAsync(new CancellationToken());
-        }
+        public Task InitAsync() => base.InitAsync();
 
         public async Task RunBlockAsync(CancellationToken token = default)
         {
-            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
-            await bot.RunApplication(
+            DiscordBot bot = (DiscordBot) Services.GetRequiredService<IBot>();
+            await bot.RunApplication
+            (
                 CancellationTokenSource
-                    .CreateLinkedTokenSource(Lifetime.Stopped, token).Token);
+                    .CreateLinkedTokenSource(Lifetime.Stopped, token).Token
+            );
         }
 
         public override async Task DestroyAsync(CancellationToken token = new CancellationToken())
@@ -211,19 +243,6 @@ namespace Christofel.Application
             }
 
             return Result.FromSuccess();
-        }
-
-        Task IRefreshable.RefreshAsync(CancellationToken token)
-        {
-            _logger.LogInformation("Refreshing Christofel");
-            _configuration.Reload();
-            return Task.CompletedTask;
-        }
-
-        Task IStoppable.StopAsync(CancellationToken token)
-        {
-            _logger.LogInformation("Stopping Christofel");
-            return Task.CompletedTask;
         }
     }
 }

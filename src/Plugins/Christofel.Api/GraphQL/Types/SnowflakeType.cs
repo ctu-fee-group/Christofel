@@ -1,3 +1,9 @@
+//
+//   SnowflakeType.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -8,22 +14,26 @@ namespace Christofel.Api.GraphQL.Types
     public class SnowflakeType : ScalarType<Snowflake, IntValueNode>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SnowflakeType"/> class.
+        ///     Initializes a new instance of the <see cref="SnowflakeType" /> class.
         /// </summary>
         public SnowflakeType()
-            : this(
+            : this
+            (
                 "UnsignedLong",
-                "Snowflake ulong type")
+                "Snowflake ulong type"
+            )
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SnowflakeType"/> class.
+        ///     Initializes a new instance of the <see cref="SnowflakeType" /> class.
         /// </summary>
-        public SnowflakeType(
+        public SnowflakeType
+        (
             NameString name,
             string? description = null,
-            BindingBehavior bind = BindingBehavior.Explicit)
+            BindingBehavior bind = BindingBehavior.Explicit
+        )
             : base(name, bind)
         {
             Description = description;

@@ -1,19 +1,24 @@
+//
+//   ChristofelLifetimeHandler.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Plugins;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.State
 {
     /// <summary>
-    /// Handles lifetime of the application
+    ///     Handles lifetime of the application
     /// </summary>
     public class ChristofelLifetimeHandler : LifetimeHandler<IApplicationLifetime>
     {
-        private ApplicationLifetime? _lifetime;
         private readonly ChristofelApp _app;
+        private ApplicationLifetime? _lifetime;
         private bool _stopRequestReceived;
 
         public ChristofelLifetimeHandler(Action<Exception?> handleError, ChristofelApp app)
@@ -21,9 +26,9 @@ namespace Christofel.Application.State
         {
             _app = app;
         }
-        
+
         public ILogger? Logger { get; set; }
-        
+
         public LifetimeState State { get; private set; }
 
         public override IApplicationLifetime LifetimeSpecific
@@ -38,7 +43,7 @@ namespace Christofel.Application.State
                 return _lifetime;
             }
         }
-        
+
         public override void MoveToState(LifetimeState state)
         {
             LifetimeState current;
@@ -57,42 +62,47 @@ namespace Christofel.Application.State
             {
                 return;
             }
-            
+
             _stopRequestReceived = true;
-            
-            Task.Run(async () =>
-            {
-                try
+
+            Task.Run
+            (
+                async () =>
                 {
-                    await _app.StopAsync();
+                    try
+                    {
+                        await _app.StopAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Logger?.LogError(e, "Got exception while stopping the app");
+                    }
+
+                    try
+                    {
+                        await _app.DestroyAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Logger?.LogError(e, "Got exception while destroying the app");
+                    }
                 }
-                catch (Exception e)
-                {
-                    Logger?.LogError(e, "Got exception while stopping the app");
-                }
-                
-                try
-                {
-                    await _app.DestroyAsync();
-                }
-                catch (Exception e)
-                {
-                    Logger?.LogError(e, "Got exception while destroying the app");
-                }
-            });
+            );
         }
 
         public class ApplicationLifetime : IApplicationLifetime
         {
-            private readonly CancellationTokenSource _started, _stopped, _stopping, _errored;
             private readonly ChristofelLifetimeHandler _handler;
+            private readonly CancellationTokenSource _started, _stopped, _stopping, _errored;
 
-            public ApplicationLifetime(
+            public ApplicationLifetime
+            (
                 ChristofelLifetimeHandler handler,
                 CancellationTokenSource started,
                 CancellationTokenSource stopping,
-                CancellationTokenSource stopped, 
-                CancellationTokenSource errored)
+                CancellationTokenSource stopped,
+                CancellationTokenSource errored
+            )
             {
                 _started = started;
                 _stopped = stopped;
@@ -108,7 +118,7 @@ namespace Christofel.Application.State
             public CancellationToken Started => _started.Token;
             public CancellationToken Stopped => _stopped.Token;
             public CancellationToken Stopping => _stopping.Token;
-            
+
             public void RequestStop()
             {
                 _handler.RequestStop();

@@ -1,7 +1,12 @@
+//
+//   ChristofelSlashService.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.CommandsLib.Extensions;
@@ -11,9 +16,7 @@ using Remora.Commands.Trees.Nodes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Extensions;
-using Remora.Discord.Commands.Results;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Core;
 using Remora.Results;
@@ -22,16 +25,14 @@ namespace Christofel.CommandsLib
 {
     public class ChristofelSlashService
     {
-        private record CommandInfo(IBulkApplicationCommandData Data, bool DefaultPermission,
-            IReadOnlyList<IApplicationCommandPermissions> Permissions);
+        private readonly IDiscordRestApplicationAPI _applicationAPI;
 
         private readonly CommandTree _commandTree;
         private readonly IDiscordRestOAuth2API _oauth2API;
-        private readonly IDiscordRestApplicationAPI _applicationAPI;
         private readonly ChristofelCommandPermissionResolver _permissionResolver;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SlashService"/> class.
+        ///     Initializes a new instance of the <see cref="SlashService" /> class.
         /// </summary>
         /// <param name="commandTree">The command tree.</param>
         /// <param name="oauth2API">The OAuth2 API.</param>
@@ -52,7 +53,7 @@ namespace Christofel.CommandsLib
         }
 
         /// <summary>
-        /// Determines whether the application's commands support being bound to Discord slash commands.
+        ///     Determines whether the application's commands support being bound to Discord slash commands.
         /// </summary>
         /// <returns>true if slash commands are supported; otherwise, false.</returns>
         public Result SupportsSlashCommands()
@@ -65,7 +66,7 @@ namespace Christofel.CommandsLib
         }
 
         /// <summary>
-        /// Updates the application's slash commands.
+        ///     Updates the application's slash commands.
         /// </summary>
         /// <param name="guildID">The ID of the guild to update slash commands in, if any.</param>
         /// <param name="ct">The cancellation token for this operation.</param>
@@ -108,8 +109,11 @@ namespace Christofel.CommandsLib
 
             foreach (var command in mappedCommands)
             {
-                var result = await CreateOrModifyCommandAsync(application.ID, guildID, command, createdCommands.Entity,
-                    guildCommandPermissions.Entity, ct);
+                var result = await CreateOrModifyCommandAsync
+                (
+                    application.ID, guildID, command, createdCommands.Entity,
+                    guildCommandPermissions.Entity, ct
+                );
 
                 if (!result.IsSuccess)
                 {
@@ -155,8 +159,11 @@ namespace Christofel.CommandsLib
                 }
 
                 var result =
-                    await _applicationAPI.DeleteGuildApplicationCommandAsync(application.ID, guildID, appCommand.ID,
-                        ct);
+                    await _applicationAPI.DeleteGuildApplicationCommandAsync
+                    (
+                        application.ID, guildID, appCommand.ID,
+                        ct
+                    );
 
                 if (!result.IsSuccess)
                 {
@@ -182,15 +189,19 @@ namespace Christofel.CommandsLib
 
             if (registeredCommand is null)
             {
-                var result = await _applicationAPI.CreateGuildApplicationCommandAsync(
+                var result = await _applicationAPI.CreateGuildApplicationCommandAsync
+                (
                     applicationID,
                     guildID,
                     command.Data.Name,
-                    command.Data.Description.HasValue ? command.Data.Description.Value : "",
+                    command.Data.Description.HasValue
+                        ? command.Data.Description.Value
+                        : "",
                     command.Data.Options,
                     command.DefaultPermission,
                     command.Data.Type,
-                    ct);
+                    ct
+                );
 
                 if (!result.IsSuccess)
                 {
@@ -207,15 +218,19 @@ namespace Christofel.CommandsLib
                     options = new Optional<IReadOnlyList<IApplicationCommandOption>?>(command.Data.Options.Value);
                 }
 
-                var result = await _applicationAPI.EditGuildApplicationCommandAsync(
+                var result = await _applicationAPI.EditGuildApplicationCommandAsync
+                (
                     applicationID,
                     guildID,
                     registeredCommand.ID,
                     command.Data.Name,
-                    command.Data.Description.HasValue ? command.Data.Description.Value : "",
+                    command.Data.Description.HasValue
+                        ? command.Data.Description.Value
+                        : "",
                     options,
                     command.DefaultPermission,
-                    ct);
+                    ct
+                );
 
                 if (!result.IsSuccess)
                 {
@@ -228,10 +243,14 @@ namespace Christofel.CommandsLib
             var commandPermissions = guildCommandPermissions.FirstOrDefault(x => x.ID == registeredCommand.ID);
 
             if (commandPermissions is null || !command.Permissions.OrderBy(x => x.ID).ToList()
-                .CollectionMatches(commandPermissions.Permissions.OrderBy(x => x.ID).ToList(),
-                    ApplicationCommandPermissionsExtensions.PermissionMatches))
+                .CollectionMatches
+                (
+                    commandPermissions.Permissions.OrderBy(x => x.ID).ToList(),
+                    ApplicationCommandPermissionsExtensions.PermissionMatches
+                ))
             {
-                var permissionsResult = await _applicationAPI.EditApplicationCommandPermissionsAsync(
+                var permissionsResult = await _applicationAPI.EditApplicationCommandPermissionsAsync
+                (
                     applicationID,
                     guildID,
                     registeredCommand.ID,
@@ -260,7 +279,7 @@ namespace Christofel.CommandsLib
 
             foreach (var rootCommand in _commandTree.Root.Children)
             {
-                bool defaultPermission = false;
+                var defaultPermission = false;
                 IBulkApplicationCommandData commandData;
                 IEnumerable<IApplicationCommandPermissions> permissions;
 
@@ -281,13 +300,27 @@ namespace Christofel.CommandsLib
                     // Handle shomehow?
                 }
 
-                commandData = new BulkApplicationCommandData(commandData.Name,
-                    commandData.Description.HasValue ? commandData.Description : string.Empty, commandData.Options,
-                    commandData.DefaultPermission.HasValue ? commandData.DefaultPermission : false, commandData.Type);
+                commandData = new BulkApplicationCommandData
+                (
+                    commandData.Name,
+                    commandData.Description.HasValue
+                        ? commandData.Description
+                        : string.Empty, commandData.Options,
+                    commandData.DefaultPermission.HasValue
+                        ? commandData.DefaultPermission
+                        : false, commandData.Type
+                );
                 returnData.Add(new CommandInfo(commandData, defaultPermission, permissions.ToList()));
             }
 
             return returnData;
         }
+
+        private record CommandInfo
+        (
+            IBulkApplicationCommandData Data,
+            bool DefaultPermission,
+            IReadOnlyList<IApplicationCommandPermissions> Permissions
+        );
     }
 }

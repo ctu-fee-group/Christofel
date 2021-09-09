@@ -1,3 +1,9 @@
+//
+//   PluginResponder.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -13,12 +19,16 @@ namespace Christofel.Remora.Responders
 {
     public class PluginResponder : IAnyResponder
     {
+        private readonly ILogger _logger;
         private readonly IResponderTypeRepository _responderTypeRepository;
         private readonly IServiceProvider _services;
-        private readonly ILogger _logger;
 
-        public PluginResponder(IResponderTypeRepository responderTypeRepository, IServiceProvider services,
-            ILogger<PluginResponder> logger)
+        public PluginResponder
+        (
+            IResponderTypeRepository responderTypeRepository,
+            IServiceProvider services,
+            ILogger<PluginResponder> logger
+        )
         {
             _responderTypeRepository = responderTypeRepository;
             _services = services;
@@ -40,30 +50,30 @@ namespace Christofel.Remora.Responders
                 await Task.WhenAll
                 (
                     responderGroup.Select
-                    (
-                        async rt =>
-                        {
-                            using var serviceScope = _services.CreateScope();
-                            var responder = (IResponder<TEvent>)serviceScope.ServiceProvider
-                                .GetRequiredService(rt);
+                        (
+                            async rt =>
+                            {
+                                using var serviceScope = _services.CreateScope();
+                                var responder = (IResponder<TEvent>) serviceScope.ServiceProvider
+                                    .GetRequiredService(rt);
 
-                            try
-                            {
-                                return await responder.RespondAsync(gatewayEvent, ct);
+                                try
+                                {
+                                    return await responder.RespondAsync(gatewayEvent, ct);
+                                }
+                                catch (Exception e)
+                                {
+                                    return e;
+                                }
                             }
-                            catch (Exception e)
-                            {
-                                return e;
-                            }
-                        }
-                    )
+                        )
                         .Select(HandleEventResult)
                 ).ConfigureAwait(false);
             }
 
             return Result.FromSuccess(); // Everything error handled and logged
         }
-        
+
         private async Task HandleEventResult(Task<Result> eventDispatch)
         {
             var responderResult = await eventDispatch;
@@ -82,7 +92,7 @@ namespace Christofel.Remora.Responders
             {
                 return;
             }
-            
+
             switch (result.Error)
             {
                 case ExceptionError exe:
@@ -102,6 +112,7 @@ namespace Christofel.Remora.Responders
                     {
                         LogResult(errorResult);
                     }
+
                     break;
                 }
                 default:

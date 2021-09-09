@@ -1,3 +1,9 @@
+//
+//   DIPlugin.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -9,28 +15,55 @@ using Microsoft.Extensions.Logging;
 namespace Christofel.Plugins.Runtime
 {
     /// <summary>
-    /// Dependency injection plugin base class
-    ///
-    /// Contains DI using default Microsoft DI,
-    /// can be used as base for plugins to start developing plugin faster
+    ///     Dependency injection plugin base class
+    ///     Contains DI using default Microsoft DI,
+    ///     can be used as base for plugins to start developing plugin faster
     /// </summary>
     public abstract class DIRuntimePlugin<TState, TContext> : IRuntimePlugin<TState, TContext>
     {
+        private TContext? _context;
         private IServiceProvider? _services;
         private TState? _state;
-        private TContext? _context;
-        
-        public abstract string Name { get; }
-        public abstract string Description { get; }
-        public abstract string Version { get; }
-        
+
         protected abstract IEnumerable<IRefreshable> Refreshable { get; }
         protected abstract IEnumerable<IStoppable> Stoppable { get; }
         protected abstract IEnumerable<IStartable> Startable { get; }
 
         protected abstract LifetimeHandler LifetimeHandler { get; }
+
+        protected TState State
+        {
+            get
+            {
+                if (_state is null)
+                {
+                    throw new InvalidOperationException("State is null");
+                }
+
+                return _state;
+            }
+            set => _state = value;
+        }
+
+        protected IServiceProvider Services
+        {
+            get
+            {
+                if (_services == null)
+                {
+                    throw new InvalidOperationException("Services is null");
+                }
+
+                return _services;
+            }
+            set => _services = value;
+        }
+
+        public abstract string Name { get; }
+        public abstract string Description { get; }
+        public abstract string Version { get; }
         public ILifetime Lifetime => LifetimeHandler.Lifetime;
-        
+
         public TContext Context
         {
             get
@@ -45,72 +78,92 @@ namespace Christofel.Plugins.Runtime
             private set => _context = value;
         }
 
-        protected TState State
+        /// <summary>
+        ///     Initializes services
+        /// </summary>
+        /// <param name="state"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public virtual Task InitAsync(TState state, CancellationToken token = new CancellationToken())
         {
-            get
-            {
-                if (_state is null)
-                {
-                    throw new InvalidOperationException("State is null");
-                }
-                
-                return _state;
-            }
-            set => _state = value;
+            State = state;
+            return InitAsync(token);
         }
-        
-        protected IServiceProvider Services
+
+        /// <summary>
+        ///     Runs needed services from Startable
+        /// </summary>
+        /// <param name="token"></param>
+        public virtual Task RunAsync(CancellationToken token = new CancellationToken()) => RunAsync
+            (true, Startable, token);
+
+        /// <summary>
+        ///     Refreshes needed services from Refreshable
+        /// </summary>
+        /// <param name="token"></param>
+        public virtual async Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
-            get
+            if (LifetimeHandler.Lifetime.State != LifetimeState.Running)
             {
-                if (_services == null)
-                {
-                    throw new InvalidOperationException("Services is null");
-                }
-                
-                return _services;
+                return;
             }
-            set => _services = value;
+
+            token.ThrowIfCancellationRequested();
+
+            try
+            {
+                foreach (IRefreshable refreshable in Refreshable)
+                {
+                    await refreshable.RefreshAsync(token);
+                }
+
+                await InternalRefreshAsync(token);
+            }
+            catch (Exception e)
+            {
+                LifetimeHandler.MoveToError(e);
+                throw;
+            }
         }
 
         protected abstract TContext InitializeContext();
 
         /// <summary>
-        /// Configure IServiceCollection to include common needed types
+        ///     Configure IServiceCollection to include common needed types
         /// </summary>
         /// <param name="serviceCollection"></param>
         /// <returns></returns>
         protected abstract IServiceCollection ConfigureServices(IServiceCollection serviceCollection);
-        
+
         /// <summary>
-        /// Initialize services that have some kind of state that needs to be addressed
+        ///     Initialize services that have some kind of state that needs to be addressed
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        protected abstract Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken());
+        protected abstract Task InitializeServices
+            (IServiceProvider services, CancellationToken token = new CancellationToken());
 
         /// <summary>
-        /// Build ServiceProvider itself from ServiceCollection
+        ///     Build ServiceProvider itself from ServiceCollection
         /// </summary>
         /// <param name="serviceCollection"></param>
         /// <returns></returns>
-        protected virtual IServiceProvider BuildServices(IServiceCollection serviceCollection)
-        {
-            return serviceCollection.BuildServiceProvider();
-        }
-        
+        protected virtual IServiceProvider BuildServices
+            (IServiceCollection serviceCollection) => serviceCollection.BuildServiceProvider();
+
         /// <summary>
-        /// Dispose service provider disposing all IDisposable objects in it
+        ///     Dispose service provider disposing all IDisposable objects in it
         /// </summary>
         /// <param name="services"></param>
-        protected virtual async Task DestroyServices(IServiceProvider? services, CancellationToken token = new CancellationToken())
+        protected virtual async Task DestroyServices
+            (IServiceProvider? services, CancellationToken token = new CancellationToken())
         {
             token.ThrowIfCancellationRequested();
             if (services is ServiceProvider provider)
             {
                 await provider.DisposeAsync();
             }
-            
+
             LifetimeHandler.Dispose();
         }
 
@@ -120,7 +173,7 @@ namespace Christofel.Plugins.Runtime
             {
                 _context = InitializeContext();
             }
-            
+
             if (!LifetimeHandler.MoveToIfPrevious(LifetimeState.Initializing))
             {
                 return Context;
@@ -132,7 +185,7 @@ namespace Christofel.Plugins.Runtime
 
                 IServiceCollection serviceCollection = new ServiceCollection();
                 serviceCollection = ConfigureServices(serviceCollection);
-                
+
                 Services = BuildServices(serviceCollection);
 
                 await InitializeServices(Services, token);
@@ -147,35 +200,15 @@ namespace Christofel.Plugins.Runtime
             LifetimeHandler.MoveToIfPrevious(LifetimeState.Initialized);
             return Context;
         }
-        
-        /// <summary>
-        /// Initializes services
-        /// </summary>
-        /// <param name="state"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public virtual Task InitAsync(TState state, CancellationToken token = new CancellationToken())
-        {
-            State = state;
-            return InitAsync(token);
-        }
-        
-        /// <summary>
-        /// Runs needed services from Startable
-        /// </summary>
-        /// <param name="token"></param>
-        public virtual  Task RunAsync(CancellationToken token = new CancellationToken())
-        {
-            return RunAsync(true, Startable, token);
-        }
 
         /// <summary>
-        /// Runs needed services from Startable
+        ///     Runs needed services from Startable
         /// </summary>
         /// <param name="startables"></param>
         /// <param name="token"></param>
         /// <param name="handleLifetime"></param>
-        protected virtual async Task RunAsync(bool handleLifetime, IEnumerable<IStartable> startables, CancellationToken token = new CancellationToken())
+        protected virtual async Task RunAsync
+            (bool handleLifetime, IEnumerable<IStartable> startables, CancellationToken token = new CancellationToken())
         {
             if (handleLifetime)
             {
@@ -194,7 +227,7 @@ namespace Christofel.Plugins.Runtime
                     token.ThrowIfCancellationRequested();
                     await startable.StartAsync(token);
                 }
-                
+
                 await InternalRunAsync(token);
             }
             catch (Exception e)
@@ -208,9 +241,9 @@ namespace Christofel.Plugins.Runtime
                 LifetimeHandler.MoveToIfPrevious(LifetimeState.Running);
             }
         }
-        
+
         /// <summary>
-        /// Stops needed services from Stoppable
+        ///     Stops needed services from Stoppable
         /// </summary>
         /// <param name="token"></param>
         /// <exception cref="AggregateException"></exception>
@@ -220,9 +253,9 @@ namespace Christofel.Plugins.Runtime
             {
                 return;
             }
-            
+
             LifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
-            
+
             token.ThrowIfCancellationRequested();
             List<Exception> exceptions = new List<Exception>();
 
@@ -238,7 +271,7 @@ namespace Christofel.Plugins.Runtime
                     LifetimeHandler.MoveToError(e);
                 }
             }
-            
+
             try
             {
                 await InternalStopAsync(token);
@@ -258,35 +291,7 @@ namespace Christofel.Plugins.Runtime
         }
 
         /// <summary>
-        /// Refreshes needed services from Refreshable
-        /// </summary>
-        /// <param name="token"></param>
-        public virtual async Task RefreshAsync(CancellationToken token = new CancellationToken())
-        {
-            if (LifetimeHandler.Lifetime.State != LifetimeState.Running)
-            {
-                return;
-            }
-
-            token.ThrowIfCancellationRequested();
-
-            try
-            {
-                foreach (IRefreshable refreshable in Refreshable)
-                {
-                    await refreshable.RefreshAsync(token);
-                }
-                await InternalRefreshAsync(token);
-            }
-            catch (Exception e)
-            {
-                LifetimeHandler.MoveToError(e);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Destroys and disposes all the services
+        ///     Destroys and disposes all the services
         /// </summary>
         /// <param name="token"></param>
         public virtual async Task DestroyAsync(CancellationToken token = new CancellationToken())
@@ -294,7 +299,7 @@ namespace Christofel.Plugins.Runtime
             token.ThrowIfCancellationRequested();
             LifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
             LifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
-            
+
             try
             {
                 await DestroyServices(Services, token);
@@ -305,66 +310,52 @@ namespace Christofel.Plugins.Runtime
                 LifetimeHandler.MoveToError(e);
                 throw;
             }
+
             LifetimeHandler.MoveToIfLower(LifetimeState.Destroyed);
         }
 
         /// <summary>
-        /// Called on end of init
-        /// to do internal init
+        ///     Called on end of init
+        ///     to do internal init
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        protected virtual Task InternalInitAsync(CancellationToken token = default)
-        {
-            return Task.CompletedTask;
-        }
+        protected virtual Task InternalInitAsync(CancellationToken token = default) => Task.CompletedTask;
 
         /// <summary>
-        /// Called on end of starting
-        /// to start internal features
+        ///     Called on end of starting
+        ///     to start internal features
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        protected virtual Task InternalRunAsync(CancellationToken token = default)
-        {
-            return Task.CompletedTask;
-        }
-        
-        /// <summary>
-        /// Called on end of refreshing
-        /// to refresh internal features
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        protected virtual Task InternalRefreshAsync(CancellationToken token = default)
-        {
-            return Task.CompletedTask;
-        }
+        protected virtual Task InternalRunAsync(CancellationToken token = default) => Task.CompletedTask;
 
         /// <summary>
-        /// Called on end of stopping
-        /// to stop internal features
+        ///     Called on end of refreshing
+        ///     to refresh internal features
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        protected virtual Task InternalStopAsync(CancellationToken token = default)
-        {
-            return Task.CompletedTask;
-        }
-        
-        /// <summary>
-        /// Called on end of destroyal
-        /// to destroy internal features
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        protected virtual Task InternalDestroyAsync(CancellationToken token = default)
-        {
-            return Task.CompletedTask;
-        }
+        protected virtual Task InternalRefreshAsync(CancellationToken token = default) => Task.CompletedTask;
 
         /// <summary>
-        /// Default handler of a stop request calling StopAsync and DestroyAsync
+        ///     Called on end of stopping
+        ///     to stop internal features
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected virtual Task InternalStopAsync(CancellationToken token = default) => Task.CompletedTask;
+
+        /// <summary>
+        ///     Called on end of destroyal
+        ///     to destroy internal features
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        protected virtual Task InternalDestroyAsync(CancellationToken token = default) => Task.CompletedTask;
+
+        /// <summary>
+        ///     Default handler of a stop request calling StopAsync and DestroyAsync
         /// </summary>
         /// <param name="requestLogger"></param>
         /// <returns></returns>
@@ -372,40 +363,43 @@ namespace Christofel.Plugins.Runtime
         {
             return () =>
             {
-                ILogger? logger = requestLogger();
-                Task.Run(async () =>
-                {
-                    try
+                var logger = requestLogger();
+                Task.Run
+                (
+                    async () =>
                     {
-                        await StopAsync();
+                        try
+                        {
+                            await StopAsync();
+                        }
+                        catch (Exception e)
+                        {
+                            logger?.LogError(e, $@"{Name} plugin errored during stop, ignoring the exception");
+                        }
+
+                        try
+                        {
+                            await DestroyAsync();
+                        }
+                        catch (Exception e)
+                        {
+                            logger?.LogError(e, $@"{Name} plugin errored during destroying, ignoring the exception");
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        logger?.LogError(e, $@"{Name} plugin errored during stop, ignoring the exception");
-                    }
-                    
-                    try
-                    {
-                        await DestroyAsync();
-                    }
-                    catch (Exception e)
-                    {
-                        logger?.LogError(e, $@"{Name} plugin errored during destroying, ignoring the exception");
-                    }
-                });
+                );
             };
         }
 
         /// <summary>
-        /// Default handler of errored state Requesting stop and logging its state usign logger
+        ///     Default handler of errored state Requesting stop and logging its state usign logger
         /// </summary>
         /// <param name="requestLogger"></param>
         /// <returns></returns>
         protected Action<Exception?> DefaultHandleError(Func<ILogger?> requestLogger)
         {
-            return (e) =>
+            return e =>
             {
-                ILogger? logger = requestLogger();
+                var logger = requestLogger();
                 try
                 {
                     LifetimeHandler.RequestStop();

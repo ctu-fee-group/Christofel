@@ -1,12 +1,13 @@
-using System.Linq;
+//
+//   NoDuplicateCondition.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Resolvers;
 using Christofel.Api.GraphQL.Common;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Extensions;
-using Microsoft.EntityFrameworkCore;
 using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Conditions
@@ -14,16 +15,16 @@ namespace Christofel.Api.Ctu.Auth.Conditions
     public class NoDuplicateCondition : IPreAuthCondition
     {
         private readonly DuplicateResolver _duplicates;
-        
+
         public NoDuplicateCondition(DuplicateResolver duplicates)
         {
             _duplicates = duplicates;
         }
-        
+
         public async ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = new CancellationToken())
         {
             Duplicate duplicate = await _duplicates.ResolveDuplicateAsync(authData.LoadedUser, ct);
-            DuplicityType duplicityType = duplicate.Type;
+            var duplicityType = duplicate.Type;
 
             switch (duplicityType)
             {
@@ -39,7 +40,5 @@ namespace Christofel.Api.Ctu.Auth.Conditions
 
             return Result.FromSuccess();
         }
-        
-
     }
 }

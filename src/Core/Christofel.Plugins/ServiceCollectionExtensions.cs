@@ -1,3 +1,9 @@
+//
+//   ServiceCollectionExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using Christofel.Plugins.Runtime;
 using Christofel.Plugins.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +28,11 @@ namespace Christofel.Plugins
         {
             return services
                 .AddSingleton<RuntimePluginService<TState, TContext>>()
-                .AddSingleton<IPluginLifetimeService, RuntimePluginService<TState, TContext>>(p =>
-                    p.GetRequiredService<RuntimePluginService<TState, TContext>>());
+                .AddSingleton<IPluginLifetimeService, RuntimePluginService<TState, TContext>>
+                (
+                    p =>
+                        p.GetRequiredService<RuntimePluginService<TState, TContext>>()
+                );
         }
     }
 }

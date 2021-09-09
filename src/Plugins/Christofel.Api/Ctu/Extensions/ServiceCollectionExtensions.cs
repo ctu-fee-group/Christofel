@@ -1,11 +1,15 @@
+//
+//   ServiceCollectionExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Auth.Steps;
 using Christofel.Api.Ctu.Auth.Tasks;
 using Christofel.Api.Ctu.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
-using Remora.Commands.Services;
 
 namespace Christofel.Api.Ctu.Extensions
 {
@@ -15,13 +19,13 @@ namespace Christofel.Api.Ctu.Extensions
         {
             collection
                 .TryAddScoped<CtuAuthProcess>();
-            
+
             collection
                 .TryAddScoped<ICtuTokenProvider, CtuTokenProvider>();
 
             return collection;
         }
-        
+
         public static IServiceCollection AddDefaultCtuAuthProcess(this IServiceCollection services)
         {
             services
@@ -44,7 +48,7 @@ namespace Christofel.Api.Ctu.Extensions
 
             return services;
         }
-        
+
         public static IServiceCollection AddAuthStep<T>(this IServiceCollection collection)
             where T : class, IAuthStep
         {
@@ -53,7 +57,7 @@ namespace Christofel.Api.Ctu.Extensions
 
             return collection;
         }
-        
+
         public static IServiceCollection AddAuthTask<T>(this IServiceCollection collection)
             where T : class, IAuthTask
         {
@@ -62,13 +66,13 @@ namespace Christofel.Api.Ctu.Extensions
 
             return collection;
         }
-        
+
         public static IServiceCollection AddAuthCondition<T>(this IServiceCollection collection)
             where T : class, IPreAuthCondition
         {
             collection
                 .AddTransient<IPreAuthCondition, T>();
-            
+
             return collection;
         }
     }

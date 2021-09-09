@@ -1,3 +1,9 @@
+//
+//   DuplicateAssignStep.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,15 +15,15 @@ namespace Christofel.Api.Ctu.Auth.Steps
     public class DuplicateAssignStep : IAuthStep
     {
         private readonly DuplicateResolver _duplicates;
-        
+
         public DuplicateAssignStep(DuplicateResolver duplicates)
         {
             _duplicates = duplicates;
         }
-        
+
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            var duplicate =  await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
+            var duplicate = await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
             if (duplicate.Type != DuplicityType.None && duplicate.User is null)
             {
                 return new InvalidOperationError("User cannot be null for non-none duplicate");

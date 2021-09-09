@@ -1,3 +1,9 @@
+//
+//   IServiceCollectionExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
@@ -12,7 +18,7 @@ namespace Christofel.BaseLib.Extensions
     public static class IServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds Christofel state and it's properties to provider
+        ///     Adds Christofel state and it's properties to provider
         /// </summary>
         /// <param name="provider"></param>
         /// <param name="state"></param>
@@ -34,19 +40,24 @@ namespace Christofel.BaseLib.Extensions
         }
 
         /// <summary>
-        /// Adds Christofel database context factory and read only database factory
+        ///     Adds Christofel database context factory and read only database factory
         /// </summary>
         /// <param name="provider"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public static IServiceCollection AddChristofelDatabase(this IServiceCollection provider, IChristofelState state,
-            bool write = true)
+        public static IServiceCollection AddChristofelDatabase
+        (
+            this IServiceCollection provider,
+            IChristofelState state,
+            bool write = true
+        )
         {
             if (write)
             {
                 provider
                     .AddSingleton(state.DatabaseFactory)
-                    .AddTransient<ChristofelBaseContext>(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext());
+                    .AddTransient
+                        (p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext());
             }
 
             return provider

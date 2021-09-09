@@ -2,7 +2,7 @@
     <PropertyGroup>
         <StyleCopRuleset>$(MSBuildThisFileDirectory)stylecop.ruleset</StyleCopRuleset>
         <StyleCopConfiguration>$(MSBuildThisFileDirectory)stylecop.json</StyleCopConfiguration>
-        
+
         <Nullable>enable</Nullable>
         <WarningsAsErrors>nullable</WarningsAsErrors>
 
@@ -17,6 +17,6 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
 
-        <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
+        <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json"/>
     </ItemGroup>
 </Project>

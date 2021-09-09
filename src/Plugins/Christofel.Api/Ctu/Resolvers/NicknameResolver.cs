@@ -1,3 +1,9 @@
+//
+//   NicknameResolver.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,25 +25,24 @@ namespace Christofel.Api.Ctu.Resolvers
             _usermapPeopleApi = usermapPeopleApi;
         }
 
-        public async Task<string?> ResolveNicknameAsync(ILinkUser user, IGuildMember guildMember, CancellationToken ct = default)
-        {
-            return
-                (await GetNicknameFromUsermap(user, guildMember, ct)) ?? 
-                (await GetNicknameFromKos(user, guildMember, ct));
-        }
+        public async Task<string?> ResolveNicknameAsync
+            (ILinkUser user, IGuildMember guildMember, CancellationToken ct = default)
+            => await GetNicknameFromUsermap(user, guildMember, ct) ??
+               await GetNicknameFromKos(user, guildMember, ct);
 
         private async Task<string?> GetNicknameFromKos(ILinkUser user, IGuildMember guildMember, CancellationToken ct)
         {
-            var kosPerson = await _kosPeopleApi.GetPersonAsync(user.CtuUsername, token: ct);
+            var kosPerson = await _kosPeopleApi.GetPersonAsync(user.CtuUsername, ct);
 
             return kosPerson is null
                 ? null
                 : GetNickname(kosPerson.FirstName, kosPerson.LastName, GetCurrentUsername(guildMember));
         }
 
-        private async Task<string?> GetNicknameFromUsermap(ILinkUser user, IGuildMember guildMember, CancellationToken ct)
+        private async Task<string?> GetNicknameFromUsermap
+            (ILinkUser user, IGuildMember guildMember, CancellationToken ct)
         {
-            var usermapPerson = await _usermapPeopleApi.GetPersonAsync(user.CtuUsername, token: ct);
+            var usermapPerson = await _usermapPeopleApi.GetPersonAsync(user.CtuUsername, ct);
 
             return usermapPerson is null
                 ? null

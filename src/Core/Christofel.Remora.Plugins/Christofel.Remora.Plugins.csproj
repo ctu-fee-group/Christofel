@@ -7,11 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Remora.Discord.Gateway" Version="4.0.5" />
+        <PackageReference Include="Remora.Discord.Gateway" Version="4.0.5"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Christofel.Plugins\Christofel.Plugins.csproj" />
+        <ProjectReference Include="..\Christofel.Plugins\Christofel.Plugins.csproj"/>
     </ItemGroup>
 
 </Project>

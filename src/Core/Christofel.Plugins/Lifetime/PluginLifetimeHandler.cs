@@ -1,19 +1,25 @@
+//
+//   PluginLifetimeHandler.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 
 namespace Christofel.Plugins.Lifetime
 {
     /// <summary>
-    /// LifetimeHandler for a plugin
+    ///     LifetimeHandler for a plugin
     /// </summary>
     public class PluginLifetimeHandler : LifetimeHandler<ICurrentPluginLifetime>
     {
         private Action? _handleStopRequest;
         private PluginLifetime? _lifetime;
         private bool _stopRequestReceived;
-        
+
         public PluginLifetimeHandler(Action<Exception?> handleError, Action handleStopRequest)
-            : base (handleError)
+            : base(handleError)
         {
             State = LifetimeState.Startup;
             _handleStopRequest = handleStopRequest;
@@ -63,15 +69,17 @@ namespace Christofel.Plugins.Lifetime
 
         public class PluginLifetime : ICurrentPluginLifetime
         {
-            private readonly CancellationTokenSource _started, _stopped, _stopping, _errored;
             private readonly PluginLifetimeHandler _handler;
+            private readonly CancellationTokenSource _started, _stopped, _stopping, _errored;
 
-            public PluginLifetime(
+            public PluginLifetime
+            (
                 PluginLifetimeHandler handler,
                 CancellationTokenSource started,
                 CancellationTokenSource stopping,
-                CancellationTokenSource stopped, 
-                CancellationTokenSource errored)
+                CancellationTokenSource stopped,
+                CancellationTokenSource errored
+            )
             {
                 _started = started;
                 _stopped = stopped;
@@ -87,7 +95,7 @@ namespace Christofel.Plugins.Lifetime
             public CancellationToken Started => _started.Token;
             public CancellationToken Stopped => _stopped.Token;
             public CancellationToken Stopping => _stopping.Token;
-            
+
             public void RequestStop()
             {
                 _handler.RequestStop();

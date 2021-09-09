@@ -1,44 +1,44 @@
+//
+//   TitlesRoleStep.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Kos;
 using Kos.Abstractions;
-using Kos.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Remora.Results;
-using Usermap;
 using Usermap.Controllers;
-using Usermap.Data;
 
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    /// Assign roles from TitleRoleAssignment table
+    ///     Assign roles from TitleRoleAssignment table
     /// </summary>
     /// <remarks>
-    /// Obtains titles either from kos (safer as there are titlesPre and titlesPost fields)
-    /// or from usermap if kos user is not found (not safe, because the titles have to be parsed from full name)
+    ///     Obtains titles either from kos (safer as there are titlesPre and titlesPost fields)
+    ///     or from usermap if kos user is not found (not safe, because the titles have to be parsed from full name)
     /// </remarks>
     public class TitlesRoleStep : IAuthStep
     {
-        private record Titles(IEnumerable<string> Pre, IEnumerable<string> Post);
+        private readonly IKosPeopleApi _kosPeopleApi;
 
         private readonly IUsermapPeopleApi _usermapPeopleApi;
-        private readonly IKosPeopleApi _kosPeopleApi;
 
         public TitlesRoleStep(IUsermapPeopleApi usermapPeopleApi, IKosPeopleApi kosPeopleApi)
         {
             _kosPeopleApi = kosPeopleApi;
             _usermapPeopleApi = usermapPeopleApi;
         }
-        
+
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            Titles? titles = await GetKosTitles(data.LoadedUser.CtuUsername, ct) ??
-                             await GetUsermapTitles(data.LoadedUser.CtuUsername, ct);
+            var titles = await GetKosTitles(data.LoadedUser.CtuUsername, ct) ??
+                         await GetUsermapTitles(data.LoadedUser.CtuUsername, ct);
 
             if (titles is null)
             {
@@ -47,14 +47,13 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
             List<CtuAuthRole> roles = await data.DbContext.TitleRoleAssignment
                 .AsNoTracking()
-                .Where(x => (x.Pre && titles.Pre.Contains(x.Title) ||
-                             (x.Post && titles.Post.Contains(x.Title))))
+                .Where
+                (
+                    x => x.Pre && titles.Pre.Contains(x.Title) ||
+                         x.Post && titles.Post.Contains(x.Title)
+                )
                 .Include(x => x.Assignment)
-                .Select(x => new CtuAuthRole
-                {
-                    RoleId = x.Assignment.RoleId,
-                    Type = x.Assignment.RoleType
-                })
+                .Select(x => new CtuAuthRole { RoleId = x.Assignment.RoleId, Type = x.Assignment.RoleType })
                 .ToListAsync(ct);
 
             data.Roles.AddRange(roles);
@@ -63,24 +62,26 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
         private async Task<Titles?> GetKosTitles(string username, CancellationToken token)
         {
-            KosPerson? person = await _kosPeopleApi.GetPersonAsync(username, token: token);
+            var person = await _kosPeopleApi.GetPersonAsync(username, token);
             return CreateTitles(person?.TitlesPre, person?.TitlesPost);
         }
 
         private async Task<Titles?> GetUsermapTitles(string username, CancellationToken token)
         {
-            UsermapPerson? person = await _usermapPeopleApi.GetPersonAsync(username, token: token);
+            var person = await _usermapPeopleApi.GetPersonAsync(username, token);
 
             if (person?.FullName is null)
             {
                 return null;
             }
 
-            int firstNameIndex = person.FullName.IndexOf(person.FirstName, StringComparison.InvariantCulture);
-            int lastNameIndex = person.FullName.LastIndexOf(person.LastName, StringComparison.InvariantCulture) +
+            var firstNameIndex = person.FullName.IndexOf(person.FirstName, StringComparison.InvariantCulture);
+            var lastNameIndex = person.FullName.LastIndexOf(person.LastName, StringComparison.InvariantCulture) +
                                 person.LastName.Length;
 
-            string titlesPre = firstNameIndex <= 0 ? "" : person.FullName.Substring(0, firstNameIndex);
+            string titlesPre = firstNameIndex <= 0
+                ? ""
+                : person.FullName.Substring(0, firstNameIndex);
             string titlesPost = lastNameIndex >= person.FullName.Length
                 ? ""
                 : person.FullName.Substring(0, firstNameIndex);
@@ -88,12 +89,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
             return CreateTitles(titlesPre, titlesPost);
         }
 
-        private Titles CreateTitles(string? pre, string? post)
-        {
-            return new Titles(
-                ObtainTitles(pre), ObtainTitles(post)
-            );
-        }
+        private Titles CreateTitles(string? pre, string? post) => new Titles(ObtainTitles(pre), ObtainTitles(post));
 
         private IEnumerable<string> ObtainTitles(string? titles)
         {
@@ -107,5 +103,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 .Split(' ')
                 .Select(x => x.Trim());
         }
+
+        private record Titles(IEnumerable<string> Pre, IEnumerable<string> Post);
     }
 }

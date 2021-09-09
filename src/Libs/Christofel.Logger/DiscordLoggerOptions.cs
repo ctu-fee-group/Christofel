@@ -1,3 +1,9 @@
+//
+//   DiscordLoggerOptions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Logger
@@ -5,32 +11,32 @@ namespace Christofel.Logger
     public class DiscordLoggerChannelOptions
     {
         /// <summary>
-        /// What minimal level should be logged to the current channel
+        ///     What minimal level should be logged to the current channel
         /// </summary>
         public LogLevel MinLevel { get; set; }
-        
+
         /// <summary>
-        /// Where should the message be sent
+        ///     Where should the message be sent
         /// </summary>
         public ulong GuildId { get; set; }
-        
+
         /// <summary>
-        /// Where should the message be sent
+        ///     Where should the message be sent
         /// </summary>
         public ulong ChannelId { get; set; }
     }
-    
+
     public class DiscordLoggerOptions
     {
         /// <summary>
-        /// Queue size of ConcurrentCollection used in processor of discord messages
+        ///     Queue size of ConcurrentCollection used in processor of discord messages
         /// </summary>
         public uint MaxQueueSize { get; set; } = 1024;
 
         public uint MaxGroupSize { get; set; } = 20;
 
         /// <summary>
-        /// What channels to log to
+        ///     What channels to log to
         /// </summary>
         public DiscordLoggerChannelOptions[] Channels { get; set; } = null!;
     }

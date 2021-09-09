@@ -1,3 +1,9 @@
+//
+//   ContextualUserParser.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,7 +17,6 @@ using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Parsers;
 using Remora.Discord.Core;
 using Remora.Results;
-using IUser = Remora.Discord.API.Abstractions.Objects.IUser;
 
 namespace Christofel.CommandsLib.ContextedParsers
 {
@@ -19,13 +24,13 @@ namespace Christofel.CommandsLib.ContextedParsers
     {
         private readonly ICommandContext? _commandContext;
         private readonly IDiscordRestUserAPI _userApi;
-        
+
         public ContextualUserParser(IEnumerable<ICommandContext> commandContext, IDiscordRestUserAPI userApi)
         {
             _userApi = userApi;
             _commandContext = commandContext.FirstOrDefault();
         }
-        
+
         public override ValueTask<Result<IUser>> TryParseAsync(string value, CancellationToken ct)
         {
             if (_commandContext is InteractionContext interactionContext &&
@@ -39,7 +44,8 @@ namespace Christofel.CommandsLib.ContextedParsers
 
             if (_commandContext is InteractionContext)
             {
-                return ValueTask.FromResult<Result<IUser>>(new ParsingError<IUser>("Could not find specified user in resolved data"));
+                return ValueTask.FromResult<Result<IUser>>
+                    (new ParsingError<IUser>("Could not find specified user in resolved data"));
             }
 
             return new UserParser(_userApi).TryParseAsync(value, ct);

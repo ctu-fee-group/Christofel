@@ -1,3 +1,9 @@
+//
+//   CtuAuthProcessLogicTests.Continuity.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +21,6 @@ namespace Christofel.Api.Tests.Ctu.Auth
 {
     public class CtuAuthProcessLogicContinuityTests : CtuAuthProcessLogicTests
     {
-        
         [Fact]
         public async Task FailedConditionDoesntStartTasks()
         {
@@ -35,14 +40,20 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result =
-                await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+                await process.FinishAuthAsync
+                (
+                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                     _dummyGuildId,
-                    user, dummyGuildMember);
+                    user, dummyGuildMember
+                );
 
-            taskMock.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Never);
+            taskMock.Verify
+            (
+                service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Never
+            );
         }
-        
+
         [Fact]
         public async Task FailedConditionDoesntStartSteps()
         {
@@ -62,15 +73,21 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result =
-                await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+                await process.FinishAuthAsync
+                (
+                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                     _dummyGuildId,
-                    user, dummyGuildMember);
+                    user, dummyGuildMember
+                );
 
-            stepMock.Verify(service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Never);
+            stepMock.Verify
+            (
+                service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Never
+            );
         }
-        
-        
+
+
         [Fact]
         public async Task FailedStepDoesntStartTasks()
         {
@@ -89,12 +106,18 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            taskMock.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Never);
+            taskMock.Verify
+            (
+                service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Never
+            );
         }
     }
 }

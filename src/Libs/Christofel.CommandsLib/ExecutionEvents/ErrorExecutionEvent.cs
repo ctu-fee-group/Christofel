@@ -1,3 +1,9 @@
+//
+//   ErrorExecutionEvent.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -11,14 +17,18 @@ namespace Christofel.CommandsLib.ExecutionEvents
     public class ErrorExecutionEvent : IPostExecutionEvent
     {
         private readonly ILogger _logger;
-        
+
         public ErrorExecutionEvent(ILogger<ErrorExecutionEvent> logger)
         {
             _logger = logger;
         }
-        
-        public Task<Result> AfterExecutionAsync(ICommandContext context, IResult commandResult,
-            CancellationToken ct = new CancellationToken())
+
+        public Task<Result> AfterExecutionAsync
+        (
+            ICommandContext context,
+            IResult commandResult,
+            CancellationToken ct = new CancellationToken()
+        )
         {
             if (!commandResult.IsSuccess && commandResult.Error is (not null and not CommandNotFoundError))
             {

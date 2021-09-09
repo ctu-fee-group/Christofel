@@ -1,3 +1,9 @@
+//
+//   ContextedAssembly.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -6,15 +12,15 @@ using System.Runtime.Loader;
 namespace Christofel.Plugins.Assemblies
 {
     /// <summary>
-    /// Class for holding loaded assembly in AssemblyLoadContext
+    ///     Class for holding loaded assembly in AssemblyLoadContext
     /// </summary>
     public class ContextedAssembly
     {
+        private readonly object _detachLock = new object();
         private Assembly? _assembly;
         private AssemblyLoadContext? _context;
-        private readonly object _detachLock = new object();
         private WeakReference? _weakReference;
-        
+
         public ContextedAssembly(AssemblyLoadContext context, Assembly assembly)
         {
             _assembly = assembly;
@@ -33,7 +39,7 @@ namespace Christofel.Plugins.Assemblies
                 return _context;
             }
         }
-        
+
         public Assembly Assembly
         {
             get
@@ -46,9 +52,9 @@ namespace Christofel.Plugins.Assemblies
                 return _assembly;
             }
         }
-        
+
         /// <summary>
-        /// Unloads AssemblyLoadContext and throws away it's reference
+        ///     Unloads AssemblyLoadContext and throws away it's reference
         /// </summary>
         /// <returns>Weak reference to AssemblyLoadContext so it can be checked whether the AssemblyLoadContext was destroyed</returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -62,10 +68,10 @@ namespace Christofel.Plugins.Assemblies
                     {
                         throw new InvalidOperationException("Weak reference was not set even though it should be");
                     }
-                    
+
                     return _weakReference;
                 }
-                
+
                 WeakReference weakReference = _weakReference = new WeakReference(Context);
                 if (Context.IsCollectible)
                 {

@@ -1,10 +1,16 @@
+//
+//   LifetimeHandlerExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 namespace Christofel.Plugins.Lifetime
 {
     public static class LifetimeHandlerExtensions
     {
         public static bool MoveToIfLower(this LifetimeHandler lifetimeHandler, LifetimeState state)
         {
-            bool set = lifetimeHandler.Lifetime.State < state;
+            var set = lifetimeHandler.Lifetime.State < state;
 
             if (set)
             {
@@ -13,10 +19,10 @@ namespace Christofel.Plugins.Lifetime
 
             return set;
         }
-        
+
         public static bool MoveToIfPrevious(this LifetimeHandler lifetimeHandler, LifetimeState state)
         {
-            bool set = lifetimeHandler.Lifetime.State < state;
+            var set = lifetimeHandler.Lifetime.State < state;
 
             if (set)
             {

@@ -1,3 +1,9 @@
+//
+//   TargetTypeExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using Christofel.BaseLib.Database.Models.Enums;
 using Remora.Discord.API.Abstractions.Objects;
@@ -7,7 +13,7 @@ namespace Christofel.CommandsLib.Extensions
     public static class TargetTypeExtensions
     {
         /// <summary>
-        /// Cast TargetType to ApplicationCommandPermissionTarget
+        ///     Cast TargetType to ApplicationCommandPermissionTarget
         /// </summary>
         /// <param name="targetType"></param>
         /// <returns></returns>

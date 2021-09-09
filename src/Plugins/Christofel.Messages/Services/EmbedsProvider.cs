@@ -1,5 +1,10 @@
+//
+//   EmbedsProvider.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -8,15 +13,14 @@ using Christofel.Messages.Options;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Christofel.Messages.Services
 {
     public class EmbedsProvider : IDisposable, IAsyncDisposable
     {
-        private EmbedsOptions _embedsOptions;
         private readonly IDisposable _embedsOptionsUpdateToken;
         private readonly JsonSerializerOptions _jsonOptions;
+        private EmbedsOptions _embedsOptions;
 
         public EmbedsProvider(IOptionsMonitor<EmbedsOptions> options, IOptions<JsonSerializerOptions> jsonOptions)
         {
@@ -27,10 +31,19 @@ namespace Christofel.Messages.Services
 
         public string EmbedsFolder => _embedsOptions.Folder;
 
-        public Embed? GetEmbedFromString(string embedString)
+        public ValueTask DisposeAsync()
         {
-            return (Embed?)JsonSerializer.Deserialize<IEmbed>(embedString, _jsonOptions);
+            _embedsOptionsUpdateToken.Dispose();
+            return ValueTask.CompletedTask;
         }
+
+        public void Dispose()
+        {
+            _embedsOptionsUpdateToken.Dispose();
+        }
+
+        public Embed? GetEmbedFromString
+            (string embedString) => (Embed?) JsonSerializer.Deserialize<IEmbed>(embedString, _jsonOptions);
 
         public async Task<Embed?> GetEmbedFromFile(string embedName)
         {
@@ -40,17 +53,6 @@ namespace Christofel.Messages.Services
             }
 
             return GetEmbedFromString(await File.ReadAllTextAsync(Path.Join(EmbedsFolder, embedName + ".json")));
-        }
-
-        public void Dispose()
-        {
-            _embedsOptionsUpdateToken.Dispose();
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            _embedsOptionsUpdateToken.Dispose();
-            return ValueTask.CompletedTask;
         }
     }
 }

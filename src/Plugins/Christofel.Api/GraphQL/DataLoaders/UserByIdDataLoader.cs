@@ -1,3 +1,9 @@
+//
+//   UserByIdDataLoader.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,21 +18,25 @@ using Microsoft.EntityFrameworkCore;
 namespace Christofel.Api.GraphQL.DataLoaders
 {
     /// <summary>
-    /// Loads DbUser from database by user id
+    ///     Loads DbUser from database by user id
     /// </summary>
     public class UserByIdDataLoader : BatchDataLoader<int, DbUser>
     {
-        private ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;
+        private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;
 
-        public UserByIdDataLoader(
+        public UserByIdDataLoader
+        (
             IBatchScheduler batchScheduler,
             ReadonlyDbContextFactory<ChristofelBaseContext> dbContextFactory,
-            DataLoaderOptions<int>? options = null) : base(batchScheduler, options)
+            DataLoaderOptions<int>? options = null
+        )
+            : base(batchScheduler, options)
         {
             _dbContextFactory = dbContextFactory;
         }
 
-        protected override async Task<IReadOnlyDictionary<int, DbUser>> LoadBatchAsync(IReadOnlyList<int> keys, CancellationToken cancellationToken)
+        protected override async Task<IReadOnlyDictionary<int, DbUser>> LoadBatchAsync
+            (IReadOnlyList<int> keys, CancellationToken cancellationToken)
         {
             await using IReadableDbContext dbContext = _dbContextFactory.CreateDbContext();
 

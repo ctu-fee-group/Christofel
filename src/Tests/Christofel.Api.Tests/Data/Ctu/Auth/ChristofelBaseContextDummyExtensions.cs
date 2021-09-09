@@ -1,3 +1,9 @@
+//
+//   ChristofelBaseContextDummyExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database;
@@ -8,9 +14,10 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
 {
     public static class ChristofelBaseContextDummyExtensions
     {
-        public static async Task<DbUser> SetupUserToAuthenticateAsync(this ChristofelBaseContext ctx, string username = null, ulong discordId = 12348671238986)
+        public static async Task<DbUser> SetupUserToAuthenticateAsync
+            (this ChristofelBaseContext ctx, string username = null, ulong discordId = 12348671238986)
         {
-            var user = new DbUser()
+            var user = new DbUser
             {
                 CreatedAt = DateTime.Now,
                 DiscordId = new Snowflake(discordId),
@@ -21,7 +28,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
                 DuplicitUserId = null,
                 DuplicitUsersBack = null,
                 DuplicityApproved = false,
-                UpdatedAt = null
+                UpdatedAt = null,
             };
 
             ctx.Add(user);
@@ -29,10 +36,11 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
 
             return user;
         }
-        
-        public static async Task<DbUser> SetupAuthenticatedUserAsync(this ChristofelBaseContext ctx, string username = null, ulong discordId = 12348671238986)
+
+        public static async Task<DbUser> SetupAuthenticatedUserAsync
+            (this ChristofelBaseContext ctx, string username = null, ulong discordId = 12348671238986)
         {
-            var user = new DbUser()
+            var user = new DbUser
             {
                 CreatedAt = DateTime.Now,
                 DiscordId = new Snowflake(discordId),
@@ -43,7 +51,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
                 DuplicitUserId = null,
                 DuplicitUsersBack = null,
                 DuplicityApproved = false,
-                UpdatedAt = null
+                UpdatedAt = null,
             };
 
             ctx.Add(user);

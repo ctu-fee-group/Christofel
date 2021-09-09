@@ -1,7 +1,10 @@
+//
+//   CtuAuthProcessLogicTests.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.Xml;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
@@ -9,31 +12,27 @@ using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Auth.Steps;
 using Christofel.Api.Ctu.Auth.Tasks;
 using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.GraphQL.Types;
 using Christofel.Api.OAuth;
 using Christofel.Api.Tests.Data.Ctu.Auth;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.User;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.API.Objects;
-using Remora.Discord.Core;
 using TestSupport.EfHelpers;
 using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
-    public partial class CtuAuthProcessLogicTests : IDisposable
+    public class CtuAuthProcessLogicTests : IDisposable
     {
         protected readonly ChristofelBaseContext _dbContext;
-        protected readonly IDisposable _optionsDisposable;
 
         protected readonly string _dummyAccessToken = "myToken";
-        protected readonly string _dummyUsername = "someUsername";
         protected readonly ulong _dummyGuildId = 93249823482348;
+        protected readonly string _dummyUsername = "someUsername";
+        protected readonly IDisposable _optionsDisposable;
 
         public CtuAuthProcessLogicTests()
         {
@@ -50,15 +49,11 @@ namespace Christofel.Api.Tests.Ctu.Auth
             _optionsDisposable?.Dispose();
         }
 
-        protected IGuildMember CreateDummyGuildMember(DbUser user)
-        {
-            return GuildMemberRepository.CreateDummyGuildMember(user);
-        }
+        protected IGuildMember CreateDummyGuildMember(DbUser user) => GuildMemberRepository.CreateDummyGuildMember
+            (user);
 
-        protected Mock<ICtuTokenApi> GetMockedTokenApi(DbUser user)
-        {
-            return OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
-        }
+        protected Mock<ICtuTokenApi> GetMockedTokenApi(DbUser user) => OauthTokenApiRepository.GetMockedTokenApi
+            (user, _dummyUsername);
 
         [Fact]
         public async Task CallsCondition()
@@ -77,12 +72,18 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockCondition.Verify(service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockCondition.Verify
+            (
+                service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -102,12 +103,18 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockTask.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockTask.Verify
+            (
+                service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -127,12 +134,18 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockStep.Verify(service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockStep.Verify
+            (
+                service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -153,31 +166,43 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockCondition.Verify(service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
-            
+            mockCondition.Verify
+            (
+                service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+
             mockCondition = new Mock<ConditionRepository.MockCondition>();
-            
+
             services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddScoped<IPreAuthCondition, ConditionRepository.MockCondition>(p => mockCondition.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
-            
+
             dummyGuildMember = CreateDummyGuildMember(user);
             successfulOauthHandler = GetMockedTokenApi(user);
 
             process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockCondition.Verify(service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockCondition.Verify
+            (
+                service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -198,15 +223,21 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockTask.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
-            
+            mockTask.Verify
+            (
+                service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+
             mockTask = new Mock<TaskRepository.MockTask>();
-            
+
             services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddScoped<IAuthTask, TaskRepository.MockTask>(p => mockTask.Object)
@@ -218,12 +249,18 @@ namespace Christofel.Api.Tests.Ctu.Auth
             successfulOauthHandler = GetMockedTokenApi(user);
 
             process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockTask.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockTask.Verify
+            (
+                service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
         [Fact]
@@ -244,32 +281,44 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockStep.Verify(service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
-            
+            mockStep.Verify
+            (
+                service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+
             mockStep = new Mock<StepRepository.MockStep>();
-            
+
             services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddScoped<IAuthStep, StepRepository.MockStep>(p => mockStep.Object)
                 .AddAuthStep<StepRepository.SuccessfulStep>()
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
-            
+
             dummyGuildMember = CreateDummyGuildMember(user);
             successfulOauthHandler = GetMockedTokenApi(user);
 
             process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
-            mockStep.Verify(service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockStep.Verify
+            (
+                service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
     }
 }

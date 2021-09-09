@@ -1,12 +1,15 @@
-using System;
+//
+//   ProgrammeRoleStep.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Kos;
 using Kos.Abstractions;
-using Kos.Atom;
-using Kos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
@@ -14,15 +17,15 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    /// Assign roles from ProgrammeRoleAssignment table
+    ///     Assign roles from ProgrammeRoleAssignment table
     /// </summary>
     /// <remarks>
-    /// Uses kos api to obtain programme of the user
+    ///     Uses kos api to obtain programme of the user
     /// </remarks>
     public class ProgrammeRoleStep : IAuthStep
     {
-        private readonly IKosPeopleApi _kosPeopleApi;
         private readonly IKosAtomApi _kosApi;
+        private readonly IKosPeopleApi _kosPeopleApi;
         private readonly ILogger _logger;
 
         public ProgrammeRoleStep(ILogger<CtuAuthProcess> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
@@ -34,20 +37,20 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            KosPerson? kosPerson =
-                await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, token: ct);
+            var kosPerson =
+                await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, ct);
 
-            AtomLoadableEntity<KosStudent>? studentLoadable = kosPerson?.Roles.Students.LastOrDefault();
+            var studentLoadable = kosPerson?.Roles.Students.LastOrDefault();
             if (studentLoadable is not null)
             {
-                KosStudent? student = await _kosApi.LoadEntityAsync(studentLoadable, token: ct);
+                var student = await _kosApi.LoadEntityAsync(studentLoadable, ct);
 
                 if (student is null)
                 {
                     return Result.FromSuccess();
                 }
 
-                string? programmeTitle = student.Programme?.Title;
+                var programmeTitle = student.Programme?.Title;
 
                 if (programmeTitle is null)
                 {
@@ -58,17 +61,13 @@ namespace Christofel.Api.Ctu.Auth.Steps
                     .AsNoTracking()
                     .Where(x => x.Programme == programmeTitle)
                     .Include(x => x.Assignment)
-                    .Select(x => new CtuAuthRole
-                    {
-                        RoleId = x.Assignment.RoleId,
-                        Type = x.Assignment.RoleType
-                    })
+                    .Select(x => new CtuAuthRole { RoleId = x.Assignment.RoleId, Type = x.Assignment.RoleType })
                     .ToListAsync(ct);
 
                 if (roles.Count == 0)
                 {
-                    _logger.LogWarning(
-                        $"Could not find mapping for programme {programmeTitle} for user {data.GuildUser}");
+                    _logger.LogWarning
+                        ($"Could not find mapping for programme {programmeTitle} for user {data.GuildUser}");
                 }
 
                 data.Roles.AddRange(roles);

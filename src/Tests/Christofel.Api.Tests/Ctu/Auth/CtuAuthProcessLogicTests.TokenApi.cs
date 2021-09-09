@@ -1,3 +1,9 @@
+//
+//   CtuAuthProcessLogicTests.TokenApi.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,8 +40,11 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .Throws<InvalidOperationException>();
 
             var result =
-                await process.FinishAuthAsync(_dummyAccessToken, failingOauthHandler.Object, _dbContext, _dummyGuildId,
-                    user, dummyGuildMember);
+                await process.FinishAuthAsync
+                (
+                    _dummyAccessToken, failingOauthHandler.Object, _dbContext, _dummyGuildId,
+                    user, dummyGuildMember
+                );
 
             Assert.False(result.IsSuccess);
         }
@@ -55,9 +64,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result =
-                await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+                await process.FinishAuthAsync
+                (
+                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                     _dummyGuildId,
-                    user, dummyGuildMember);
+                    user, dummyGuildMember
+                );
 
             Assert.True(result.IsSuccess);
         }

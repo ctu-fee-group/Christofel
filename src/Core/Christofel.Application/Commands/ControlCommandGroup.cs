@@ -1,9 +1,12 @@
+//
+//   ControlCommandGroup.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Plugins;
-using Christofel.CommandsLib;
 using Christofel.CommandsLib.Permissions;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
@@ -11,23 +14,23 @@ using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Commands.Attributes;
-using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
 namespace Christofel.Application.Commands
 {
     /// <summary>
-    /// Handler of /refresh and /quit commands
+    ///     Handler of /refresh and /quit commands
     /// </summary>
     public class ControlCommands : CommandGroup
     {
         private readonly IApplicationLifetime _applicationLifetime;
-        private readonly RefreshChristofel _refresh;
-        private readonly ILogger<ControlCommands> _logger;
         private readonly FeedbackService _feedbackService;
+        private readonly ILogger<ControlCommands> _logger;
+        private readonly RefreshChristofel _refresh;
 
-        public ControlCommands(
+        public ControlCommands
+        (
             FeedbackService feedbackService,
             IApplicationLifetime lifetime,
             RefreshChristofel refresh,
@@ -48,7 +51,7 @@ namespace Christofel.Application.Commands
         {
             await _refresh(CancellationToken);
             _logger.LogInformation("Refreshed successfully");
-            
+
             return await _feedbackService.SendContextualSuccessAsync("Successfully refreshed", ct: CancellationToken);
         }
 

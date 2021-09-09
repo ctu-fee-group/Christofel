@@ -1,9 +1,13 @@
+//
+//   PluginAutoloader.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib;
-using Christofel.BaseLib.Plugins;
 using Christofel.Plugins;
 using Christofel.Plugins.Runtime;
 using Christofel.Plugins.Services;
@@ -13,25 +17,37 @@ using Microsoft.Extensions.Options;
 namespace Christofel.Application.Plugins
 {
     /// <summary>
-    /// Auto loads plugins specified in configuration
-    /// on startup
+    ///     Auto loads plugins specified in configuration
+    ///     on startup
     /// </summary>
     public class PluginAutoloader : IStartable, IRefreshable, IStoppable
     {
-        private readonly PluginAutoloaderOptions _options;
-        private readonly PluginStorage _pluginStorage;
-        private readonly PluginService _plugins;
         private readonly ILogger<PluginAutoloader> _logger;
+        private readonly PluginAutoloaderOptions _options;
+        private readonly PluginService _plugins;
+        private readonly PluginStorage _pluginStorage;
 
-        public PluginAutoloader(IOptions<PluginAutoloaderOptions> options,
+        public PluginAutoloader
+        (
+            IOptions<PluginAutoloaderOptions> options,
             ILogger<PluginAutoloader> logger,
             PluginService plugins,
-            PluginStorage pluginStorage)
+            PluginStorage pluginStorage
+        )
         {
             _pluginStorage = pluginStorage;
             _plugins = plugins;
             _options = options.Value;
             _logger = logger;
+        }
+
+        public Task RefreshAsync(CancellationToken token = new CancellationToken())
+        {
+            return Task.WhenAll
+            (
+                _pluginStorage.AttachedPlugins.Select(x => x.Plugin).OfType<IRuntimePlugin>()
+                    .Select(x => x.RefreshAsync(token))
+            );
         }
 
         public async Task StartAsync(CancellationToken token = new CancellationToken())
@@ -54,15 +70,6 @@ namespace Christofel.Application.Plugins
             }
         }
 
-        public Task RefreshAsync(CancellationToken token = new CancellationToken())
-        {
-            return Task.WhenAll(_pluginStorage.AttachedPlugins.Select(x => x.Plugin).OfType<IRuntimePlugin>()
-                .Select(x => x.RefreshAsync(token)));
-        }
-
-        public Task StopAsync(CancellationToken token = new CancellationToken())
-        {
-            return _plugins.DetachAllAsync(token);
-        }
+        public Task StopAsync(CancellationToken token = new CancellationToken()) => _plugins.DetachAllAsync(token);
     }
 }

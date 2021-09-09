@@ -1,3 +1,9 @@
+//
+//   StepRepository.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,28 +17,22 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
     {
         public class FailingStep : IAuthStep
         {
-            public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
-            {
-                return Task.FromResult<Result>(new InvalidOperationError());
-            }
+            public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default) => Task.FromResult<Result>
+                (new InvalidOperationError());
         }
-        
+
         public class SuccessfulStep : IAuthStep
         {
-            public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
-            {
-                return Task.FromResult(Result.FromSuccess());
-            }
+            public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default) => Task.FromResult
+                (Result.FromSuccess());
         }
-        
+
         public class ExceptionThrowingStep : IAuthStep
         {
-            public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
-            {
-                throw new InvalidOperationException();
-            }
+            public Task<Result> FillDataAsync
+                (IAuthData data, CancellationToken ct = default) => throw new InvalidOperationException();
         }
-        
+
         public class SetAuthenticatedAtStep : IAuthStep
         {
             public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)

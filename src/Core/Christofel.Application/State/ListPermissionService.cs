@@ -1,3 +1,9 @@
+//
+//   ListPermissionService.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,16 +13,16 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Christofel.Application.State
 {
     /// <summary>
-    /// Thread-safe is achieved using locks.
-    /// This service should not be modified to by other threads,
-    /// but just to be sure
+    ///     Thread-safe is achieved using locks.
+    ///     This service should not be modified to by other threads,
+    ///     but just to be sure
     /// </summary>
     public sealed class ListPermissionService : IPermissionService
     {
-        private List<IPermission> _permissions;
-        private IServiceProvider _provider;
-        private object _threadLock = new object();
-        
+        private readonly List<IPermission> _permissions;
+        private readonly IServiceProvider _provider;
+        private readonly object _threadLock = new object();
+
         public ListPermissionService(IServiceProvider provider)
         {
             _provider = provider;

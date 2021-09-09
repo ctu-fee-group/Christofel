@@ -1,3 +1,9 @@
+//
+//   PermissionAssignmentQueryExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.Linq;
 using Christofel.BaseLib.Database.Models;
@@ -8,7 +14,8 @@ namespace Christofel.BaseLib.Extensions
 {
     public static class PermissionAssignmentQueryExtensions
     {
-        public static IQueryable<PermissionAssignment> WhereTargetEquals(this IQueryable<PermissionAssignment> assignmentQuery, DiscordTarget target)
+        public static IQueryable<PermissionAssignment> WhereTargetEquals
+            (this IQueryable<PermissionAssignment> assignmentQuery, DiscordTarget target)
         {
             if (target.TargetType != TargetType.Everyone)
             {
@@ -20,10 +27,13 @@ namespace Christofel.BaseLib.Extensions
                 .Where(x => x.Target.TargetType == target.TargetType);
         }
 
-        public static IQueryable<PermissionAssignment> WhereTargetAnyOf(this IQueryable<PermissionAssignment> assignmentQuery,
-            IEnumerable<DiscordTarget> targets)
+        public static IQueryable<PermissionAssignment> WhereTargetAnyOf
+        (
+            this IQueryable<PermissionAssignment> assignmentQuery,
+            IEnumerable<DiscordTarget> targets
+        )
         {
-            bool everyone = false;
+            var everyone = false;
             List<Snowflake> roles = new List<Snowflake>();
             List<Snowflake> users = new List<Snowflake>();
 
@@ -42,11 +52,14 @@ namespace Christofel.BaseLib.Extensions
                         break;
                 }
             }
-            
+
             return assignmentQuery
-                .Where(x => (everyone && x.Target.TargetType == TargetType.Everyone) ||
-                            (x.Target.TargetType == TargetType.Role && roles.Contains(x.Target.DiscordId)) ||
-                            (x.Target.TargetType == TargetType.User && users.Contains(x.Target.DiscordId)));
+                .Where
+                (
+                    x => everyone && x.Target.TargetType == TargetType.Everyone ||
+                         x.Target.TargetType == TargetType.Role && roles.Contains(x.Target.DiscordId) ||
+                         x.Target.TargetType == TargetType.User && users.Contains(x.Target.DiscordId)
+                );
         }
     }
 }

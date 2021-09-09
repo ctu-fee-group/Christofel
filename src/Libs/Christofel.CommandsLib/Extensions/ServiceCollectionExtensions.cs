@@ -1,41 +1,39 @@
-using System;
+//
+//   ServiceCollectionExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using Christofel.CommandsLib.ContextedParsers;
 using Christofel.CommandsLib.ExecutionEvents;
 using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Remora.Commands.Extensions;
-using Remora.Commands.Services;
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Commands.Extensions;
-using Remora.Discord.Core;
 
 namespace Christofel.CommandsLib.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddChristofelCommands(this IServiceCollection collection)
-        {
-            return collection
-                .AddDiscordCommands(true)
-                .AddSingleton<ChristofelSlashService>()
-                .AddScoped<ValidationFeedbackService>()
-                .AddTransient<ChristofelCommandPermissionResolver>()
-                .AddTransient<ChristofelCommandRegistrator>()
-                // parsers
-                .AddParser<ContextualUserParser>()
-                .AddParser<ContextualGuildMemberParser>()
-                .AddParser<ContextualRoleParser>()
-                .AddParser<ContextualChannelParser>()
-                .AddParser<SnowflakeParser>()
-                // conditions
-                .AddCondition<RequirePermissionCondition>()
-                // execution events
-                .AddPostExecutionEvent<WrongParametersExecutionEvent>()
-                .AddPostExecutionEvent<ValidationErrorHandler>()
-                .AddPostExecutionEvent<ErrorExecutionEvent>()
-                .AddPostExecutionEvent<ParsingErrorExecutionEvent>();
-        }
+        public static IServiceCollection AddChristofelCommands(this IServiceCollection collection) => collection
+            .AddDiscordCommands(true)
+            .AddSingleton<ChristofelSlashService>()
+            .AddScoped<ValidationFeedbackService>()
+            .AddTransient<ChristofelCommandPermissionResolver>()
+            .AddTransient<ChristofelCommandRegistrator>()
+            // parsers
+            .AddParser<ContextualUserParser>()
+            .AddParser<ContextualGuildMemberParser>()
+            .AddParser<ContextualRoleParser>()
+            .AddParser<ContextualChannelParser>()
+            .AddParser<SnowflakeParser>()
+            // conditions
+            .AddCondition<RequirePermissionCondition>()
+            // execution events
+            .AddPostExecutionEvent<WrongParametersExecutionEvent>()
+            .AddPostExecutionEvent<ValidationErrorHandler>()
+            .AddPostExecutionEvent<ErrorExecutionEvent>()
+            .AddPostExecutionEvent<ParsingErrorExecutionEvent>();
     }
 }

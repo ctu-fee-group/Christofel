@@ -1,3 +1,9 @@
+//
+//   ILinkUser.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.User
@@ -6,9 +12,9 @@ namespace Christofel.BaseLib.User
     {
         public Snowflake DiscordId { get; }
     }
-    
+
     /// <summary>
-    /// Ctu user should be used everywhere where only Ctu information are needed
+    ///     Ctu user should be used everywhere where only Ctu information are needed
     /// </summary>
     public interface ICtuUser : IUser
     {
@@ -16,18 +22,18 @@ namespace Christofel.BaseLib.User
     }
 
     /// <summary>
-    /// User with user id only - to link to database
+    ///     User with user id only - to link to database
     /// </summary>
     public interface IUser
     {
         /// <summary>
-        /// Database primary key
+        ///     Database primary key
         /// </summary>
         public int UserId { get; }
     }
 
     /// <summary>
-    /// Ctu and Discord link user
+    ///     Ctu and Discord link user
     /// </summary>
     public interface ILinkUser : ICtuUser, IDiscordUser
     {

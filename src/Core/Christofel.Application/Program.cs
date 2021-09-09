@@ -1,3 +1,9 @@
+//
+//   Program.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +22,7 @@ namespace Christofel.Application
                 AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
                 {
                     application.Lifetime.RequestStop();
-                        exitEvent.WaitOne();
+                    exitEvent.WaitOne();
                 };
 
                 Console.CancelKeyPress += (sender, e) =>
@@ -24,7 +30,7 @@ namespace Christofel.Application
                     e.Cancel = true;
                     application.Lifetime.RequestStop();
                 };
-                
+
                 // App lifetime cycle
                 await application.InitAsync();
                 await application.RunAsync(); // blocks until Bot.QuitBot is called

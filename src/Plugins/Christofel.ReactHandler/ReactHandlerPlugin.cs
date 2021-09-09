@@ -1,3 +1,9 @@
+//
+//   ReactHandlerPlugin.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -25,14 +31,16 @@ namespace Christofel.ReactHandler
 {
     public class ReactHandlerPlugin : ChristofelDIPlugin
     {
-        private PluginLifetimeHandler _lifetimeHandler;
+        private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ReactHandlerPlugin>? _logger;
 
         public ReactHandlerPlugin()
         {
-            _lifetimeHandler = new PluginLifetimeHandler(
+            _lifetimeHandler = new PluginLifetimeHandler
+            (
                 DefaultHandleError(() => _logger),
-                DefaultHandleStopRequest(() => _logger));
+                DefaultHandleStopRequest(() => _logger)
+            );
         }
 
         public override string Name => "Christofel.ReactHandler";
@@ -68,25 +76,34 @@ namespace Christofel.ReactHandler
                 .AddCommandGroup<HandleReactCommands>()
                 .AddResponder<DeleteReactHandlerResponder>()
                 .AddResponder<HandleReactResponder>()
-                .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
-                .AddDbContextFactory<ReactHandlerContext>(options =>
+                .AddSingleton(_lifetimeHandler.LifetimeSpecific)
+                .AddDbContextFactory<ReactHandlerContext>
+                (
+                    options =>
                         options
-                            .UseMySql(
+                            .UseMySql
+                            (
                                 State.Configuration.GetConnectionString("ReactHandler"),
-                                ServerVersion.AutoDetect(State.Configuration.GetConnectionString("ReactHandler")
-                                ))
-                    )
-                .AddTransient<ReactHandlerContext>(p =>
-                    p.GetRequiredService<IDbContextFactory<ReactHandlerContext>>().CreateDbContext())
+                                ServerVersion.AutoDetect(State.Configuration.GetConnectionString("ReactHandler"))
+                            )
+                )
+                .AddTransient
+                (
+                    p =>
+                        p.GetRequiredService<IDbContextFactory<ReactHandlerContext>>().CreateDbContext()
+                )
                 .AddReadOnlyDbContext<ReactHandlerContext>()
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
-        protected override Task InitializeServices(IServiceProvider services,
-            CancellationToken token = new CancellationToken())
+        protected override Task InitializeServices
+        (
+            IServiceProvider services,
+            CancellationToken token = new CancellationToken()
+        )
         {
             _logger = services.GetRequiredService<ILogger<ReactHandlerPlugin>>();
-            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext) Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

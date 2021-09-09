@@ -1,3 +1,9 @@
+//
+//   ThreadPoolJobQueue.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,9 +14,9 @@ namespace Christofel.Api.Ctu.JobQueue
 {
     public abstract class ThreadPoolJobQueue<TJob> : IJobQueue<TJob>
     {
-        private readonly Queue<TJob> _queue;
         private readonly ILifetime _lifetime;
         private readonly ILogger _logger;
+        private readonly Queue<TJob> _queue;
 
         private bool _threadRunning;
 
@@ -29,7 +35,7 @@ namespace Christofel.Api.Ctu.JobQueue
                 return;
             }
 
-            bool createThread = false;
+            var createThread = false;
             lock (_queue)
             {
                 _queue.Enqueue(job);
@@ -50,7 +56,7 @@ namespace Christofel.Api.Ctu.JobQueue
 
         private async Task ProcessQueue()
         {
-            bool shouldRun = true;
+            var shouldRun = true;
             while (shouldRun)
             {
                 try
@@ -74,7 +80,7 @@ namespace Christofel.Api.Ctu.JobQueue
                 {
                     _logger.LogCritical(e, "Job has thrown an exception.");
                 }
-                
+
                 lock (_queue)
                 {
                     if (_queue.Count == 0)

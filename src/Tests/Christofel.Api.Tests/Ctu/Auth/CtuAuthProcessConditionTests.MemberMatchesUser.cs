@@ -1,22 +1,24 @@
+//
+//   CtuAuthProcessConditionTests.MemberMatchesUser.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
 using Christofel.Api.Ctu.Auth.Conditions;
-using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.OAuth;
 using Christofel.Api.Tests.Data.Ctu.Auth;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Moq;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Core;
 using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
-    public class CtuAuthProcessConditionMemberMatchesUserTests : CtuAuthProcessConditionTests<MemberMatchesUserCondition>
+    public class
+        CtuAuthProcessConditionMemberMatchesUserTests : CtuAuthProcessConditionTests<MemberMatchesUserCondition>
     {
         [Fact]
         public async Task DoesNotAllowMissingUser()
@@ -25,14 +27,20 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var user = await _dbContext
                 .SetupUserToAuthenticateAsync();
-            var dummyGuildMember = new GuildMember(default, default, new List<Snowflake>(), DateTimeOffset.Now, default,
-                default, default);
+            var dummyGuildMember = new GuildMember
+            (
+                default, default, new List<Snowflake>(), DateTimeOffset.Now, default,
+                default, default
+            );
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
             Assert.False(result.IsSuccess);
         }
@@ -44,21 +52,26 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var user = await _dbContext
                 .SetupUserToAuthenticateAsync();
-            var dummyGuildMember = new GuildMember(
+            var dummyGuildMember = new GuildMember
+            (
                 new User(new Snowflake(111), _dummyUsername, 124, default),
                 default,
                 new List<Snowflake>(),
                 DateTimeOffset.Now,
                 default,
                 default,
-                default);
-            
+                default
+            );
+
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
             Assert.False(result.IsSuccess);
         }
@@ -70,21 +83,26 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var user = await _dbContext
                 .SetupUserToAuthenticateAsync();
-            var dummyGuildMember = new GuildMember(
+            var dummyGuildMember = new GuildMember
+            (
                 new User(user.DiscordId, _dummyUsername, 124, default),
                 default,
                 new List<Snowflake>(),
                 DateTimeOffset.Now,
                 default,
                 default,
-                default);
-            
+                default
+            );
+
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            var result = await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+            var result = await process.FinishAuthAsync
+            (
+                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember);
+                user, dummyGuildMember
+            );
 
             Assert.True(result.IsSuccess);
         }

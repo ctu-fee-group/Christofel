@@ -1,3 +1,9 @@
+//
+//   GuildMemberOrRoleExtensions.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,14 +47,16 @@ namespace Christofel.CommandsLib.Extensions
             throw new InvalidOperationException("Nor User, nor role is set");
         }
 
-        public static IEnumerable<DiscordTarget> GetAllDiscordTargets(
-            this OneOf<IPartialGuildMember, IRole> memberOrRole)
+        public static IEnumerable<DiscordTarget> GetAllDiscordTargets
+        (
+            this OneOf<IPartialGuildMember, IRole> memberOrRole
+        )
         {
             if (memberOrRole.IsT0)
             {
                 var member = memberOrRole.AsT0;
                 var targets = member.GetAllDiscordTargets().ToList();
-                
+
                 targets.Add(DiscordTarget.Everyone);
                 return targets;
             }
@@ -56,8 +64,8 @@ namespace Christofel.CommandsLib.Extensions
             if (memberOrRole.IsT1)
             {
                 var targets = new List<DiscordTarget>();
-                var role = memberOrRole.AsT1; 
-                
+                var role = memberOrRole.AsT1;
+
                 if (role.Name == "@everyone")
                 {
                     targets.Add(DiscordTarget.Everyone);
@@ -69,7 +77,7 @@ namespace Christofel.CommandsLib.Extensions
 
                 return targets;
             }
-            
+
             throw new InvalidOperationException("Parsing of member or role failed");
         }
     }

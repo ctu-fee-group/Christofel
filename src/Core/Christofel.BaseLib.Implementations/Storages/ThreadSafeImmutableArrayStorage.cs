@@ -1,16 +1,21 @@
-using System;
+//
+//   ThreadSafeImmutableArrayStorage.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Christofel.BaseLib.Implementations.Storages
 {
     /// <summary>
-    /// Thread safe storage using ImmutableArray
+    ///     Thread safe storage using ImmutableArray
     /// </summary>
     /// <remarks>
-    /// Useful for storages where a lot of reading is required as no synchronization
-    /// mechanism is needed for reading. Writing uses regular locking, so it may become
-    /// slow if used a lot from multiple threads.
+    ///     Useful for storages where a lot of reading is required as no synchronization
+    ///     mechanism is needed for reading. Writing uses regular locking, so it may become
+    ///     slow if used a lot from multiple threads.
     /// </remarks>
     /// <typeparam name="TData"></typeparam>
     public class ThreadSafeImmutableArrayStorage<TData> : IThreadSafeStorage<TData>
@@ -22,9 +27,9 @@ namespace Christofel.BaseLib.Implementations.Storages
         {
             _data = ImmutableArray<TData>.Empty;
         }
-        
+
         public IReadOnlyList<TData> Data => _data;
-        
+
 
         public void Add(TData data)
         {
@@ -33,7 +38,7 @@ namespace Christofel.BaseLib.Implementations.Storages
                 _data = _data.Add(data);
             }
         }
-        
+
         public void AddRange(IEnumerable<TData> data)
         {
             lock (_lock)

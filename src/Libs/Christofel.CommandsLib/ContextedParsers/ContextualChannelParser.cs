@@ -1,3 +1,9 @@
+//
+//   ContextualChannelParser.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Threading;
 using System.Threading.Tasks;
 using Remora.Commands.Parsers;
@@ -15,8 +21,8 @@ namespace Christofel.CommandsLib.ContextedParsers
 {
     public class ContextualChannelParser : AbstractTypeParser<IPartialChannel>
     {
-        private readonly ICommandContext _commandContext;
         private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly ICommandContext _commandContext;
 
         public ContextualChannelParser(ICommandContext commandContext, IDiscordRestChannelAPI channelApi)
         {
@@ -47,14 +53,17 @@ namespace Christofel.CommandsLib.ContextedParsers
                 return Result<IPartialChannel>.FromError(result);
             }
 
-            return new PartialChannel(result.Entity.ID, result.Entity.Type, result.Entity.GuildID,
+            return new PartialChannel
+            (
+                result.Entity.ID, result.Entity.Type, result.Entity.GuildID,
                 result.Entity.Position, result.Entity.PermissionOverwrites, result.Entity.Name, result.Entity.Topic,
                 result.Entity.IsNsfw, result.Entity.LastMessageID, result.Entity.Bitrate, result.Entity.UserLimit,
                 result.Entity.RateLimitPerUser, result.Entity.Recipients, result.Entity.Icon, result.Entity.OwnerID,
                 result.Entity.ApplicationID, result.Entity.ParentID, result.Entity.LastPinTimestamp,
                 result.Entity.RTCRegion, result.Entity.VideoQualityMode, result.Entity.MessageCount,
                 result.Entity.MemberCount, result.Entity.ThreadMetadata, result.Entity.Member,
-                result.Entity.DefaultAutoArchiveDuration, result.Entity.Permissions);
+                result.Entity.DefaultAutoArchiveDuration, result.Entity.Permissions
+            );
         }
     }
 }

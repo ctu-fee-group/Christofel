@@ -1,3 +1,9 @@
+//
+//   CtuAuthProcessConditionTests.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Extensions;
@@ -15,11 +21,11 @@ namespace Christofel.Api.Tests.Ctu.Auth
         where T : class, IPreAuthCondition
     {
         protected readonly ChristofelBaseContext _dbContext;
-        protected readonly DbContextOptionsDisposable<ChristofelBaseContext> _optionsDisposable;
 
         protected readonly string _dummyAccessToken = "myToken";
-        protected readonly string _dummyUsername = "someUsername";
         protected readonly ulong _dummyGuildId = 93249823482348;
+        protected readonly string _dummyUsername = "someUsername";
+        protected readonly DbContextOptionsDisposable<ChristofelBaseContext> _optionsDisposable;
 
         public CtuAuthProcessConditionTests()
         {
@@ -30,13 +36,20 @@ namespace Christofel.Api.Tests.Ctu.Auth
             _dbContext.Database.EnsureCreated();
         }
 
+        public void Dispose()
+        {
+            _dbContext?.Dispose();
+            _optionsDisposable?.Dispose();
+        }
+
         protected virtual IServiceProvider SetupConditionServices(Action<IServiceCollection>? configure = default)
         {
             var services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddAuthCondition<T>()
-                .AddTransient<ChristofelBaseContext>(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext())
-                .AddSingleton<IDbContextFactory<ChristofelBaseContext>, ChristofelBaseContextFactory>(p => new ChristofelBaseContextFactory(_optionsDisposable))
+                .AddTransient(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext())
+                .AddSingleton<IDbContextFactory<ChristofelBaseContext>, ChristofelBaseContextFactory>
+                    (p => new ChristofelBaseContextFactory(_optionsDisposable))
                 .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
                 .AddLogging(b => b.ClearProviders());
 
@@ -44,12 +57,6 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             return services
                 .BuildServiceProvider();
-        }
-
-        public void Dispose()
-        {
-            _dbContext?.Dispose();
-            _optionsDisposable?.Dispose();
         }
     }
 }

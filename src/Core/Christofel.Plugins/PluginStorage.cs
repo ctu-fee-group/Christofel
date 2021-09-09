@@ -1,3 +1,9 @@
+//
+//   PluginStorage.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,14 +13,13 @@ using Christofel.Plugins.Data;
 namespace Christofel.Plugins
 {
     /// <summary>
-    /// Stores attached and detached plugins thread-safely
+    ///     Stores attached and detached plugins thread-safely
     /// </summary>
     public class PluginStorage
     {
+        private readonly object _pluginsLock = new object();
         private ImmutableArray<AttachedPlugin> _attachedPlugins;
         private ImmutableArray<DetachedPlugin> _detachedPlugins;
-
-        private object _pluginsLock = new object();
 
         public PluginStorage()
         {
@@ -27,21 +32,21 @@ namespace Christofel.Plugins
         public IReadOnlyCollection<DetachedPlugin> DetachedPlugins => _detachedPlugins;
 
         /// <summary>
-        /// Whether plugin with given name is attached
+        ///     Whether plugin with given name is attached
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public bool IsAttached(string name) => _attachedPlugins.Any(x => x.Name == name);
 
         /// <summary>
-        /// Returns attached plugin or throws an exception if it is not found
+        ///     Returns attached plugin or throws an exception if it is not found
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
         public AttachedPlugin GetAttachedPlugin(string name) => _attachedPlugins.First(x => x.Name == name);
 
         /// <summary>
-        /// Adds attached plugin
+        ///     Adds attached plugin
         /// </summary>
         /// <param name="plugin"></param>
         public void AddAttachedPlugin(AttachedPlugin plugin)
@@ -53,10 +58,10 @@ namespace Christofel.Plugins
         }
 
         /// <summary>
-        /// Puts AttachedPlugin to detached plugins and removes it from attached plugins
+        ///     Puts AttachedPlugin to detached plugins and removes it from attached plugins
         /// </summary>
         /// <remarks>
-        /// Looks up Detached plugin in plugin.DetachedPlugin property, it has to be set
+        ///     Looks up Detached plugin in plugin.DetachedPlugin property, it has to be set
         /// </remarks>
         /// <param name="plugin"></param>
         /// <exception cref="InvalidOperationException"></exception>
@@ -79,7 +84,7 @@ namespace Christofel.Plugins
         }
 
         /// <summary>
-        /// Removes detached plugin after it's not needed anymore
+        ///     Removes detached plugin after it's not needed anymore
         /// </summary>
         /// <param name="plugin"></param>
         public void RemoveDetachedPlugin(DetachedPlugin plugin)

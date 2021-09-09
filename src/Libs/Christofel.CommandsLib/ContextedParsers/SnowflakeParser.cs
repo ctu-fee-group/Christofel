@@ -1,3 +1,9 @@
+//
+//   SnowflakeParser.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Threading;
 using System.Threading.Tasks;
 using Remora.Commands.Parsers;
@@ -8,17 +14,15 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.ContextedParsers
 {
-    public class SnowflakeParser: AbstractTypeParser<Snowflake>
+    public class SnowflakeParser : AbstractTypeParser<Snowflake>
     {
         /// <inheritdoc />
-        public override ValueTask<Result<Snowflake>> TryParseAsync(string value, CancellationToken ct = default)
-        {
-            return new
-            (
-                !Snowflake.TryParse(value.Unmention(), out var snowflake)
-                    ? new ParsingError<Snowflake>(value)
-                    : snowflake.Value
-            );
-        }
+        public override ValueTask<Result<Snowflake>> TryParseAsync
+            (string value, CancellationToken ct = default) => new ValueTask<Result<Snowflake>>
+        (
+            !Snowflake.TryParse(value.Unmention(), out var snowflake)
+                ? new ParsingError<Snowflake>(value)
+                : snowflake.Value
+        );
     }
 }

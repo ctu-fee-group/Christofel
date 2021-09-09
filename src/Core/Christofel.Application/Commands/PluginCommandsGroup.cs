@@ -1,13 +1,14 @@
+//
+//   PluginCommandsGroup.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Application.Plugins;
-using Christofel.BaseLib;
-using Christofel.BaseLib.Plugins;
-using Christofel.CommandsLib;
 using Christofel.CommandsLib.Permissions;
 using Christofel.Plugins;
 using Christofel.Plugins.Services;
@@ -22,7 +23,7 @@ using Remora.Results;
 namespace Christofel.Application.Commands
 {
     /// <summary>
-    /// Handler of /plugin attach, detach, reattach, list, check commands
+    ///     Handler of /plugin attach, detach, reattach, list, check commands
     /// </summary>
     [Group("plugins")]
     [DiscordDefaultPermission(false)]
@@ -30,12 +31,13 @@ namespace Christofel.Application.Commands
     [Ephemeral]
     public class PluginCommands : CommandGroup
     {
+        private readonly FeedbackService _feedbackService;
+        private readonly ILogger<PluginCommands> _logger;
         private readonly PluginService _plugins;
         private readonly PluginStorage _storage;
-        private readonly ILogger<PluginCommands> _logger;
-        private readonly FeedbackService _feedbackService;
 
-        public PluginCommands(
+        public PluginCommands
+        (
             PluginService plugins,
             PluginStorage storage,
             ILogger<PluginCommands> logger,
@@ -53,7 +55,7 @@ namespace Christofel.Application.Commands
         [RequirePermission("application.plugins.attach")]
         public async Task<IResult> HandleAttach([Description("Name of the plugin to attach")] string pluginName)
         {
-            bool attach = true;
+            var attach = true;
             if (!_plugins.Exists(pluginName))
             {
                 attach = false;
@@ -63,9 +65,11 @@ namespace Christofel.Application.Commands
             if (_plugins.IsAttached(pluginName))
             {
                 attach = false;
-                await _feedbackService.SendContextualErrorAsync(
+                await _feedbackService.SendContextualErrorAsync
+                (
                     "Plugin with the same name is already attached. Did you mean to reattach it?",
-                    ct: CancellationToken);
+                    ct: CancellationToken
+                );
             }
 
             if (attach)
@@ -73,15 +77,20 @@ namespace Christofel.Application.Commands
                 try
                 {
                     IHasPluginInfo plugin = await _plugins.AttachAsync(pluginName, CancellationToken);
-                    await _feedbackService.SendContextualSuccessAsync($"Plugin {plugin} was attached",
-                        ct: CancellationToken);
+                    await _feedbackService.SendContextualSuccessAsync
+                    (
+                        $"Plugin {plugin} was attached",
+                        ct: CancellationToken
+                    );
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e, "Error loading plugin");
-                    await _feedbackService.SendContextualErrorAsync(
+                    await _feedbackService.SendContextualErrorAsync
+                    (
                         "There was an error. Check the log",
-                        ct: CancellationToken);
+                        ct: CancellationToken
+                    );
                 }
             }
 
@@ -93,12 +102,15 @@ namespace Christofel.Application.Commands
         [RequirePermission("application.plugins.detach")]
         public async Task<IResult> HandleDetach([Description("Name of the plugin to detach")] string pluginName)
         {
-            bool detach = true;
+            var detach = true;
             if (!_plugins.IsAttached(pluginName))
             {
                 detach = false;
-                await _feedbackService.SendContextualErrorAsync("Could not find attached plugin with this name",
-                    ct: CancellationToken);
+                await _feedbackService.SendContextualErrorAsync
+                (
+                    "Could not find attached plugin with this name",
+                    ct: CancellationToken
+                );
             }
 
             if (detach)
@@ -106,15 +118,20 @@ namespace Christofel.Application.Commands
                 try
                 {
                     IHasPluginInfo plugin = await _plugins.DetachAsync(pluginName, CancellationToken);
-                    await _feedbackService.SendContextualSuccessAsync($"Plugin {plugin} was detached",
-                        ct: CancellationToken);
+                    await _feedbackService.SendContextualSuccessAsync
+                    (
+                        $"Plugin {plugin} was detached",
+                        ct: CancellationToken
+                    );
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e, "Error detaching a plugin");
-                    await _feedbackService.SendContextualErrorAsync(
+                    await _feedbackService.SendContextualErrorAsync
+                    (
                         "There was an error. Check the log",
-                        ct: CancellationToken);
+                        ct: CancellationToken
+                    );
                 }
             }
 
@@ -126,12 +143,15 @@ namespace Christofel.Application.Commands
         [RequirePermission("application.plugins.reattach")]
         public async Task<IResult> HandleReattach([Description("Name of the plugin to reattach")] string pluginName)
         {
-            bool reattach = true;
+            var reattach = true;
             if (!_plugins.IsAttached(pluginName))
             {
                 reattach = false;
-                await _feedbackService.SendContextualErrorAsync("Could not find attached plugin with this name",
-                    ct: CancellationToken);
+                await _feedbackService.SendContextualErrorAsync
+                (
+                    "Could not find attached plugin with this name",
+                    ct: CancellationToken
+                );
             }
 
             if (reattach)
@@ -139,21 +159,26 @@ namespace Christofel.Application.Commands
                 try
                 {
                     IHasPluginInfo plugin = await _plugins.ReattachAsync(pluginName, CancellationToken);
-                    await _feedbackService.SendContextualSuccessAsync($"Plugin {plugin} was reattached",
-                        ct: CancellationToken);
+                    await _feedbackService.SendContextualSuccessAsync
+                    (
+                        $"Plugin {plugin} was reattached",
+                        ct: CancellationToken
+                    );
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(0, e, "Error reattaching plugin");
-                    await _feedbackService.SendContextualErrorAsync(
+                    await _feedbackService.SendContextualErrorAsync
+                    (
                         "There was an error. Check the log",
-                        ct: CancellationToken);
+                        ct: CancellationToken
+                    );
                 }
             }
 
             return Result.FromSuccess();
         }
-        
+
         [Command("list")]
         [Description("List all attached plugins")]
         [RequirePermission("application.plugins.list")]
@@ -166,27 +191,36 @@ namespace Christofel.Application.Commands
 
             string pluginMessage = "List of attached plugins:\n" + string.Join("\n", attachedPlugins) + "\n";
             string attachablePluginMessage = "List of attachable plugins:\n" + string.Join("\n", attachablePlugins);
-            
-            var result = await _feedbackService.SendContextualSuccessAsync(pluginMessage,
-                ct: CancellationToken);
+
+            var result = await _feedbackService.SendContextualSuccessAsync
+            (
+                pluginMessage,
+                ct: CancellationToken
+            );
 
             if (!result.IsSuccess)
             {
                 return result;
             }
-            
-            return await _feedbackService.SendContextualSuccessAsync(attachablePluginMessage,
-                ct: CancellationToken);
+
+            return await _feedbackService.SendContextualSuccessAsync
+            (
+                attachablePluginMessage,
+                ct: CancellationToken
+            );
         }
-        
+
         [Command("check")]
         [Description("Check if detached plugins freed the memory")]
         [RequirePermission("application.plugins.check")]
         public Task<Result<IReadOnlyList<IMessage>>> HandleCheck()
         {
             _plugins.CheckDetached();
-            return _feedbackService.SendContextualInfoAsync("Check log for result",
-                ct: CancellationToken);
+            return _feedbackService.SendContextualInfoAsync
+            (
+                "Check log for result",
+                ct: CancellationToken
+            );
         }
     }
 }

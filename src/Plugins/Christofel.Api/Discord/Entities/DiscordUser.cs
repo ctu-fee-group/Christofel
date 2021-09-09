@@ -1,9 +1,15 @@
+//
+//   DiscordUser.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using Newtonsoft.Json;
 
 namespace Christofel.Api.Discord
 {
     /// <summary>
-    /// User result obtained from Discord API v9
+    ///     User result obtained from Discord API v9
     /// </summary>
     /// <param name="Id"></param>
     /// <param name="Username"></param>
@@ -17,7 +23,8 @@ namespace Christofel.Api.Discord
     /// <param name="Flags"></param>
     /// <param name="PremiumType"></param>
     /// <param name="PublicFlags"></param>
-    public record DiscordUser(
+    public record DiscordUser
+    (
         [JsonProperty("id")] ulong Id,
         [JsonProperty("username")] string Username,
         [JsonProperty("discriminator")] string Discriminator,

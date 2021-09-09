@@ -1,3 +1,9 @@
+//
+//   DiagnosticEventListener.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using HotChocolate;
@@ -9,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace Christofel.Api.GraphQL.Diagnostics
 {
     /// <summary>
-    /// Logs all kinds of graphql errors to loggers
+    ///     Logs all kinds of graphql errors to loggers
     /// </summary>
     public class DiagnosticEventListener : HotChocolate.Execution.Instrumentation.DiagnosticEventListener
     {
@@ -19,21 +25,27 @@ namespace Christofel.Api.GraphQL.Diagnostics
         {
             _logger = logger;
         }
-        
+
         private void LogError(string method, IError error)
         {
-            string path = string.Join("/",
-                error.Path?.ToString()) ?? "";
+            string path = string.Join
+            (
+                "/",
+                error.Path?.ToString()
+            ) ?? "";
 
             if (error.Exception != null)
             {
-                _logger.LogError(error.Exception,
-                    $"Caught an exception in DiagnosticEventListener.{method}. Path: {path}\n");
+                _logger.LogError
+                (
+                    error.Exception,
+                    $"Caught an exception in DiagnosticEventListener.{method}. Path: {path}\n"
+                );
             }
             else
             {
-                _logger.LogError(
-                    $"Caught an error in DiagnosticEventListener.{method}. Path: {path}.\nData: {error.Message}");
+                _logger.LogError
+                    ($"Caught an error in DiagnosticEventListener.{method}. Path: {path}.\nData: {error.Message}");
             }
         }
 

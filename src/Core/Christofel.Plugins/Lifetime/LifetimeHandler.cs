@@ -1,17 +1,23 @@
+//
+//   LifetimeHandler.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 
 namespace Christofel.Plugins.Lifetime
 {
     /// <summary>
-    /// LifetimeHandler for using some common methods that Lifetime needs to have
+    ///     LifetimeHandler for using some common methods that Lifetime needs to have
     /// </summary>
     public abstract class LifetimeHandler : IDisposable
     {
         protected readonly CancellationTokenSource _started, _stopped, _stopping, _errored;
         protected Action<Exception?>? _errorAction;
         protected object _nextStateLock = new object();
-        
+
         /// <param name="errorAction">Action to be executed in case of an error</param>
         protected LifetimeHandler(Action<Exception?> errorAction)
         {
@@ -26,26 +32,35 @@ namespace Christofel.Plugins.Lifetime
 
         public abstract ILifetime Lifetime { get; }
 
+        public virtual void Dispose()
+        {
+            _started.Dispose();
+            _stopped.Dispose();
+            _stopping.Dispose();
+            _errored.Dispose();
+
+            _errorAction = null;
+        }
+
         /// <summary>
-        /// Moves to given state
+        ///     Moves to given state
         /// </summary>
         /// <param name="state">State to move to</param>
         public abstract void MoveToState(LifetimeState state);
 
         /// <summary>
-        /// Requests stop
+        ///     Requests stop
         /// </summary>
         public abstract void RequestStop();
 
         /// <summary>
-        /// Move to next state from the current one
+        ///     Move to next state from the current one
         /// </summary>
         public virtual void NextState()
         {
             LifetimeState next;
             lock (_nextStateLock)
             {
-
                 if (Lifetime.State == LifetimeState.Destroyed)
                 {
                     return;
@@ -54,14 +69,13 @@ namespace Christofel.Plugins.Lifetime
                 next = Lifetime.State + 1;
                 MoveToState(next);
             }
-            
         }
 
         /// <summary>
-        /// Triggers actions for given state.
+        ///     Triggers actions for given state.
         /// </summary>
         /// <remarks>
-        /// Cancels Started, Stopping, Stopped, Error if needed
+        ///     Cancels Started, Stopping, Stopped, Error if needed
         /// </remarks>
         /// <param name="previous"></param>
         /// <param name="next"></param>
@@ -71,7 +85,7 @@ namespace Christofel.Plugins.Lifetime
             {
                 return;
             }
-            
+
             switch (next)
             {
                 case LifetimeState.Running:
@@ -87,7 +101,7 @@ namespace Christofel.Plugins.Lifetime
         }
 
         /// <summary>
-        /// Immediatelly moves to error state
+        ///     Immediatelly moves to error state
         /// </summary>
         /// <param name="e"></param>
         public virtual void MoveToError(Exception? e)
@@ -99,7 +113,7 @@ namespace Christofel.Plugins.Lifetime
                 _errored.Cancel();
             }
         }
-        
+
         protected void HandleErrored()
         {
             _errored.Cancel(false);
@@ -119,18 +133,8 @@ namespace Christofel.Plugins.Lifetime
         {
             _stopped.Cancel(false);
         }
-
-        public virtual void Dispose()
-        {
-            _started.Dispose();
-            _stopped.Dispose();
-            _stopping.Dispose();
-            _errored.Dispose();
-
-            _errorAction = null;
-        }
     }
-    
+
     public abstract class LifetimeHandler<T> : LifetimeHandler
         where T : ILifetime
     {
@@ -138,7 +142,7 @@ namespace Christofel.Plugins.Lifetime
             : base(errorAction)
         {
         }
-        
+
         public override ILifetime Lifetime => LifetimeSpecific;
 
         public abstract T LifetimeSpecific { get; }
