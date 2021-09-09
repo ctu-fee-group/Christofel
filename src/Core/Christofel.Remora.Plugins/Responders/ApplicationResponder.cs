@@ -1,27 +1,22 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Application.Plugins;
-using Christofel.BaseLib;
-using Christofel.BaseLib.Implementations.Responders;
-using Christofel.BaseLib.Plugins;
 using Christofel.Plugins;
-using Christofel.Plugins.Data;
+using Christofel.Remora;
+using Christofel.Remora.Responders;
 using Microsoft.Extensions.Logging;
-using Remora.Discord.Commands.Contexts;
 using Remora.Results;
 
 namespace Christofel.Application.Responders
 {
-    public class ApplicationResponder : EveryResponder
+    public class ApplicationResponder<TState, TContext> : EveryResponder
+        where TContext : IPluginContext
     {
         private PluginStorage _plugins;
         private ILogger _logger;
 
-        public ApplicationResponder(PluginStorage plugins, ILogger<ApplicationResponder> logger)
+        public ApplicationResponder(PluginStorage plugins, ILogger<ApplicationResponder<TState, TContext>> logger)
         {
             _plugins = plugins;
             _logger = logger;
@@ -32,7 +27,7 @@ namespace Christofel.Application.Responders
             await Task.WhenAll(
                 _plugins.AttachedPlugins
                     .Select(x => x.Plugin)
-                    .OfType<IRuntimePlugin<IChristofelState, IPluginContext>>()
+                    .OfType<IRuntimePlugin<TState, TContext>>()
                     .Select(x => x.Context.PluginResponder)
                     .Where(x => x is not null)
                     .Cast<IAnyResponder>()

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Plugins;
 using Christofel.Plugins;
+using Christofel.Plugins.Runtime;
 using Christofel.Plugins.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -55,7 +56,7 @@ namespace Christofel.Application.Plugins
 
         public Task RefreshAsync(CancellationToken token = new CancellationToken())
         {
-            return Task.WhenAll(_pluginStorage.AttachedPlugins.Select(x => x.Plugin).OfType<IChristofelRuntimePlugin>()
+            return Task.WhenAll(_pluginStorage.AttachedPlugins.Select(x => x.Plugin).OfType<IRuntimePlugin>()
                 .Select(x => x.RefreshAsync(token)));
         }
 

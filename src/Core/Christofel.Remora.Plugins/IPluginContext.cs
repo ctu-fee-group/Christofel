@@ -1,4 +1,4 @@
-namespace Christofel.BaseLib.Plugins
+namespace Christofel.Remora
 {
     /// <summary>
     /// Context of attached plugin

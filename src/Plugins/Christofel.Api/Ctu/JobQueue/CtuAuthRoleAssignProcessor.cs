@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Lifetime;
-using Christofel.BaseLib.Plugins;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;

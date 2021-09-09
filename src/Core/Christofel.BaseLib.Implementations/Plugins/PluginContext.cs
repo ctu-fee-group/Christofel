@@ -1,3 +1,5 @@
+using Christofel.Remora;
+
 namespace Christofel.BaseLib.Plugins
 {
     public class PluginContext : IPluginContext

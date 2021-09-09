@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Lifetime;
-using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Christofel.BaseLib.Plugins
+namespace Christofel.Plugins.Runtime
 {
     /// <summary>
     /// Dependency injection plugin base class
@@ -16,11 +14,11 @@ namespace Christofel.BaseLib.Plugins
     /// Contains DI using default Microsoft DI,
     /// can be used as base for plugins to start developing plugin faster
     /// </summary>
-    public abstract class DIPlugin : IChristofelRuntimePlugin
+    public abstract class DIRuntimePlugin<TState, TContext> : IRuntimePlugin<TState, TContext>
     {
         private IServiceProvider? _services;
-        private IChristofelState? _state;
-        private PluginContext? _context;
+        private TState? _state;
+        private TContext? _context;
         
         public abstract string Name { get; }
         public abstract string Description { get; }
@@ -32,10 +30,8 @@ namespace Christofel.BaseLib.Plugins
 
         protected abstract LifetimeHandler LifetimeHandler { get; }
         public ILifetime Lifetime => LifetimeHandler.Lifetime;
-
-        IPluginContext IRuntimePlugin<IChristofelState, IPluginContext>.Context => Context;
-
-        protected PluginContext Context
+        
+        public TContext Context
         {
             get
             {
@@ -46,10 +42,10 @@ namespace Christofel.BaseLib.Plugins
 
                 return _context;
             }
-            set => _context = value;
+            private set => _context = value;
         }
 
-        protected IChristofelState State
+        protected TState State
         {
             get
             {
@@ -76,6 +72,8 @@ namespace Christofel.BaseLib.Plugins
             }
             set => _services = value;
         }
+
+        protected abstract TContext InitializeContext();
 
         /// <summary>
         /// Configure IServiceCollection to include common needed types
@@ -116,11 +114,11 @@ namespace Christofel.BaseLib.Plugins
             LifetimeHandler.Dispose();
         }
 
-        protected virtual async Task<IPluginContext> InitAsync(CancellationToken token = new CancellationToken())
+        protected virtual async Task<TContext> InitAsync(CancellationToken token = new CancellationToken())
         {
             if (_context is null)
             {
-                _context = new PluginContext();
+                _context = InitializeContext();
             }
             
             if (!LifetimeHandler.MoveToIfPrevious(LifetimeState.Initializing))
@@ -156,7 +154,7 @@ namespace Christofel.BaseLib.Plugins
         /// <param name="state"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public virtual Task InitAsync(IChristofelState state, CancellationToken token = new CancellationToken())
+        public virtual Task InitAsync(TState state, CancellationToken token = new CancellationToken())
         {
             State = state;
             return InitAsync(token);

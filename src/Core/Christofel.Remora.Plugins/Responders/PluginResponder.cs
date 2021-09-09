@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +9,7 @@ using Remora.Discord.Gateway.Responders;
 using Remora.Discord.Gateway.Services;
 using Remora.Results;
 
-namespace Christofel.BaseLib.Implementations.Responders
+namespace Christofel.Remora.Responders
 {
     public class PluginResponder : IAnyResponder
     {

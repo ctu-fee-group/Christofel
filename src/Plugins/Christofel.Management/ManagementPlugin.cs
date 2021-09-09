@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
-using Christofel.BaseLib.Implementations.Responders;
 using Christofel.BaseLib.Implementations.Storages;
-using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
@@ -16,16 +13,18 @@ using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
 using Christofel.Management.Slowmode;
+using Christofel.Plugins.Lifetime;
+using Christofel.Plugins.Runtime;
+using Christofel.Remora.Responders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Pomelo.EntityFrameworkCore.MySql.Metadata.Internal;
 using Remora.Commands.Extensions;
 
 namespace Christofel.Management
 {
-    public class ManagementPlugin : DIPlugin
+    public class ManagementPlugin : ChristofelDIPlugin
     {
         private PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ManagementPlugin>? _logger;
@@ -112,7 +111,7 @@ namespace Christofel.Management
             CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<ManagementPlugin>>();
-            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

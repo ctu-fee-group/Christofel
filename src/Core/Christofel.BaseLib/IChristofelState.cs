@@ -1,7 +1,7 @@
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Permissions;
-using Christofel.BaseLib.Plugins;
+using Christofel.Plugins.Lifetime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
