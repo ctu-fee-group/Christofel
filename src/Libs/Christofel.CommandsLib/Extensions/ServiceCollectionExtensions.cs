@@ -1,5 +1,6 @@
 using System;
 using Christofel.CommandsLib.ContextedParsers;
+using Christofel.CommandsLib.ExecutionEvents;
 using Christofel.CommandsLib.Validator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

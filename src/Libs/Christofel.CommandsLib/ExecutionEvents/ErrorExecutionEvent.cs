@@ -6,7 +6,7 @@ using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Services;
 using Remora.Results;
 
-namespace Christofel.CommandsLib
+namespace Christofel.CommandsLib.ExecutionEvents
 {
     public class ErrorExecutionEvent : IPostExecutionEvent
     {

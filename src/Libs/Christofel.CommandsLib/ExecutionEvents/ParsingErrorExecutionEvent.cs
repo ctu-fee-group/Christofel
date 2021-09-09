@@ -9,7 +9,7 @@ using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Commands.Services;
 using Remora.Results;
 
-namespace Christofel.CommandsLib
+namespace Christofel.CommandsLib.ExecutionEvents
 {
     public class ParsingErrorExecutionEvent : IPostExecutionEvent
     {
