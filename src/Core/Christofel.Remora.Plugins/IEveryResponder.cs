@@ -1,8 +1,7 @@
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
-using Remora.Results;
 
-namespace Christofel.BaseLib
+namespace Christofel.Remora
 {
     public interface IEveryResponder :
         IChannelsResponder,

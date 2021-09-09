@@ -44,6 +44,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E94EAD53
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Api.Tests", "Tests\Christofel.Api.Tests\Christofel.Api.Tests.csproj", "{9877D4C2-F0F3-478B-9B72-C64B1EB21CE3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Remora.Plugins", "Core\Christofel.Remora.Plugins\Christofel.Remora.Plugins.csproj", "{F4D5ADB1-9D3F-44E9-97F2-A75372388C21}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -140,5 +142,9 @@ Global
 		{9877D4C2-F0F3-478B-9B72-C64B1EB21CE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9877D4C2-F0F3-478B-9B72-C64B1EB21CE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9877D4C2-F0F3-478B-9B72-C64B1EB21CE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4D5ADB1-9D3F-44E9-97F2-A75372388C21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4D5ADB1-9D3F-44E9-97F2-A75372388C21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4D5ADB1-9D3F-44E9-97F2-A75372388C21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4D5ADB1-9D3F-44E9-97F2-A75372388C21}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

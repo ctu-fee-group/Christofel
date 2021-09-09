@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Results;
 
-namespace Christofel.BaseLib.Implementations.Responders
+namespace Christofel.Remora.Responders
 {
     public abstract class EveryResponder : IEveryResponder
     {
