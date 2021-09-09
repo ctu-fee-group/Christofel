@@ -160,14 +160,14 @@
     <Rule Id="SA1606" Action="Error" /> <!-- Element documentation must have summary text -->
     <Rule Id="SA1607" Action="Error" /> <!-- Partial element documentation must have summary text -->
     <Rule Id="SA1608" Action="Error" /> <!-- Element documentation must not have default summary -->
-    <Rule Id="SA1609" Action="Error"/> <!-- Property documentation must have value -->
-    <Rule Id="SA1610" Action="Error"/> <!-- Property documentation must have value text -->
+    <Rule Id="SA1609" Action="None"/> <!-- Property documentation must have value -->
+    <Rule Id="SA1610" Action="None"/> <!-- Property documentation must have value text -->
     <Rule Id="SA1611" Action="Error" /> <!-- Element parameters must be documented -->
     <Rule Id="SA1612" Action="Error" /> <!-- Element parameter documentation must match element parameters -->
     <Rule Id="SA1613" Action="Error" /> <!-- Element parameter documentation must declare parameter name -->
     <Rule Id="SA1614" Action="Error" /> <!-- Element parameter documentation must have text -->
-    <Rule Id="SA1615" Action="Error" /> <!-- Element return value must be documented -->
-    <Rule Id="SA1616" Action="Error" /> <!-- Element return value documentation must have text -->
+    <Rule Id="SA1615" Action="None" /> <!-- Element return value must be documented -->
+    <Rule Id="SA1616" Action="None" /> <!-- Element return value documentation must have text -->
     <Rule Id="SA1617" Action="Error" /> <!-- Void return value must not be documented -->
     <Rule Id="SA1618" Action="Error" /> <!-- Generic type parameters must be documented -->
     <Rule Id="SA1619" Action="Error" /> <!-- Generic type parameters must be documented partial class -->
