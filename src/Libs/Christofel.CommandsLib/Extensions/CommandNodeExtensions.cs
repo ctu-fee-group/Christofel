@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Christofel.CommandsLib.Permissions;
 using Remora.Commands.Trees.Nodes;
 using Remora.Discord.Commands.Extensions;
 

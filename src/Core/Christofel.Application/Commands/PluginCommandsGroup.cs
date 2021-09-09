@@ -8,6 +8,7 @@ using Christofel.Application.Plugins;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
+using Christofel.CommandsLib.Permissions;
 using Christofel.Plugins;
 using Christofel.Plugins.Services;
 using Microsoft.Extensions.Logging;

@@ -1,6 +1,7 @@
 using System;
 using Christofel.CommandsLib.ContextedParsers;
 using Christofel.CommandsLib.ExecutionEvents;
+using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -31,6 +32,7 @@ namespace Christofel.CommandsLib.Extensions
                 // conditions
                 .AddCondition<RequirePermissionCondition>()
                 // execution events
+                .AddPostExecutionEvent<WrongParametersExecutionEvent>()
                 .AddPostExecutionEvent<ValidationErrorHandler>()
                 .AddPostExecutionEvent<ErrorExecutionEvent>()
                 .AddPostExecutionEvent<ParsingErrorExecutionEvent>();

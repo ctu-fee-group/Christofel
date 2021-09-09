@@ -12,6 +12,7 @@ using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.ContextedParsers;
 using Christofel.CommandsLib.Extensions;
+using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;

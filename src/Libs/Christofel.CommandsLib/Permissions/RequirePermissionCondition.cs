@@ -5,13 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Conditions;
-using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Core;
 using Remora.Results;
 
-namespace Christofel.CommandsLib
+namespace Christofel.CommandsLib.Permissions
 {
     public class RequirePermissionCondition : ICondition<RequirePermissionAttribute>
     {

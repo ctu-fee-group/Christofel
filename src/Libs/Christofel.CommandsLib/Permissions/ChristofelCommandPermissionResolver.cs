@@ -7,13 +7,11 @@ using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Permissions;
 using Christofel.CommandsLib.Extensions;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Remora.Commands.Trees.Nodes;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Core;
 
-namespace Christofel.CommandsLib
+namespace Christofel.CommandsLib.Permissions
 {
     public sealed class ChristofelCommandPermissionResolver
     {

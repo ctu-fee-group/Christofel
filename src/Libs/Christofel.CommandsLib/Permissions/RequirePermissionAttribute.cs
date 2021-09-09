@@ -1,7 +1,6 @@
-using System;
 using Remora.Commands.Conditions;
 
-namespace Christofel.CommandsLib
+namespace Christofel.CommandsLib.Permissions
 {
     public class RequirePermissionAttribute : ConditionAttribute
     {

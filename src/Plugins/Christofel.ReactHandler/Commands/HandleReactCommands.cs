@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Christofel.BaseLib.Database;
 using Christofel.CommandsLib;
+using Christofel.CommandsLib.Permissions;
 using Christofel.ReactHandler.Database;
 using Christofel.ReactHandler.Database.Models;
 using Christofel.ReactHandler.Formatters;

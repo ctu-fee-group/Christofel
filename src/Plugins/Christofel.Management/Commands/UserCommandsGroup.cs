@@ -8,6 +8,7 @@ using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.User;
 using Christofel.CommandsLib;
+using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
 using Christofel.Management.CtuUtils;
 using FluentValidation;

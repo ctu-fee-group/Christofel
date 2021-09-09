@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.CommandsLib.Extensions;
+using Christofel.CommandsLib.Permissions;
 using Remora.Commands.Trees;
 using Remora.Commands.Trees.Nodes;
 using Remora.Discord.API.Abstractions.Objects;
