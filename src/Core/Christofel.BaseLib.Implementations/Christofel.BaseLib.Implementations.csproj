@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+      <ProjectReference Include="..\Christofel.Remora.Plugins\Christofel.Remora.Plugins.csproj" />
     </ItemGroup>
 
     <ItemGroup>

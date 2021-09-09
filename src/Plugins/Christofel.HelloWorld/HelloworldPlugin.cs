@@ -6,17 +6,17 @@ using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Christofel.BaseLib.Extensions;
-using Christofel.BaseLib.Implementations.Responders;
-using Christofel.BaseLib.Lifetime;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
+using Christofel.Plugins.Lifetime;
+using Christofel.Plugins.Runtime;
+using Christofel.Remora.Responders;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
-using Remora.Discord.Gateway.Extensions;
 
 namespace Christofel.HelloWorld
 {
-    public class HelloworldPlugin : DIPlugin
+    public class HelloworldPlugin : ChristofelDIPlugin
     {
         private PluginLifetimeHandler _lifetimeHandler;
         private ILogger<HelloworldPlugin>? _logger;
@@ -73,7 +73,7 @@ namespace Christofel.HelloWorld
         protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<HelloworldPlugin>>();
-            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

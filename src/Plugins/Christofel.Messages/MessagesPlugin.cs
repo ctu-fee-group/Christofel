@@ -4,22 +4,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
-using Christofel.BaseLib.Implementations.Responders;
-using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.Messages.Commands;
 using Christofel.Messages.Options;
 using Christofel.Messages.Services;
+using Christofel.Plugins.Lifetime;
+using Christofel.Plugins.Runtime;
+using Christofel.Remora.Responders;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
-using Remora.Discord.API.Objects;
 
 namespace Christofel.Messages
 {
-    public class MessagesPlugin : DIPlugin
+    public class MessagesPlugin : ChristofelDIPlugin
     {
         private PluginLifetimeHandler _lifetimeHandler;
         private ILogger<MessagesPlugin>? _logger;
@@ -63,7 +63,7 @@ namespace Christofel.Messages
         protected override Task InitializeServices(IServiceProvider services, CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<MessagesPlugin>>();
-            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
 

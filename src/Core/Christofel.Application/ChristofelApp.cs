@@ -13,14 +13,16 @@ using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
-using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.Logger;
 using Christofel.Plugins;
+using Christofel.Plugins.Lifetime;
+using Christofel.Plugins.Runtime;
 using Christofel.Plugins.Services;
+using Christofel.Remora;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +38,7 @@ namespace Christofel.Application
 {
     public delegate Task RefreshChristofel(CancellationToken token);
 
-    public class ChristofelApp : DIPlugin, IRefreshable, IStoppable
+    public class ChristofelApp : ChristofelDIPlugin, IRefreshable, IStoppable
     {
         private ILogger<ChristofelApp>? _logger;
         private IConfigurationRoot _configuration;
@@ -147,7 +149,7 @@ namespace Christofel.Application
                     o.Intents |= GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessages)
                 // events
                 .AddResponder<ChristofelReadyResponder>()
-                .AddResponder<ApplicationResponder>()
+                .AddResponder<ApplicationResponder<IChristofelState, IPluginContext>>()
                 .AddScoped<ChristofelReadyResponder>(p => new ChristofelReadyResponder(this))
                 // commands
                 .AddChristofelCommands()

@@ -1,15 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Extensions;
-using Christofel.BaseLib.Lifetime;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 namespace Christofel.Api
 {

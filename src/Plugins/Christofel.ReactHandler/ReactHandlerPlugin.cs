@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
-using Christofel.BaseLib.Implementations.Responders;
-using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
+using Christofel.Plugins.Lifetime;
+using Christofel.Plugins.Runtime;
 using Christofel.ReactHandler.Commands;
 using Christofel.ReactHandler.Database;
 using Christofel.ReactHandler.Responders;
+using Christofel.Remora.Responders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +23,7 @@ using Remora.Discord.Gateway.Extensions;
 
 namespace Christofel.ReactHandler
 {
-    public class ReactHandlerPlugin : DIPlugin
+    public class ReactHandlerPlugin : ChristofelDIPlugin
     {
         private PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ReactHandlerPlugin>? _logger;
@@ -86,7 +86,7 @@ namespace Christofel.ReactHandler
             CancellationToken token = new CancellationToken())
         {
             _logger = services.GetRequiredService<ILogger<ReactHandlerPlugin>>();
-            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

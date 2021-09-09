@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Extensions;
-using Christofel.BaseLib.Lifetime;
 using Christofel.BaseLib.Plugins;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
+using Christofel.Remora;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api
 {
-    public class ApiPlugin : IChristofelRuntimePlugin
+    public class ApiPlugin : IRuntimePlugin<IChristofelState, IPluginContext>
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ApiPlugin>? _logger;
