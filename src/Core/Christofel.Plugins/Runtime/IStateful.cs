@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Christofel.BaseLib.Plugins
+namespace Christofel.Plugins.Runtime
 {
     /// <summary>
     /// Symbols an object that can be refreshed

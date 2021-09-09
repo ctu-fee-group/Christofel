@@ -1,8 +1,7 @@
 using System;
 using System.Threading;
-using Christofel.Plugins.Lifetime;
 
-namespace Christofel.BaseLib.Lifetime
+namespace Christofel.Plugins.Lifetime
 {
     /// <summary>
     /// LifetimeHandler for using some common methods that Lifetime needs to have
