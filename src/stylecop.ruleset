@@ -186,7 +186,7 @@
     <Rule Id="SA1636" Action="Error" /> <!-- File header copyright text must match -->
     <Rule Id="SA1637" Action="Error" /> <!-- File header must contain file name -->
     <Rule Id="SA1638" Action="Error" /> <!-- File header file name documentation must match file name -->
-    <Rule Id="SA1639" Action="None" /> <!-- File header must have summary -->
+    <Rule Id="SA1639" Action="Error" /> <!-- File header must have summary -->
     <Rule Id="SA1640" Action="Error" /> <!-- File header must have valid company text -->
     <Rule Id="SA1641" Action="Error" /> <!-- File header company name text must match -->
     <Rule Id="SA1642" Action="Error" /> <!-- Constructor summary documentation must begin with standard text -->
