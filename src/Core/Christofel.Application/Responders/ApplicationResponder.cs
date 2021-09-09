@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Application.Plugins;
@@ -27,20 +29,27 @@ namespace Christofel.Application.Responders
 
         public override async Task<Result> RespondAnyAsync<TEvent>(TEvent gatewayEvent, CancellationToken ct = default)
         {
-            var tasks = new List<Task>();
+            await Task.WhenAll(
+                _plugins.AttachedPlugins
+                    .Select(x => x.Plugin)
+                    .OfType<IRuntimePlugin<IChristofelState, IPluginContext>>()
+                    .Select(x => x.Context.PluginResponder)
+                    .Where(x => x is not null)
+                    .Cast<IAnyResponder>()
+                    .Select(async (responder) =>
+                    {
+                        try
+                        {
+                            // Cannot trust the responder that there won't be an exception thrown
+                            return await responder.RespondAsync(gatewayEvent, ct);
+                        }
+                        catch (Exception e)
+                        {
+                            return (Result)e;
+                        }
+                    })
+                    .Select(HandleEventResult));
 
-            foreach (var plugin in _plugins.AttachedPlugins.Select(x => x.Plugin)
-                .OfType<IRuntimePlugin<IChristofelState, IPluginContext>>())
-            {
-                var responder = plugin.Context.PluginResponder;
-
-                if (responder is not null)
-                {
-                    tasks.Add(HandleEventResult(responder.RespondAsync(gatewayEvent, ct)));
-                }
-            }
-
-            await Task.WhenAll(tasks);
             return Result.FromSuccess(); // Everything is handled in HandleEventResult
         }
 
@@ -49,14 +58,14 @@ namespace Christofel.Application.Responders
             var responderResult = await eventDispatch;
             LogResult(responderResult);
         }
-        
+
         private void LogResult(IResult result)
         {
             if (result.IsSuccess)
             {
                 return;
             }
-            
+
             switch (result.Error)
             {
                 case ExceptionError exe:
@@ -76,6 +85,7 @@ namespace Christofel.Application.Responders
                     {
                         LogResult(errorResult);
                     }
+
                     break;
                 }
                 default:
