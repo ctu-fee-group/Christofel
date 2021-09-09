@@ -47,31 +47,43 @@ namespace Christofel.Application.Responders
         private async Task HandleEventResult(Task<Result> eventDispatch)
         {
             var responderResult = await eventDispatch;
-
-            if (responderResult.IsSuccess)
+            LogResult(responderResult);
+        }
+        
+        private void LogResult(IResult result)
+        {
+            if (result.IsSuccess)
             {
                 return;
             }
-
-            switch (responderResult.Error)
+            
+            switch (result.Error)
             {
                 case ExceptionError exe:
                 {
                     _logger.LogWarning
                     (
                         exe.Exception,
-                        "Error in application responder event responder: {Exception}",
+                        "Error in plugin responder event responder: {Exception}",
                         exe.Message
                     );
 
+                    break;
+                }
+                case AggregateError aggregateError:
+                {
+                    foreach (var errorResult in aggregateError.Errors)
+                    {
+                        LogResult(errorResult);
+                    }
                     break;
                 }
                 default:
                 {
                     _logger.LogWarning
                     (
-                        "Error in application responder event responder.\n{Reason}",
-                        responderResult.Error.Message
+                        "Error in plugin responder event responder.\n{Reason}",
+                        result.Error?.Message
                     );
 
                     break;
