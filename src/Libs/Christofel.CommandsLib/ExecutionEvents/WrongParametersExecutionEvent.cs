@@ -45,17 +45,12 @@ namespace Christofel.CommandsLib.ExecutionEvents
 
                 if (foundChildNode is not null)
                 {
-                    string? explained = null;
-
-                    switch (foundChildNode)
+                    var explained = foundChildNode switch
                     {
-                        case CommandNode commandNode:
-                            explained = ExplainCommandNode(commandNode, ct);
-                            break;
-                        case GroupNode groupNode:
-                            explained = ExplainGroupNode(groupNode, ct);
-                            break;
-                    }
+                        CommandNode commandNode => ExplainCommandNode(commandNode, ct),
+                        GroupNode groupNode => ExplainGroupNode(groupNode, ct),
+                        _ => null,
+                    };
 
                     if (explained is not null)
                     {
