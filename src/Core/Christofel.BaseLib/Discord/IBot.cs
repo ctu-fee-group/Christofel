@@ -3,9 +3,6 @@ using Remora.Discord.Gateway;
 
 namespace Christofel.BaseLib.Discord
 {
-    /// <summary>
-    /// State of the discord bot
-    /// </summary>
     public interface IBot
     {
         public DiscordGatewayClient Client { get; }
