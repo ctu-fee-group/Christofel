@@ -13,6 +13,12 @@ using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Tasks
 {
+    /// <summary>
+    /// Task for assigning nickname to the user.
+    /// </summary>
+    /// <remarks>
+    /// Assigns nickname to newly registered users only.
+    /// </remarks>
     public class SetNicknameAuthTask : IAuthTask
     {
         private readonly DuplicateResolver _duplicates;
@@ -20,6 +26,13 @@ namespace Christofel.Api.Ctu.Auth.Tasks
         private readonly ILogger _logger;
         private readonly NicknameResolver _nickname;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SetNicknameAuthTask"/> class.
+        /// </summary>
+        /// <param name="jobQueue">The job queue.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="duplicates">The duplicate resolver.</param>
+        /// <param name="nickname">The nickname resolver.</param>
         public SetNicknameAuthTask
         (
             IJobQueue<CtuAuthNicknameSet> jobQueue,
@@ -35,6 +48,7 @@ namespace Christofel.Api.Ctu.Auth.Tasks
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
         {
             var duplicate = await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
@@ -61,7 +75,8 @@ namespace Christofel.Api.Ctu.Auth.Tasks
                 new CtuAuthNicknameSet
                 (
                     data.DbUser.DiscordId,
-                    data.GuildId, nickname
+                    data.GuildId,
+                    nickname
                 )
             );
             return Result.FromSuccess();

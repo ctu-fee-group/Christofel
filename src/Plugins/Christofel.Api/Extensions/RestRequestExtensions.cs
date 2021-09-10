@@ -9,13 +9,16 @@ using RestSharp;
 
 namespace Christofel.Api.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for <see cref="IRestRequest"/>.
+    /// </summary>
     public static class RestRequestExtensions
     {
         /// <summary>
-        /// Add individual parameters from dictionary
+        /// Add individual parameters from dictionary.
         /// </summary>
-        /// <param name="request"></param>
-        /// <param name="parameters"></param>
+        /// <param name="request">The request to add the parameters to.</param>
+        /// <param name="parameters">The parameters to add to the request.</param>
         public static void AddParameters(this IRestRequest request, Dictionary<string, string> parameters)
         {
             foreach (var parameter in parameters)

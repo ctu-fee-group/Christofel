@@ -18,12 +18,18 @@ using Microsoft.EntityFrameworkCore;
 namespace Christofel.Api.GraphQL.DataLoaders
 {
     /// <summary>
-    /// Loads DbUser from database by user id
+    /// Loads DbUser from database by user id.
     /// </summary>
     public class UserByIdDataLoader : BatchDataLoader<int, DbUser>
     {
         private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserByIdDataLoader"/> class.
+        /// </summary>
+        /// <param name="batchScheduler">The batch scheduler.</param>
+        /// <param name="dbContextFactory">The christofel base context factory.</param>
+        /// <param name="options">The options of the data loader.</param>
         public UserByIdDataLoader
         (
             IBatchScheduler batchScheduler,
@@ -35,6 +41,7 @@ namespace Christofel.Api.GraphQL.DataLoaders
             _dbContextFactory = dbContextFactory;
         }
 
+        /// <inheritdoc />
         protected override async Task<IReadOnlyDictionary<int, DbUser>> LoadBatchAsync
             (IReadOnlyList<int> keys, CancellationToken cancellationToken)
         {

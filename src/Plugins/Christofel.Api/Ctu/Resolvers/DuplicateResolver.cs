@@ -18,11 +18,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.Api.Ctu.Resolvers
 {
+    /// <summary>
+    /// Resolver of duplicates of the specified user.
+    /// </summary>
     public class DuplicateResolver
     {
         private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;
         private readonly Dictionary<ILinkUser, Duplicate> _duplicates;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DuplicateResolver"/> class.
+        /// </summary>
+        /// <param name="dbContextFactory">The read only christofel base database context factory.</param>
         public DuplicateResolver(ReadonlyDbContextFactory<ChristofelBaseContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
@@ -30,10 +37,10 @@ namespace Christofel.Api.Ctu.Resolvers
         }
 
         /// <summary>
-        /// Finds duplicate by specified rules
+        /// Finds duplicate by specified rules.
         /// </summary>
-        /// <param name="user">What are the loaded information (from apis) about the user</param>
-        /// <param name="dbUser">What is the record in the database that holds the specified user</param>
+        /// <param name="user">What are the loaded information (from apis) about the user.</param>
+        /// <param name="ct">The canellation token for the operation.</param>
         /// <returns>Duplicate information of the specified user.</returns>
         public async Task<Duplicate> ResolveDuplicateAsync(ILinkUser user, CancellationToken ct = default)
         {

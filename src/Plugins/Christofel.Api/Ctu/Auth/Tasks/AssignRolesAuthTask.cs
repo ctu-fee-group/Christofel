@@ -13,14 +13,22 @@ using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Tasks
 {
+    /// <summary>
+    /// Task for assigning roles to the user.
+    /// </summary>
     public class AssignRolesAuthTask : IAuthTask
     {
         private readonly ILogger _logger;
         private readonly CtuAuthRoleAssignService _roleAssignService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AssignRolesAuthTask"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="roleAssignService">The service for processing roles assignment.</param>
         public AssignRolesAuthTask
         (
-            ILogger<CtuAuthProcess> logger,
+            ILogger<AssignRolesAuthTask> logger,
             CtuAuthRoleAssignService roleAssignService
         )
         {
@@ -28,6 +36,7 @@ namespace Christofel.Api.Ctu.Auth.Tasks
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
         {
             var guildMemberRoles = data.GuildUser.Roles.ToArray();

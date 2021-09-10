@@ -12,15 +12,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Api.GraphQL.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for <see cref="IObjectFieldDescriptor"/>.
+    /// </summary>
     public static class ObjectFieldDescriptorExtensions
     {
         /// <summary>
         /// Use database context of given type as scoped service
-        /// IDbContextFactory<TDbContext> must be available from services
+        /// <see cref="IDbContextFactory{TContext}"/> must be available from services.
         /// </summary>
-        /// <param name="descriptor"></param>
-        /// <typeparam name="TDbContext"></typeparam>
-        /// <returns></returns>
+        /// <param name="descriptor">The descriptor to use.</param>
+        /// <typeparam name="TDbContext">The database context type.</typeparam>
+        /// <returns>The passed object field descriptor.</returns>
         public static IObjectFieldDescriptor UseDbContext<TDbContext>
         (
             this IObjectFieldDescriptor descriptor
@@ -36,11 +39,11 @@ namespace Christofel.Api.GraphQL.Extensions
 
         /// <summary>
         /// Use read only context of given type as scoped service
-        /// ReadOnlyDbContextFactory<TDbContextg> muset be available from services
+        /// <see cref="ReadonlyDbContextFactory{TContext}"/> must be available from services.
         /// </summary>
-        /// <param name="descriptor"></param>
-        /// <typeparam name="TDbContext"></typeparam>
-        /// <returns></returns>
+        /// <param name="descriptor">The descriptor to use.</param>
+        /// <typeparam name="TDbContext">The database context type.</typeparam>
+        /// <returns>The passed object field descriptor.</returns>
         public static IObjectFieldDescriptor UseReadOnlyDbContext<TDbContext>
         (
             this IObjectFieldDescriptor descriptor

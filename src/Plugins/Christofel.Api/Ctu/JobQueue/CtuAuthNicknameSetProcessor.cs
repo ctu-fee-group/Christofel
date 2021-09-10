@@ -12,14 +12,25 @@ using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu.JobQueue
 {
-    public record CtuAuthNicknameSet(Snowflake UserId, Snowflake GuildId, string Nickname);
-
+    /// <summary>
+    /// Processor of nickname assigns, works on different thread.
+    /// </summary>
+    /// <remarks>
+    /// Creates thread only if there is job assigned,
+    /// if there isn't, the thread is freed (thread pool is used).
+    /// </remarks>
     public class CtuAuthNicknameSetProcessor : ThreadPoolJobQueue<CtuAuthNicknameSet>
     {
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly ILifetime _lifetime;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CtuAuthNicknameSetProcessor"/> class.
+        /// </summary>
+        /// <param name="lifetime">The lifetime of the current plugin.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="guildApi">The guild api.</param>
         public CtuAuthNicknameSetProcessor
         (
             ICurrentPluginLifetime lifetime,
@@ -33,11 +44,14 @@ namespace Christofel.Api.Ctu.JobQueue
             _guildApi = guildApi;
         }
 
+        /// <inheritdoc />
         protected override async Task ProcessAssignJob(CtuAuthNicknameSet job)
         {
             var modifiedResult = await _guildApi.ModifyGuildMemberAsync
             (
-                job.GuildId, job.UserId, job.Nickname,
+                job.GuildId,
+                job.UserId,
+                job.Nickname,
                 ct: _lifetime.Stopping
             );
 
@@ -50,4 +64,12 @@ namespace Christofel.Api.Ctu.JobQueue
             }
         }
     }
+
+    /// <summary>
+    /// The job for <see cref="Christofel.Api.Ctu.JobQueue.CtuAuthNicknameSetProcessor"/>.
+    /// </summary>
+    /// <param name="UserId"></param>
+    /// <param name="GuildId"></param>
+    /// <param name="Nickname"></param>
+    public record CtuAuthNicknameSet(Snowflake UserId, Snowflake GuildId, string Nickname);
 }

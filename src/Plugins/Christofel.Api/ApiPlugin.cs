@@ -23,6 +23,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api
 {
+    /// <summary>
+    /// Plugin representing GraphQL api.
+    /// </summary>
     public class ApiPlugin : IRuntimePlugin<IChristofelState, IPluginContext>
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
@@ -31,6 +34,9 @@ namespace Christofel.Api
         private IHost? _host;
         private ILogger<ApiPlugin>? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiPlugin"/> class.
+        /// </summary>
         public ApiPlugin()
         {
             _lifetimeHandler = new PluginLifetimeHandler
@@ -40,12 +46,22 @@ namespace Christofel.Api
             );
         }
 
+        /// <inheritdoc />
         public string Name => "Christofel.Api";
+
+        /// <inheritdoc />
         public string Description => "GraphQL API for Christofel";
+
+        /// <inheritdoc />
         public string Version => "v0.0.1";
+
+        /// <inheritdoc />
         public ILifetime Lifetime => _lifetimeHandler.Lifetime;
+
+        /// <inheritdoc />
         public IPluginContext Context => new PluginContext();
 
+        /// <inheritdoc />
         public async Task InitAsync(IChristofelState state, CancellationToken token)
         {
             try
@@ -77,7 +93,8 @@ namespace Christofel.Api
             }
         }
 
-        public async Task RunAsync(CancellationToken token = default)
+        /// <inheritdoc />
+        public Task RunAsync(CancellationToken token = default)
         {
             try
             {
@@ -99,11 +116,13 @@ namespace Christofel.Api
                 _lifetimeHandler.MoveToError(e);
                 throw;
             }
+
+            return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         public Task RefreshAsync(CancellationToken token = default) =>
-            // Nothing to refresh for Api
-            Task.CompletedTask;
+            Task.CompletedTask; // Nothing to refresh for Api
 
         private IHostBuilder CreateHostBuilder(IChristofelState state) =>
             Host.CreateDefaultBuilder()
@@ -165,7 +184,7 @@ namespace Christofel.Api
         {
             Task.Run
             (
-                async () =>
+                () =>
                 {
                     try
                     {

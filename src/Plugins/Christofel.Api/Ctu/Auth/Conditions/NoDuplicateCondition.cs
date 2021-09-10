@@ -12,15 +12,23 @@ using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Conditions
 {
+    /// <summary>
+    /// Condition that checks that the user is not a duplicate, or is an approved duplicate.
+    /// </summary>
     public class NoDuplicateCondition : IPreAuthCondition
     {
         private readonly DuplicateResolver _duplicates;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NoDuplicateCondition"/> class.
+        /// </summary>
+        /// <param name="duplicates">Resolver of the duplicates.</param>
         public NoDuplicateCondition(DuplicateResolver duplicates)
         {
             _duplicates = duplicates;
         }
 
+        /// <inheritdoc />
         public async ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = default)
         {
             Duplicate duplicate = await _duplicates.ResolveDuplicateAsync(authData.LoadedUser, ct);

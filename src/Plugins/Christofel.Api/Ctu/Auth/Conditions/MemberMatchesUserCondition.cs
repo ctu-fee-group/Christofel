@@ -10,8 +10,12 @@ using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Conditions
 {
+    /// <summary>
+    /// Condition that checks whether the id of the guild member matches the id set in the database.
+    /// </summary>
     public class MemberMatchesUserCondition : IPreAuthCondition
     {
+        /// <inheritdoc />
         public ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = default)
         {
             if (!authData.GuildUser.User.HasValue)

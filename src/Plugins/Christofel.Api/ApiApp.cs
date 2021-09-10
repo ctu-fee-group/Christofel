@@ -22,6 +22,9 @@ using IApplicationLifetime = Christofel.Plugins.Lifetime.IApplicationLifetime;
 
 namespace Christofel.Api
 {
+    /// <summary>
+    /// Representation of standalone api application.
+    /// </summary>
     public class ApiApp : IDisposable
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
@@ -29,6 +32,9 @@ namespace Christofel.Api
         private IHostApplicationLifetime? _lifetime;
         private ILogger? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiApp"/> class.
+        /// </summary>
         public ApiApp()
         {
             _lifetimeHandler = new PluginLifetimeHandler
@@ -44,8 +50,12 @@ namespace Christofel.Api
             );
         }
 
+        /// <summary>
+        /// The lifetime of the application.
+        /// </summary>
         public ICurrentPluginLifetime Lifetime => _lifetimeHandler.LifetimeSpecific;
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
@@ -56,6 +66,10 @@ namespace Christofel.Api
             _lifetimeHandler.MoveToIfLower(LifetimeState.Destroyed);
         }
 
+        /// <summary>
+        /// Run the application.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public async Task RunAsync()
         {
             _lifetimeHandler.MoveToIfLower(LifetimeState.Starting);
@@ -88,6 +102,9 @@ namespace Christofel.Api
             await _host.RunAsync();
         }
 
+        /// <summary>
+        /// Inits the application.
+        /// </summary>
         public void Init()
         {
             _lifetimeHandler.MoveToIfLower(LifetimeState.Initializing);
@@ -131,8 +148,8 @@ namespace Christofel.Api
                         services
                             .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>();
 
+                        // Database
                         services
-                            // db
                             .AddDbContextFactory<ChristofelBaseContext>
                             (
                                 options =>
@@ -170,10 +187,15 @@ namespace Christofel.Api
             }
 
             public LifetimeState State => _lifetime.State;
+
             public bool IsErrored => _lifetime.IsErrored;
+
             public CancellationToken Errored => _lifetime.Errored;
+
             public CancellationToken Started => _lifetime.Started;
+
             public CancellationToken Stopped => _lifetime.Stopped;
+
             public CancellationToken Stopping => _lifetime.Stopping;
 
             public void RequestStop()

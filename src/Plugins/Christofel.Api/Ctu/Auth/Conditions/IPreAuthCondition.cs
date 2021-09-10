@@ -11,16 +11,16 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Conditions
 {
     /// <summary>
-    /// Auth condition executed prior to the process of executing auth steps
+    /// Auth condition executed prior to the process of executing auth steps.
     /// </summary>
     public interface IPreAuthCondition
     {
         /// <summary>
-        /// Checks the condition for the process, if failed, process is aborted
+        /// Checks the condition for the process, if failed, process is aborted.
         /// </summary>
-        /// <param name="authData"></param>
-        /// <param name="ct"></param>
-        /// <returns>Successful result if passed, error on failure</returns>
+        /// <param name="authData">The data of the authentication.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         public ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = default);
     }
 }

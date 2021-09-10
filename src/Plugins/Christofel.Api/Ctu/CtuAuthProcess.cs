@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Auth.Conditions;
@@ -23,7 +24,7 @@ using Remora.Results;
 namespace Christofel.Api.Ctu
 {
     /// <summary>
-    /// Used to iterate through all steps of auth process
+    /// Used to iterate through all steps of auth process.
     /// </summary>
     public class CtuAuthProcess
     {
@@ -32,8 +33,10 @@ namespace Christofel.Api.Ctu
         private readonly IServiceProvider _services;
 
         /// <summary>
-        /// Initialize CtuAuthProcess
+        /// Initializes a new instance of the <see cref="CtuAuthProcess"/> class.
         /// </summary>
+        /// <param name="services">The provider of the services.</param>
+        /// <param name="logger">The logger.</param>
         public CtuAuthProcess
         (
             IServiceProvider services,
@@ -46,15 +49,16 @@ namespace Christofel.Api.Ctu
 
         /// <summary>
         /// Proceed to do all the steps
-        /// If step fails, exception will be thrown
+        /// If step fails, exception will be thrown.
         /// </summary>
-        /// <param name="accessToken">Valid token that can be used for Kos and Usermap</param>
-        /// <param name="ctuOauthHandler"></param>
-        /// <param name="dbContext">Context monitoring dbUser</param>
-        /// <param name="guildId">Id of the guild we are workikng in</param>
-        /// <param name="dbUser">Database user to be edited and saved</param>
-        /// <param name="guildUser">Discord user used for auth purposes. Should be user with the id of dbUser</param>
-        /// <param name="ct">Cancellation token in case the request is cancelled</param>
+        /// <param name="accessToken">Valid token that can be used for Kos and Usermap.</param>
+        /// <param name="ctuOauthHandler">The ctu oauth handler.</param>
+        /// <param name="dbContext">Context monitoring dbUser.</param>
+        /// <param name="guildId">Id of the guild we are workikng in.</param>
+        /// <param name="dbUser">Database user to be edited and saved.</param>
+        /// <param name="guildUser">Discord user used for auth purposes. Should be user with the id of dbUser.</param>
+        /// <param name="ct">Cancellation token in case the request is cancelled.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         public async Task<Result> FinishAuthAsync
         (
             string accessToken,
@@ -195,7 +199,7 @@ namespace Christofel.Api.Ctu
             var tasks = services
                 .GetServices<IAuthTask>();
 
-            var error = false;
+            var errors = new List<IResult>();
             foreach (var task in tasks)
             {
                 Result taskResult;
@@ -210,13 +214,13 @@ namespace Christofel.Api.Ctu
 
                 if (!taskResult.IsSuccess)
                 {
-                    error = true;
+                    errors.Add(taskResult);
                     _logger.LogError($"Could not finish auth task: {taskResult.Error.Message}");
                 }
             }
 
-            return error
-                ? new GenericError("Could not finish tasks execution successfully")
+            return errors.Count > 0
+                ? new AggregateError(errors)
                 : Result.FromSuccess();
         }
 

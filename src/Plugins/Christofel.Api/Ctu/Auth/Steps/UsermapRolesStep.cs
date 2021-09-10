@@ -16,21 +16,26 @@ using Usermap.Controllers;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    /// Assign roles from UsermapRoleAssignment table
+    /// Assign roles from UsermapRoleAssignment table.
     /// </summary>
     /// <remarks>
     /// Obtains usermap roles if possible, then tries to match them against the ones
-    /// in database. If there are matches, they are added
+    /// in database. If there are matches, they are added.
     /// </remarks>
     public class UsermapRolesStep : IAuthStep
     {
         private readonly IUsermapPeopleApi _usermapPeopleApi;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UsermapRolesStep"/> class.
+        /// </summary>
+        /// <param name="usermapPeopleApi">The usermap people api.</param>
         public UsermapRolesStep(IUsermapPeopleApi usermapPeopleApi)
         {
             _usermapPeopleApi = usermapPeopleApi;
         }
 
+        /// <inheritdoc />
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             var person =

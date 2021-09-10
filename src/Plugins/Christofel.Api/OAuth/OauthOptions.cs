@@ -8,11 +8,21 @@ using System.Collections.Generic;
 
 namespace Christofel.Api.OAuth
 {
+    /// <summary>
+    /// The options for <see cref="OauthHandler{TOptions}"/>.
+    /// </summary>
     public class OauthOptions : IOauthOptions
     {
+        /// <inheritdoc cref="IOauthOptions"/>
         public string? ApplicationId { get; set; }
+
+        /// <inheritdoc cref="IOauthOptions"/>
         public string? SecretKey { get; set; }
+
+        /// <inheritdoc cref="IOauthOptions"/>
         public string? TokenEndpoint { get; set; }
+
+        /// <inheritdoc cref="IOauthOptions"/>
         public ICollection<string>? Scopes { get; set; }
     }
 }

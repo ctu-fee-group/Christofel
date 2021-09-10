@@ -17,10 +17,10 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    /// Assign roles from ProgrammeRoleAssignment table
+    /// Assign roles from ProgrammeRoleAssignment table.
     /// </summary>
     /// <remarks>
-    /// Uses kos api to obtain programme of the user
+    /// Uses kos api to obtain programme of the user.
     /// </remarks>
     public class ProgrammeRoleStep : IAuthStep
     {
@@ -28,13 +28,20 @@ namespace Christofel.Api.Ctu.Auth.Steps
         private readonly IKosPeopleApi _kosPeopleApi;
         private readonly ILogger _logger;
 
-        public ProgrammeRoleStep(ILogger<CtuAuthProcess> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProgrammeRoleStep"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="kosPeopleApi">The kos people api.</param>
+        /// <param name="kosApi">The kos api.</param>
+        public ProgrammeRoleStep(ILogger<ProgrammeRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
         {
             _kosApi = kosApi;
             _kosPeopleApi = kosPeopleApi;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             var kosPerson =

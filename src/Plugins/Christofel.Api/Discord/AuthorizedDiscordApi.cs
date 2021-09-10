@@ -14,13 +14,18 @@ using RestSharp.Serializers.NewtonsoftJson;
 namespace Christofel.Api.Discord
 {
     /// <summary>
-    /// Discord API with assigned accessToken
+    /// Discord API with assigned accessToken.
     /// </summary>
     public class AuthorizedDiscordApi
     {
         private readonly string _accessToken;
         private readonly RestClient _client;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthorizedDiscordApi"/> class.
+        /// </summary>
+        /// <param name="accessToken">The access token.</param>
+        /// <param name="options">The options of the discord api.</param>
         internal AuthorizedDiscordApi(string accessToken, DiscordApiOptions options)
         {
             _client = new RestClient(options.BaseUrl)
@@ -37,7 +42,11 @@ namespace Christofel.Api.Discord
             request.Headers.Add("Authorization", $"Bearer {_accessToken}");
         }
 
-        // GET /users/@me
+        /// <summary>
+        /// Calls /users/@me to retrieve information about the current user.
+        /// </summary>
+        /// <returns>Information about current user.</returns>
+        /// <exception cref="Exception">Thrown if the request was not successful.</exception>
         public async Task<DiscordUser> GetMe()
         {
             IRestRequest request = new RestRequest("/users/@me", Method.GET);

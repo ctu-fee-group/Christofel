@@ -10,8 +10,12 @@ using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Conditions
 {
+    /// <summary>
+    /// Condition that checks whether the loaded user ctu username matches the username that was set in the database.
+    /// </summary>
     public class CtuUsernameMatchesCondition : IPreAuthCondition
     {
+        /// <inheritdoc />
         public ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = default)
         {
             if (authData.DbUser.CtuUsername is null)

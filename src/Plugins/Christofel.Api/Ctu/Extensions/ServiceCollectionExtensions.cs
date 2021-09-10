@@ -13,8 +13,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Christofel.Api.Ctu.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for <see cref="IServiceCollection"/>.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Adds ctu auth process class.
+        /// </summary>
+        /// <param name="collection">The collection to add to.</param>
+        /// <returns>The passed collection.</returns>
         public static IServiceCollection AddCtuAuthProcess(this IServiceCollection collection)
         {
             collection
@@ -26,6 +34,11 @@ namespace Christofel.Api.Ctu.Extensions
             return collection;
         }
 
+        /// <summary>
+        /// Adds all default ctu auth conditions, steps and tasks.
+        /// </summary>
+        /// <param name="services">The collection to add to.</param>
+        /// <returns>The passed collection.</returns>
         public static IServiceCollection AddDefaultCtuAuthProcess(this IServiceCollection services)
         {
             services
@@ -49,6 +62,12 @@ namespace Christofel.Api.Ctu.Extensions
             return services;
         }
 
+        /// <summary>
+        /// Adds <see cref="IAuthStep"/> to the collection.
+        /// </summary>
+        /// <param name="collection">The collection to add to.</param>
+        /// <typeparam name="T">The type of the auth step.</typeparam>
+        /// <returns>The passed collection.</returns>
         public static IServiceCollection AddAuthStep<T>(this IServiceCollection collection)
             where T : class, IAuthStep
         {
@@ -58,6 +77,12 @@ namespace Christofel.Api.Ctu.Extensions
             return collection;
         }
 
+        /// <summary>
+        /// Adds <see cref="IAuthTask"/> to the collection.
+        /// </summary>
+        /// <param name="collection">The collection to add to.</param>
+        /// <typeparam name="T">The type of the auth task.</typeparam>
+        /// <returns>The passed collection.</returns>
         public static IServiceCollection AddAuthTask<T>(this IServiceCollection collection)
             where T : class, IAuthTask
         {
@@ -67,6 +92,12 @@ namespace Christofel.Api.Ctu.Extensions
             return collection;
         }
 
+        /// <summary>
+        /// Adds <see cref="IPreAuthCondition"/> to the collection.
+        /// </summary>
+        /// <param name="collection">The collection to add to.</param>
+        /// <typeparam name="T">The type of the auth condition.</typeparam>
+        /// <returns>The passed collection.</returns>
         public static IServiceCollection AddAuthCondition<T>(this IServiceCollection collection)
             where T : class, IPreAuthCondition
         {

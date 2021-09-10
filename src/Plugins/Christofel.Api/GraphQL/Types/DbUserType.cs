@@ -9,8 +9,12 @@ using HotChocolate.Types;
 
 namespace Christofel.Api.GraphQL.Types
 {
+    /// <summary>
+    /// GraphQL type configuration representing <see cref="DbUser"/>.
+    /// </summary>
     public class DbUserType : ObjectType<DbUser>
     {
+        /// <inheritdoc />
         protected override void Configure(IObjectTypeDescriptor<DbUser> descriptor)
         {
             descriptor.Name("User");
@@ -32,10 +36,5 @@ namespace Christofel.Api.GraphQL.Types
                 .Ignore(x => x.DuplicitUserId)
                 .Ignore(x => x.DuplicitUser);
         }
-
-        /*private class DbUserResolvers
-        {
-            
-        }*/
     }
 }

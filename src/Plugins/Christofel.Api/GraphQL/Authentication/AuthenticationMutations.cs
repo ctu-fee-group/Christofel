@@ -27,12 +27,20 @@ using Remora.Results;
 
 namespace Christofel.Api.GraphQL.Authentication
 {
+    /// <summary>
+    /// Mutations for user registration.
+    /// </summary>
     [ExtendObjectType("Mutation")]
     public class AuthenticationMutations
     {
         private readonly BotOptions _botOptions;
         private readonly ILogger<AuthenticationMutations> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthenticationMutations"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="botOptions">The options of the bot.</param>
         public AuthenticationMutations
         (
             ILogger<AuthenticationMutations> logger,
@@ -48,14 +56,14 @@ namespace Christofel.Api.GraphQL.Authentication
         /// This should be first step of registration.
         /// Second one is to register using CTU (registerCtu).
         /// </summary>
-        /// <param name="input">Input of the mutation</param>
-        /// <param name="dbContext">Db context to write user to</param>
-        /// <param name="discordOauthHandler">handler for oauth2 token retrieval</param>
-        /// <param name="discordApi"></param>
-        /// <param name="guildApi"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <param name="input">The input of the mutation.</param>
+        /// <param name="dbContext">The database context to write user to.</param>
+        /// <param name="discordOauthHandler">The handler for oauth2 token retrieval.</param>
+        /// <param name="discordApi">The discord api.</param>
+        /// <param name="guildApi">The guild api.</param>
+        /// <param name="cancellationToken">The cancellation token for the opration.</param>
+        /// <returns>Payload to the user.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the user token could not be obtained.</exception>
         [UseChristofelBaseDatabase]
         public async Task<RegisterDiscordPayload> RegisterDiscordAsync
         (
@@ -78,7 +86,8 @@ namespace Christofel.Api.GraphQL.Authentication
                     new UserError
                     (
                         response?.ErrorResponse?.ErrorDescription ??
-                        "Unspecified error", UserErrorCode.OauthTokenRejected
+                        "Unspecified error",
+                        UserErrorCode.OauthTokenRejected
                     )
                 );
             }
@@ -93,7 +102,8 @@ namespace Christofel.Api.GraphQL.Authentication
             var memberResult = await guildApi.GetGuildMemberAsync
             (
                 new Snowflake(_botOptions.GuildId),
-                new Snowflake(user.Id), cancellationToken
+                new Snowflake(user.Id),
+                cancellationToken
             );
             if (!memberResult.IsSuccess)
             {
@@ -115,7 +125,8 @@ namespace Christofel.Api.GraphQL.Authentication
 
             DbUser dbUser = new DbUser
             {
-                DiscordId = new Snowflake(user.Id), RegistrationCode = Guid.NewGuid().ToString(),
+                DiscordId = new Snowflake(user.Id),
+                RegistrationCode = Guid.NewGuid().ToString(),
             };
 
             dbContext.Add(dbUser);
@@ -128,12 +139,13 @@ namespace Christofel.Api.GraphQL.Authentication
         /// This should be second and last step of registration.
         /// The first step is to register using Discord (registerDiscord).
         /// </summary>
-        /// <param name="input">Input of the mutation</param>
-        /// <param name="dbContext">Context with user information</param>
-        /// <param name="ctuOauthHandler">Handler for obtaining access token</param>
-        /// <param name="ctuAuthProcess"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="input">Input of the mutation.</param>
+        /// <param name="dbContext">The database context with user information.</param>
+        /// <param name="ctuOauthHandler">The handler for obtaining access token.</param>
+        /// <param name="ctuAuthProcess">The ctu auth process handler.</param>
+        /// <param name="guildApi">The guild api.</param>
+        /// <param name="cancellationToken">The cancellation token for the operation.</param>
+        /// <returns>Payload for the user.</returns>
         [UseChristofelBaseDatabase]
         public async Task<RegisterCtuPayload> RegisterCtuAsync
         (
@@ -164,7 +176,8 @@ namespace Christofel.Api.GraphQL.Authentication
                     new UserError
                     (
                         response?.ErrorResponse?.ErrorDescription ??
-                        "Unspecified error", UserErrorCode.OauthTokenRejected
+                        "Unspecified error",
+                        UserErrorCode.OauthTokenRejected
                     )
                 );
             }
@@ -176,8 +189,13 @@ namespace Christofel.Api.GraphQL.Authentication
 
             return await HandleRegistration
             (
-                response.SuccessResponse.AccessToken, dbContext, dbUser, ctuOauthHandler,
-                ctuAuthProcess, guildApi, cancellationToken
+                response.SuccessResponse.AccessToken,
+                dbContext,
+                dbUser,
+                ctuOauthHandler,
+                ctuAuthProcess,
+                guildApi,
+                cancellationToken
             );
         }
 
@@ -186,12 +204,13 @@ namespace Christofel.Api.GraphQL.Authentication
         /// This should be second and last step of registration.
         /// The first step is to register using Discord (registerDiscord).
         /// </summary>
-        /// <param name="input">Input of the mutation</param>
-        /// <param name="dbContext">Context with user information</param>
-        /// <param name="ctuOauthHandler">Handler for obtaining access token</param>
-        /// <param name="ctuAuthProcess"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="input">Input of the mutation.</param>
+        /// <param name="dbContext">The database context with user information.</param>
+        /// <param name="ctuOauthHandler">The handler for obtaining access token.</param>
+        /// <param name="ctuAuthProcess">The ctu auth process handler.</param>
+        /// <param name="guildApi">The guild api.</param>
+        /// <param name="cancellationToken">The cancellation token for the operation.</param>
+        /// <returns>Payload for the user.</returns>
         [UseChristofelBaseDatabase]
         public async Task<RegisterCtuPayload> RegisterCtuTokenAsync
         (
@@ -213,19 +232,24 @@ namespace Christofel.Api.GraphQL.Authentication
 
             return await HandleRegistration
             (
-                input.AccessToken, dbContext, dbUser, ctuOauthHandler, ctuAuthProcess,
-                guildApi, cancellationToken
+                input.AccessToken,
+                dbContext,
+                dbUser,
+                ctuOauthHandler,
+                ctuAuthProcess,
+                guildApi,
+                cancellationToken
             );
         }
 
         /// <summary>
         /// Verify specified registration code to know what stage
-        /// of registration should be used (registerDiscord or registerCtu)
+        /// of registration should be used (registerDiscord or registerCtu).
         /// </summary>
-        /// <param name="input">Input of the mutation</param>
-        /// <param name="dbContext"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="input">Input of the mutation.</param>
+        /// <param name="dbContext">The database context.</param>
+        /// <param name="cancellationToken">The cancellation token for the operation.</param>
+        /// <returns>Payload for the user.</returns>
         [UseReadOnlyChristofelBaseDatabase]
         public async Task<VerifyRegistrationCodePayload> VerifyRegistrationCodeAsync
         (
@@ -257,7 +281,6 @@ namespace Christofel.Api.GraphQL.Authentication
 
             return new VerifyRegistrationCodePayload(verificationStage);
         }
-
 
         private async Task<DbUser?> GetUserByRegistrationCode
         (
@@ -303,7 +326,8 @@ namespace Christofel.Api.GraphQL.Authentication
             var memberResult = await guildApi.GetGuildMemberAsync
             (
                 new Snowflake(_botOptions.GuildId),
-                dbUser.DiscordId, cancellationToken
+                dbUser.DiscordId,
+                cancellationToken
             );
 
             if (!memberResult.IsSuccess)
@@ -335,9 +359,13 @@ namespace Christofel.Api.GraphQL.Authentication
                 {
                     var authResult = await ctuAuthProcess.FinishAuthAsync
                     (
-                        accessToken, ctuOauthHandler,
-                        dbContext, _botOptions.GuildId,
-                        dbUser, memberResult.Entity, cancellationToken
+                        accessToken,
+                        ctuOauthHandler,
+                        dbContext,
+                        _botOptions.GuildId,
+                        dbUser,
+                        memberResult.Entity,
+                        cancellationToken
                     );
 
                     if (!authResult.IsSuccess)

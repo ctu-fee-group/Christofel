@@ -17,11 +17,11 @@ using Usermap.Controllers;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    /// Assign roles from TitleRoleAssignment table
+    /// Assign roles from TitleRoleAssignment table.
     /// </summary>
     /// <remarks>
     /// Obtains titles either from kos (safer as there are titlesPre and titlesPost fields)
-    /// or from usermap if kos user is not found (not safe, because the titles have to be parsed from full name)
+    /// or from usermap if kos user is not found (not safe, because the titles have to be parsed from full name).
     /// </remarks>
     public class TitlesRoleStep : IAuthStep
     {
@@ -29,12 +29,18 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
         private readonly IUsermapPeopleApi _usermapPeopleApi;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TitlesRoleStep"/> class.
+        /// </summary>
+        /// <param name="usermapPeopleApi">The usermap people api.</param>
+        /// <param name="kosPeopleApi">The kos people api.</param>
         public TitlesRoleStep(IUsermapPeopleApi usermapPeopleApi, IKosPeopleApi kosPeopleApi)
         {
             _kosPeopleApi = kosPeopleApi;
             _usermapPeopleApi = usermapPeopleApi;
         }
 
+        /// <inheritdoc />
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             var titles = await GetKosTitles(data.LoadedUser.CtuUsername, ct) ??
@@ -49,8 +55,8 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 .AsNoTracking()
                 .Where
                 (
-                    x => x.Pre && titles.Pre.Contains(x.Title) ||
-                         x.Post && titles.Post.Contains(x.Title)
+                    x => (x.Pre && titles.Pre.Contains(x.Title)) ||
+                         (x.Post && titles.Post.Contains(x.Title))
                 )
                 .Include(x => x.Assignment)
                 .Select(x => new CtuAuthRole { RoleId = x.Assignment.RoleId, Type = x.Assignment.RoleType })
@@ -80,10 +86,10 @@ namespace Christofel.Api.Ctu.Auth.Steps
                                 person.LastName.Length;
 
             string titlesPre = firstNameIndex <= 0
-                ? ""
+                ? string.Empty
                 : person.FullName.Substring(0, firstNameIndex);
             string titlesPost = lastNameIndex >= person.FullName.Length
-                ? ""
+                ? string.Empty
                 : person.FullName.Substring(0, firstNameIndex);
 
             return CreateTitles(titlesPre, titlesPost);

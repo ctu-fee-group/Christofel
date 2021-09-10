@@ -23,7 +23,7 @@ namespace Christofel.Api.Ctu
 {
     /// <summary>
     /// Service used for storing roles to be assigned in database,
-    /// enqueues pending data from the database when needed
+    /// enqueues pending data from the database when needed.
     /// </summary>
     public class CtuAuthRoleAssignService
     {
@@ -32,6 +32,13 @@ namespace Christofel.Api.Ctu
         private readonly ILogger _logger;
         private readonly IJobQueue<CtuAuthRoleAssign> _roleAssignProcessor;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CtuAuthRoleAssignService"/> class.
+        /// </summary>
+        /// <param name="dbContextFactory">The api cache database context factory.</param>
+        /// <param name="guildApi">The guild api.</param>
+        /// <param name="roleAssignProcessor">The role assign processor.</param>
+        /// <param name="logger">The logger.</param>
         public CtuAuthRoleAssignService
         (
             IDbContextFactory<ApiCacheContext> dbContextFactory,
@@ -47,13 +54,13 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        /// Enqueues roles to be assigned and/or removed from the given user
+        /// Enqueues roles to be assigned and/or removed from the given user.
         /// </summary>
-        /// <param name="guildMember">Loaded guild member with roles that are currently</param>
-        /// <param name="userId">Id of the user/member the roles should be assigned/removed from</param>
-        /// <param name="guildId">Id of the guild where the roles should be assigned</param>
-        /// <param name="assignRoles">What roles should be assigned to the member</param>
-        /// <param name="removeRoles">What roles should be removed from the member</param>
+        /// <param name="guildMember">Loaded guild member with roles that are currently.</param>
+        /// <param name="userId">Id of the user/member the roles should be assigned/removed from.</param>
+        /// <param name="guildId">Id of the guild where the roles should be assigned.</param>
+        /// <param name="assignRoles">What roles should be assigned to the member.</param>
+        /// <param name="removeRoles">What roles should be removed from the member.</param>
         public void EnqueueRoles
         (
             IGuildMember guildMember,
@@ -80,13 +87,14 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        /// Save given roles to database to be able to retrieve them in case the bot is stopped
+        /// Save given roles to database to be able to retrieve them in case the bot is stopped.
         /// </summary>
-        /// <param name="userId">What user should the roles be assigned to</param>
-        /// <param name="guildId">What guild are the roles in</param>
-        /// <param name="assignRoles">What roles should be assigned</param>
-        /// <param name="removeRoles">What roles should be deleted</param>
-        /// <returns>Task saving the information to the database</returns>
+        /// <param name="userId">What user should the roles be assigned to.</param>
+        /// <param name="guildId">What guild are the roles in.</param>
+        /// <param name="assignRoles">What roles should be assigned.</param>
+        /// <param name="removeRoles">What roles should be deleted.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public async Task SaveRoles
         (
             Snowflake userId,
@@ -104,7 +112,10 @@ namespace Christofel.Api.Ctu
                 (
                     new AssignRole
                     {
-                        Add = true, RoleId = assignRole, UserDiscordId = userId, GuildDiscordId = guildId,
+                        Add = true,
+                        RoleId = assignRole,
+                        UserDiscordId = userId,
+                        GuildDiscordId = guildId,
                     }
                 );
             }
@@ -115,7 +126,10 @@ namespace Christofel.Api.Ctu
                 (
                     new AssignRole
                     {
-                        Add = false, RoleId = removeRole, UserDiscordId = userId, GuildDiscordId = guildId,
+                        Add = false,
+                        RoleId = removeRole,
+                        UserDiscordId = userId,
+                        GuildDiscordId = guildId,
                     }
                 );
             }
@@ -124,11 +138,12 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        /// Remove roles of the given user from the database as they are no longer needed
+        /// Remove roles of the given user from the database as they are no longer needed.
         /// </summary>
-        /// <param name="userId">What user should be removed from the database</param>
-        /// <param name="guildId">What guild is the user in</param>
-        /// <returns>Task removing the information from the database</returns>
+        /// <param name="userId">Id of the user that should have the roles removed.</param>
+        /// <param name="guildId">Id of the guild the user is in.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public async Task RemoveRoles(Snowflake userId, Snowflake guildId, CancellationToken ct = default)
         {
             try
@@ -138,7 +153,6 @@ namespace Christofel.Api.Ctu
                 var entries = await dbContext.AssignRoles
                     .Where(x => x.UserDiscordId == userId && x.GuildDiscordId == guildId)
                     .ToListAsync(ct);
-                //.BatchDeleteAsync(ct);
 
                 dbContext.RemoveRange(entries);
                 await dbContext.SaveChangesAsync(ct);
@@ -150,20 +164,33 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        /// Enqueue all roles to the processor
+        /// Enqueue all roles to the processor.
         /// </summary>
         /// <remarks>
         /// Enqueues roles from cache database,
         /// users who didn't get roles assigned in previous run,
         /// will get roles assigned in this one.
         /// </remarks>
-        /// <returns>Number of users that were enqueued for role addition</returns>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>Number of users that were enqueued for role addition.</returns>
         public async Task<uint> EnqueueRemainingRoles(CancellationToken ct = default)
         {
             await using var dbContext = _dbContextFactory.CreateDbContext();
             var rolesToAssign = (await dbContext.AssignRoles
                     .ToListAsync(ct))
-                .GroupBy(x => new { x.UserDiscordId, x.GuildDiscordId }, x => new { x.RoleId, x.Add });
+                .GroupBy
+                (
+                    x => new
+                    {
+                        x.UserDiscordId,
+                        x.GuildDiscordId
+                    },
+                    x => new
+                    {
+                        x.RoleId,
+                        x.Add
+                    }
+                );
 
             uint remaining = 0;
             foreach (var userGrouping in rolesToAssign)
@@ -195,8 +222,13 @@ namespace Christofel.Api.Ctu
                             );
                             guildMember = new GuildMember
                             (
-                                default, default, new List<Snowflake>(0),
-                                DateTimeOffset.MinValue, default, default, default
+                                default,
+                                default,
+                                new List<Snowflake>(0),
+                                DateTimeOffset.MinValue,
+                                default,
+                                default,
+                                default
                             );
                             break;
                     }

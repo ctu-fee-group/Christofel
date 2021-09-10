@@ -12,15 +12,26 @@ using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Steps
 {
+    /// <summary>
+    /// Step that assigns correct information about duplicate.
+    /// </summary>
+    /// <remarks>
+    /// If the duplicate type is both, original user will be modified and the new one will be removed.
+    /// </remarks>
     public class DuplicateAssignStep : IAuthStep
     {
         private readonly DuplicateResolver _duplicates;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DuplicateAssignStep"/> class.
+        /// </summary>
+        /// <param name="duplicates">The resolver of duplicates.</param>
         public DuplicateAssignStep(DuplicateResolver duplicates)
         {
             _duplicates = duplicates;
         }
 
+        /// <inheritdoc />
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             var duplicate = await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);

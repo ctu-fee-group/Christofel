@@ -7,12 +7,12 @@
 namespace Christofel.Api.Discord
 {
     /// <summary>
-    /// Options used while calling Discord API
+    /// Options used while calling Discord API.
     /// </summary>
     public class DiscordApiOptions
     {
         /// <summary>
-        /// What url is the API located at
+        /// Gets or sets the url Discord API is located at.
         /// </summary>
         public string BaseUrl { get; set; } = "https://discord.com/api/v9";
     }

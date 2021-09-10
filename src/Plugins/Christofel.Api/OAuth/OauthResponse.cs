@@ -9,20 +9,23 @@ using Newtonsoft.Json;
 namespace Christofel.Api.OAuth
 {
     /// <summary>
-    /// Response from oauth handler token retrieval
+    /// Response from oauth handler token retrieval.
     /// </summary>
     public record OauthResponse
     {
         /// <summary>
-        /// Set in case of success retrieval
+        /// Non null in case of success retrieval.
         /// </summary>
         public OauthSuccessResponse? SuccessResponse { get; init; }
 
         /// <summary>
-        /// Set if there was any kind of error
+        /// Non null if there was any kind of error.
         /// </summary>
         public OauthErrorResponse? ErrorResponse { get; init; }
 
+        /// <summary>
+        /// gets whether the response is errorful.
+        /// </summary>
         public bool IsError => ErrorResponse != null;
     }
 
@@ -44,10 +47,10 @@ namespace Christofel.Api.OAuth
     );
 
     /// <summary>
-    /// Holds errors of oauth handling
+    /// Holds errors of oauth handling.
     /// </summary>
-    /// <param name="Error"></param>
-    /// <param name="ErrorDescription"></param>
+    /// <param name="Error">The error of the response.</param>
+    /// <param name="ErrorDescription">The description of the error.</param>
     public record OauthErrorResponse
     (
         [JsonProperty("error")] string Error,
@@ -55,17 +58,17 @@ namespace Christofel.Api.OAuth
     )
     {
         /// <summary>
-        /// Response headers
+        /// Gets or sets response headers.
         /// </summary>
-        public string Headers { get; set; }
+        public string Headers { get; set; } = null!;
 
         /// <summary>
-        /// Response body
+        /// Gets or sets response body.
         /// </summary>
-        public string Body { get; set; }
+        public string Body { get; set; } = null!;
 
         /// <summary>
-        /// Response status code
+        /// Gets or sets response status code.
         /// </summary>
         public int? StatusCode { get; set; }
     }

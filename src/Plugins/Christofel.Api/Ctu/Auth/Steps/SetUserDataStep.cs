@@ -12,11 +12,11 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    /// Last step of verification, should be reached only if there was not an error.
-    /// RegistrationCode will be set to null, AuthenticatedAt will be set to now
+    /// RegistrationCode will be set to null, AuthenticatedAt will be set to now.
     /// </summary>
     public class SetUserDataStep : IAuthStep
     {
+        /// <inheritdoc />
         public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             data.DbUser.AuthenticatedAt = DateTime.Now;

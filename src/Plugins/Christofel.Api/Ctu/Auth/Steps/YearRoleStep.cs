@@ -17,11 +17,11 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    /// Assign roles from YearRoleAssignments table
+    /// Assign roles from YearRoleAssignments table.
     /// </summary>
     /// <remarks>
     /// Obtains year of the start from kos, tries to find matching entry in database
-    /// If there are more student records in the record, earliest one of the same type will be
+    /// If there are more student records in the record, earliest one of the same type will be.
     /// obtained.
     /// </remarks>
     public class YearRoleStep : IAuthStep
@@ -30,17 +30,25 @@ namespace Christofel.Api.Ctu.Auth.Steps
         private readonly IKosPeopleApi _kosPeopleApi;
         private readonly ILogger _logger;
 
-        public YearRoleStep(ILogger<CtuAuthProcess> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="YearRoleStep"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="kosPeopleApi">The kos people api.</param>
+        /// <param name="kosApi">The kos pai.</param>
+        public YearRoleStep(ILogger<YearRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
         {
             _kosApi = kosApi;
             _kosPeopleApi = kosPeopleApi;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             var kosPerson = await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, ct);
 
+            // First student is the one with lowest date (to not make so many requests, this is sufficient)
             var studentLoadable = kosPerson?.Roles.Students.FirstOrDefault();
             if (studentLoadable is not null)
             {
@@ -51,7 +59,6 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 }
 
                 var year = student.StartDate.Year;
-                // First student is the one with lowest date (to not make so many requests, this is sufficient)
 
                 List<CtuAuthRole> roles = await data.DbContext.YearRoleAssignments
                     .AsNoTracking()

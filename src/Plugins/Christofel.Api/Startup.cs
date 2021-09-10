@@ -32,15 +32,27 @@ using Usermap.Extensions;
 
 namespace Christofel.Api
 {
+    /// <summary>
+    /// The web application startup class.
+    /// </summary>
     public class Startup
     {
         private readonly IConfiguration _configuration;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Startup"/> class.
+        /// </summary>
+        /// <param name="configuration">The configuration of the application.</param>
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Configures service collection.
+        /// </summary>
+        /// <param name="services">The service collection to be configured.</param>
+        /// <exception cref="InvalidOperationException">Thrown if bot's access token is not found.</exception>
         public void ConfigureServices(IServiceCollection services)
         {
             services
@@ -118,6 +130,11 @@ namespace Christofel.Api
                 .ModifyRequestOptions(x => x.ExecutionTimeout = TimeSpan.FromMinutes(2));
         }
 
+        /// <summary>
+        /// Configures the application.
+        /// </summary>
+        /// <param name="app">The builder of the application.</param>
+        /// <param name="env">The environment of the web host.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())

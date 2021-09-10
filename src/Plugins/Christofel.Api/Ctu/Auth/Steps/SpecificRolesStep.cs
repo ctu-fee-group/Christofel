@@ -18,11 +18,12 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    /// Assign roles from SpecificRoleAssignment table
+    /// Assign roles from SpecificRoleAssignment table.
     /// </summary>
     /// <remarks>
-    /// Adds authenticated role to everyone
-    /// Uses kos api to obtain whether the user is a teacher, assigns teacher role if he is
+    /// Adds authenticated role to everyone.
+    /// Uses kos api to obtain whether the user is a teacher, assigns teacher role if he is.
+    /// Uses kos api to obtain current studies of the student.
     /// </remarks>
     public class SpecificRolesStep : IAuthStep
     {
@@ -30,6 +31,12 @@ namespace Christofel.Api.Ctu.Auth.Steps
         private readonly IKosPeopleApi _kosPeopleApi;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SpecificRolesStep"/> class.
+        /// </summary>
+        /// <param name="kosPeopleApi">The kos people api.</param>
+        /// <param name="kosApi">The kos api.</param>
+        /// <param name="logger">The logger.</param>
         public SpecificRolesStep(IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi, ILogger<SpecificRolesStep> logger)
         {
             _logger = logger;
@@ -37,6 +44,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
             _kosApi = kosApi;
         }
 
+        /// <inheritdoc />
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             List<string> assignRoleNames = new List<string>();

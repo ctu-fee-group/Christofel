@@ -10,8 +10,17 @@ using Christofel.BaseLib.User;
 
 namespace Christofel.Api.OAuth
 {
+    /// <summary>
+    /// Ctu Token api for checking token.
+    /// </summary>
     public interface ICtuTokenApi
     {
+        /// <summary>
+        /// Checks the token using oauth service.
+        /// </summary>
+        /// <param name="accessToken">The access token to check.</param>
+        /// <param name="token">The cancellation token of the operation.</param>
+        /// <returns>The retrieved user information.</returns>
         public Task<ICtuUser> CheckTokenAsync(string accessToken, CancellationToken token = default);
     }
 }

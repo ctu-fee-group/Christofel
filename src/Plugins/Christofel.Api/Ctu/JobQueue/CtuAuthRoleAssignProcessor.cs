@@ -16,22 +16,12 @@ using Remora.Results;
 
 namespace Christofel.Api.Ctu.JobQueue
 {
-    public record CtuAuthRoleAssign
-    (
-        Snowflake UserId,
-        Snowflake GuildId,
-        IReadOnlyList<Snowflake> AddRoles,
-        IReadOnlyList<Snowflake> RemoveRoles,
-        Action DoneCallback,
-        int RetryCount = 0
-    );
-
     /// <summary>
-    /// Processor of role assigns, works on different thread
+    /// Processor of role assigns, works on different thread.
     /// </summary>
     /// <remarks>
     /// Creates thread only if there is job assigned,
-    /// if there isn't, the thread is freed (thread pool is used)
+    /// if there isn't, the thread is freed (thread pool is used).
     /// </remarks>
     public class CtuAuthRoleAssignProcessor : ThreadPoolJobQueue<CtuAuthRoleAssign>
     {
@@ -41,6 +31,12 @@ namespace Christofel.Api.Ctu.JobQueue
         private readonly ILogger _logger;
         private readonly ILifetime _pluginLifetime;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CtuAuthRoleAssignProcessor"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="pluginLifetime">The lifetime of the current plugin.</param>
+        /// <param name="guildApi">The guild api.</param>
         public CtuAuthRoleAssignProcessor
         (
             ILogger<CtuAuthRoleAssignProcessor> logger,
@@ -54,6 +50,7 @@ namespace Christofel.Api.Ctu.JobQueue
             _guildApi = guildApi;
         }
 
+        /// <inheritdoc />
         protected override async Task ProcessAssignJob(CtuAuthRoleAssign assignJob)
         {
             var error = false;
@@ -62,11 +59,16 @@ namespace Christofel.Api.Ctu.JobQueue
 
             await HandleRolesEdit
             (
-                assignJob, removeRoles, roleId => _guildApi
+                assignJob,
+                removeRoles,
+                roleId => _guildApi
                     .RemoveGuildMemberRoleAsync
                     (
-                        assignJob.GuildId, assignJob.UserId, roleId,
-                        "CTU Authentication", _pluginLifetime.Stopping
+                        assignJob.GuildId,
+                        assignJob.UserId,
+                        roleId,
+                        "CTU Authentication",
+                        _pluginLifetime.Stopping
                     )
             );
 
@@ -75,11 +77,16 @@ namespace Christofel.Api.Ctu.JobQueue
 
             await HandleRolesEdit
             (
-                assignJob, assignRoles, roleId => _guildApi
+                assignJob,
+                assignRoles,
+                roleId => _guildApi
                     .AddGuildMemberRoleAsync
                     (
-                        assignJob.GuildId, assignJob.UserId, roleId,
-                        "CTU Authentication", _pluginLifetime.Stopping
+                        assignJob.GuildId,
+                        assignJob.UserId,
+                        roleId,
+                        "CTU Authentication",
+                        _pluginLifetime.Stopping
                     )
             );
 
@@ -125,8 +132,12 @@ namespace Christofel.Api.Ctu.JobQueue
                 (
                     new CtuAuthRoleAssign
                     (
-                        assignJob.UserId, assignJob.GuildId,
-                        assignJob.AddRoles, assignJob.RemoveRoles, assignJob.DoneCallback, assignJob.RetryCount + 1
+                        assignJob.UserId,
+                        assignJob.GuildId,
+                        assignJob.AddRoles,
+                        assignJob.RemoveRoles,
+                        assignJob.DoneCallback,
+                        assignJob.RetryCount + 1
                     )
                 );
 
@@ -151,4 +162,23 @@ namespace Christofel.Api.Ctu.JobQueue
 
         private delegate Task<Result> EditRole(Snowflake roleId);
     }
+
+    /// <summary>
+    /// The job for <see cref="Christofel.Api.Ctu.JobQueue.CtuAuthRoleAssignProcessor"/>.
+    /// </summary>
+    /// <param name="UserId">The id of the user to assign roles to.</param>
+    /// <param name="GuildId">The guild id of the user.</param>
+    /// <param name="AddRoles">The roles to be added.</param>
+    /// <param name="RemoveRoles">The roles to be removed.</param>
+    /// <param name="DoneCallback">The callback to be called when the job is finished.</param>
+    /// <param name="RetryCount">The count of maximal retries.</param>
+    public record CtuAuthRoleAssign
+    (
+        Snowflake UserId,
+        Snowflake GuildId,
+        IReadOnlyList<Snowflake> AddRoles,
+        IReadOnlyList<Snowflake> RemoveRoles,
+        Action DoneCallback,
+        int RetryCount = 0
+    );
 }

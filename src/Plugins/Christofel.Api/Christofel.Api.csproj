@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
     <ItemGroup>
-        <_CopyPlugin Include="$(ProjectDir)/$(OutDir)/*"/>
+        <_CopyPlugin Include="$(ProjectDir)/$(OutDir)/*" />
     </ItemGroup>
     <Target Name="CopyPluginFiles" AfterTargets="Build">
-        <Message Text="Copying to Christofel.Application plugins folder..."/>
-        <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Core/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)"/>
-        <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Core/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)"/>
+        <Message Text="Copying to Christofel.Application plugins folder..." />
+        <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Core/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)" />
+        <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Core/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)" />
     </Target>
 
     <PropertyGroup>
@@ -17,22 +17,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\libs\kos-api\src\Kos\Kos.csproj"/>
-        <ProjectReference Include="..\..\..\libs\usermap-api\src\Usermap\Usermap.csproj"/>
-        <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj"/>
-        <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj"/>
-        <ProjectReference Include="..\..\Libs\Christofel.Logger\Christofel.Logger.csproj"/>
+        <ProjectReference Include="..\..\..\libs\kos-api\src\Kos\Kos.csproj" />
+        <ProjectReference Include="..\..\..\libs\usermap-api\src\Usermap\Usermap.csproj" />
+        <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+        <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
+        <ProjectReference Include="..\..\Libs\Christofel.Logger\Christofel.Logger.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="HotChocolate.AspNetCore" Version="11.3.4"/>
-        <PackageReference Include="HotChocolate.Types.Scalars" Version="11.3.4"/>
-        <PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.2.1"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0"/>
-        <PackageReference Include="Remora.Commands" Version="7.0.2"/>
-        <PackageReference Include="RestSharp" Version="106.12.0"/>
-        <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="106.12.0"/>
+        <PackageReference Include="HotChocolate.AspNetCore" Version="11.3.4" />
+        <PackageReference Include="HotChocolate.Types.Scalars" Version="11.3.4" />
+        <PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.2.1" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+        <PackageReference Include="Remora.Commands" Version="7.0.2" />
+        <PackageReference Include="RestSharp" Version="106.12.0" />
+        <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="106.12.0" />
     </ItemGroup>
 
 </Project>

@@ -14,17 +14,33 @@ using Usermap.Controllers;
 
 namespace Christofel.Api.Ctu.Resolvers
 {
+    /// <summary>
+    /// Resolver of nickname of the user.
+    /// </summary>
     public class NicknameResolver
     {
         private readonly IKosPeopleApi _kosPeopleApi;
         private readonly IUsermapPeopleApi _usermapPeopleApi;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NicknameResolver"/> class.
+        /// </summary>
+        /// <param name="kosPeopleApi">The kos people api.</param>
+        /// <param name="usermapPeopleApi">The usermap people api.</param>
         public NicknameResolver(IKosPeopleApi kosPeopleApi, IUsermapPeopleApi usermapPeopleApi)
         {
             _kosPeopleApi = kosPeopleApi;
             _usermapPeopleApi = usermapPeopleApi;
         }
 
+        /// <summary>
+        /// Resolves the correct nickname for the user
+        /// using kos or usermap api.
+        /// </summary>
+        /// <param name="user">The user to get nickname for.</param>
+        /// <param name="guildMember">The guild member representing the user.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>Resolved nickname, if any.</returns>
         public async Task<string?> ResolveNicknameAsync
             (ILinkUser user, IGuildMember guildMember, CancellationToken ct = default)
             => await GetNicknameFromUsermap(user, guildMember, ct) ??
@@ -48,7 +64,6 @@ namespace Christofel.Api.Ctu.Resolvers
                 ? null
                 : GetNickname(usermapPerson.FirstName, usermapPerson.LastName, GetCurrentUsername(guildMember));
         }
-
 
         private string? GetCurrentUsername(IGuildMember member)
         {

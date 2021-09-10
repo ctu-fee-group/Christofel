@@ -18,35 +18,47 @@ using RestSharp.Serializers.NewtonsoftJson;
 namespace Christofel.Api.OAuth
 {
     /// <summary>
-    /// Handler of post oauth access token retrieval
+    /// Handler of post oauth access token retrieval.
     /// </summary>
+    /// <typeparam name="TOptions">The type of the ctu options.</typeparam>
     public abstract class OauthHandler<TOptions>
         where TOptions : IOauthOptions
     {
-        protected readonly RestClient _client;
-        protected readonly TOptions _options;
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OauthHandler{TOptions}"/> class.
+        /// </summary>
+        /// <param name="options">The options of the oauth handler.</param>
         protected OauthHandler(TOptions options)
         {
-            _client = new RestClient();
-            _client.UseNewtonsoftJson();
+            Client = new RestClient();
+            Client.UseNewtonsoftJson();
 
-            _options = options;
-            _client.Authenticator = new HttpBasicAuthenticator
+            Options = options;
+            Client.Authenticator = new HttpBasicAuthenticator
             (
-                _options.ApplicationId ?? throw new InvalidOperationException("ApplicationId is null"),
-                _options.SecretKey ?? throw new InvalidOperationException("SecretKey is null")
+                Options.ApplicationId ?? throw new InvalidOperationException("ApplicationId is null"),
+                Options.SecretKey ?? throw new InvalidOperationException("SecretKey is null")
             );
         }
 
         /// <summary>
-        /// Obtain access token or error
+        /// Gets the client used for http requests.
         /// </summary>
-        /// <param name="code"></param>
-        /// <param name="redirectUri"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        protected RestClient Client { get; }
+
+        /// <summary>
+        /// Gets the options of the oauth handler.
+        /// </summary>
+        protected TOptions Options { get; }
+
+        /// <summary>
+        /// Obtain access token or error.
+        /// </summary>
+        /// <param name="code">The code from the oauth.</param>
+        /// <param name="redirectUri">The specified redirect uri.</param>
+        /// <param name="token">The cancellation token for the operation..</param>
+        /// <returns>Response from the oauth, may not be successful.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if options token endpoint is missing.</exception>
         public virtual async Task<OauthResponse> ExchangeCodeAsync
         (
             string code,
@@ -59,17 +71,22 @@ namespace Christofel.Api.OAuth
                 { "redirect_uri", redirectUri },
                 { "code", code },
                 { "grant_type", "authorization_code" },
-                { "scope", string.Join(' ', _options.Scopes ?? Enumerable.Empty<string>()) },
+                { "scope", string.Join(' ', Options.Scopes ?? Enumerable.Empty<string>()) },
             };
 
             IRestRequest request = new RestRequest
-                (_options.TokenEndpoint ?? throw new InvalidOperationException("TokenEndpoint is null"), Method.POST);
+                (Options.TokenEndpoint ?? throw new InvalidOperationException("TokenEndpoint is null"), Method.POST);
             request.AddParameters(tokenRequestParameters);
 
-            IRestResponse response = await _client.ExecuteAsync(request, token);
+            IRestResponse response = await Client.ExecuteAsync(request, token);
             return ProcessTokenResponse(response);
         }
 
+        /// <summary>
+        /// Processes response from the token endpoint request.
+        /// </summary>
+        /// <param name="response">The response to process.</param>
+        /// <returns>Response of the oauth.</returns>
         protected virtual OauthResponse ProcessTokenResponse(IRestResponse response)
         {
             OauthSuccessResponse? successResponse = null;
@@ -82,13 +99,18 @@ namespace Christofel.Api.OAuth
             else
             {
                 errorResponse = JsonConvert.DeserializeObject<OauthErrorResponse>
-                    (response.Content) ?? new OauthErrorResponse("Unknown", "Unknown");
+                                    (response.Content) ??
+                                new OauthErrorResponse("Unknown", "Unknown");
                 errorResponse.Body = response.Content;
                 errorResponse.Headers = string.Join("; ", response.Headers);
-                errorResponse.StatusCode = (int) response.StatusCode;
+                errorResponse.StatusCode = (int)response.StatusCode;
             }
 
-            return new OauthResponse { SuccessResponse = successResponse, ErrorResponse = errorResponse };
+            return new OauthResponse
+            {
+                SuccessResponse = successResponse,
+                ErrorResponse = errorResponse
+            };
         }
     }
 }

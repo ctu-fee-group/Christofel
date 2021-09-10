@@ -1,9 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿//
+//  20210829081908_ChangeUlongsToSnowflakes.cs
+//
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.Api.Migrations
 {
+    /// <summary>
+    /// Migration to change discord ids to snowflakes.
+    /// </summary>
     public partial class ChangeUlongsToSnowflakes : Migration
     {
+        /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<long>(
@@ -31,6 +41,7 @@ namespace Christofel.Api.Migrations
                 oldType: "bigint unsigned");
         }
 
+        /// <inheritdoc/>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<ulong>(
