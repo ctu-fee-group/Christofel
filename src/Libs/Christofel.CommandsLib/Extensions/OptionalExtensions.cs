@@ -14,12 +14,12 @@ namespace Christofel.CommandsLib.Extensions
     public static class OptionalExtensions
     {
         /// <summary>
-        /// Checks whether optional value of <see cref="left"/> booleans matches <see cref="right"/>>.
+        /// Checks whether optional value of <paramref name="left"/> booleans matches <paramref name="right"/>>.
         /// </summary>
-        /// <param name="left">The value to be matched against <see cref="right"/>.</param>
-        /// <param name="right">The value to be matched against <see cref="left"/>.</param>
+        /// <param name="left">The value to be matched against <paramref name="right"/>.</param>
+        /// <param name="right">The value to be matched against <paramref name="left"/>.</param>
         /// <param name="default">Default value in case of any of the values is Empty.</param>
-        /// <returns>Whether <see cref="left"/> matches <see cref="right"/>.</returns>
+        /// <returns>Whether <paramref name="left"/> matches <paramref name="right"/>.</returns>
         public static bool CheckOptionalBoolMatches
             (this Optional<bool> left, Optional<bool> right, bool @default) => (left.HasValue
             ? left.Value

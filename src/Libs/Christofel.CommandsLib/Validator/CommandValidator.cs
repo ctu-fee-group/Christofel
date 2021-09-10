@@ -27,7 +27,7 @@ namespace Christofel.CommandsLib.Validator
         }
 
         /// <summary>
-        /// Validates given <see cref="value"/> using <see cref="builderAction"/> to build the rules for it.
+        /// Validates given <paramref name="value"/> using <paramref name="builderAction"/> to build the rules for it.
         /// </summary>
         /// <param name="name">The name of the argument that will be shown in the failure result, if the parameter does not pass.</param>
         /// <param name="value">The value that will be checked.</param>

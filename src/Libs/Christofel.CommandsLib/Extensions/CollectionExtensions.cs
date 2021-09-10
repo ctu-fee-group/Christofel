@@ -16,14 +16,14 @@ namespace Christofel.CommandsLib.Extensions
     public static class CollectionExtensions
     {
         /// <summary>
-        /// Checks if the <see cref="leftCollection"/> matches <see cref="rightCollection"/> using <see cref="matchComparer"/>.
+        /// Checks if the <paramref name="leftCollection"/> matches <paramref name="rightCollection"/> using <paramref name="matchComparer"/>.
         /// </summary>
-        /// <param name="leftCollection">The collection to be matched against <see cref="rightCollection"/>.</param>
-        /// <param name="rightCollection">The collection to be matched against <see cref="leftCollection"/>.</param>
+        /// <param name="leftCollection">The collection to be matched against <paramref name="rightCollection"/>.</param>
+        /// <param name="rightCollection">The collection to be matched against <paramref name="leftCollection"/>.</param>
         /// <param name="matchComparer">The comparer used to compare elements between the collections.</param>
-        /// <typeparam name="TLeft">The type of the <see cref="leftCollection"/> collection.</typeparam>
-        /// <typeparam name="TRight">The type of the <see cref="rightCollection"/> collection.</typeparam>
-        /// <returns>Whether <see cref="leftCollection"/> matches <see cref="rightCollection"/>.</returns>
+        /// <typeparam name="TLeft">The type of the <paramref name="leftCollection"/> collection.</typeparam>
+        /// <typeparam name="TRight">The type of the <paramref name="rightCollection"/> collection.</typeparam>
+        /// <returns>Whether <paramref name="leftCollection"/> matches <paramref name="rightCollection"/>.</returns>
         public static bool CollectionMatches<TLeft, TRight>
         (
             this IReadOnlyCollection<TLeft> leftCollection,
@@ -54,12 +54,12 @@ namespace Christofel.CommandsLib.Extensions
         }
 
         /// <summary>
-        /// Checks whether the <see cref="left"/> collection has the same length as the <see cref="right"/>.
+        /// Checks whether the <paramref name="left"/> collection has the same length as the <paramref name="right"/>.
         /// </summary>
-        /// <param name="left">The collection to be matched against <see cref="right"/>.</param>
-        /// <param name="right">The collection to be matched against <see cref="left"/>.</param>
-        /// <typeparam name="TLeft">The type of the <see cref="left"/> collection.</typeparam>
-        /// <typeparam name="TRight">The type of the <see cref="right"/> collection.</typeparam>
+        /// <param name="left">The collection to be matched against <paramref name="right"/>.</param>
+        /// <param name="right">The collection to be matched against <paramref name="left"/>.</param>
+        /// <typeparam name="TLeft">The type of the <paramref name="left"/> collection.</typeparam>
+        /// <typeparam name="TRight">The type of the <paramref name="right"/> collection.</typeparam>
         /// <returns>Whether lengths of both collections match.</returns>
         public static bool HasSameLength<TLeft, TRight>
         (

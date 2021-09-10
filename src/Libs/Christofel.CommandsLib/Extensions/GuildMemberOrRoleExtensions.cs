@@ -21,10 +21,10 @@ namespace Christofel.CommandsLib.Extensions
     public static class GuildMemberOrRoleExtensions
     {
         /// <summary>
-        /// Creates <see cref="ToDiscordTarget"/> out of <see cref="memberOrRole"/>.
+        /// Creates <see cref="DiscordTarget"/> out of <see name="memberOrRole"/>.
         /// </summary>
         /// <param name="memberOrRole">The member or role to be converted.</param>
-        /// <returns>The target representing <see cref="memberOrRole"/>.</returns>
+        /// <returns>The target representing <paramref name="memberOrRole"/>.</returns>
         /// <exception cref="ArgumentException">Thrown if the user does not have a value.</exception>
         /// <exception cref="InvalidOperationException">Thrown if nor user, nor role is set.</exception>
         public static DiscordTarget ToDiscordTarget(this OneOf<IPartialGuildMember, IRole> memberOrRole)
@@ -58,7 +58,7 @@ namespace Christofel.CommandsLib.Extensions
         }
 
         /// <summary>
-        /// Creates <see cref="DiscordTarget"/> of the given <see cref="memberOrRole"/>.
+        /// Creates <see cref="DiscordTarget"/> of the given <paramref name="memberOrRole"/>.
         /// </summary>
         /// <remarks>
         /// For role, returns only the role.
@@ -66,7 +66,7 @@ namespace Christofel.CommandsLib.Extensions
         /// For user, returns the user and each his role with everyone as well.
         /// </remarks>
         /// <param name="memberOrRole">The member or role to be converted.</param>
-        /// <returns>All <see cref="DiscordTarget"/>s that represent <see cref="memberOrRole"/>.</returns>
+        /// <returns>All <see cref="DiscordTarget"/>s that represent <paramref name="memberOrRole"/>.</returns>
         /// <exception cref="InvalidOperationException">Thrown if the parsing has failed.</exception>
         public static IEnumerable<DiscordTarget> GetAllDiscordTargets
         (

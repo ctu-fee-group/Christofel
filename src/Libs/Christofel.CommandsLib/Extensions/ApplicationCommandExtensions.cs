@@ -15,12 +15,12 @@ namespace Christofel.CommandsLib.Extensions
     public static class ApplicationCommandExtensions
     {
         /// <summary>
-        /// Checks if the <see cref="command"/> matches <see cref="commandData"/>.
+        /// Checks if the <paramref name="command"/> matches <paramref name="commandData"/>.
         /// </summary>
-        /// <param name="command">The command to match against <see cref="commandData"/>.</param>
-        /// <param name="defaultPermission">The value of default permission of <see cref="commandData"/>.</param>
-        /// <param name="commandData">The bulk data to match against <see cref="command"/>.</param>
-        /// <returns>Whether <see cref="command"/> matches <see cref="commandData"/>.</returns>
+        /// <param name="command">The command to match against <paramref name="commandData"/>.</param>
+        /// <param name="defaultPermission">The value of default permission of <paramref name="commandData"/>.</param>
+        /// <param name="commandData">The bulk data to match against <paramref name="command"/>.</param>
+        /// <returns>Whether <paramref name="command"/> matches <paramref name="commandData"/>.</returns>
         public static bool MatchesBulkCommand
         (
             this IApplicationCommand command,

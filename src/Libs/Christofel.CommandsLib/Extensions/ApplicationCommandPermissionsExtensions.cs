@@ -14,11 +14,11 @@ namespace Christofel.CommandsLib.Extensions
     public static class ApplicationCommandPermissionsExtensions
     {
         /// <summary>
-        /// Checks if the <see cref="leftPermission"/> matches <see cref="rightPermission"/>.
+        /// Checks if the <paramref name="leftPermission"/> matches <paramref name="rightPermission"/>.
         /// </summary>
-        /// <param name="leftPermission">The permission to be matched against <see cref="rightPermission"/>.</param>
-        /// <param name="rightPermission">The permission to be matched against <see cref="leftPermission"/>.</param>
-        /// <returns>Whether <see cref="leftPermission"/> matches <see cref="rightPermission"/>.</returns>
+        /// <param name="leftPermission">The permission to be matched against <paramref name="rightPermission"/>.</param>
+        /// <param name="rightPermission">The permission to be matched against <paramref name="leftPermission"/>.</param>
+        /// <returns>Whether <paramref name="leftPermission"/> matches <paramref name="rightPermission"/>.</returns>
         public static bool PermissionMatches
             (this IApplicationCommandPermissions leftPermission, IApplicationCommandPermissions rightPermission)
             => leftPermission.ID == rightPermission.ID &&

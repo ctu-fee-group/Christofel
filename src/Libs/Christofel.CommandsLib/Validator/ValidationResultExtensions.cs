@@ -15,7 +15,7 @@ namespace Christofel.CommandsLib.Validator
     public static class ValidationResultExtensions
     {
         /// <summary>
-        /// Converts the <see cref="result"/> into <see cref="Result"/> so it can be returned from command handler.
+        /// Converts the <paramref name="result"/> into <see cref="Result"/> so it can be returned from command handler.
         /// </summary>
         /// <param name="result">The result of the validation.</param>
         /// <returns>The result containing validation information. <see cref="ValidationResultError"/> in case of an error.</returns>
