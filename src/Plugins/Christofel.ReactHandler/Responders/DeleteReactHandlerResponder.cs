@@ -1,7 +1,12 @@
+//
+//   DeleteReactHandlerResponder.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.ReactHandler.Commands;
 using Christofel.ReactHandler.Database;
 using Christofel.ReactHandler.Database.Models;
 using Christofel.ReactHandler.Formatters;
@@ -15,24 +20,41 @@ using Remora.Results;
 
 namespace Christofel.ReactHandler.Responders
 {
+    /// <summary>
+    /// Responder that deletes marked messages from the database if all the reactions are removed.
+    /// </summary>
     public class DeleteReactHandlerResponder
         : IResponder<IMessageDelete>, IResponder<IMessageReactionRemove>,
             IResponder<IMessageReactionRemoveAll>, IResponder<IMessageReactionRemoveEmoji>
     {
-        private readonly ReactHandlerContext _dbContext;
         private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly ReactHandlerContext _dbContext;
         private readonly ILogger _logger;
 
-        public DeleteReactHandlerResponder(ReactHandlerContext dbContext, IDiscordRestChannelAPI channelApi,
-            ILogger<DeleteReactHandlerResponder> logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeleteReactHandlerResponder"/> class.
+        /// </summary>
+        /// <param name="dbContext">The react handler database context.</param>
+        /// <param name="channelApi">The channel api.</param>
+        /// <param name="logger">The logger.</param>
+        public DeleteReactHandlerResponder
+        (
+            ReactHandlerContext dbContext,
+            IDiscordRestChannelAPI channelApi,
+            ILogger<DeleteReactHandlerResponder> logger
+        )
         {
             _logger = logger;
             _channelApi = channelApi;
             _dbContext = dbContext;
         }
 
-        public async Task<Result> RespondAsync(IMessageDelete gatewayEvent,
-            CancellationToken ct = new CancellationToken())
+        /// <inheritdoc />
+        public async Task<Result> RespondAsync
+        (
+            IMessageDelete gatewayEvent,
+            CancellationToken ct = default
+        )
         {
             var matchingHandlers = _dbContext.HandleReacts
                 .Where(x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.ID);
@@ -40,11 +62,20 @@ namespace Christofel.ReactHandler.Responders
             return await DeleteHandlers(gatewayEvent.ChannelID, gatewayEvent.ID, matchingHandlers, ct);
         }
 
-        public async Task<Result> RespondAsync(IMessageReactionRemove gatewayEvent,
-            CancellationToken ct = new CancellationToken())
+        /// <inheritdoc />
+        public async Task<Result> RespondAsync
+        (
+            IMessageReactionRemove gatewayEvent,
+            CancellationToken ct = default
+        )
         {
-            var shouldHandle = await _dbContext.HandleReacts.AnyAsync(x =>
-                x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID, ct);
+            var shouldHandle = await _dbContext.HandleReacts.AnyAsync
+            (
+                x =>
+                    x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID,
+                ct
+            );
+
             // We will handle only messages that are stored in database (database request is considered less costy than discord request).
             if (!shouldHandle)
             {
@@ -74,14 +105,21 @@ namespace Christofel.ReactHandler.Responders
             }
 
             var matchingHandlers = _dbContext.HandleReacts
-                .Where(x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID &&
-                            x.Emoji == emoji);
+                .Where
+                (
+                    x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID &&
+                         x.Emoji == emoji
+                );
 
             return await DeleteHandlers(gatewayEvent.ChannelID, gatewayEvent.MessageID, matchingHandlers, ct);
         }
 
-        public Task<Result> RespondAsync(IMessageReactionRemoveAll gatewayEvent,
-            CancellationToken ct = new CancellationToken())
+        /// <inheritdoc />
+        public Task<Result> RespondAsync
+        (
+            IMessageReactionRemoveAll gatewayEvent,
+            CancellationToken ct = default
+        )
         {
             var matchingHandlers = _dbContext.HandleReacts
                 .Where(x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID);
@@ -89,19 +127,31 @@ namespace Christofel.ReactHandler.Responders
             return DeleteHandlers(gatewayEvent.ChannelID, gatewayEvent.MessageID, matchingHandlers, ct);
         }
 
-        public Task<Result> RespondAsync(IMessageReactionRemoveEmoji gatewayEvent,
-            CancellationToken ct = new CancellationToken())
+        /// <inheritdoc />
+        public Task<Result> RespondAsync
+        (
+            IMessageReactionRemoveEmoji gatewayEvent,
+            CancellationToken ct = default
+        )
         {
             var emoji = EmojiFormatter.GetEmojiString(gatewayEvent.Emoji);
             var matchingHandlers = _dbContext.HandleReacts
-                .Where(x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID &&
-                            x.Emoji == emoji);
+                .Where
+                (
+                    x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID &&
+                         x.Emoji == emoji
+                );
 
             return DeleteHandlers(gatewayEvent.ChannelID, gatewayEvent.MessageID, matchingHandlers, ct);
         }
 
-        private async Task<Result> DeleteHandlers(Snowflake channelId, Snowflake messageId,
-            IQueryable<HandleReact> matchingHandlers, CancellationToken ct)
+        private async Task<Result> DeleteHandlers
+        (
+            Snowflake channelId,
+            Snowflake messageId,
+            IQueryable<HandleReact> matchingHandlers,
+            CancellationToken ct
+        )
         {
             var toDelete = await matchingHandlers.ToListAsync(ct);
             _dbContext.RemoveRange(toDelete);
@@ -109,8 +159,13 @@ namespace Christofel.ReactHandler.Responders
 
             if (toDelete.Count > 0)
             {
-                _logger.LogInformation("Deleting {Count} react handlers for message {Message} in channel {Channel}",
-                    toDelete.Count, messageId, channelId);
+                _logger.LogInformation
+                (
+                    "Deleting {Count} react handlers for message {Message} in channel {Channel}",
+                    toDelete.Count,
+                    messageId,
+                    channelId
+                );
             }
 
             return Result.FromSuccess();

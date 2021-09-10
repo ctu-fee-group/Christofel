@@ -1,3 +1,9 @@
+//
+//   ApplicationResponder.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -10,50 +16,74 @@ using Remora.Results;
 
 namespace Christofel.Application.Responders
 {
+    /// <summary>
+    /// <see cref="IEveryResponder"/> for an application holding runtime plugins that will call responders of each plugin.
+    /// </summary>
+    /// <typeparam name="TState">The state of the application.</typeparam>
+    /// <typeparam name="TContext">The context of the plugins.</typeparam>
     public class ApplicationResponder<TState, TContext> : EveryResponder
         where TContext : IPluginContext
     {
-        private PluginStorage _plugins;
-        private ILogger _logger;
+        private readonly ILogger _logger;
+        private readonly PluginStorage _plugins;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApplicationResponder{TState, TContext}"/> class.
+        /// </summary>
+        /// <param name="plugins">The storage of the plugins.</param>
+        /// <param name="logger">The logger to log state into.</param>
         public ApplicationResponder(PluginStorage plugins, ILogger<ApplicationResponder<TState, TContext>> logger)
         {
             _plugins = plugins;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public override async Task<Result> RespondAnyAsync<TEvent>(TEvent gatewayEvent, CancellationToken ct = default)
         {
-            await Task.WhenAll(
+            await Task.WhenAll
+            (
                 _plugins.AttachedPlugins
                     .Select(x => x.Plugin)
                     .OfType<IRuntimePlugin<TState, TContext>>()
                     .Select(x => x.Context.PluginResponder)
                     .Where(x => x is not null)
                     .Cast<IAnyResponder>()
-                    .Select(async (responder) =>
-                    {
-                        try
+                    .Select
+                    (
+                        async responder =>
                         {
-                            // Cannot trust the responder that there won't be an exception thrown
-                            return await responder.RespondAsync(gatewayEvent, ct);
+                            try
+                            {
+                                // Cannot trust the responder that there won't be an exception thrown
+                                return await responder.RespondAsync(gatewayEvent, ct);
+                            }
+                            catch (Exception e)
+                            {
+                                return (Result)e;
+                            }
                         }
-                        catch (Exception e)
-                        {
-                            return (Result)e;
-                        }
-                    })
-                    .Select(HandleEventResult));
+                    )
+                    .Select(HandleEventResult)
+            );
 
             return Result.FromSuccess(); // Everything is handled in HandleEventResult
         }
 
+        /// <summary>
+        /// Handles result of the event.
+        /// </summary>
+        /// <param name="eventDispatch">The task representing the asynchronous event.</param>
         private async Task HandleEventResult(Task<Result> eventDispatch)
         {
             var responderResult = await eventDispatch;
             LogResult(responderResult);
         }
 
+        /// <summary>
+        /// Logs a result based on the type of the error.
+        /// </summary>
+        /// <param name="result">The result to be logged.</param>
         private void LogResult(IResult result)
         {
             if (result.IsSuccess)

@@ -9,10 +9,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="EfCore.TestSupport" Version="5.0.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
-        <PackageReference Include="Moq" Version="4.16.1" />
-        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="EfCore.TestSupport" Version="5.0.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1"/>
+        <PackageReference Include="Moq" Version="4.16.1"/>
+        <PackageReference Include="xunit" Version="2.4.1"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
@@ -24,38 +24,38 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Plugins\Christofel.Api\Christofel.Api.csproj" />
-      <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+        <ProjectReference Include="..\..\Plugins\Christofel.Api\Christofel.Api.csproj"/>
+        <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Data.cs">
-        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
-      </Compile>
-      <Compile Update="Ctu\Auth\CtuAtuhProcessLogicTests.Exceptions.cs">
-        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
-      </Compile>
-      <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.TokenApi.cs">
-        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
-      </Compile>
-      <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Continuity.cs">
-        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
-      </Compile>
-      <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Returns.cs">
-        <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
-      </Compile>
-      <Compile Update="Ctu\Auth\CtuAuthProcessConditionTests.UsernameMatches.cs">
-        <DependentUpon>CtuAuthProcessConditionTests.cs</DependentUpon>
-      </Compile>
-      <Compile Update="Ctu\Auth\CtuAuthProcessConditionTests.NoDuplicate.cs">
-        <DependentUpon>CtuAuthProcessConditionTests.cs</DependentUpon>
-      </Compile>
-      <Compile Update="Ctu\Auth\CtuAuthProcessConditionTests.MemberMatchesUser.cs">
-        <DependentUpon>CtuAuthProcessConditionTests.cs</DependentUpon>
-      </Compile>
-      <Compile Update="Ctu\Auth\CtuAuthProcessConditionTests.UsernameFilled.cs">
-        <DependentUpon>CtuAuthProcessConditionTests.cs</DependentUpon>
-      </Compile>
+        <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Data.cs">
+            <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Ctu\Auth\CtuAtuhProcessLogicTests.Exceptions.cs">
+            <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.TokenApi.cs">
+            <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Continuity.cs">
+            <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Ctu\Auth\CtuAuthProcessLogicTests.Returns.cs">
+            <DependentUpon>CtuAuthProcessLogicTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Ctu\Auth\CtuAuthProcessConditionTests.UsernameMatches.cs">
+            <DependentUpon>CtuAuthProcessConditionTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Ctu\Auth\CtuAuthProcessConditionTests.NoDuplicate.cs">
+            <DependentUpon>CtuAuthProcessConditionTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Ctu\Auth\CtuAuthProcessConditionTests.MemberMatchesUser.cs">
+            <DependentUpon>CtuAuthProcessConditionTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="Ctu\Auth\CtuAuthProcessConditionTests.UsernameFilled.cs">
+            <DependentUpon>CtuAuthProcessConditionTests.cs</DependentUpon>
+        </Compile>
     </ItemGroup>
 
 </Project>

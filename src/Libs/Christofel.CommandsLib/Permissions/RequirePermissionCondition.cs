@@ -1,3 +1,9 @@
+//
+//   RequirePermissionCondition.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,41 +17,70 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.Permissions
 {
+    /// <summary>
+    /// Condition for <see cref="RequirePermissionAttribute"/> that makes sure
+    /// only users with the given permission can execute the command.
+    /// </summary>
     public class RequirePermissionCondition : ICondition<RequirePermissionAttribute>
     {
-        private readonly ChristofelCommandPermissionResolver _permissionResolver;
         private readonly ICommandContext _context;
         private readonly ILogger _logger;
+        private readonly ChristofelCommandPermissionResolver _permissionResolver;
 
-        public RequirePermissionCondition(ChristofelCommandPermissionResolver permissionResolver,
-            ICommandContext context, ILogger<RequirePermissionCondition> logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RequirePermissionCondition"/> class.
+        /// </summary>
+        /// <param name="permissionResolver">The permission resolver.</param>
+        /// <param name="context">The context of the current command.</param>
+        /// <param name="logger">The logger.</param>
+        public RequirePermissionCondition
+        (
+            ChristofelCommandPermissionResolver permissionResolver,
+            ICommandContext context,
+            ILogger<RequirePermissionCondition> logger
+        )
         {
             _logger = logger;
             _context = context;
             _permissionResolver = permissionResolver;
         }
 
-        public async ValueTask<Result> CheckAsync(RequirePermissionAttribute attribute,
-            CancellationToken ct = new CancellationToken())
+        /// <inheritdoc />
+        public async ValueTask<Result> CheckAsync
+        (
+            RequirePermissionAttribute attribute,
+            CancellationToken ct = default
+        )
         {
-            bool result = false;
+            var result = false;
             var roles = GetRoles();
 
             if (roles.HasValue)
             {
-                result = await _permissionResolver.HasPermissionAsync(_context.User.ID, roles.Value,
-                    attribute.Permission, ct);
+                result = await _permissionResolver.HasPermissionAsync
+                (
+                    _context.User.ID,
+                    roles.Value,
+                    attribute.Permission,
+                    ct
+                );
             }
             else
             {
-                result = await _permissionResolver.HasPermissionAsync(_context.User, attribute.Permission,
-                    ct);
+                result = await _permissionResolver.HasPermissionAsync
+                (
+                    _context.User,
+                    attribute.Permission,
+                    ct
+                );
             }
 
             if (!result)
             {
-                _logger.LogWarning(
-                    $"User <@{_context.User.ID.Value}> ({_context.User.Username}#{_context.User.Discriminator}) tried to execute command {GetCommandName()}, but does not have sufficient permissions");
+                _logger.LogWarning
+                (
+                    $"User <@{_context.User.ID.Value}> ({_context.User.Username}#{_context.User.Discriminator}) tried to execute command {GetCommandName()}, but does not have sufficient permissions"
+                );
             }
 
             return result
@@ -77,10 +112,13 @@ namespace Christofel.CommandsLib.Permissions
                     ? new Optional<IReadOnlyList<Snowflake>>(interactionContext.Member.Value.Roles)
                     : default;
             }
-            else if (_context is MessageContext messageContext)
+
+            if (_context is MessageContext messageContext)
             {
                 var partialMember = messageContext.Message.Member;
-                return partialMember.HasValue ? partialMember.Value.Roles : default;
+                return partialMember.HasValue
+                    ? partialMember.Value.Roles
+                    : default;
             }
 
             return default;

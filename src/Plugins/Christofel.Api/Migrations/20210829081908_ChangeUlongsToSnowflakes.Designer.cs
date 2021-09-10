@@ -11,6 +11,7 @@ namespace Christofel.Api.Migrations
     [Migration("20210829081908_ChangeUlongsToSnowflakes")]
     partial class ChangeUlongsToSnowflakes
     {
+        /// <inheritdoc/>
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

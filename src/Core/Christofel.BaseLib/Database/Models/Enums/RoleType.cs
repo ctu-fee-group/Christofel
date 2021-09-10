@@ -1,3 +1,9 @@
+//
+//   RoleType.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 namespace Christofel.BaseLib.Database.Models.Enums
 {
     /// <summary>
@@ -6,11 +12,34 @@ namespace Christofel.BaseLib.Database.Models.Enums
     /// </summary>
     public enum RoleType
     {
+        /// <summary>
+        /// General type of role.
+        /// </summary>
         General,
+
+        /// <summary>
+        /// Year type of role.
+        /// </summary>
         Year,
+
+        /// <summary>
+        /// Programme type of role.
+        /// </summary>
         Programme,
+
+        /// <summary>
+        /// Finished studies type of role.
+        /// </summary>
         FinishedStudies,
+
+        /// <summary>
+        /// Current studies type of role.
+        /// </summary>
         CurrentStudies,
-        Faculty
+
+        /// <summary>
+        /// Faculty type of role.
+        /// </summary>
+        Faculty,
     }
 }

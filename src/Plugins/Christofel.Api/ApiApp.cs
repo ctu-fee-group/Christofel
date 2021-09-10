@@ -1,3 +1,9 @@
+//
+//   ApiApp.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +22,9 @@ using IApplicationLifetime = Christofel.Plugins.Lifetime.IApplicationLifetime;
 
 namespace Christofel.Api
 {
+    /// <summary>
+    /// Representation of standalone api application.
+    /// </summary>
     public class ApiApp : IDisposable
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
@@ -23,52 +32,83 @@ namespace Christofel.Api
         private IHostApplicationLifetime? _lifetime;
         private ILogger? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiApp"/> class.
+        /// </summary>
         public ApiApp()
         {
-            _lifetimeHandler = new PluginLifetimeHandler(
-                e => { _logger?.LogError(e, "There was an error in the application, cannot recover"); },
-                () => { _lifetime?.StopApplication(); });
+            _lifetimeHandler = new PluginLifetimeHandler
+            (
+                e =>
+                {
+                    _logger?.LogError(e, "There was an error in the application, cannot recover");
+                },
+                () =>
+                {
+                    _lifetime?.StopApplication();
+                }
+            );
         }
 
+        /// <summary>
+        /// The lifetime of the application.
+        /// </summary>
         public ICurrentPluginLifetime Lifetime => _lifetimeHandler.LifetimeSpecific;
 
-        public async Task RunAsync()
-        {
-            _lifetimeHandler.MoveToIfLower(LifetimeState.Starting);
-
-            _lifetime?.ApplicationStarted.Register(() =>
-            {
-                _lifetimeHandler.MoveToIfLower(LifetimeState.Running);
-            });
-            
-            _lifetime?.ApplicationStopping.Register(() =>
-            {
-                _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
-            });
-
-            _lifetime?.ApplicationStopped.Register(() =>
-            {
-                _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
-            });
-
-            _logger.LogInformation("Hello world from ApiApp");
-            await _host.RunAsync();
-        }
-
+        /// <inheritdoc />
         public void Dispose()
         {
             _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
             _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
-            
+
             _host?.Dispose();
 
             _lifetimeHandler.MoveToIfLower(LifetimeState.Destroyed);
         }
 
+        /// <summary>
+        /// Run the application.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+        public async Task RunAsync()
+        {
+            _lifetimeHandler.MoveToIfLower(LifetimeState.Starting);
+
+            _lifetime?.ApplicationStarted.Register
+            (
+                () =>
+                {
+                    _lifetimeHandler.MoveToIfLower(LifetimeState.Running);
+                }
+            );
+
+            _lifetime?.ApplicationStopping.Register
+            (
+                () =>
+                {
+                    _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
+                }
+            );
+
+            _lifetime?.ApplicationStopped.Register
+            (
+                () =>
+                {
+                    _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
+                }
+            );
+
+            _logger.LogInformation("Hello world from ApiApp");
+            await _host.RunAsync();
+        }
+
+        /// <summary>
+        /// Inits the application.
+        /// </summary>
         public void Init()
         {
             _lifetimeHandler.MoveToIfLower(LifetimeState.Initializing);
-            
+
             IConfiguration configuration = new ConfigurationBuilder()
                 .AddJsonFile("config.json")
                 .Build();
@@ -76,50 +116,66 @@ namespace Christofel.Api
             _host = CreateHostBuilder(Lifetime, configuration).Build();
             _lifetime = _host.Services.GetRequiredService<IHostApplicationLifetime>();
             _logger = _host.Services.GetRequiredService<ILogger<ApiApp>>();
-            
+
             _lifetimeHandler.MoveToIfLower(LifetimeState.Initialized);
         }
 
         private static IHostBuilder CreateHostBuilder(ICurrentPluginLifetime lifetime, IConfiguration configuration) =>
             Host.CreateDefaultBuilder()
-                .ConfigureLogging(builder =>
-                {
-                    builder
-                        .AddConfiguration(configuration.GetSection("Logging"))
-                        .ClearProviders()
-                        .AddFile()
-                        .AddSimpleConsole(options => options.IncludeScopes = true)
-                        .AddDiscordLogger();
-                })
-                .ConfigureServices(services =>
-                {
-                    services
-                        .AddSingleton<ICurrentPluginLifetime>(lifetime)
-                        .AddSingleton<IApplicationLifetime>(new ApplicationLifetimeWrapper(lifetime));
+                .ConfigureLogging
+                (
+                    builder =>
+                    {
+                        builder
+                            .AddConfiguration(configuration.GetSection("Logging"))
+                            .ClearProviders()
+                            .AddFile()
+                            .AddSimpleConsole(options => options.IncludeScopes = true)
+                            .AddDiscordLogger();
+                    }
+                )
+                .ConfigureServices
+                (
+                    services =>
+                    {
+                        services
+                            .AddSingleton(lifetime)
+                            .AddSingleton<IApplicationLifetime>(new ApplicationLifetimeWrapper(lifetime));
 
-                    services
-                        .AddDiscordRest(_ => configuration.GetValue<string>("Bot:Token"));
+                        services
+                            .AddDiscordRest(_ => configuration.GetValue<string>("Bot:Token"));
 
-                    services
-                        .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>();
-                    
-                    services
-                        // db
-                        .AddDbContextFactory<ChristofelBaseContext>(options =>
-                            options
-                                .UseMySql(
-                                    configuration.GetConnectionString("ChristofelBase"),
-                                    ServerVersion.AutoDetect(configuration.GetConnectionString("ChristofelBase")
-                                    ))
-                        )
-                        .AddTransient<ChristofelBaseContext>(p =>
-                            p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext());
-                })
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseConfiguration(configuration);
-                    webBuilder.UseStartup<Startup>();
-                });
+                        services
+                            .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>();
+
+                        // Database
+                        services
+                            .AddDbContextFactory<ChristofelBaseContext>
+                            (
+                                options =>
+                                    options
+                                        .UseMySql
+                                        (
+                                            configuration.GetConnectionString("ChristofelBase"),
+                                            ServerVersion.AutoDetect
+                                                (configuration.GetConnectionString("ChristofelBase"))
+                                        )
+                            )
+                            .AddTransient
+                            (
+                                p =>
+                                    p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext()
+                            );
+                    }
+                )
+                .ConfigureWebHostDefaults
+                (
+                    webBuilder =>
+                    {
+                        webBuilder.UseConfiguration(configuration);
+                        webBuilder.UseStartup<Startup>();
+                    }
+                );
 
         private class ApplicationLifetimeWrapper : IApplicationLifetime
         {
@@ -131,10 +187,15 @@ namespace Christofel.Api
             }
 
             public LifetimeState State => _lifetime.State;
+
             public bool IsErrored => _lifetime.IsErrored;
+
             public CancellationToken Errored => _lifetime.Errored;
+
             public CancellationToken Started => _lifetime.Started;
+
             public CancellationToken Stopped => _lifetime.Stopped;
+
             public CancellationToken Stopping => _lifetime.Stopping;
 
             public void RequestStop()

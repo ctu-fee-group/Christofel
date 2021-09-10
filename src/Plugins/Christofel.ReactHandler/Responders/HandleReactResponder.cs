@@ -1,10 +1,14 @@
-using System;
+//
+//   HandleReactResponder.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Christofel.ReactHandler.Database;
 using Christofel.ReactHandler.Database.Models;
 using Christofel.ReactHandler.Formatters;
@@ -14,23 +18,40 @@ using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Core;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
 namespace Christofel.ReactHandler.Responders
 {
+    /// <summary>
+    /// Responder that handles reactions on marked messages.
+    /// </summary>
+    /// <remarks>
+    /// Assigns channels or roles to users who react to marked messages.
+    /// </remarks>
     public class HandleReactResponder
         : IResponder<IMessageReactionRemove>, IResponder<IMessageReactionAdd>
     {
-        private readonly IReadableDbContext _dbContext;
-        private readonly ILogger _logger;
-        private readonly IDiscordRestGuildAPI _guildApi;
         private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly IReadableDbContext _dbContext;
+        private readonly IDiscordRestGuildAPI _guildApi;
+        private readonly ILogger _logger;
 
-        public HandleReactResponder(IReadableDbContext<ReactHandlerContext> dbContext,
-            ILogger<HandleReactResponder> logger, IDiscordRestGuildAPI guildApi, IDiscordRestChannelAPI channelApi)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HandleReactResponder"/> class.
+        /// </summary>
+        /// <param name="dbContext">The react handler database context.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="guildApi">The guild api.</param>
+        /// <param name="channelApi">The channel api.</param>
+        public HandleReactResponder
+        (
+            IReadableDbContext<ReactHandlerContext> dbContext,
+            ILogger<HandleReactResponder> logger,
+            IDiscordRestGuildAPI guildApi,
+            IDiscordRestChannelAPI channelApi
+        )
         {
             _channelApi = channelApi;
             _guildApi = guildApi;
@@ -38,20 +59,28 @@ namespace Christofel.ReactHandler.Responders
             _dbContext = dbContext;
         }
 
-        public async Task<Result> RespondAsync(IMessageReactionAdd gatewayEvent,
-            CancellationToken ct = new CancellationToken())
+        /// <inheritdoc />
+        public async Task<Result> RespondAsync
+        (
+            IMessageReactionAdd gatewayEvent,
+            CancellationToken ct = default
+        )
         {
             if (!gatewayEvent.GuildID.IsDefined(out var guildId))
             {
                 return Result.FromSuccess();
             }
-            
+
             string emoji = EmojiFormatter.GetEmojiString(gatewayEvent.Emoji);
             var matchingHandlers = await _dbContext.Set<HandleReact>()
-                .Where(x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID &&
-                            x.Emoji == emoji)
+                .Where
+                (
+                    x => x.ChannelId == gatewayEvent.ChannelID &&
+                         x.MessageId == gatewayEvent.MessageID &&
+                         x.Emoji == emoji
+                )
                 .ToListAsync(ct);
-            
+
             List<IResult> errors = new List<IResult>();
             foreach (var matchingHandler in matchingHandlers)
             {
@@ -60,12 +89,22 @@ namespace Christofel.ReactHandler.Responders
                 switch (matchingHandler.Type)
                 {
                     case HandleReactType.Channel:
-                        result = await AssignChannel(guildId, gatewayEvent.UserID,
-                            matchingHandler.EntityId, ct);
+                        result = await AssignChannel
+                        (
+                            guildId,
+                            gatewayEvent.UserID,
+                            matchingHandler.EntityId,
+                            ct
+                        );
                         break;
                     case HandleReactType.Role:
-                        result = await AssignRole(guildId, gatewayEvent.UserID, matchingHandler.EntityId,
-                            ct);
+                        result = await AssignRole
+                        (
+                            guildId,
+                            gatewayEvent.UserID,
+                            matchingHandler.EntityId,
+                            ct
+                        );
                         break;
                     default:
                         return new InvalidOperationError("Unknown matching handler type");
@@ -73,14 +112,22 @@ namespace Christofel.ReactHandler.Responders
 
                 if (!result.IsSuccess)
                 {
-                    _logger.LogWarning("Could not assign channel or role ({ChannelOrRole}) to user. {Error}",
-                        matchingHandler.EntityId, result.Error.Message);
+                    _logger.LogWarning
+                    (
+                        "Could not assign channel or role ({ChannelOrRole}) to user. {Error}",
+                        matchingHandler.EntityId,
+                        result.Error.Message
+                    );
                     errors.Add(result);
                 }
                 else
                 {
-                    _logger.LogInformation("Assigned {ChannelOrRole} to user <@{User}>",
-                        HandleReactFormatter.FormatHandlerTarget(matchingHandler), gatewayEvent.UserID);
+                    _logger.LogInformation
+                    (
+                        "Assigned {ChannelOrRole} to user <@{User}>",
+                        HandleReactFormatter.FormatHandlerTarget(matchingHandler),
+                        gatewayEvent.UserID
+                    );
                 }
             }
 
@@ -93,8 +140,13 @@ namespace Christofel.ReactHandler.Responders
         }
 
         // TODO: somehow merge respond methods to one?
-        public async Task<Result> RespondAsync(IMessageReactionRemove gatewayEvent,
-            CancellationToken ct = new CancellationToken())
+
+        /// <inheritdoc />
+        public async Task<Result> RespondAsync
+        (
+            IMessageReactionRemove gatewayEvent,
+            CancellationToken ct = default
+        )
         {
             if (!gatewayEvent.GuildID.IsDefined(out var guildId))
             {
@@ -103,10 +155,14 @@ namespace Christofel.ReactHandler.Responders
 
             string emoji = EmojiFormatter.GetEmojiString(gatewayEvent.Emoji);
             var matchingHandlers = await _dbContext.Set<HandleReact>()
-                .Where(x => x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID &&
-                            x.Emoji == emoji)
+                .Where
+                (
+                    x => x.ChannelId == gatewayEvent.ChannelID &&
+                         x.MessageId == gatewayEvent.MessageID &&
+                         x.Emoji == emoji
+                )
                 .ToListAsync(ct);
-            
+
             List<IResult> errors = new List<IResult>();
             foreach (var matchingHandler in matchingHandlers)
             {
@@ -115,12 +171,22 @@ namespace Christofel.ReactHandler.Responders
                 switch (matchingHandler.Type)
                 {
                     case HandleReactType.Channel:
-                        result = await DeassignChannel(guildId, gatewayEvent.UserID,
-                            matchingHandler.EntityId, ct);
+                        result = await DeassignChannel
+                        (
+                            guildId,
+                            gatewayEvent.UserID,
+                            matchingHandler.EntityId,
+                            ct
+                        );
                         break;
                     case HandleReactType.Role:
-                        result = await DeassignRole(guildId, gatewayEvent.UserID, matchingHandler.EntityId,
-                            ct);
+                        result = await DeassignRole
+                        (
+                            guildId,
+                            gatewayEvent.UserID,
+                            matchingHandler.EntityId,
+                            ct
+                        );
                         break;
                     default:
                         return new InvalidOperationError("Unknown matching handler type");
@@ -128,14 +194,22 @@ namespace Christofel.ReactHandler.Responders
 
                 if (!result.IsSuccess)
                 {
-                    _logger.LogWarning("Could not deassign channel or role ({ChannelOrRole}) from user. {Error}",
-                        matchingHandler.EntityId, result.Error.Message);
+                    _logger.LogWarning
+                    (
+                        "Could not deassign channel or role ({ChannelOrRole}) from user. {Error}",
+                        matchingHandler.EntityId,
+                        result.Error.Message
+                    );
                     errors.Add(result);
                 }
                 else
                 {
-                    _logger.LogInformation("Deassigned {ChannelOrRole} from user <@{User}>",
-                        HandleReactFormatter.FormatHandlerTarget(matchingHandler), gatewayEvent.UserID);
+                    _logger.LogInformation
+                    (
+                        "Deassigned {ChannelOrRole} from user <@{User}>",
+                        HandleReactFormatter.FormatHandlerTarget(matchingHandler),
+                        gatewayEvent.UserID
+                    );
                 }
             }
 
@@ -147,30 +221,46 @@ namespace Christofel.ReactHandler.Responders
             return Result.FromSuccess();
         }
 
-        private Task<Result> AssignRole(Snowflake guildId, Snowflake userId, Snowflake roleId, CancellationToken ct)
-        {
-            return _guildApi.AddGuildMemberRoleAsync(guildId, userId, roleId, "Reaction handler", ct);
-        }
+        private Task<Result> AssignRole
+            (Snowflake guildId, Snowflake userId, Snowflake roleId, CancellationToken ct)
+            => _guildApi.AddGuildMemberRoleAsync(guildId, userId, roleId, "Reaction handler", ct);
 
-        private Task<Result> AssignChannel(Snowflake guildId, Snowflake userId, Snowflake channelId,
-            CancellationToken ct)
-        {
-            return _channelApi.EditChannelPermissionsAsync(channelId, userId,
-                allow: new DiscordPermissionSet(DiscordPermission.ViewChannel), type: PermissionOverwriteType.Member,
-                reason: "Reaction handler", ct: ct);
-        }
+        private Task<Result> AssignChannel
+        (
+            Snowflake guildId,
+            Snowflake userId,
+            Snowflake channelId,
+            CancellationToken ct
+        )
+            => _channelApi.EditChannelPermissionsAsync
+            (
+                channelId,
+                userId,
+                new DiscordPermissionSet(DiscordPermission.ViewChannel),
+                type: PermissionOverwriteType.Member,
+                reason: "Reaction handler",
+                ct: ct
+            );
 
-        private Task<Result> DeassignRole(Snowflake guildId, Snowflake userId, Snowflake roleId, CancellationToken ct)
-        {
-            return _guildApi.RemoveGuildMemberRoleAsync(guildId, userId, roleId, "Reaction handler", ct);
-        }
+        private Task<Result> DeassignRole
+            (Snowflake guildId, Snowflake userId, Snowflake roleId, CancellationToken ct)
+            => _guildApi.RemoveGuildMemberRoleAsync(guildId, userId, roleId, "Reaction handler", ct);
 
-        private Task<Result> DeassignChannel(Snowflake guildId, Snowflake userId, Snowflake channelId,
-            CancellationToken ct)
-        {
-            return _channelApi.EditChannelPermissionsAsync(channelId, userId,
-                deny: new DiscordPermissionSet(DiscordPermission.ViewChannel), type: PermissionOverwriteType.Member,
-                reason: "Reaction handler", ct: ct);
-        }
+        private Task<Result> DeassignChannel
+        (
+            Snowflake guildId,
+            Snowflake userId,
+            Snowflake channelId,
+            CancellationToken ct
+        )
+            => _channelApi.EditChannelPermissionsAsync
+            (
+                channelId,
+                userId,
+                deny: new DiscordPermissionSet(DiscordPermission.ViewChannel),
+                type: PermissionOverwriteType.Member,
+                reason: "Reaction handler",
+                ct: ct
+            );
     }
 }

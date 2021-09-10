@@ -1,3 +1,9 @@
+//
+//   IChristofelState.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
 using Christofel.BaseLib.Permissions;
@@ -9,38 +15,38 @@ using Microsoft.Extensions.Logging;
 namespace Christofel.BaseLib
 {
     /// <summary>
-    /// Shared state between all modules
+    /// Shared state between all plugins.
     /// </summary>
     public interface IChristofelState
     {
         /// <summary>
-        /// The Bot state itself containing Discord client
+        /// Gets bot state itself containing Discord client.
         /// </summary>
         public IBot Bot { get; }
-        
+
         /// <summary>
-        /// Factory of the base context
+        /// Gets factory of the base context.
         /// </summary>
         public IDbContextFactory<ChristofelBaseContext> DatabaseFactory { get; }
 
         /// <summary>
-        /// Shared configuration linking name/key to value 
+        /// Gets shared configuration linking name/key to value.
         /// </summary>
         public IConfiguration Configuration { get; }
-        
+
         /// <summary>
-        /// Service for registering and resolving permissions
+        /// Gets service for registering and resolving permissions.
         /// </summary>
         public IPermissionService Permissions { get; }
 
         /// <summary>
-        /// Logger factory
+        /// Gets default configured logger factory.
         /// </summary>
         public ILoggerFactory LoggerFactory { get; }
-        
+
         /// <summary>
-        /// Lifetime of the application that may be used
-        /// to stop the application
+        /// Gets lifetime of the application that may be used
+        /// to stop the application.
         /// </summary>
         public IApplicationLifetime Lifetime { get; }
     }

@@ -1,3 +1,9 @@
+//
+//   PluginResponder.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -11,20 +17,35 @@ using Remora.Results;
 
 namespace Christofel.Remora.Responders
 {
+    /// <summary>
+    /// <see cref="IAnyResponder"/> for plugins that will call event responders
+    /// from <see cref="IResponderTypeRepository"/> that were registered.
+    /// </summary>
     public class PluginResponder : IAnyResponder
     {
+        private readonly ILogger _logger;
         private readonly IResponderTypeRepository _responderTypeRepository;
         private readonly IServiceProvider _services;
-        private readonly ILogger _logger;
 
-        public PluginResponder(IResponderTypeRepository responderTypeRepository, IServiceProvider services,
-            ILogger<PluginResponder> logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginResponder"/> class.
+        /// </summary>
+        /// <param name="responderTypeRepository">The repository of responder types.</param>
+        /// <param name="services">The service provider for resolving event resolvers.</param>
+        /// <param name="logger">The logger.</param>
+        public PluginResponder
+        (
+            IResponderTypeRepository responderTypeRepository,
+            IServiceProvider services,
+            ILogger<PluginResponder> logger
+        )
         {
             _responderTypeRepository = responderTypeRepository;
             _services = services;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<Result> RespondAsync<TEvent>(TEvent gatewayEvent, CancellationToken ct = default)
             where TEvent : IGatewayEvent
         {
@@ -40,30 +61,35 @@ namespace Christofel.Remora.Responders
                 await Task.WhenAll
                 (
                     responderGroup.Select
-                    (
-                        async rt =>
-                        {
-                            using var serviceScope = _services.CreateScope();
-                            var responder = (IResponder<TEvent>)serviceScope.ServiceProvider
-                                .GetRequiredService(rt);
+                        (
+                            async rt =>
+                            {
+                                using var serviceScope = _services.CreateScope();
+                                var responder = (IResponder<TEvent>)serviceScope.ServiceProvider
+                                    .GetRequiredService(rt);
 
-                            try
-                            {
-                                return await responder.RespondAsync(gatewayEvent, ct);
+                                try
+                                {
+                                    return await responder.RespondAsync(gatewayEvent, ct);
+                                }
+                                catch (Exception e)
+                                {
+                                    return e;
+                                }
                             }
-                            catch (Exception e)
-                            {
-                                return e;
-                            }
-                        }
-                    )
+                        )
                         .Select(HandleEventResult)
                 ).ConfigureAwait(false);
             }
 
             return Result.FromSuccess(); // Everything error handled and logged
         }
-        
+
+        /// <summary>
+        /// Handles the result of event.
+        /// </summary>
+        /// <param name="eventDispatch">The asynchronous task that represents the event.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         private async Task HandleEventResult(Task<Result> eventDispatch)
         {
             var responderResult = await eventDispatch;
@@ -76,13 +102,17 @@ namespace Christofel.Remora.Responders
             LogResult(responderResult);
         }
 
+        /// <summary>
+        /// Logs a result based on the type of the error.
+        /// </summary>
+        /// <param name="result">The result to be logged.</param>
         private void LogResult(IResult result)
         {
             if (result.IsSuccess)
             {
                 return;
             }
-            
+
             switch (result.Error)
             {
                 case ExceptionError exe:
@@ -102,6 +132,7 @@ namespace Christofel.Remora.Responders
                     {
                         LogResult(errorResult);
                     }
+
                     break;
                 }
                 default:

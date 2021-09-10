@@ -1,3 +1,9 @@
+//
+//   SlowmodeService.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -6,7 +12,6 @@ using Christofel.BaseLib.Implementations.Storages;
 using Christofel.Management.Database;
 using Christofel.Management.Database.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
@@ -14,15 +19,30 @@ using Remora.Results;
 
 namespace Christofel.Management.Slowmode
 {
+    /// <summary>
+    /// Service for registering, unregistering and handling disable of temporal slowmode.
+    /// </summary>
     public class SlowmodeService
     {
-        private readonly IThreadSafeStorage<RegisteredTemporalSlowmode> _slowmodeStorage;
-        private readonly IDbContextFactory<ManagementContext> _dbContextFactory;
         private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly IDbContextFactory<ManagementContext> _dbContextFactory;
         private readonly ILogger _logger;
+        private readonly IThreadSafeStorage<RegisteredTemporalSlowmode> _slowmodeStorage;
 
-        public SlowmodeService(IDbContextFactory<ManagementContext> dbContextFactory, IDiscordRestChannelAPI channelApi,
-            IThreadSafeStorage<RegisteredTemporalSlowmode> slowmodeStorage, ILogger<SlowmodeService> logger)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SlowmodeService"/> class.
+        /// </summary>
+        /// <param name="dbContextFactory">The management database context factory.</param>
+        /// <param name="channelApi">The channel api.</param>
+        /// <param name="slowmodeStorage">The thread-safe storage of the temporal slowmodes.</param>
+        /// <param name="logger">The logger.</param>
+        public SlowmodeService
+        (
+            IDbContextFactory<ManagementContext> dbContextFactory,
+            IDiscordRestChannelAPI channelApi,
+            IThreadSafeStorage<RegisteredTemporalSlowmode> slowmodeStorage,
+            ILogger<SlowmodeService> logger
+        )
         {
             _logger = logger;
             _channelApi = channelApi;
@@ -30,24 +50,54 @@ namespace Christofel.Management.Slowmode
             _slowmodeStorage = slowmodeStorage;
         }
 
-        public async Task<Result> EnableSlowmodeAsync(Snowflake channelId, TimeSpan interval, CancellationToken ct = default)
+        /// <summary>
+        /// Enables slowmode in given channel.
+        /// </summary>
+        /// <remarks>
+        /// Disables all temporal slowmodes for the given channel, if there were any.
+        /// </remarks>
+        /// <param name="channelId">Id of the channel where to enable the slowmode.</param>
+        /// <param name="interval">The rate of messages for the user.</param>
+        /// <param name="ct">The cancellation token of the operation.</param>
+        /// <returns>A result of the enable that may not succeed.</returns>
+        public async Task<Result> EnableSlowmodeAsync
+            (Snowflake channelId, TimeSpan interval, CancellationToken ct = default)
         {
             await UnregisterTemporalSlowmodeAsync(channelId, ct);
 
-            var result = await _channelApi.ModifyChannelAsync(channelId, rateLimitPerUser: (int)interval.TotalSeconds,
-                ct: ct);
+            var result = await _channelApi.ModifyChannelAsync
+            (
+                channelId,
+                rateLimitPerUser: (int)interval.TotalSeconds,
+                ct: ct
+            );
 
             return result.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(result);
         }
 
+        /// <summary>
+        /// Disables slowmode in given channel.
+        /// </summary>
+        /// <remarks>
+        /// Removes all temporal slowmodes for the given channel, if there were any.
+        /// </remarks>
+        /// <param name="channelId">Id of the channel where to enable the slowmode.</param>
+        /// <param name="ct">The cancellation token of the operation.</param>
+        /// <returns>A result of disable that may not succeed.</returns>
         public async Task<Result> DisableSlowmodeAsync(Snowflake channelId, CancellationToken ct)
         {
             await UnregisterTemporalSlowmodeAsync(channelId, ct);
             return await EnableSlowmodeAsync(channelId, TimeSpan.Zero, ct);
         }
 
+        /// <summary>
+        /// Cancels task of temporal slowmode and deletes it from the database.
+        /// </summary>
+        /// <param name="channelId">Id of the channel to disable temporal slowmode in.</param>
+        /// <param name="ct">The cancellation token of the operation.</param>
+        /// <returns>Whether there was any temporal slowmode that was canceled.</returns>
         public async Task<bool> UnregisterTemporalSlowmodeAsync(Snowflake channelId, CancellationToken ct = default)
         {
             await using var dbContext = _dbContextFactory.CreateDbContext();
@@ -55,7 +105,7 @@ namespace Christofel.Management.Slowmode
             var matchingSlowmodes = _slowmodeStorage.Data
                 .Where(x => x.TemporalSlowmodeEntity.ChannelId == channelId);
 
-            bool unregistered = false;
+            var unregistered = false;
             foreach (var matchingSlowmode in matchingSlowmodes)
             {
                 unregistered = true;
@@ -73,18 +123,33 @@ namespace Christofel.Management.Slowmode
             return unregistered;
         }
 
-        public async Task<RegisteredTemporalSlowmode> RegisterTemporalSlowmodeAsync(Snowflake channelId, Snowflake userId, TimeSpan interval,
-            TimeSpan duration, CancellationToken ct = default)
+        /// <summary>
+        /// Register temporal slowmode task and save it to the database.
+        /// </summary>
+        /// <param name="channelId">Id of the channel where to register slowmode to.</param>
+        /// <param name="userId">Id of the user who enabled the slowmode.</param>
+        /// <param name="interval">The rate of messages for the user.</param>
+        /// <param name="duration">The duration after what the temporal slowmode will be removed.</param>
+        /// <param name="ct">The cancellation token of the operation.</param>
+        /// <returns>Information about the registered temporal slowmode.</returns>
+        public async Task<RegisteredTemporalSlowmode> RegisterTemporalSlowmodeAsync
+        (
+            Snowflake channelId,
+            Snowflake userId,
+            TimeSpan interval,
+            TimeSpan duration,
+            CancellationToken ct = default
+        )
         {
             await using var dbContext = _dbContextFactory.CreateDbContext();
 
-            var temporalSlowmodeEntity = new TemporalSlowmode()
+            var temporalSlowmodeEntity = new TemporalSlowmode
             {
                 ActivationDate = DateTime.Now,
                 ChannelId = channelId,
                 UserId = userId,
                 DeactivationDate = DateTime.Now.Add(duration),
-                Interval = interval
+                Interval = interval,
             };
 
             dbContext.Add(temporalSlowmodeEntity);
@@ -93,9 +158,13 @@ namespace Christofel.Management.Slowmode
             return RegisterDisableHandler(temporalSlowmodeEntity);
         }
 
+        /// <summary>
+        /// Cancels all of the tasks that disable temporal slowmode.
+        /// </summary>
+        /// <returns>Number of the tasks canceled.</returns>
         public int CancelAllDisableHandlers()
         {
-            int canceled = 0;
+            var canceled = 0;
             foreach (var registeredTemporalSlowmode in _slowmodeStorage.Data)
             {
                 canceled++;
@@ -105,48 +174,64 @@ namespace Christofel.Management.Slowmode
             return canceled;
         }
 
+        /// <summary>
+        /// Registers task for the temporal slowmode.
+        /// </summary>
+        /// <param name="temporalSlowmodeEntity">The entity that represents the slowmode to be registered.</param>
+        /// <returns>Information about the registered slowmode.</returns>
         public RegisteredTemporalSlowmode RegisterDisableHandler(TemporalSlowmode temporalSlowmodeEntity)
         {
             var registeredTemporalSlowmode =
                 new RegisteredTemporalSlowmode(temporalSlowmodeEntity, new CancellationTokenSource());
             _slowmodeStorage.Add(registeredTemporalSlowmode);
-            
-            TimeSpan duration = temporalSlowmodeEntity.DeactivationDate - DateTime.Now;
 
-            Task.Run(async () =>
-            {
-                bool canceled = false;
-                try
-                {
-                    await Task.Delay(duration, registeredTemporalSlowmode.CancellationTokenSource.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    canceled = true;
-                    _logger.LogDebug("Temporal slowmode disable was canceled");
-                }
+            var duration = temporalSlowmodeEntity.DeactivationDate - DateTime.Now;
 
-                if (!canceled)
+            Task.Run
+            (
+                async () =>
                 {
-                    var result = await DisableSlowmodeAsync(registeredTemporalSlowmode.TemporalSlowmodeEntity.ChannelId,
-                        default); // Cannot use cancellation token from registered slowmode, as that one will be canceled.
-
-                    if (result.IsSuccess)
+                    var canceled = false;
+                    try
                     {
-                        _logger.LogInformation(
-                            "Disabled temporal slowmode in channel <#{Channel}> enabled by <@{User}>",
-                            temporalSlowmodeEntity.ChannelId,
-                            temporalSlowmodeEntity.UserId);
+                        await Task.Delay(duration, registeredTemporalSlowmode.CancellationTokenSource.Token);
                     }
-                    else
+                    catch (OperationCanceledException)
                     {
-                        _logger.LogError("Could not disable temporal slowmode in channel <#{Channel}> enabled by <@{User}>: {Error}",
-                            temporalSlowmodeEntity.ChannelId,
-                            temporalSlowmodeEntity.UserId,
-                            result.Error.Message);
+                        canceled = true;
+                        _logger.LogDebug("Temporal slowmode disable was canceled");
+                    }
+
+                    if (!canceled)
+                    {
+                        var result = await DisableSlowmodeAsync
+                        (
+                            registeredTemporalSlowmode.TemporalSlowmodeEntity.ChannelId,
+                            default
+                        ); // Cannot use cancellation token from registered slowmode, as that one will be canceled.
+
+                        if (result.IsSuccess)
+                        {
+                            _logger.LogInformation
+                            (
+                                "Disabled temporal slowmode in channel <#{Channel}> enabled by <@{User}>",
+                                temporalSlowmodeEntity.ChannelId,
+                                temporalSlowmodeEntity.UserId
+                            );
+                        }
+                        else
+                        {
+                            _logger.LogError
+                            (
+                                "Could not disable temporal slowmode in channel <#{Channel}> enabled by <@{User}>: {Error}",
+                                temporalSlowmodeEntity.ChannelId,
+                                temporalSlowmodeEntity.UserId,
+                                result.Error.Message
+                            );
+                        }
                     }
                 }
-            });
+            );
 
             return registeredTemporalSlowmode;
         }

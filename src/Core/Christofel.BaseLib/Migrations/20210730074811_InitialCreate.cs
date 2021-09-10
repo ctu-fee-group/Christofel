@@ -1,11 +1,21 @@
-﻿using System;
+﻿//
+//  20210730074811_InitialCreate.cs
+//
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.BaseLib.Migrations
 {
+    /// <summary>
+    /// Migration that represents initial creation of the database.
+    /// </summary>
     public partial class InitialCreate : Migration
     {
+        /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
@@ -177,6 +187,7 @@ namespace Christofel.BaseLib.Migrations
                 column: "AssignmentId");
         }
 
+        /// <inheritdoc/>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

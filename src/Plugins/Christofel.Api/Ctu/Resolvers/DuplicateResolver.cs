@@ -1,3 +1,9 @@
+//
+//   DuplicateResolver.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,11 +18,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.Api.Ctu.Resolvers
 {
+    /// <summary>
+    /// Resolver of duplicates of the specified user.
+    /// </summary>
     public class DuplicateResolver
     {
-        private readonly Dictionary<ILinkUser, Duplicate> _duplicates;
         private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;
+        private readonly Dictionary<ILinkUser, Duplicate> _duplicates;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DuplicateResolver"/> class.
+        /// </summary>
+        /// <param name="dbContextFactory">The read only christofel base database context factory.</param>
         public DuplicateResolver(ReadonlyDbContextFactory<ChristofelBaseContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
@@ -24,10 +37,10 @@ namespace Christofel.Api.Ctu.Resolvers
         }
 
         /// <summary>
-        /// Finds duplicate by specified rules
+        /// Finds duplicate by specified rules.
         /// </summary>
-        /// <param name="user">What are the loaded information (from apis) about the user</param>
-        /// <param name="dbUser">What is the record in the database that holds the specified user</param>
+        /// <param name="user">What are the loaded information (from apis) about the user.</param>
+        /// <param name="ct">The canellation token for the operation.</param>
         /// <returns>Duplicate information of the specified user.</returns>
         public async Task<Duplicate> ResolveDuplicateAsync(ILinkUser user, CancellationToken ct = default)
         {
@@ -35,11 +48,11 @@ namespace Christofel.Api.Ctu.Resolvers
             {
                 return _duplicates[user];
             }
-            
+
             await using var dbContext = _dbContextFactory.CreateDbContext();
             Duplicate? foundDuplicate = null;
 
-            DbUser? duplicateBoth = await dbContext.Set<DbUser>()
+            var duplicateBoth = await dbContext.Set<DbUser>()
                 .AsQueryable()
                 .Authenticated()
                 .Where(x => x.CtuUsername == user.CtuUsername && x.DiscordId == user.DiscordId)
@@ -47,12 +60,12 @@ namespace Christofel.Api.Ctu.Resolvers
 
             if (duplicateBoth is not null)
             {
-                 foundDuplicate = new Duplicate(DuplicityType.Both, duplicateBoth);
+                foundDuplicate = new Duplicate(DuplicityType.Both, duplicateBoth);
             }
 
             if (foundDuplicate is null)
             {
-                DbUser? duplicateDiscord = await dbContext.Set<DbUser>()
+                var duplicateDiscord = await dbContext.Set<DbUser>()
                     .AsQueryable()
                     .Authenticated()
                     .Where(x => x.DiscordId == user.DiscordId)
@@ -66,7 +79,7 @@ namespace Christofel.Api.Ctu.Resolvers
 
             if (foundDuplicate is null)
             {
-                DbUser? duplicateCtu = await dbContext.Set<DbUser>()
+                var duplicateCtu = await dbContext.Set<DbUser>()
                     .AsQueryable()
                     .Authenticated()
                     .Where(x => x.CtuUsername == user.CtuUsername)
@@ -77,8 +90,8 @@ namespace Christofel.Api.Ctu.Resolvers
                     foundDuplicate = new Duplicate(DuplicityType.CtuSide, duplicateCtu);
                 }
             }
-            
-            return _duplicates[user] = (foundDuplicate ?? new Duplicate(DuplicityType.None, null));
+
+            return _duplicates[user] = foundDuplicate ?? new Duplicate(DuplicityType.None, null);
         }
     }
 }

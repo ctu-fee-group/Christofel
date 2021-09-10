@@ -1,3 +1,9 @@
+//
+//   ManagementPlugin.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -24,33 +30,43 @@ using Remora.Commands.Extensions;
 
 namespace Christofel.Management
 {
+    /// <summary>
+    /// Plugin for admins and moderators to manage users, messages, permissions etc.
+    /// </summary>
     public class ManagementPlugin : ChristofelDIPlugin
     {
-        private PluginLifetimeHandler _lifetimeHandler;
+        private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ManagementPlugin>? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ManagementPlugin"/> class.
+        /// </summary>
         public ManagementPlugin()
         {
-            _lifetimeHandler = new PluginLifetimeHandler(
+            _lifetimeHandler = new PluginLifetimeHandler
+            (
                 DefaultHandleError(() => _logger),
-                DefaultHandleStopRequest(() => _logger));
+                DefaultHandleStopRequest(() => _logger)
+            );
         }
 
+        /// <inheritdoc />
         public override string Name => "Christofel.Management";
 
+        /// <inheritdoc />
         public override string Description =>
             "Plugin for user and messages management. Supports basic management commands.";
 
+        /// <inheritdoc />
         public override string Version => "v1.0.0";
 
+        /// <inheritdoc />
         protected override IEnumerable<IRefreshable> Refreshable
         {
-            get
-            {
-                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
-            }
+            get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStoppable> Stoppable
         {
             get
@@ -60,6 +76,7 @@ namespace Christofel.Management
             }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStartable> Startable
         {
             get
@@ -69,46 +86,66 @@ namespace Christofel.Management
             }
         }
 
+        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
+        /// <inheritdoc />
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
+
                 // Christofel
                 .AddDiscordState(State)
+
                 // Databases
                 .AddChristofelDatabase(State)
-                .AddDbContextFactory<ManagementContext>(options => options
-                    .UseMySql(
-                        State.Configuration.GetConnectionString("Management"),
-                        ServerVersion.AutoDetect(State.Configuration.GetConnectionString("Management")
-                        ))
+                .AddDbContextFactory<ManagementContext>
+                (
+                    options => options
+                        .UseMySql
+                        (
+                            State.Configuration.GetConnectionString("Management"),
+                            ServerVersion.AutoDetect(State.Configuration.GetConnectionString("Management"))
+                        )
                 )
-                .AddTransient<ManagementContext>(p =>
-                    p.GetRequiredService<IDbContextFactory<ManagementContext>>().CreateDbContext())
+                .AddTransient
+                (
+                    p =>
+                        p.GetRequiredService<IDbContextFactory<ManagementContext>>().CreateDbContext()
+                )
                 .AddReadOnlyDbContext<ManagementContext>()
+
                 // Service for resolving ctu identities
                 .AddSingleton<CtuIdentityResolver>()
+
                 // Responder for every event to delegate to other registered responders
                 .AddSingleton<PluginResponder>()
+
                 // Commands
                 .AddChristofelCommands()
                 .AddCommandGroup<MessageCommandsGroup>()
                 .AddCommandGroup<PermissionCommandsGroup>()
                 .AddCommandGroup<UserCommandsGroup>()
+
                 // Slowmodes
                 .AddSingleton<IThreadSafeStorage<RegisteredTemporalSlowmode>,
                     ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
                 .AddTransient<SlowmodeService>()
                 .AddTransient<SlowmodeAutorestore>()
+
                 // Misc
-                .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
+                .AddSingleton(_lifetimeHandler.LifetimeSpecific)
+
                 // Configurations
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
-        protected override Task InitializeServices(IServiceProvider services,
-            CancellationToken token = new CancellationToken())
+        /// <inheritdoc />
+        protected override Task InitializeServices
+        (
+            IServiceProvider services,
+            CancellationToken token = default
+        )
         {
             _logger = services.GetRequiredService<ILogger<ManagementPlugin>>();
             ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();

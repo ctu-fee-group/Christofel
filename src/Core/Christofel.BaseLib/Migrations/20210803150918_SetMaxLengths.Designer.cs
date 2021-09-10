@@ -12,6 +12,7 @@ namespace Christofel.BaseLib.Migrations
     [Migration("20210803150918_SetMaxLengths")]
     partial class SetMaxLengths
     {
+        /// <inheritdoc/>
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

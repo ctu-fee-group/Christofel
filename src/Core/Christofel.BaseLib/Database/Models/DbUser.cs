@@ -1,3 +1,9 @@
+//
+//   DbUser.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,48 +17,60 @@ namespace Christofel.BaseLib.Database.Models
     /// Database table that holds authenticated users
     /// or users in auth process.
     /// </summary>
-    public class DbUser : ITimestampsEntity, IDiscordUser, IUser
+    public class DbUser : ITimestampsEntity, IDiscordUser
     {
+        /// <summary>
+        /// Gets or sets the primary key of <see cref="DbUser"/>.
+        /// </summary>
         [Key]
         public int UserId { get; set; }
 
-        public DateTime CreatedAt { get; set; }
-        
-        public DateTime? UpdatedAt { get; set; }
-        
         /// <summary>
-        /// Last date of authentication
+        /// Gets or sets last date of authentication.
         /// </summary>
         public DateTime? AuthenticatedAt { get; set; }
 
         /// <summary>
-        /// Id of the user on Discord
-        /// </summary>
-        public Snowflake DiscordId { get; set; }
-
-        /// <summary>
-        /// CTU account username
+        /// Gets or sets CTU account username.
         /// </summary>
         [MaxLength(256)]
         public string? CtuUsername { get; set; }
 
         /// <summary>
-        /// When this user is a duplicity (DuplicitUser is not null)
-        /// then set this to true if this user is allowed to finish the auth process
+        /// Gets or sets whether the duplicity was approved.
         /// </summary>
+        /// <remarks>
+        /// Users that are a duplicity won't get approved until this is set to true.
+        /// </remarks>
         public bool DuplicityApproved { get; set; }
-        
+
         /// <summary>
-        /// Id of the user this is a duplicity with
+        /// Gets or sets id of the user this is a duplicity with.
         /// </summary>
         public int? DuplicitUserId { get; set; }
-        
+
         /// <summary>
-        /// Code used for registration purposes
+        /// Gets or sets code used for registration purposes.
         /// </summary>
         public string? RegistrationCode { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets the duplicate user.
+        /// </summary>
         public DbUser? DuplicitUser { get; set; }
+
+        /// <summary>
+        /// Gets or sets duplicit users that target this user.
+        /// </summary>
         public List<DbUser>? DuplicitUsersBack { get; set; }
+
+        /// <inheritdoc />
+        public Snowflake DiscordId { get; set; }
+
+        /// <inheritdoc />
+        public DateTime CreatedAt { get; set; }
+
+        /// <inheritdoc />
+        public DateTime? UpdatedAt { get; set; }
     }
 }

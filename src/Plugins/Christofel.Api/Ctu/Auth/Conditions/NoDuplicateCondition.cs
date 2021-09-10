@@ -1,29 +1,38 @@
-using System.Linq;
+//
+//   NoDuplicateCondition.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Resolvers;
 using Christofel.Api.GraphQL.Common;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Extensions;
-using Microsoft.EntityFrameworkCore;
 using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Conditions
 {
+    /// <summary>
+    /// Condition that checks that the user is not a duplicate, or is an approved duplicate.
+    /// </summary>
     public class NoDuplicateCondition : IPreAuthCondition
     {
         private readonly DuplicateResolver _duplicates;
-        
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NoDuplicateCondition"/> class.
+        /// </summary>
+        /// <param name="duplicates">Resolver of the duplicates.</param>
         public NoDuplicateCondition(DuplicateResolver duplicates)
         {
             _duplicates = duplicates;
         }
-        
-        public async ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = new CancellationToken())
+
+        /// <inheritdoc />
+        public async ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = default)
         {
             Duplicate duplicate = await _duplicates.ResolveDuplicateAsync(authData.LoadedUser, ct);
-            DuplicityType duplicityType = duplicate.Type;
+            var duplicityType = duplicate.Type;
 
             switch (duplicityType)
             {
@@ -39,7 +48,5 @@ namespace Christofel.Api.Ctu.Auth.Conditions
 
             return Result.FromSuccess();
         }
-        
-
     }
 }

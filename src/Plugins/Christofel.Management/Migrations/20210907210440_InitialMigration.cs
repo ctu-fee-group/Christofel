@@ -1,11 +1,21 @@
-﻿using System;
+﻿//
+//  20210907210440_InitialMigration.cs
+//
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.Management.Migrations
 {
+    /// <summary>
+    /// Initial migration.
+    /// </summary>
     public partial class InitialMigration : Migration
     {
+        /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
@@ -30,6 +40,7 @@ namespace Christofel.Management.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
 
+        /// <inheritdoc/>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

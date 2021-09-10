@@ -1,3 +1,9 @@
+//
+//   DiscordLoggerProcessor.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,17 +17,24 @@ using Remora.Discord.Core;
 
 namespace Christofel.Logger
 {
+    /// <summary>
+    /// Background worker processing queue of discord logs.
+    /// </summary>
     public class DiscordLoggerProcessor : IDisposable
     {
         // TODO: how to handle exceptions here?
-
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
-        
-        private bool _disposed;
-        private IServiceProvider _provider;
+        private readonly IServiceProvider _provider;
         private IDiscordRestChannelAPI? _channelApi;
 
+        private bool _disposed;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiscordLoggerProcessor"/> class.
+        /// </summary>
+        /// <param name="provider">The provider of the services.</param>
+        /// <param name="options">The options of the provider.</param>
         public DiscordLoggerProcessor(IServiceProvider provider, DiscordLoggerOptions options)
         {
             _provider = provider;
@@ -31,14 +44,40 @@ namespace Christofel.Logger
 
             _outputThread = new Thread(ProcessLogQueue)
             {
-                IsBackground = true,
-                Name = "Discord logger queue processing thread"
+                IsBackground = true, Name = "Discord logger queue processing thread",
             };
             _outputThread.Start();
         }
 
-        public DiscordLoggerOptions Options { get; set; }
+        /// <summary>
+        /// Gets the options.
+        /// </summary>
+        public DiscordLoggerOptions Options { get; internal set; }
 
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _messageQueue.CompleteAdding();
+
+            try
+            {
+                _outputThread.Join(20000);
+                ProcessLogQueue();
+                _disposed = true;
+            }
+            catch (ThreadStateException)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Enqueues message to the queue.
+        /// </summary>
+        /// <remarks>
+        /// If the collection is full or it was already completed,
+        /// the message will be sent right away blocking the thread.
+        /// </remarks>
+        /// <param name="message">The message to enqueue.</param>
         public virtual void EnqueueMessage(DiscordLogMessage message)
         {
             if (!_disposed)
@@ -60,15 +99,22 @@ namespace Christofel.Logger
             }
             catch (Exception)
             {
+                // ignored
             }
         }
-        
+
         private static IEnumerable<string> Chunk(string? str, int chunkSize) =>
-            !string.IsNullOrEmpty(str) ?
-                Enumerable.Range(0, (int)Math.Ceiling(((double)str.Length) / chunkSize))
-                    .Select(i => str
-                        .Substring(i * chunkSize,
-                            (i * chunkSize + chunkSize <= str.Length) ? chunkSize : str.Length - i * chunkSize))
+            !string.IsNullOrEmpty(str)
+                ? Enumerable.Range(0, (int)Math.Ceiling((double)str.Length / chunkSize))
+                    .Select
+                    (
+                        i => str
+                            .Substring
+                            (
+                                i * chunkSize,
+                                (i * chunkSize) + chunkSize <= str.Length ? chunkSize : str.Length - (i * chunkSize)
+                            )
+                    )
                 : Enumerable.Empty<string>();
 
         private bool SendMessage(DiscordLogMessage entry)
@@ -77,21 +123,26 @@ namespace Christofel.Logger
             {
                 return false;
             }
-            
-            if (_channelApi is null)
-            {
-                _channelApi = _provider.GetRequiredService<IDiscordRestChannelAPI>();
-            }
 
-            bool success = true;
+            _channelApi ??= _provider.GetRequiredService<IDiscordRestChannelAPI>();
+
+            var success = true;
             Optional<IMessageReference> message = default;
             foreach (string part in Chunk(entry.Message, 2000))
             {
                 var result =
-                    _channelApi.CreateMessageAsync(new Snowflake(entry.ChannelId), part, messageReference: message,
+                    _channelApi.CreateMessageAsync
+                    (
+                        new Snowflake(entry.ChannelId),
+                        part,
+                        messageReference: message,
                         allowedMentions:
-                        new AllowedMentions(Roles: new List<Snowflake>(),
-                            Users: new List<Snowflake>())).GetAwaiter().GetResult();
+                        new AllowedMentions
+                        (
+                            Roles: new List<Snowflake>(),
+                            Users: new List<Snowflake>()
+                        )
+                    ).GetAwaiter().GetResult();
 
                 if (!result.IsSuccess)
                 {
@@ -108,10 +159,10 @@ namespace Christofel.Logger
 
         private void SendMessages(List<DiscordLogMessage> messages)
         {
-            int retries = 5;
+            var retries = 5;
             foreach (DiscordLogMessage message in messages)
             {
-                bool sent = false;
+                var sent = false;
 
                 while (!sent && retries-- > 0)
                 {
@@ -119,8 +170,8 @@ namespace Christofel.Logger
                     {
                         sent = SendMessage(message);
                     }
-                    catch (Exception) // Generally exceptions shouldn't happen here
-                    {
+                    catch (Exception)
+                    { // Generally exceptions shouldn't happen here
                         sent = false;
                     }
                 }
@@ -132,7 +183,6 @@ namespace Christofel.Logger
             try
             {
                 // TODO: refactor to make shorter
-                int count = 0;
                 while (!_messageQueue.IsCompleted)
                 {
                     List<DiscordLogMessage> fetchedMessages =
@@ -140,15 +190,21 @@ namespace Christofel.Logger
 
                     List<DiscordLogMessage> messagesToSend = fetchedMessages
                         .GroupBy(x => new { x.GuildId, x.ChannelId })
-                        .Select(x =>
-                            new DiscordLogMessage(x.Key.GuildId, x.Key.ChannelId,
-                                string.Join('\n', x.Select(x => x.Message)))
+                        .Select
+                        (
+                            x =>
+                                new DiscordLogMessage
+                                (
+                                    x.Key.GuildId,
+                                    x.Key.ChannelId,
+                                    string.Join('\n', x.Select(message => message.Message))
+                                )
                         ).ToList();
 
                     SendMessages(messagesToSend);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 try
                 {
@@ -156,22 +212,8 @@ namespace Christofel.Logger
                 }
                 catch
                 {
+                    // ignored
                 }
-            }
-        }
-
-        public void Dispose()
-        {
-            _messageQueue.CompleteAdding();
-
-            try
-            {
-                _outputThread.Join(20000);
-                ProcessLogQueue();
-                _disposed = true;
-            }
-            catch (ThreadStateException)
-            {
             }
         }
     }

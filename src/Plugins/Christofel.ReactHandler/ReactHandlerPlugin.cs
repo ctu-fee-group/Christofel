@@ -1,3 +1,9 @@
+//
+//   ReactHandlerPlugin.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -23,42 +29,58 @@ using Remora.Discord.Gateway.Extensions;
 
 namespace Christofel.ReactHandler
 {
+    /// <summary>
+    /// Plugin for handling commands that specify what messages to react to and reacting to these messages.
+    /// </summary>
     public class ReactHandlerPlugin : ChristofelDIPlugin
     {
-        private PluginLifetimeHandler _lifetimeHandler;
+        private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ReactHandlerPlugin>? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReactHandlerPlugin"/> class.
+        /// </summary>
         public ReactHandlerPlugin()
         {
-            _lifetimeHandler = new PluginLifetimeHandler(
+            _lifetimeHandler = new PluginLifetimeHandler
+            (
                 DefaultHandleError(() => _logger),
-                DefaultHandleStopRequest(() => _logger));
+                DefaultHandleStopRequest(() => _logger)
+            );
         }
 
+        /// <inheritdoc />
         public override string Name => "Christofel.ReactHandler";
 
+        /// <inheritdoc />
         public override string Description =>
             "Plugin for handling reacts on messages, marking messages to assign channels/roles on react";
 
+        /// <inheritdoc />
         public override string Version => "v1.0.0";
 
+        /// <inheritdoc />
         protected override IEnumerable<IRefreshable> Refreshable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStoppable> Stoppable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStartable> Startable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
+        /// <inheritdoc />
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
@@ -68,22 +90,32 @@ namespace Christofel.ReactHandler
                 .AddCommandGroup<HandleReactCommands>()
                 .AddResponder<DeleteReactHandlerResponder>()
                 .AddResponder<HandleReactResponder>()
-                .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
-                .AddDbContextFactory<ReactHandlerContext>(options =>
+                .AddSingleton(_lifetimeHandler.LifetimeSpecific)
+                .AddDbContextFactory<ReactHandlerContext>
+                (
+                    options =>
                         options
-                            .UseMySql(
+                            .UseMySql
+                            (
                                 State.Configuration.GetConnectionString("ReactHandler"),
-                                ServerVersion.AutoDetect(State.Configuration.GetConnectionString("ReactHandler")
-                                ))
-                    )
-                .AddTransient<ReactHandlerContext>(p =>
-                    p.GetRequiredService<IDbContextFactory<ReactHandlerContext>>().CreateDbContext())
+                                ServerVersion.AutoDetect(State.Configuration.GetConnectionString("ReactHandler"))
+                            )
+                )
+                .AddTransient
+                (
+                    p =>
+                        p.GetRequiredService<IDbContextFactory<ReactHandlerContext>>().CreateDbContext()
+                )
                 .AddReadOnlyDbContext<ReactHandlerContext>()
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
-        protected override Task InitializeServices(IServiceProvider services,
-            CancellationToken token = new CancellationToken())
+        /// <inheritdoc />
+        protected override Task InitializeServices
+        (
+            IServiceProvider services,
+            CancellationToken token = default
+        )
         {
             _logger = services.GetRequiredService<ILogger<ReactHandlerPlugin>>();
             ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();

@@ -1,3 +1,9 @@
+//
+//   WrongParametersExecutionEvent.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,24 +27,29 @@ using Remora.Results;
 namespace Christofel.CommandsLib.ExecutionEvents
 {
     /// <summary>
-    /// Prints correct usage of command to the user
+    /// Event catching missing command errors and telling the user correct syntax or what commands are in the group.
     /// </summary>
     public class WrongParametersExecutionEvent : IPostExecutionEvent
     {
+        private readonly CommandTree _commandTree;
         private readonly FeedbackService _feedbackService;
         private readonly IDiscordRestInteractionAPI _interactionApi;
-        private readonly CommandTree _commandTree;
         private readonly WrongParametersEventOptions _options;
 
         /// <summary>
-        /// Creates instance of <see cref="WrongParametersExecutionEvent"/>
+        /// Initializes a new instance of the <see cref="WrongParametersExecutionEvent"/> class.
         /// </summary>
-        /// <param name="feedbackService">Service used for sending feedback to the user</param>
-        /// <param name="interactionApi">Api used for sending interaction response</param>
-        /// <param name="commandTree">Command tree holding all application commands</param>
-        /// <param name="options">Options used for formatting of the usage</param>
-        public WrongParametersExecutionEvent(FeedbackService feedbackService, IDiscordRestInteractionAPI interactionApi,
-            CommandTree commandTree, IOptionsSnapshot<WrongParametersEventOptions> options)
+        /// <param name="feedbackService">Service used for sending feedback to the user.</param>
+        /// <param name="interactionApi">Api used for sending interaction response.</param>
+        /// <param name="commandTree">Command tree holding all application commands.</param>
+        /// <param name="options">Options used for formatting of the usage.</param>
+        public WrongParametersExecutionEvent
+        (
+            FeedbackService feedbackService,
+            IDiscordRestInteractionAPI interactionApi,
+            CommandTree commandTree,
+            IOptionsSnapshot<WrongParametersEventOptions> options
+        )
         {
             _options = options.Value;
             _commandTree = commandTree;
@@ -46,9 +57,13 @@ namespace Christofel.CommandsLib.ExecutionEvents
             _feedbackService = feedbackService;
         }
 
-        /// <inheritdoc/>
-        public Task<Result> AfterExecutionAsync(ICommandContext context, IResult commandResult,
-            CancellationToken ct = new CancellationToken())
+        /// <inheritdoc />
+        public Task<Result> AfterExecutionAsync
+        (
+            ICommandContext context,
+            IResult commandResult,
+            CancellationToken ct = default
+        )
         {
             if (!commandResult.IsSuccess && commandResult.Error is CommandNotFoundError commandNotFoundError)
             {
@@ -58,8 +73,8 @@ namespace Christofel.CommandsLib.ExecutionEvents
                 {
                     var explained = foundChildNode switch
                     {
-                        CommandNode commandNode => ExplainCommandNode(commandNode, ct),
-                        GroupNode groupNode => ExplainGroupNode(groupNode, ct),
+                        CommandNode commandNode => ExplainCommandNode(commandNode),
+                        GroupNode groupNode => ExplainGroupNode(groupNode),
                         _ => null,
                     };
 
@@ -74,12 +89,12 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        /// Sends message to the user using embed
+        /// Sends message to the user using embed.
         /// </summary>
-        /// <param name="context">Context of the command</param>
-        /// <param name="message">Message to be sent</param>
-        /// <param name="ct"></param>
-        /// <returns>Result containing response from the feedback service</returns>
+        /// <param name="context">Context of the command.</param>
+        /// <param name="message">Message to be sent.</param>
+        /// <param name="ct">The cancellation token for this operation.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         private async Task<Result> SendResponse(ICommandContext context, string message, CancellationToken ct)
         {
             if (context is InteractionContext interactionContext)
@@ -107,51 +122,42 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        /// Creates explanation string for matched group node
+        /// Creates explanation string for matched group node.
         /// </summary>
-        /// <param name="groupNode">Matched group node</param>
-        /// <param name="ct"></param>
-        /// <returns>Formatted explanation of the usage of the group</returns>
-        private string ExplainGroupNode(GroupNode groupNode,
-            CancellationToken ct)
+        /// <param name="groupNode">Matched group node.</param>
+        /// <returns>Formatted explanation of the usage of the group.</returns>
+        private string ExplainGroupNode(GroupNode groupNode)
         {
             var fullName = GetFullExecutionName(groupNode);
             var childNames = string.Join('|', groupNode.Children.Select(x => x.Key));
-            var dataDictionary = new Dictionary<string, string>
-            {
-                { "Name", fullName },
-                { "Children", childNames }
-            };
+            var dataDictionary = new Dictionary<string, string> { { "Name", fullName }, { "Children", childNames } };
 
             return FormatString(_options.GroupExplanationFormat, dataDictionary);
         }
 
         /// <summary>
-        /// Creates explanation string for matched command node
+        /// Creates explanation string for matched command node.
         /// </summary>
-        /// <param name="commandNode">Matched command node</param>
-        /// <param name="ct"></param>
-        /// <returns>Formatted explanation of the usage of the command</returns>
-        private string ExplainCommandNode(CommandNode commandNode,
-            CancellationToken ct)
+        /// <param name="commandNode">Matched command node.</param>
+        /// <returns>Formatted explanation of the usage of the command.</returns>
+        private string ExplainCommandNode(CommandNode commandNode)
         {
             var fullName = GetFullExecutionName(commandNode);
             var explainedParameters = commandNode.Shape.Parameters.Select(ExplainParameter);
-            
+
             var dataDictionary = new Dictionary<string, string>
             {
-                { "Name", fullName },
-                { "Parameters", string.Join(" ", explainedParameters) }
+                { "Name", fullName }, { "Parameters", string.Join(" ", explainedParameters) },
             };
 
             return FormatString(_options.CommandExplanationFormat, dataDictionary);
         }
 
         /// <summary>
-        /// Creates explanation string for one parameter
+        /// Creates explanation string for one parameter.
         /// </summary>
-        /// <param name="parameterShape">Current parameter of matched command</param>
-        /// <returns>Formatted explanation of the parameter</returns>
+        /// <param name="parameterShape">Current parameter of matched command.</param>
+        /// <returns>Formatted explanation of the parameter.</returns>
         private string ExplainParameter(IParameterShape parameterShape)
         {
             var format = parameterShape.IsOmissible()
@@ -159,22 +165,20 @@ namespace Christofel.CommandsLib.ExecutionEvents
                 : _options.RequiredParameterExplanationFormat;
             var dataDictionary = new Dictionary<string, string>
             {
-                { "Name", parameterShape.HintName },
-                { "Type", parameterShape.Parameter.ParameterType.Name }
+                { "Name", parameterShape.HintName }, { "Type", parameterShape.Parameter.ParameterType.Name },
             };
 
             return FormatString(format, dataDictionary);
         }
 
         /// <summary>
-        /// Obtains full name of the command by iterating through parents
+        /// Obtains full name of the command by iterating through parents.
         /// </summary>
-        /// <param name="commandNode"></param>
-        /// <returns>Full name of the command</returns>
+        /// <param name="commandNode">The node.</param>
+        /// <returns>Full name of the command.</returns>
         private string GetFullExecutionName(CommandNode commandNode)
         {
-            var nameParts = new List<string>();
-            nameParts.Add(commandNode.Key);
+            var nameParts = new List<string> { commandNode.Key };
 
             GetPartialExecutionName(commandNode.Parent, nameParts);
 
@@ -183,10 +187,10 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        /// Obtains full name of the group by iterating through parents
+        /// Obtains full name of the group by iterating through parents.
         /// </summary>
-        /// <param name="groupNode"></param>
-        /// <returns>Full name of the group</returns>
+        /// <param name="groupNode">The node.</param>
+        /// <returns>Full name of the group.</returns>
         private string GetFullExecutionName(GroupNode groupNode)
         {
             var nameParts = new List<string>();
@@ -259,7 +263,9 @@ namespace Christofel.CommandsLib.ExecutionEvents
                 }
             }
 
-            return node is IChildNode childNode ? childNode : null;
+            return node is IChildNode childNode
+                ? childNode
+                : null;
         }
 
         /// <summary>
@@ -303,9 +309,9 @@ namespace Christofel.CommandsLib.ExecutionEvents
         /// <remarks>
         /// Replaces parameters enclosed in curly braces {} by the value that is in parameters Dictionary.
         /// </remarks>
-        /// <param name="format"></param>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
+        /// <param name="format">The format that should be printed.</param>
+        /// <param name="parameters">The parameters that will be replaces.</param>
+        /// <returns>Formatted string.</returns>
         private string FormatString(string format, Dictionary<string, string> parameters)
         {
             parameters.Add("Prefix", _options.Prefix);

@@ -12,6 +12,7 @@ namespace Christofel.BaseLib.Migrations
     [Migration("20210806184152_MultileUserDuplicities")]
     partial class MultileUserDuplicities
     {
+        /// <inheritdoc/>
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

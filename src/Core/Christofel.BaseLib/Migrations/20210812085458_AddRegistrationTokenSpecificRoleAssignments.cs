@@ -1,10 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿//
+//  20210812085458_AddRegistrationTokenSpecificRoleAssignments.cs
+//
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.BaseLib.Migrations
 {
+    /// <summary>
+    /// Migration that adds registration token and specific role assignments.
+    /// </summary>
     public partial class AddRegistrationTokenSpecificRoleAssignments : Migration
     {
+        /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
@@ -54,6 +64,7 @@ namespace Christofel.BaseLib.Migrations
                 column: "AssignmentId");
         }
 
+        /// <inheritdoc/>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
@@ -69,7 +80,7 @@ namespace Christofel.BaseLib.Migrations
                 type: "varchar(256)",
                 maxLength: 256,
                 nullable: false,
-                defaultValue: "",
+                defaultValue: string.Empty,
                 oldClrType: typeof(string),
                 oldType: "varchar(256)",
                 oldMaxLength: 256,

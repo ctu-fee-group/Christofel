@@ -1,3 +1,9 @@
+//
+//   ApiPlugin.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.IO;
 using System.Threading;
@@ -17,45 +23,45 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api
 {
+    /// <summary>
+    /// Plugin representing GraphQL api.
+    /// </summary>
     public class ApiPlugin : IRuntimePlugin<IChristofelState, IPluginContext>
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
-        private ILogger<ApiPlugin>? _logger;
         private IHostApplicationLifetime? _aspLifetime;
-        private IHost? _host;
         private Thread? _aspThread;
+        private IHost? _host;
+        private ILogger<ApiPlugin>? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ApiPlugin"/> class.
+        /// </summary>
         public ApiPlugin()
         {
-            _lifetimeHandler = new PluginLifetimeHandler(
+            _lifetimeHandler = new PluginLifetimeHandler
+            (
                 HandleError,
                 HandleStop
             );
         }
 
+        /// <inheritdoc />
         public string Name => "Christofel.Api";
+
+        /// <inheritdoc />
         public string Description => "GraphQL API for Christofel";
+
+        /// <inheritdoc />
         public string Version => "v0.0.1";
+
+        /// <inheritdoc />
         public ILifetime Lifetime => _lifetimeHandler.Lifetime;
+
+        /// <inheritdoc />
         public IPluginContext Context => new PluginContext();
 
-        private IHostBuilder CreateHostBuilder(IChristofelState state) =>
-            Host.CreateDefaultBuilder()
-                .ConfigureServices(services =>
-                {
-                    services
-                        .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific);
-
-                    services
-                        .AddDiscordState(state)
-                        .AddChristofelDatabase(state);
-                })
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseConfiguration(state.Configuration);
-                    webBuilder.UseStartup<Startup>();
-                });
-
+        /// <inheritdoc />
         public async Task InitAsync(IChristofelState state, CancellationToken token)
         {
             try
@@ -69,7 +75,7 @@ namespace Christofel.Api
                     _logger = _host.Services.GetRequiredService<ILogger<ApiPlugin>>();
 
 #if DEBUG
-                    string? schemaPath = state.Configuration.GetValue<string?>("Debug:SchemaFile", null);
+                    var schemaPath = state.Configuration.GetValue<string?>("Debug:SchemaFile", null);
                     if (schemaPath != null)
                     {
                         IRequestExecutor executor = await _host.Services.GetRequiredService<IRequestExecutorResolver>()
@@ -87,7 +93,8 @@ namespace Christofel.Api
             }
         }
 
-        public async Task RunAsync(CancellationToken token = new CancellationToken())
+        /// <inheritdoc />
+        public Task RunAsync(CancellationToken token = default)
         {
             try
             {
@@ -109,21 +116,62 @@ namespace Christofel.Api
                 _lifetimeHandler.MoveToError(e);
                 throw;
             }
-        }
 
-        public Task RefreshAsync(CancellationToken token = new CancellationToken())
-        {
-            // Nothing to refresh for Api
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
+        public Task RefreshAsync(CancellationToken token = default) =>
+            Task.CompletedTask; // Nothing to refresh for Api
+
+        private IHostBuilder CreateHostBuilder(IChristofelState state) =>
+            Host.CreateDefaultBuilder()
+                .ConfigureServices
+                (
+                    services =>
+                    {
+                        services
+                            .AddSingleton(_lifetimeHandler.LifetimeSpecific);
+
+                        services
+                            .AddDiscordState(state)
+                            .AddChristofelDatabase(state);
+                    }
+                )
+                .ConfigureWebHostDefaults
+                (
+                    webBuilder =>
+                    {
+                        webBuilder.UseConfiguration(state.Configuration);
+                        webBuilder.UseStartup<Startup>();
+                    }
+                );
+
         private void RegisterAspLifetime()
         {
-            _aspLifetime?.ApplicationStarted.Register(() => { _lifetimeHandler.MoveToState(LifetimeState.Running); });
+            _aspLifetime?.ApplicationStarted.Register
+            (
+                () =>
+                {
+                    _lifetimeHandler.MoveToState(LifetimeState.Running);
+                }
+            );
 
-            _aspLifetime?.ApplicationStopping.Register(() => { _lifetimeHandler.RequestStop(); });
+            _aspLifetime?.ApplicationStopping.Register
+            (
+                () =>
+                {
+                    _lifetimeHandler.RequestStop();
+                }
+            );
 
-            _aspLifetime?.ApplicationStopped.Register(() => { _lifetimeHandler.RequestStop(); });
+            _aspLifetime?.ApplicationStopped.Register
+            (
+                () =>
+                {
+                    _lifetimeHandler.RequestStop();
+                }
+            );
         }
 
         private void HandleError(Exception? e)
@@ -134,31 +182,34 @@ namespace Christofel.Api
 
         private void HandleStop()
         {
-            Task.Run(async () =>
-            {
-                try
+            Task.Run
+            (
+                () =>
                 {
-                    _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
+                    try
+                    {
+                        _lifetimeHandler.MoveToIfLower(LifetimeState.Stopping);
 
-                    _aspLifetime?.StopApplication();
-                    _aspThread?.Join();
-                    _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
+                        _aspLifetime?.StopApplication();
+                        _aspThread?.Join();
+                        _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
 
-                    _host?.Dispose();
+                        _host?.Dispose();
 
-                    _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
+                        _lifetimeHandler.MoveToIfLower(LifetimeState.Stopped);
 
-                    _host = null;
-                    _aspLifetime = null;
+                        _host = null;
+                        _aspLifetime = null;
 
-                    _lifetimeHandler.MoveToState(LifetimeState.Destroyed);
-                    _lifetimeHandler.Dispose();
+                        _lifetimeHandler.MoveToState(LifetimeState.Destroyed);
+                        _lifetimeHandler.Dispose();
+                    }
+                    catch (Exception e)
+                    {
+                        _logger?.LogError(e, $"Plugin {Name} has thrown an exception during stopping");
+                    }
                 }
-                catch (Exception e)
-                {
-                    _logger?.LogError(e, $"Plugin {Name} has thrown an exception during stopping");
-                }
-            });
+            );
         }
     }
 }

@@ -1,3 +1,9 @@
+//
+//   ThreadPoolJobQueue.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,14 +12,27 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Api.Ctu.JobQueue
 {
+    /// <summary>
+    /// Job queue using thread pool queue.
+    /// </summary>
+    /// <remarks>
+    /// Creates thread only if there are any jobs pending,
+    /// if there aren't any jobs, no thread will be used.
+    /// </remarks>
+    /// <typeparam name="TJob">The type of the job.</typeparam>
     public abstract class ThreadPoolJobQueue<TJob> : IJobQueue<TJob>
     {
-        private readonly Queue<TJob> _queue;
         private readonly ILifetime _lifetime;
         private readonly ILogger _logger;
+        private readonly Queue<TJob> _queue;
 
         private bool _threadRunning;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ThreadPoolJobQueue{TJob}"/> class.
+        /// </summary>
+        /// <param name="lifetime">The lifetime of the current plugin.</param>
+        /// <param name="logger">The logger.</param>
         public ThreadPoolJobQueue(ICurrentPluginLifetime lifetime, ILogger logger)
         {
             _queue = new Queue<TJob>();
@@ -21,6 +40,7 @@ namespace Christofel.Api.Ctu.JobQueue
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public void EnqueueJob(TJob job)
         {
             if (_lifetime.Stopping.IsCancellationRequested)
@@ -29,7 +49,7 @@ namespace Christofel.Api.Ctu.JobQueue
                 return;
             }
 
-            bool createThread = false;
+            var createThread = false;
             lock (_queue)
             {
                 _queue.Enqueue(job);
@@ -50,7 +70,7 @@ namespace Christofel.Api.Ctu.JobQueue
 
         private async Task ProcessQueue()
         {
-            bool shouldRun = true;
+            var shouldRun = true;
             while (shouldRun)
             {
                 try
@@ -74,7 +94,7 @@ namespace Christofel.Api.Ctu.JobQueue
                 {
                     _logger.LogCritical(e, "Job has thrown an exception.");
                 }
-                
+
                 lock (_queue)
                 {
                     if (_queue.Count == 0)
@@ -88,6 +108,11 @@ namespace Christofel.Api.Ctu.JobQueue
             _logger.LogDebug("Destroying job thread, because no job is queued");
         }
 
+        /// <summary>
+        /// Processes given assign job.
+        /// </summary>
+        /// <param name="job">The job to process.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         protected abstract Task ProcessAssignJob(TJob job);
     }
 }

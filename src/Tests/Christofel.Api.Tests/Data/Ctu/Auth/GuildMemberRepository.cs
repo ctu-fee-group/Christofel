@@ -1,3 +1,9 @@
+//
+//   GuildMemberRepository.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System.Collections.Generic;
 using Christofel.BaseLib.Database.Models;
 using Remora.Discord.API.Abstractions.Objects;
@@ -6,12 +12,25 @@ using Remora.Discord.Core;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth
 {
+    /// <summary>
+    /// Repository for creating <see cref="IGuildMember"/>.
+    /// </summary>
     public class GuildMemberRepository
     {
-        public static GuildMember CreateDummyGuildMember(DbUser user)
-        {
-            return new GuildMember(new User(user.DiscordId, "DummyUser", 1234, default), default, new List<Snowflake>(),
-                default, default, default, default);
-        }
+        /// <summary>
+        /// Creates guild member using the specified <see cref="user"/>.
+        /// </summary>
+        /// <param name="user">The user to be set.</param>
+        /// <returns>GuildMember representing the <see cref="user"/>.</returns>
+        public static GuildMember CreateDummyGuildMember(DbUser user) => new GuildMember
+        (
+            new User(user.DiscordId, "DummyUser", 1234, default),
+            default,
+            new List<Snowflake>(),
+            default,
+            default,
+            default,
+            default
+        );
     }
 }

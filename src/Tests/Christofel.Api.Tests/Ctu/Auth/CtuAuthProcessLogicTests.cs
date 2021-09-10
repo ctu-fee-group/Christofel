@@ -1,7 +1,10 @@
+//
+//   CtuAuthProcessLogicTests.cs
+//
+//   Copyright (c) Christofel authors. All rights reserved.
+//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.Xml;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
@@ -9,57 +12,88 @@ using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Auth.Steps;
 using Christofel.Api.Ctu.Auth.Tasks;
 using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.GraphQL.Types;
 using Christofel.Api.OAuth;
 using Christofel.Api.Tests.Data.Ctu.Auth;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.User;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.API.Objects;
-using Remora.Discord.Core;
 using TestSupport.EfHelpers;
 using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
-    public partial class CtuAuthProcessLogicTests : IDisposable
+    /// <summary>
+    /// Tests logic of ctu auth process using mock, custom data.
+    /// </summary>
+    public class CtuAuthProcessLogicTests : IDisposable
     {
-        protected readonly ChristofelBaseContext _dbContext;
-        protected readonly IDisposable _optionsDisposable;
+        /// <summary>
+        /// Gets the database context.
+        /// </summary>
+        protected ChristofelBaseContext DbContext { get; }
 
-        protected readonly string _dummyAccessToken = "myToken";
-        protected readonly string _dummyUsername = "someUsername";
-        protected readonly ulong _dummyGuildId = 93249823482348;
+        /// <summary>
+        /// Gets dummy access token used for testing.
+        /// </summary>
+        protected string DummyAccessToken => "myToken";
 
+        /// <summary>
+        /// Gets dummy guild id used for testing.
+        /// </summary>
+        protected ulong DummyGuildId => 93249823482348;
+
+        /// <summary>
+        /// Gets dummy username used for testing.
+        /// </summary>
+        protected string DummyUsername => "someUsername";
+
+        /// <summary>
+        /// Gets options of the database context.
+        /// </summary>
+        protected DbContextOptionsDisposable<ChristofelBaseContext> OptionsDisposable { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CtuAuthProcessLogicTests"/> class.
+        /// </summary>
         public CtuAuthProcessLogicTests()
         {
             var options = SqliteInMemory.CreateOptions<ChristofelBaseContext>();
-            _optionsDisposable = options;
+            OptionsDisposable = options;
 
-            _dbContext = new ChristofelBaseContext(options);
-            _dbContext.Database.EnsureCreated();
+            DbContext = new ChristofelBaseContext(options);
+            DbContext.Database.EnsureCreated();
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
-            _dbContext?.Dispose();
-            _optionsDisposable?.Dispose();
+            DbContext?.Dispose();
+            OptionsDisposable?.Dispose();
         }
 
-        protected IGuildMember CreateDummyGuildMember(DbUser user)
-        {
-            return GuildMemberRepository.CreateDummyGuildMember(user);
-        }
+        /// <summary>
+        /// Creates dummy guild member with the given user.
+        /// </summary>
+        /// <param name="user">The user that the guild member should represent.</param>
+        /// <returns>Guild member that represents the user.</returns>
+        protected IGuildMember CreateDummyGuildMember(DbUser user) => GuildMemberRepository.CreateDummyGuildMember
+            (user);
 
-        protected Mock<ICtuTokenApi> GetMockedTokenApi(DbUser user)
-        {
-            return OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
-        }
+        /// <summary>
+        /// Creates mocked <see cref="ICtuTokenApi"/> that will return the given user.
+        /// </summary>
+        /// <param name="user">The user that should be returned.</param>
+        /// <returns>Mocked <see cref="ICtuTokenApi"/> that will return the given user.</returns>
+        protected Mock<ICtuTokenApi> GetMockedTokenApi(DbUser user) => OauthTokenApiRepository.GetMockedTokenApi
+            (user, DummyUsername);
 
+        /// <summary>
+        /// Tests that the process calls condition method.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsCondition()
         {
@@ -71,20 +105,33 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockCondition.Verify(service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockCondition.Verify
+            (
+                service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
+        /// <summary>
+        /// Tests that the process calls task method.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsTask()
         {
@@ -96,20 +143,33 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockTask.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockTask.Verify
+            (
+                service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
+        /// <summary>
+        /// Tests that the process calls step method.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsStep()
         {
@@ -121,20 +181,33 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockStep.Verify(service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockStep.Verify
+            (
+                service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
+        /// <summary>
+        /// Tests that the process calls all of the conditions methods.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsMultipleConditions()
         {
@@ -147,39 +220,61 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockCondition.Verify(service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
-            
+            mockCondition.Verify
+            (
+                service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+
             mockCondition = new Mock<ConditionRepository.MockCondition>();
-            
+
             services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddScoped<IPreAuthCondition, ConditionRepository.MockCondition>(p => mockCondition.Object)
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
-            
+
             dummyGuildMember = CreateDummyGuildMember(user);
             successfulOauthHandler = GetMockedTokenApi(user);
 
             process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockCondition.Verify(service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockCondition.Verify
+            (
+                service => service.CheckPreAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
+        /// <summary>
+        /// Tests that the process calls all of the tasks methods.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsMultipleTasks()
         {
@@ -192,21 +287,30 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockTask.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
-            
+            mockTask.Verify
+            (
+                service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+
             mockTask = new Mock<TaskRepository.MockTask>();
-            
+
             services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddScoped<IAuthTask, TaskRepository.MockTask>(p => mockTask.Object)
@@ -218,14 +322,27 @@ namespace Christofel.Api.Tests.Ctu.Auth
             successfulOauthHandler = GetMockedTokenApi(user);
 
             process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockTask.Verify(service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockTask.Verify
+            (
+                service => service.ExecuteAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
 
+        /// <summary>
+        /// Tests that the process calls all of the steps methods.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsMultipleSteps()
         {
@@ -238,38 +355,56 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockStep.Verify(service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
-            
+            mockStep.Verify
+            (
+                service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
+
             mockStep = new Mock<StepRepository.MockStep>();
-            
+
             services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddScoped<IAuthStep, StepRepository.MockStep>(p => mockStep.Object)
                 .AddAuthStep<StepRepository.SuccessfulStep>()
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
-            
+
             dummyGuildMember = CreateDummyGuildMember(user);
             successfulOauthHandler = GetMockedTokenApi(user);
 
             process = services.GetRequiredService<CtuAuthProcess>();
-            await process.FinishAuthAsync(_dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember);
+            await process.FinishAuthAsync
+            (
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
+            );
 
-            mockStep.Verify(service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
-                Times.Once);
+            mockStep.Verify
+            (
+                service => service.FillDataAsync(It.IsAny<IAuthData>(), It.IsAny<CancellationToken>()),
+                Times.Once
+            );
         }
     }
 }

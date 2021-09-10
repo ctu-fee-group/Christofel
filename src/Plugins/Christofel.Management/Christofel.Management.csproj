@@ -7,22 +7,22 @@
         <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Core/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)" />
         <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Core/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)" />
     </Target>
-    
+
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="FluentValidation" Version="10.3.3" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
+        <PackageReference Include="FluentValidation" Version="10.3.3" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
-      <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj" />
-      <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
+        <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
+        <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+        <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
     </ItemGroup>
 
 </Project>

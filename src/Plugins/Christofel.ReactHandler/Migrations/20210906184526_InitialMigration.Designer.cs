@@ -11,6 +11,7 @@ namespace Christofel.ReactHandler.Migrations
     [Migration("20210906184526_InitialMigration")]
     partial class InitialMigration
     {
+        /// <inheritdoc/>
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
