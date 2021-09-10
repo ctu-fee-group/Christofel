@@ -18,12 +18,20 @@ using Remora.Results;
 
 namespace Christofel.Application.State
 {
+    /// <inheritdoc cref="Christofel.BaseLib.Discord.IBot" />
     public class DiscordBot : IBot, IDisposable
     {
         private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
         private readonly IApplicationLifetime _lifetime;
         private readonly ILogger<DiscordBot> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiscordBot"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">The http client factory.</param>
+        /// <param name="client">The gateway client.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="lifetime">The lifetime of the application.</param>
         public DiscordBot
         (
             IHttpClientFactory httpClientFactory,
@@ -39,18 +47,23 @@ namespace Christofel.Application.State
             _logger = logger;
         }
 
+        /// <inheritdoc/>
         public DiscordGatewayClient Client { get; }
+
+        /// <inheritdoc/>
         public IHttpClientFactory HttpClientFactory { get; }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             _applicationRunningToken.Dispose();
         }
 
         /// <summary>
-        /// Runs application in delay task until stop is requested using cancellation token
+        /// Runs application in delay task until stop is requested using cancellation token.
         /// </summary>
-        /// <param name="token"></param>
+        /// <param name="token">The cancellation token for the operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public async Task RunApplication(CancellationToken token = default)
         {
             _logger.LogInformation("Running application");
@@ -92,6 +105,7 @@ namespace Christofel.Application.State
             {
                 _logger.LogInformation("Going to wait for Christofel to stop. If the app hangs, just kill it");
                 await _lifetime.WaitForAsync(LifetimeState.Destroyed, default);
+
                 // Await destroyed at all costs
                 // If the application is not exiting, the user can just kill it
             }

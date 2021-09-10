@@ -7,12 +7,12 @@
 namespace Christofel.Application.State
 {
     /// <summary>
-    /// Options for logging Discord bot in
+    /// Options for Discord bot.
     /// </summary>
     public class DiscordBotOptions
     {
         /// <summary>
-        /// Bot token
+        /// Gets or sets the token of the bot.
         /// </summary>
         public string Token { get; set; } = null!;
     }

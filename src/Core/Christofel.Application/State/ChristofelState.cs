@@ -15,8 +15,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.State
 {
+    /// <inheritdoc />
     public class ChristofelState : IChristofelState
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChristofelState"/> class.
+        /// </summary>
+        /// <param name="bot">The discord bot.</param>
+        /// <param name="factory">The christofel base context factory.</param>
+        /// <param name="config">The configuration.</param>
+        /// <param name="permissions">The permissions service.</param>
+        /// <param name="loggerFactory">The logger factory.</param>
+        /// <param name="lifetime">The lifetime of the application.</param>
         public ChristofelState
         (
             IBot bot,
@@ -35,13 +45,22 @@ namespace Christofel.Application.State
             Lifetime = lifetime;
         }
 
+        /// <inheritdoc />
         public IBot Bot { get; }
+
+        /// <inheritdoc />
         public IDbContextFactory<ChristofelBaseContext> DatabaseFactory { get; }
+
+        /// <inheritdoc />
         public IConfiguration Configuration { get; }
+
+        /// <inheritdoc />
         public IPermissionService Permissions { get; }
 
+        /// <inheritdoc />
         public ILoggerFactory LoggerFactory { get; }
 
+        /// <inheritdoc />
         public IApplicationLifetime Lifetime { get; }
     }
 }

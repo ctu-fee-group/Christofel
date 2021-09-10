@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace Christofel.Application.State
 {
     /// <summary>
-    /// Handles lifetime of the application
+    /// Handles lifetime of the application.
     /// </summary>
     public class ChristofelLifetimeHandler : LifetimeHandler<IApplicationLifetime>
     {
@@ -21,29 +21,42 @@ namespace Christofel.Application.State
         private ApplicationLifetime? _lifetime;
         private bool _stopRequestReceived;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChristofelLifetimeHandler"/> class.
+        /// </summary>
+        /// <param name="handleError">Action that will be called on error.</param>
+        /// <param name="app">The application.</param>
         public ChristofelLifetimeHandler(Action<Exception?> handleError, ChristofelApp app)
             : base(handleError)
         {
             _app = app;
         }
 
+        /// <summary>
+        /// The logger of the application.
+        /// </summary>
         public ILogger? Logger { get; set; }
 
+        /// <summary>
+        /// The state of the lifetime.
+        /// </summary>
         public LifetimeState State { get; private set; }
 
+        /// <inheritdoc />
         public override IApplicationLifetime LifetimeSpecific
         {
             get
             {
                 if (_lifetime == null)
                 {
-                    _lifetime = new ApplicationLifetime(this, _started, _stopping, _stopped, _errored);
+                    _lifetime = new ApplicationLifetime(this, Started, Stopping, Stopped, Errored);
                 }
 
                 return _lifetime;
             }
         }
 
+        /// <inheritdoc />
         public override void MoveToState(LifetimeState state)
         {
             LifetimeState current;
@@ -56,6 +69,7 @@ namespace Christofel.Application.State
             TriggerStateActions(current, state);
         }
 
+        /// <inheritdoc />
         public override void RequestStop()
         {
             if (_stopRequestReceived)
@@ -90,10 +104,13 @@ namespace Christofel.Application.State
             );
         }
 
-        public class ApplicationLifetime : IApplicationLifetime
+        private class ApplicationLifetime : IApplicationLifetime
         {
             private readonly ChristofelLifetimeHandler _handler;
-            private readonly CancellationTokenSource _started, _stopped, _stopping, _errored;
+            private readonly CancellationTokenSource _started;
+            private readonly CancellationTokenSource _stopped;
+            private readonly CancellationTokenSource _stopping;
+            private readonly CancellationTokenSource _errored;
 
             public ApplicationLifetime
             (
@@ -112,11 +129,15 @@ namespace Christofel.Application.State
             }
 
             public LifetimeState State => _handler.State;
+
             public bool IsErrored => _handler.IsErrored;
 
             public CancellationToken Errored => _errored.Token;
+
             public CancellationToken Started => _started.Token;
+
             public CancellationToken Stopped => _stopped.Token;
+
             public CancellationToken Stopping => _stopping.Token;
 
             public void RequestStop()

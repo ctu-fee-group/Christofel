@@ -10,8 +10,16 @@ using System.Threading.Tasks;
 
 namespace Christofel.Application
 {
+    /// <summary>
+    /// The entry point class of Christofel.
+    /// </summary>
     public class Program
     {
+        /// <summary>
+        /// The main entry point of Christofel.
+        /// </summary>
+        /// <param name="args">Command line arguments.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public static async Task Main(string[] args)
         {
             try

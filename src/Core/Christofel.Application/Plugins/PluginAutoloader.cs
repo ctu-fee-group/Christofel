@@ -17,9 +17,13 @@ using Microsoft.Extensions.Options;
 namespace Christofel.Application.Plugins
 {
     /// <summary>
-    /// Auto loads plugins specified in configuration
-    /// on startup
+    /// Stateful service for managing plugins states.
     /// </summary>
+    /// <remarks>
+    /// Loads plugins on <see cref="IStartable.StartAsync"/> based on the options.
+    /// Refreshes plugins on <see cref="IRefreshable.RefreshAsync"/>.
+    /// Unloads all plugins on <see cref="IStoppable.StopAsync"/>.
+    /// </remarks>
     public class PluginAutoloader : IStartable, IRefreshable, IStoppable
     {
         private readonly ILogger<PluginAutoloader> _logger;
@@ -27,6 +31,13 @@ namespace Christofel.Application.Plugins
         private readonly PluginService _plugins;
         private readonly PluginStorage _pluginStorage;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginAutoloader"/> class.
+        /// </summary>
+        /// <param name="options">The options for the autoloading.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="plugins">The service of the plugins.</param>
+        /// <param name="pluginStorage">The storage for the plugins.</param>
         public PluginAutoloader
         (
             IOptions<PluginAutoloaderOptions> options,
@@ -41,6 +52,7 @@ namespace Christofel.Application.Plugins
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public Task RefreshAsync(CancellationToken token = default)
         {
             return Task.WhenAll
@@ -50,6 +62,7 @@ namespace Christofel.Application.Plugins
             );
         }
 
+        /// <inheritdoc />
         public async Task StartAsync(CancellationToken token = default)
         {
             if (_options.AutoLoad == null)
@@ -70,6 +83,7 @@ namespace Christofel.Application.Plugins
             }
         }
 
+        /// <inheritdoc />
         public Task StopAsync(CancellationToken token = default) => _plugins.DetachAllAsync(token);
     }
 }

@@ -35,14 +35,23 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Extensions;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
+using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
 using Remora.Results;
 
 namespace Christofel.Application
 {
+    /// <summary>
+    /// Delegate for refreshing christofel application.
+    /// </summary>
+    /// <param name="token">The cancellation token for the operation.</param>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
     public delegate Task RefreshChristofel(CancellationToken token);
 
+    /// <summary>
+    /// Christofel application managing state of the application.
+    /// </summary>
     public class ChristofelApp : ChristofelDIPlugin, IRefreshable, IStoppable
     {
         private readonly IConfigurationRoot _configuration;
@@ -50,16 +59,26 @@ namespace Christofel.Application
         private ILogger<ChristofelApp>? _logger;
         private bool _running;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChristofelApp"/> class.
+        /// </summary>
+        /// <param name="commandArgs">The arguments from the command line.</param>
         public ChristofelApp(string[] commandArgs)
         {
             _lifetimeHandler = new ChristofelLifetimeHandler(DefaultHandleError(() => _logger), this);
             _configuration = CreateConfiguration(commandArgs);
         }
 
+        /// <inheritdoc/>
         public override string Name => "Christofel.Application";
+
+        /// <inheritdoc/>
         public override string Description => "Base application with module commands managing their lifecycle";
+
+        /// <inheritdoc />
         public override string Version => "v0.0.1";
 
+        /// <inheritdoc />
         protected override IEnumerable<IRefreshable> Refreshable
         {
             get
@@ -70,6 +89,7 @@ namespace Christofel.Application
             }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStoppable> Stoppable
         {
             get
@@ -80,10 +100,11 @@ namespace Christofel.Application
             }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStartable> Startable => Enumerable.Empty<IStartable>();
 
         /// <summary>
-        /// Start after Ready event was received
+        /// Start after Ready event was received.
         /// </summary>
         private IEnumerable<IStartable> DeferStartable
         {
@@ -94,8 +115,10 @@ namespace Christofel.Application
             }
         }
 
+        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
+        /// <inheritdoc />
         Task IRefreshable.RefreshAsync(CancellationToken token)
         {
             _logger.LogInformation("Refreshing Christofel");
@@ -103,12 +126,18 @@ namespace Christofel.Application
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         Task IStoppable.StopAsync(CancellationToken token)
         {
             _logger.LogInformation("Stopping Christofel");
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Creates configuration of the application from json files, environment variables and command line args.
+        /// </summary>
+        /// <param name="commandArgs">The command line arguments.</param>
+        /// <returns>The built configuration.</returns>
         public static IConfigurationRoot CreateConfiguration(string[] commandArgs)
         {
             string environment = Environment.GetEnvironmentVariable("ENV") ?? "production";
@@ -121,15 +150,18 @@ namespace Christofel.Application
                 .Build();
         }
 
+        /// <inheritdoc />
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
                 .AddSingleton<IChristofelState, ChristofelState>()
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)
+
                 // plugins
                 .AddPlugins()
                 .AddTransient<PluginAutoloader>()
                 .AddRuntimePlugins<IChristofelState, IPluginContext>()
+
                 // config
                 .AddSingleton<IConfiguration>(_configuration)
                 .Configure<BotOptions>(_configuration.GetSection("Bot"))
@@ -137,6 +169,7 @@ namespace Christofel.Application
                 .Configure<PluginServiceOptions>(_configuration.GetSection("Plugins"))
                 .Configure<PluginAutoloaderOptions>(_configuration.GetSection("Plugins"))
                 .AddSingleton<IBot, DiscordBot>()
+
                 // db
                 .AddDbContextFactory<ChristofelBaseContext>
                 (
@@ -154,9 +187,11 @@ namespace Christofel.Application
                         p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext()
                 )
                 .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
+
                 // permissions
                 .AddSingleton<IPermissionService, ListPermissionService>()
                 .AddTransient<IPermissionsResolver, DbPermissionsResolver>()
+
                 // loggings
                 .AddLogging
                 (
@@ -170,6 +205,7 @@ namespace Christofel.Application
                             .AddDiscordLogger();
                     }
                 )
+
                 // discord
                 .AddDiscordGateway(p => p.GetRequiredService<IOptions<DiscordBotOptions>>().Value.Token)
                 .Configure<DiscordGatewayClientOptions>
@@ -177,10 +213,12 @@ namespace Christofel.Application
                     o =>
                         o.Intents |= GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessages
                 )
+
                 // events
                 .AddResponder<ChristofelReadyResponder>()
                 .AddResponder<ApplicationResponder<IChristofelState, IPluginContext>>()
                 .AddScoped(p => new ChristofelReadyResponder(this))
+
                 // commands
                 .AddChristofelCommands()
                 .AddCommandGroup<ControlCommands>()
@@ -188,6 +226,7 @@ namespace Christofel.Application
                 .AddSingleton<RefreshChristofel>(RefreshAsync);
         }
 
+        /// <inheritdoc />
         protected override Task InitializeServices
         (
             IServiceProvider services,
@@ -199,18 +238,29 @@ namespace Christofel.Application
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Initializes the service provider returning context of the plugin.
+        /// </summary>
+        /// <returns>Context of the plugin.</returns>
         public Task InitAsync() => base.InitAsync();
 
+        /// <summary>
+        /// Runs Christofel application in blocking state.
+        /// </summary>
+        /// <param name="token">The cancellation token for the operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public async Task RunBlockAsync(CancellationToken token = default)
         {
-            DiscordBot bot = (DiscordBot) Services.GetRequiredService<IBot>();
+            DiscordBot bot = (DiscordBot)Services.GetRequiredService<IBot>();
             await bot.RunApplication
             (
                 CancellationTokenSource
-                    .CreateLinkedTokenSource(Lifetime.Stopped, token).Token
+                    .CreateLinkedTokenSource(Lifetime.Stopped, token)
+                    .Token
             );
         }
 
+        /// <inheritdoc />
         public override async Task DestroyAsync(CancellationToken token = default)
         {
             foreach (DiscordLoggerProvider provider in Services.GetRequiredService<IEnumerable<ILoggerProvider>>()
@@ -222,13 +272,17 @@ namespace Christofel.Application
             await base.DestroyAsync(token);
         }
 
+        /// <summary>
+        /// Handles <see cref="IReady"/> event.
+        /// </summary>
+        /// <returns>A result that may not have been successful.</returns>
         public async Task<Result> HandleReady()
         {
             if (!_running)
             {
                 try
                 {
-                    await base.RunAsync(false, DeferStartable, _lifetimeHandler.Lifetime.Stopped);
+                    await RunAsync(false, DeferStartable, _lifetimeHandler.Lifetime.Stopped);
                     _logger.LogInformation("Christofel is ready!");
                 }
                 catch (Exception e)

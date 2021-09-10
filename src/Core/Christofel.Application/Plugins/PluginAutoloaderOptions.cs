@@ -6,8 +6,14 @@
 
 namespace Christofel.Application.Plugins
 {
+    /// <summary>
+    /// Options for <see cref="PluginAutoloader"/>.
+    /// </summary>
     public class PluginAutoloaderOptions
     {
+        /// <summary>
+        /// Gets or sets plugins to autoload on startup.
+        /// </summary>
         public string[]? AutoLoad { get; set; }
     }
 }

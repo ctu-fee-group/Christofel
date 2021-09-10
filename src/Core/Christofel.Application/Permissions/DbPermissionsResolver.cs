@@ -19,18 +19,22 @@ using Microsoft.EntityFrameworkCore;
 namespace Christofel.Application.Permissions
 {
     /// <summary>
-    /// Resolver of permissions using database.
-    /// Table with PermissionName, DiscordTarget is used
+    /// Permission resolver that uses database for the resolution of the permissions.
     /// </summary>
     public sealed class DbPermissionsResolver : IPermissionsResolver
     {
         private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _readOnlyDbContextFactory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DbPermissionsResolver"/> class.
+        /// </summary>
+        /// <param name="readOnlyDbContextFactory">The readonly christofel base database context factory.</param>
         public DbPermissionsResolver(ReadonlyDbContextFactory<ChristofelBaseContext> readOnlyDbContextFactory)
         {
             _readOnlyDbContextFactory = readOnlyDbContextFactory;
         }
 
+        /// <inheritdoc />
         public async Task<IEnumerable<DiscordTarget>> GetPermissionTargetsAsync
             (string permissionName, CancellationToken token = default)
         {
@@ -41,6 +45,7 @@ namespace Christofel.Application.Permissions
                 .ToListAsync(token);
         }
 
+        /// <inheritdoc />
         public async Task<bool> HasPermissionAsync
             (string permissionName, DiscordTarget target, CancellationToken token = default)
         {
@@ -50,10 +55,12 @@ namespace Christofel.Application.Permissions
                 .AnyAsync
                 (
                     x => x.Target.TargetType == TargetType.Everyone ||
-                         x.Target.DiscordId == target.DiscordId && x.Target.TargetType == target.TargetType, token
+                         (x.Target.DiscordId == target.DiscordId && x.Target.TargetType == target.TargetType),
+                    token
                 );
         }
 
+        /// <inheritdoc />
         public async Task<bool> AnyHasPermissionAsync
         (
             string permissionName,
@@ -74,7 +81,7 @@ namespace Christofel.Application.Permissions
 
             yield return "*";
 
-            string ret = "";
+            string ret = string.Empty;
             foreach (string part in splitted.Take(splitted.Length - 1))
             {
                 ret += part + ".";

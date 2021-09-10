@@ -12,17 +12,24 @@ using Remora.Results;
 
 namespace Christofel.Application
 {
+    /// <summary>
+    /// Responder to <see cref="IReady"/> event that will start Christofel services.
+    /// </summary>
     public class ChristofelReadyResponder : IResponder<IReady>
     {
         private readonly ChristofelApp _app;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChristofelReadyResponder"/> class.
+        /// </summary>
+        /// <param name="app">The application.</param>
         public ChristofelReadyResponder(ChristofelApp app)
         {
             _app = app;
         }
 
+        /// <inheritdoc/>
         public Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = default) =>
-            // TODO: somehow move the logic here
             _app.HandleReady();
     }
 }

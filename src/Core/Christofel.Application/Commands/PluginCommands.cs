@@ -1,8 +1,8 @@
 //
-//   PluginCommandsGroup.cs
+//  PluginCommands.cs
 //
-//   Copyright (c) Christofel authors. All rights reserved.
-//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
 using System.Collections.Generic;
@@ -23,8 +23,7 @@ using Remora.Results;
 namespace Christofel.Application.Commands
 {
     /// <summary>
-    ///
- Handler of /plugin attach, detach, reattach, list, check commands
+    /// Handles /plugins attach, detach, reattach, list, check commands.
     /// </summary>
     [Group("plugins")]
     [DiscordDefaultPermission(false)]
@@ -37,6 +36,13 @@ namespace Christofel.Application.Commands
         private readonly PluginService _plugins;
         private readonly PluginStorage _storage;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginCommands"/> class.
+        /// </summary>
+        /// <param name="plugins">The plugin service.</param>
+        /// <param name="storage">The plugin storage.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="feedbackService">The feedback service.</param>
         public PluginCommands
         (
             PluginService plugins,
@@ -51,6 +57,14 @@ namespace Christofel.Application.Commands
             _logger = logger;
         }
 
+        /// <summary>
+        /// Handles /plugins attach command.
+        /// </summary>
+        /// <remarks>
+        /// Tries to attach and initialized plugin.
+        /// </remarks>
+        /// <param name="pluginName">The name of the plugin.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("attach")]
         [Description("Attach given plugin by name")]
         [RequirePermission("application.plugins.attach")]
@@ -98,6 +112,14 @@ namespace Christofel.Application.Commands
             return Result.FromSuccess();
         }
 
+        /// <summary>
+        /// Handles /plugins detach command.
+        /// </summary>
+        /// <remarks>
+        /// Destroys and detaches plugin.
+        /// </remarks>
+        /// <param name="pluginName">The name of the plugin.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("detach")]
         [Description("Detach given plugin by name")]
         [RequirePermission("application.plugins.detach")]
@@ -139,6 +161,14 @@ namespace Christofel.Application.Commands
             return Result.FromSuccess();
         }
 
+        /// <summary>
+        /// Handles /plugins reattach.
+        /// </summary>
+        /// <remarks>
+        /// Tries to detach and then attach the given plugin.
+        /// </remarks>
+        /// <param name="pluginName">The name of the plugin.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("reattach")]
         [Description("Reattach given plugin by name")]
         [RequirePermission("application.plugins.reattach")]
@@ -180,6 +210,13 @@ namespace Christofel.Application.Commands
             return Result.FromSuccess();
         }
 
+        /// <summary>
+        /// Handles /plugins list command.
+        /// </summary>
+        /// <remarks>
+        /// Lists attached and attachable plugins.
+        /// </remarks>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("list")]
         [Description("List all attached plugins")]
         [RequirePermission("application.plugins.list")]
@@ -211,6 +248,10 @@ namespace Christofel.Application.Commands
             );
         }
 
+        /// <summary>
+        /// Handles /plugins check command.
+        /// </summary>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("check")]
         [Description("Check if detached plugins freed the memory")]
         [RequirePermission("application.plugins.check")]

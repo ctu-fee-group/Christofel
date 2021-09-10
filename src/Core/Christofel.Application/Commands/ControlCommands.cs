@@ -1,8 +1,8 @@
 //
-//   ControlCommandGroup.cs
+//  ControlCommands.cs
 //
-//   Copyright (c) Christofel authors. All rights reserved.
-//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,7 +20,7 @@ using Remora.Results;
 namespace Christofel.Application.Commands
 {
     /// <summary>
-    /// Handler of /refresh and /quit commands
+    /// Handles /refresh and /quit commands.
     /// </summary>
     public class ControlCommands : CommandGroup
     {
@@ -29,6 +29,13 @@ namespace Christofel.Application.Commands
         private readonly ILogger<ControlCommands> _logger;
         private readonly RefreshChristofel _refresh;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ControlCommands"/> class.
+        /// </summary>
+        /// <param name="feedbackService">The feedback service.</param>
+        /// <param name="lifetime">The lifetime of the application.</param>
+        /// <param name="refresh">The refresh delegate for refreshing Christofel application.</param>
+        /// <param name="logger">The logger.</param>
         public ControlCommands
         (
             FeedbackService feedbackService,
@@ -43,6 +50,13 @@ namespace Christofel.Application.Commands
             _refresh = refresh;
         }
 
+        /// <summary>
+        /// Handles /refresh command.
+        /// </summary>
+        /// <remarks>
+        /// Calls refresh delegate of the application.
+        /// </remarks>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("refresh")]
         [Description("Refresh the application and all plugins, reloading permissions, configuration and such")]
         [RequirePermission("application.refresh")]
@@ -55,6 +69,13 @@ namespace Christofel.Application.Commands
             return await _feedbackService.SendContextualSuccessAsync("Successfully refreshed", ct: CancellationToken);
         }
 
+        /// <summary>
+        /// Handles /quit command.
+        /// </summary>
+        /// <remarks>
+        /// Requests stop on the application lifetime.
+        /// </remarks>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("quit")]
         [Description("Exit the application")]
         [RequirePermission("application.quit")]
