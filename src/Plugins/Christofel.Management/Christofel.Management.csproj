@@ -1,13 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <ItemGroup>
-        <_CopyPlugin Include="$(ProjectDir)/$(OutDir)/*" />
-    </ItemGroup>
-    <Target Name="CopyPluginFiles" AfterTargets="Build">
-        <Message Text="Copying to Christofel.Application plugins folder..." />
-        <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Core/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)" />
-        <Copy SourceFiles="@(_CopyPlugin)" DestinationFolder="$(SolutionDir)/Core/Christofel.Application/$(OutDir)/Plugins/$(ProjectName)" />
-    </Target>
-
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <Nullable>enable</Nullable>

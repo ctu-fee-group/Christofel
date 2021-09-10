@@ -11,6 +11,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{B79E41F4-B461-4179-AC85-07C1AA6CBE02}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{674A0FCA-7522-495B-8C94-7270FD8CBA65}"
+ProjectSection(SolutionItems) = preProject
+	Plugins\Directory.Build.props = Plugins\Directory.Build.props
+EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{9D7EB95F-6F09-4F8C-BEDD-EC43794A5E34}"
 EndProject
@@ -50,6 +53,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".metadata", ".metadata", "{
 ProjectSection(SolutionItems) = preProject
 	stylecop.json = stylecop.json
 	stylecop.ruleset = stylecop.ruleset
+	Directory.Build.props = Directory.Build.props
 EndProjectSection
 EndProject
 Global
