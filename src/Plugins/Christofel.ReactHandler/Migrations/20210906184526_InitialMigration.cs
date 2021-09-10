@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.ReactHandler.Migrations
 {
+    /// <summary>
+    /// Initial migration.
+    /// </summary>
     public partial class InitialMigration : Migration
     {
         /// <inheritdoc/>
