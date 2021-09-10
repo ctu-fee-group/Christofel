@@ -17,44 +17,65 @@ using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
+    /// <summary>
+    /// Tests for condition <see cref="MemberMatchesUserCondition"/>.
+    /// </summary>
     public class
+#pragma warning disable SA1649
         CtuAuthProcessConditionMemberMatchesUserTests : CtuAuthProcessConditionTests<MemberMatchesUserCondition>
+#pragma warning restore SA1649
     {
+        /// <summary>
+        /// Tests that the condition does not allow <see cref="GuildMember"/> with missing user.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         [Fact]
         public async Task DoesNotAllowMissingUser()
         {
             var services = SetupConditionServices();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = new GuildMember
             (
-                default, default, new List<Snowflake>(), DateTimeOffset.Now, default,
-                default, default
+                default,
+                default,
+                new List<Snowflake>(),
+                DateTimeOffset.Now,
+                default,
+                default,
+                default
             );
-            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
+            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, DummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result = await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             Assert.False(result.IsSuccess);
         }
 
+        /// <summary>
+        /// Tests that condition does not allow <see cref="GuildMember"/> with non matching id.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task DoesNotAllowNotMatchingMember()
         {
             var services = SetupConditionServices();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = new GuildMember
             (
-                new User(new Snowflake(111), _dummyUsername, 124, default),
+                new User(new Snowflake(111), DummyUsername, 124, default),
                 default,
                 new List<Snowflake>(),
                 DateTimeOffset.Now,
@@ -63,29 +84,36 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 default
             );
 
-            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
+            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, DummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result = await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             Assert.False(result.IsSuccess);
         }
 
+        /// <summary>
+        /// Tests that condition does allows <see cref="GuildMember"/> with matching id.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task AllowsMatchingMember()
         {
             var services = SetupConditionServices();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = new GuildMember
             (
-                new User(user.DiscordId, _dummyUsername, 124, default),
+                new User(user.DiscordId, DummyUsername, 124, default),
                 default,
                 new List<Snowflake>(),
                 DateTimeOffset.Now,
@@ -94,14 +122,17 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 default
             );
 
-            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, _dummyUsername);
+            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, DummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result = await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             Assert.True(result.IsSuccess);

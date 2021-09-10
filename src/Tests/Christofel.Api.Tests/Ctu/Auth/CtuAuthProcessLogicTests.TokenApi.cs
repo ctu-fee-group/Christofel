@@ -18,8 +18,17 @@ using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
+    /// <summary>
+    /// Tests that ctu auth process correctly handles response of <see cref="ICtuTokenApi"/>.
+    /// </summary>
+#pragma warning disable SA1649
     public class CtuAuthProcessLogicTokenApiTests : CtuAuthProcessLogicTests
+#pragma warning restore SA1649
     {
+        /// <summary>
+        /// Tests that if there was an error retrieving the username, error will be returned.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task FailedUsernameRetrievalReturnsError()
         {
@@ -28,7 +37,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
 
@@ -36,19 +45,27 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var failingOauthHandler = new Mock<ICtuTokenApi>();
             failingOauthHandler
-                .Setup(tokenApi => tokenApi.CheckTokenAsync(_dummyAccessToken, It.IsAny<CancellationToken>()))
+                .Setup(tokenApi => tokenApi.CheckTokenAsync(DummyAccessToken, It.IsAny<CancellationToken>()))
                 .Throws<InvalidOperationException>();
 
             var result =
                 await process.FinishAuthAsync
                 (
-                    _dummyAccessToken, failingOauthHandler.Object, _dbContext, _dummyGuildId,
-                    user, dummyGuildMember
+                    DummyAccessToken,
+                    failingOauthHandler.Object,
+                    DbContext,
+                    DummyGuildId,
+                    user,
+                    dummyGuildMember
                 );
 
             Assert.False(result.IsSuccess);
         }
 
+        /// <summary>
+        /// Tests that successful retrieval of username will return success.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task SuccessfulUsernameRetrievalReturnsSuccess()
         {
@@ -57,7 +74,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -66,9 +83,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var result =
                 await process.FinishAuthAsync
                 (
-                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                    _dummyGuildId,
-                    user, dummyGuildMember
+                    DummyAccessToken,
+                    successfulOauthHandler.Object,
+                    DbContext,
+                    DummyGuildId,
+                    user,
+                    dummyGuildMember
                 );
 
             Assert.True(result.IsSuccess);

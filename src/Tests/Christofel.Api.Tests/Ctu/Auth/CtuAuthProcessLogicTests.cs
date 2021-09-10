@@ -25,36 +25,75 @@ using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
+    /// <summary>
+    /// Tests logic of ctu auth process using mock, custom data.
+    /// </summary>
     public class CtuAuthProcessLogicTests : IDisposable
     {
-        protected readonly ChristofelBaseContext _dbContext;
+        /// <summary>
+        /// Gets the database context.
+        /// </summary>
+        protected ChristofelBaseContext DbContext { get; }
 
-        protected readonly string _dummyAccessToken = "myToken";
-        protected readonly ulong _dummyGuildId = 93249823482348;
-        protected readonly string _dummyUsername = "someUsername";
-        protected readonly IDisposable _optionsDisposable;
+        /// <summary>
+        /// Gets dummy access token used for testing.
+        /// </summary>
+        protected string DummyAccessToken => "myToken";
 
+        /// <summary>
+        /// Gets dummy guild id used for testing.
+        /// </summary>
+        protected ulong DummyGuildId => 93249823482348;
+
+        /// <summary>
+        /// Gets dummy username used for testing.
+        /// </summary>
+        protected string DummyUsername => "someUsername";
+
+        /// <summary>
+        /// Gets options of the database context.
+        /// </summary>
+        protected DbContextOptionsDisposable<ChristofelBaseContext> OptionsDisposable { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CtuAuthProcessLogicTests"/> class.
+        /// </summary>
         public CtuAuthProcessLogicTests()
         {
             var options = SqliteInMemory.CreateOptions<ChristofelBaseContext>();
-            _optionsDisposable = options;
+            OptionsDisposable = options;
 
-            _dbContext = new ChristofelBaseContext(options);
-            _dbContext.Database.EnsureCreated();
+            DbContext = new ChristofelBaseContext(options);
+            DbContext.Database.EnsureCreated();
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
-            _dbContext?.Dispose();
-            _optionsDisposable?.Dispose();
+            DbContext?.Dispose();
+            OptionsDisposable?.Dispose();
         }
 
+        /// <summary>
+        /// Creates dummy guild member with the given user.
+        /// </summary>
+        /// <param name="user">The user that the guild member should represent.</param>
+        /// <returns>Guild member that represents the user.</returns>
         protected IGuildMember CreateDummyGuildMember(DbUser user) => GuildMemberRepository.CreateDummyGuildMember
             (user);
 
+        /// <summary>
+        /// Creates mocked <see cref="ICtuTokenApi"/> that will return the given user.
+        /// </summary>
+        /// <param name="user">The user that should be returned.</param>
+        /// <returns>Mocked <see cref="ICtuTokenApi"/> that will return the given user.</returns>
         protected Mock<ICtuTokenApi> GetMockedTokenApi(DbUser user) => OauthTokenApiRepository.GetMockedTokenApi
-            (user, _dummyUsername);
+            (user, DummyUsername);
 
+        /// <summary>
+        /// Tests that the process calls condition method.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsCondition()
         {
@@ -66,7 +105,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -74,9 +113,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockCondition.Verify
@@ -86,6 +128,10 @@ namespace Christofel.Api.Tests.Ctu.Auth
             );
         }
 
+        /// <summary>
+        /// Tests that the process calls task method.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsTask()
         {
@@ -97,7 +143,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -105,10 +151,10 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken,
+                DummyAccessToken,
                 successfulOauthHandler.Object,
-                _dbContext,
-                _dummyGuildId,
+                DbContext,
+                DummyGuildId,
                 user,
                 dummyGuildMember
             );
@@ -120,6 +166,10 @@ namespace Christofel.Api.Tests.Ctu.Auth
             );
         }
 
+        /// <summary>
+        /// Tests that the process calls step method.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsStep()
         {
@@ -131,7 +181,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -139,9 +189,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockStep.Verify
@@ -151,6 +204,10 @@ namespace Christofel.Api.Tests.Ctu.Auth
             );
         }
 
+        /// <summary>
+        /// Tests that the process calls all of the conditions methods.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsMultipleConditions()
         {
@@ -163,7 +220,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -171,9 +228,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockCondition.Verify
@@ -196,9 +256,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockCondition.Verify
@@ -208,6 +271,10 @@ namespace Christofel.Api.Tests.Ctu.Auth
             );
         }
 
+        /// <summary>
+        /// Tests that the process calls all of the tasks methods.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsMultipleTasks()
         {
@@ -220,7 +287,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -228,9 +295,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockTask.Verify
@@ -254,9 +324,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockTask.Verify
@@ -266,6 +339,10 @@ namespace Christofel.Api.Tests.Ctu.Auth
             );
         }
 
+        /// <summary>
+        /// Tests that the process calls all of the steps methods.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CallsMultipleSteps()
         {
@@ -278,7 +355,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -286,9 +363,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockStep.Verify
@@ -312,9 +392,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockStep.Verify

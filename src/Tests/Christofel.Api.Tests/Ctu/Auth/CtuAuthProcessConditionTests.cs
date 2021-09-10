@@ -17,31 +17,62 @@ using TestSupport.EfHelpers;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
+    /// <summary>
+    /// Tests of real conditions of the ctu auth process.
+    /// </summary>
+    /// <typeparam name="T">Type of the condition.</typeparam>
     public class CtuAuthProcessConditionTests<T> : IDisposable
         where T : class, IPreAuthCondition
     {
-        protected readonly ChristofelBaseContext _dbContext;
+        /// <summary>
+        /// Gets the database context.
+        /// </summary>
+        protected ChristofelBaseContext DbContext { get; }
 
-        protected readonly string _dummyAccessToken = "myToken";
-        protected readonly ulong _dummyGuildId = 93249823482348;
-        protected readonly string _dummyUsername = "someUsername";
-        protected readonly DbContextOptionsDisposable<ChristofelBaseContext> _optionsDisposable;
+        /// <summary>
+        /// Gets dummy access token used for testing.
+        /// </summary>
+        protected string DummyAccessToken => "myToken";
 
+        /// <summary>
+        /// Gets dummy guild id used for testing.
+        /// </summary>
+        protected ulong DummyGuildId => 93249823482348;
+
+        /// <summary>
+        /// Gets dummy username used for testing.
+        /// </summary>
+        protected string DummyUsername => "someUsername";
+
+        /// <summary>
+        /// Gets options of the database context.
+        /// </summary>
+        protected DbContextOptionsDisposable<ChristofelBaseContext> OptionsDisposable { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CtuAuthProcessConditionTests{T}"/> class.
+        /// </summary>
         public CtuAuthProcessConditionTests()
         {
             var options = SqliteInMemory.CreateOptions<ChristofelBaseContext>();
-            _optionsDisposable = options;
+            OptionsDisposable = options;
 
-            _dbContext = new ChristofelBaseContext(options);
-            _dbContext.Database.EnsureCreated();
+            DbContext = new ChristofelBaseContext(options);
+            DbContext.Database.EnsureCreated();
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
-            _dbContext?.Dispose();
-            _optionsDisposable?.Dispose();
+            DbContext?.Dispose();
+            OptionsDisposable?.Dispose();
         }
 
+        /// <summary>
+        /// Setups service provider with the condition added.
+        /// </summary>
+        /// <param name="configure">Action to configure the collection.</param>
+        /// <returns>Service provider with ctu auth services.</returns>
         protected virtual IServiceProvider SetupConditionServices(Action<IServiceCollection>? configure = default)
         {
             var services = new ServiceCollection()
@@ -49,7 +80,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddAuthCondition<T>()
                 .AddTransient(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext())
                 .AddSingleton<IDbContextFactory<ChristofelBaseContext>, ChristofelBaseContextFactory>
-                    (p => new ChristofelBaseContextFactory(_optionsDisposable))
+                    (p => new ChristofelBaseContextFactory(OptionsDisposable))
                 .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
                 .AddLogging(b => b.ClearProviders());
 

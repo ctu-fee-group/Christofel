@@ -13,36 +13,52 @@ using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
+    /// <summary>
+    /// Tests condition <see cref="CtuUsernameFilledCondition"/>.
+    /// </summary>
+#pragma warning disable SA1649
     public class CtuAuthProcessConditionUsernameFilledTest : CtuAuthProcessConditionTests<CtuUsernameFilledCondition>
+#pragma warning restore SA1649
     {
+        /// <summary>
+        /// Tests that the condition does not allow non filled ctu username.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task DoesNotAllowNonFilledUsername()
         {
             var services = SetupConditionServices();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user);
 
-            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, "");
+            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, string.Empty);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result = await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             Assert.False(result.IsSuccess);
         }
 
+        /// <summary>
+        /// Tests that the condition allows filled ctu username.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task AllowsFilledUsername()
         {
             var services = SetupConditionServices();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user);
 
@@ -51,9 +67,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result = await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             Assert.True(result.IsSuccess);

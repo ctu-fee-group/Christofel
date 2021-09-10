@@ -15,8 +15,17 @@ using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
+    /// <summary>
+    /// Tests that the ctu auth process returns correct results.
+    /// </summary>
+#pragma warning disable SA1649
     public class CtuAuthProcessLogicReturnsTests : CtuAuthProcessLogicTests
+#pragma warning restore SA1649
     {
+        /// <summary>
+        /// Tests that failed condition returns an error.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task FailedConditionReturnsError()
         {
@@ -26,7 +35,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -35,14 +44,21 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var result =
                 await process.FinishAuthAsync
                 (
-                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                    _dummyGuildId,
-                    user, dummyGuildMember
+                    DummyAccessToken,
+                    successfulOauthHandler.Object,
+                    DbContext,
+                    DummyGuildId,
+                    user,
+                    dummyGuildMember
                 );
 
             Assert.False(result.IsSuccess);
         }
 
+        /// <summary>
+        /// Tests that successful condition will return success.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task SuccessfulConditionReturnsSuccess()
         {
@@ -52,7 +68,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -61,14 +77,21 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var result =
                 await process.FinishAuthAsync
                 (
-                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                    _dummyGuildId,
-                    user, dummyGuildMember
+                    DummyAccessToken,
+                    successfulOauthHandler.Object,
+                    DbContext,
+                    DummyGuildId,
+                    user,
+                    dummyGuildMember
                 );
 
             Assert.True(result.IsSuccess);
         }
 
+        /// <summary>
+        /// Tests that failed step will return error.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task FailedStepReturnsError()
         {
@@ -78,7 +101,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -87,14 +110,21 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var result =
                 await process.FinishAuthAsync
                 (
-                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                    _dummyGuildId,
-                    user, dummyGuildMember
+                    DummyAccessToken,
+                    successfulOauthHandler.Object,
+                    DbContext,
+                    DummyGuildId,
+                    user,
+                    dummyGuildMember
                 );
 
             Assert.False(result.IsSuccess);
         }
 
+        /// <summary>
+        /// Tests that failed task will return an error.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task FailedTaskReturnsError()
         {
@@ -104,7 +134,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -113,9 +143,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var result =
                 await process.FinishAuthAsync
                 (
-                    _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                    _dummyGuildId,
-                    user, dummyGuildMember
+                    DummyAccessToken,
+                    successfulOauthHandler.Object,
+                    DbContext,
+                    DummyGuildId,
+                    user,
+                    dummyGuildMember
                 );
 
             Assert.False(result.IsSuccess);

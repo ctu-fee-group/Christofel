@@ -13,31 +13,50 @@ using Remora.Results;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth
 {
+    /// <summary>
+    /// Class containing common <see cref="IPreAuthCondition"/>s.
+    /// </summary>
     public class ConditionRepository
     {
+        /// <summary>
+        /// Condition that will always fail.
+        /// </summary>
         public class FailingCondition : IPreAuthCondition
         {
+            /// <inheritdoc />
             public ValueTask<Result> CheckPreAsync
                 (IAuthData authData, CancellationToken ct = default) => ValueTask.FromResult<Result>
                 (new InvalidOperationError());
         }
 
+        /// <summary>
+        /// Condition that will be always successful.
+        /// </summary>
         public class SuccessfulCondition : IPreAuthCondition
         {
+            /// <inheritdoc />
             public ValueTask<Result> CheckPreAsync
                 (IAuthData authData, CancellationToken ct = default) => ValueTask.FromResult
                 (Result.FromSuccess());
         }
 
+        /// <summary>
+        /// Condition that will always throw an exception.
+        /// </summary>
         public class ExceptionThrowingCondition : IPreAuthCondition
         {
+            /// <inheritdoc />
             public ValueTask<Result> CheckPreAsync
                 (IAuthData authData, CancellationToken ct = default)
                 => throw new InvalidOperationException();
         }
 
+        /// <summary>
+        /// Condition that may be used as a mock condition.
+        /// </summary>
         public abstract class MockCondition : IPreAuthCondition
         {
+            /// <inheritdoc />
             public abstract ValueTask<Result> CheckPreAsync
                 (IAuthData authData, CancellationToken ct = default);
         }

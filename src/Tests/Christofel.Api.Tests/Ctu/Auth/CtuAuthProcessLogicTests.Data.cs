@@ -19,8 +19,17 @@ using Xunit;
 
 namespace Christofel.Api.Tests.Ctu.Auth
 {
+    /// <summary>
+    /// Tests that the ctu auth process sets correct data and saves to the database.
+    /// </summary>
+#pragma warning disable SA1649
     public class CtuAuthProcessLogicDataTests : CtuAuthProcessLogicTests
+#pragma warning restore SA1649
     {
+        /// <summary>
+        /// Tests that ctu username won't be changed if it was set already.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CtuUsernameIsNotSetIfFilled()
         {
@@ -30,7 +39,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             string alreadySetUsername = "already set username";
             user.CtuUsername = alreadySetUsername;
@@ -40,14 +49,21 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             Assert.Matches(alreadySetUsername, user.CtuUsername);
         }
 
+        /// <summary>
+        /// Tests that if one task failed, other will be executed.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task FailedTaskFinishesAllTasks()
         {
@@ -60,7 +76,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = CreateDummyGuildMember(user);
             var successfulOauthHandler = GetMockedTokenApi(user);
@@ -68,9 +84,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockTask.Verify
@@ -94,9 +113,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             mockTask.Verify
@@ -106,6 +128,10 @@ namespace Christofel.Api.Tests.Ctu.Auth
             );
         }
 
+        /// <summary>
+        /// Tests that ctu username will be set after failing conditions and saved to the database.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CtuUsernameIsSetAfterFailedConditions()
         {
@@ -115,7 +141,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
 
             var dummyGuildMember = CreateDummyGuildMember(user);
@@ -124,15 +150,22 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             Assert.NotNull(user.CtuUsername);
-            Assert.Matches(_dummyUsername, user.CtuUsername);
+            Assert.Matches(DummyUsername, user.CtuUsername);
         }
 
+        /// <summary>
+        /// Tests that context will be saved after failed conditions.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task ContextIsSavedAfterFailedConditions()
         {
@@ -142,7 +175,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
 
             var dummyGuildMember = CreateDummyGuildMember(user);
@@ -151,18 +184,25 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
-            _dbContext.ChangeTracker.Clear();
+            DbContext.ChangeTracker.Clear();
 
-            var savedUser = _dbContext.Users.First();
+            var savedUser = DbContext.Users.First();
             Assert.NotNull(savedUser.CtuUsername);
-            Assert.Matches(_dummyUsername, savedUser.CtuUsername);
+            Assert.Matches(DummyUsername, savedUser.CtuUsername);
         }
 
+        /// <summary>
+        /// Tests that ctu username will be set after successful conditions and saved to the database.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task CtuUsernameIsSetAfterSuccessfulConditions()
         {
@@ -173,7 +213,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
 
             var dummyGuildMember = CreateDummyGuildMember(user);
@@ -182,15 +222,22 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
             Assert.NotNull(user.CtuUsername);
-            Assert.Matches(_dummyUsername, user.CtuUsername);
+            Assert.Matches(DummyUsername, user.CtuUsername);
         }
 
+        /// <summary>
+        /// Tests that context will be saved after successful conditions.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task ContextIsSavedAfterSuccessfulConditions()
         {
@@ -201,7 +248,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
 
             var dummyGuildMember = CreateDummyGuildMember(user);
@@ -210,18 +257,25 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
-            _dbContext.ChangeTracker.Clear();
+            DbContext.ChangeTracker.Clear();
 
-            var savedUser = _dbContext.Users.First();
+            var savedUser = DbContext.Users.First();
             Assert.NotNull(savedUser.CtuUsername);
-            Assert.Matches(_dummyUsername, savedUser.CtuUsername);
+            Assert.Matches(DummyUsername, savedUser.CtuUsername);
         }
 
+        /// <summary>
+        /// Tests that context will be saved after successful steps.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
         [Fact]
         public async Task ContextIsSavedAfterSuccessfulSteps()
         {
@@ -231,7 +285,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
-            var user = await _dbContext
+            var user = await DbContext
                 .SetupUserToAuthenticateAsync();
 
             var dummyGuildMember = CreateDummyGuildMember(user);
@@ -240,14 +294,17 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
-                _dummyGuildId,
-                user, dummyGuildMember
+                DummyAccessToken,
+                successfulOauthHandler.Object,
+                DbContext,
+                DummyGuildId,
+                user,
+                dummyGuildMember
             );
 
-            _dbContext.ChangeTracker.Clear();
+            DbContext.ChangeTracker.Clear();
 
-            var savedUser = _dbContext.Users.First();
+            var savedUser = DbContext.Users.First();
             Assert.NotNull(savedUser.AuthenticatedAt);
         }
     }

@@ -8,6 +8,11 @@ using Christofel.BaseLib.User;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth
 {
+    /// <summary>
+    /// Ctu user implementation for testing purposes.
+    /// </summary>
+    /// <param name="UserId">Id of the user.</param>
+    /// <param name="CtuUsername">CTU Username.</param>
     public record CtuUser
     (
         int UserId,
