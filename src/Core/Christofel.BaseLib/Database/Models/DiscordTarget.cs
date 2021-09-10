@@ -22,6 +22,13 @@ namespace Christofel.BaseLib.Database.Models
         /// <summary>
         /// Initializes a new instance of the <see cref="DiscordTarget"/> class.
         /// </summary>
+        internal DiscordTarget()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiscordTarget"/> class.
+        /// </summary>
         /// <param name="discordId">Id of the discord entity.</param>
         /// <param name="type">Type of the target.</param>
         public DiscordTarget(Snowflake discordId, TargetType type)
