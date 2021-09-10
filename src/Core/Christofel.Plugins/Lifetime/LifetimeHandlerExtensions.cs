@@ -12,7 +12,7 @@ namespace Christofel.Plugins.Lifetime
     public static class LifetimeHandlerExtensions
     {
         /// <summary>
-        /// Moves to <see cref="state"/> if the current state is lower than that.
+        /// Moves to specified state if the current state is lower than that.
         /// </summary>
         /// <param name="lifetimeHandler">The lifetime handler to be moved to the state.</param>
         /// <param name="state">State the lifetime should be moved to, if condition is met.</param>
@@ -30,7 +30,7 @@ namespace Christofel.Plugins.Lifetime
         }
 
         /// <summary>
-        /// Moves to <see cref="state"/> if the current state is exactly the previous one.
+        /// Moves to specified state if the current state is exactly the previous one.
         /// </summary>
         /// <param name="lifetimeHandler">The lifetime handler to be moved to the state.</param>
         /// <param name="state">State the lifetime should be moved to, if condition is met.</param>

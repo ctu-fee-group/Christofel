@@ -106,7 +106,7 @@ namespace Christofel.Plugins.Runtime
         }
 
         /// <summary>
-        /// Initializes the plugin with specified <see cref="state"/>.
+        /// Initializes the plugin with specified state.
         /// </summary>
         /// <param name="state">The state that will be passed to the plugin.</param>
         /// <param name="plugin">The plugin that should be initialized.</param>

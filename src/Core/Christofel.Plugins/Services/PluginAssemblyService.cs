@@ -66,7 +66,7 @@ namespace Christofel.Plugins.Services
         }
 
         /// <summary>
-        /// Unloads plugin from memory and saves reference to the <see cref="AssemblyLoadContext"/> to the <see cref="detached"/>.
+        /// Unloads plugin from memory and saves reference to the <see cref="AssemblyLoadContext"/> to the specified detached plugin.
         /// </summary>
         /// <param name="plugin">The plugin that should be detached from the memory.</param>
         /// <param name="detached">The representation of the plugin where ALC will be saved into.</param>

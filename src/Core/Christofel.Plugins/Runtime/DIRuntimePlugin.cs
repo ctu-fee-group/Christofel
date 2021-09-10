@@ -31,17 +31,17 @@ namespace Christofel.Plugins.Runtime
         private TState? _state;
 
         /// <summary>
-        /// Entities that will have <see cref="IRefreshable.RefreshAsync"/>> called on <see cref="RefreshAsync"/> call.
+        /// Entities that will have <see cref="IRefreshable.RefreshAsync"/>> called on <see cref="RefreshAsync(CancellationToken)"/> call.
         /// </summary>
         protected abstract IEnumerable<IRefreshable> Refreshable { get; }
 
         /// <summary>
-        /// Entities that will have <see cref="IStoppable.StopAsync"/>> called on <see cref="StopAsync"/> call.
+        /// Entities that will have <see cref="IStoppable.StopAsync"/>> called on <see cref="StopAsync(CancellationToken)"/> call.
         /// </summary>
         protected abstract IEnumerable<IStoppable> Stoppable { get; }
 
         /// <summary>
-        /// Entities that will have <see cref="IStartable.StartAsync"/>> called on <see cref="RunAsync"/> call.
+        /// Entities that will have <see cref="IStartable.StartAsync"/>> called on <see cref="RunAsync(CancellationToken)"/> call.
         /// </summary>
         protected abstract IEnumerable<IStartable> Startable { get; }
 
@@ -51,9 +51,9 @@ namespace Christofel.Plugins.Runtime
         protected abstract LifetimeHandler LifetimeHandler { get; }
 
         /// <summary>
-        /// State of the application that was given on <see cref="InitAsync"/>.
+        /// State of the application that was given on <see cref="InitAsync(TState, CancellationToken)"/>.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Will be thrown if State is accessed before call to <see cref="InitAsync"/>.</exception>
+        /// <exception cref="InvalidOperationException">Will be thrown if State is accessed before call to <see cref="InitAsync(TState, CancellationToken)"/>.</exception>
         protected TState State
         {
             get
@@ -151,7 +151,7 @@ namespace Christofel.Plugins.Runtime
         }
 
         /// <summary>
-        /// Should create the initialized <see cref="TContext"/> of the plugin.
+        /// Should create the initialized <typeparamref name="TContext"/> of the plugin.
         /// </summary>
         /// <returns>Initialized context of the plugin.</returns>
         protected abstract TContext InitializeContext();
@@ -238,7 +238,7 @@ namespace Christofel.Plugins.Runtime
         }
 
         /// <summary>
-        /// Calls all <see cref="startables"/> objects.
+        /// Calls all the startable objects.
         /// </summary>
         /// <param name="handleLifetime">Whether the lifetime should be handled (set to Starting at the start, Started at the end) by this method.</param>
         /// <param name="startables">What startables should be started.</param>
@@ -354,7 +354,7 @@ namespace Christofel.Plugins.Runtime
         }
 
         /// <summary>
-        /// Called on end of <see cref="InitAsync"/>
+        /// Called on end of <see cref="InitAsync(TState, CancellationToken)"/>
         /// to do internal init.
         /// </summary>
         /// <param name="token">The cancellation token for this operation.</param>
@@ -362,7 +362,7 @@ namespace Christofel.Plugins.Runtime
         protected virtual Task InternalInitAsync(CancellationToken token = default) => Task.CompletedTask;
 
         /// <summary>
-        /// Called on end of <see cref="RunAsync"/>
+        /// Called on end of <see cref="RunAsync(CancellationToken)"/>
         /// to start internal features.
         /// </summary>
         /// <param name="token">The cancellation token for this operation.</param>
