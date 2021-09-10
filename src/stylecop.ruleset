@@ -15,7 +15,7 @@
         <Rule Id="SA1006" Action="Error"/> <!-- Preprocessor keywords must not be preceded by space -->
         <Rule Id="SA1007" Action="Error"/> <!-- Operator keyword must be followed by space -->
         <Rule Id="SA1008" Action="Error"/> <!-- Opening parenthesis must be spaced correctly -->
-        <Rule Id="SA1009" Action="Error"/> <!-- Closing parenthesis must be spaced correctly -->
+        <Rule Id="SA1009" Action="None"/> <!-- Closing parenthesis must be spaced correctly -->
         <Rule Id="SA1010" Action="Error"/> <!-- Opening square brackets must be spaced correctly -->
         <Rule Id="SA1011" Action="Error"/> <!-- Closing square brackets must be spaced correctly -->
         <Rule Id="SA1012" Action="Error"/> <!-- Opening braces must be spaced correctly -->
@@ -168,8 +168,8 @@
         <Rule Id="SA1612" Action="Error"/> <!-- Element parameter documentation must match element parameters -->
         <Rule Id="SA1613" Action="Error"/> <!-- Element parameter documentation must declare parameter name -->
         <Rule Id="SA1614" Action="Error"/> <!-- Element parameter documentation must have text -->
-        <Rule Id="SA1615" Action="None"/> <!-- Element return value must be documented -->
-        <Rule Id="SA1616" Action="None"/> <!-- Element return value documentation must have text -->
+        <Rule Id="SA1615" Action="Error"/> <!-- Element return value must be documented -->
+        <Rule Id="SA1616" Action="Error"/> <!-- Element return value documentation must have text -->
         <Rule Id="SA1617" Action="Error"/> <!-- Void return value must not be documented -->
         <Rule Id="SA1618" Action="Error"/> <!-- Generic type parameters must be documented -->
         <Rule Id="SA1619" Action="Error"/> <!-- Generic type parameters must be documented partial class -->
