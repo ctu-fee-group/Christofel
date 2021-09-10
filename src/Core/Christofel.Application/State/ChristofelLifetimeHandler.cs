@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace Christofel.Application.State
 {
     /// <summary>
-    ///     Handles lifetime of the application
+    /// Handles lifetime of the application
     /// </summary>
     public class ChristofelLifetimeHandler : LifetimeHandler<IApplicationLifetime>
     {
@@ -47,7 +47,7 @@ namespace Christofel.Application.State
         public override void MoveToState(LifetimeState state)
         {
             LifetimeState current;
-            lock (_nextStateLock)
+            lock (NextStateLock)
             {
                 current = State;
                 State = state;

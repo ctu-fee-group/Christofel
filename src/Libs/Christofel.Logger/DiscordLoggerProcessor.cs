@@ -17,10 +17,12 @@ using Remora.Discord.Core;
 
 namespace Christofel.Logger
 {
+    /// <summary>
+    /// Background worker processing queue of discord logs.
+    /// </summary>
     public class DiscordLoggerProcessor : IDisposable
     {
         // TODO: how to handle exceptions here?
-
         private readonly BlockingCollection<DiscordLogMessage> _messageQueue;
         private readonly Thread _outputThread;
         private readonly IServiceProvider _provider;
@@ -28,12 +30,17 @@ namespace Christofel.Logger
 
         private bool _disposed;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiscordLoggerProcessor"/> class.
+        /// </summary>
+        /// <param name="provider">The provider of the services.</param>
+        /// <param name="options">The options of the provider.</param>
         public DiscordLoggerProcessor(IServiceProvider provider, DiscordLoggerOptions options)
         {
             _provider = provider;
 
             Options = options;
-            _messageQueue = new BlockingCollection<DiscordLogMessage>((int) Options.MaxQueueSize);
+            _messageQueue = new BlockingCollection<DiscordLogMessage>((int)Options.MaxQueueSize);
 
             _outputThread = new Thread(ProcessLogQueue)
             {
@@ -42,8 +49,12 @@ namespace Christofel.Logger
             _outputThread.Start();
         }
 
-        public DiscordLoggerOptions Options { get; set; }
+        /// <summary>
+        /// Gets the options.
+        /// </summary>
+        public DiscordLoggerOptions Options { get; internal set; }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _messageQueue.CompleteAdding();
@@ -59,6 +70,14 @@ namespace Christofel.Logger
             }
         }
 
+        /// <summary>
+        /// Enqueues message to the queue.
+        /// </summary>
+        /// <remarks>
+        /// If the collection is full or it was already completed,
+        /// the message will be sent right away blocking the thread.
+        /// </remarks>
+        /// <param name="message">The message to enqueue.</param>
         public virtual void EnqueueMessage(DiscordLogMessage message)
         {
             if (!_disposed)
@@ -80,21 +99,20 @@ namespace Christofel.Logger
             }
             catch (Exception)
             {
+                // ignored
             }
         }
 
         private static IEnumerable<string> Chunk(string? str, int chunkSize) =>
             !string.IsNullOrEmpty(str)
-                ? Enumerable.Range(0, (int) Math.Ceiling((double) str.Length / chunkSize))
+                ? Enumerable.Range(0, (int)Math.Ceiling((double)str.Length / chunkSize))
                     .Select
                     (
                         i => str
                             .Substring
                             (
                                 i * chunkSize,
-                                i * chunkSize + chunkSize <= str.Length
-                                    ? chunkSize
-                                    : str.Length - i * chunkSize
+                                (i * chunkSize) + chunkSize <= str.Length ? chunkSize : str.Length - (i * chunkSize)
                             )
                     )
                 : Enumerable.Empty<string>();
@@ -106,10 +124,7 @@ namespace Christofel.Logger
                 return false;
             }
 
-            if (_channelApi is null)
-            {
-                _channelApi = _provider.GetRequiredService<IDiscordRestChannelAPI>();
-            }
+            _channelApi ??= _provider.GetRequiredService<IDiscordRestChannelAPI>();
 
             var success = true;
             Optional<IMessageReference> message = default;
@@ -118,7 +133,9 @@ namespace Christofel.Logger
                 var result =
                     _channelApi.CreateMessageAsync
                     (
-                        new Snowflake(entry.ChannelId), part, messageReference: message,
+                        new Snowflake(entry.ChannelId),
+                        part,
+                        messageReference: message,
                         allowedMentions:
                         new AllowedMentions
                         (
@@ -153,8 +170,8 @@ namespace Christofel.Logger
                     {
                         sent = SendMessage(message);
                     }
-                    catch (Exception) // Generally exceptions shouldn't happen here
-                    {
+                    catch (Exception)
+                    { // Generally exceptions shouldn't happen here
                         sent = false;
                     }
                 }
@@ -166,7 +183,6 @@ namespace Christofel.Logger
             try
             {
                 // TODO: refactor to make shorter
-                var count = 0;
                 while (!_messageQueue.IsCompleted)
                 {
                     List<DiscordLogMessage> fetchedMessages =
@@ -179,15 +195,16 @@ namespace Christofel.Logger
                             x =>
                                 new DiscordLogMessage
                                 (
-                                    x.Key.GuildId, x.Key.ChannelId,
-                                    string.Join('\n', x.Select(x => x.Message))
+                                    x.Key.GuildId,
+                                    x.Key.ChannelId,
+                                    string.Join('\n', x.Select(message => message.Message))
                                 )
                         ).ToList();
 
                     SendMessages(messagesToSend);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 try
                 {
@@ -195,6 +212,7 @@ namespace Christofel.Logger
                 }
                 catch
                 {
+                    // ignored
                 }
             }
         }

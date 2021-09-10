@@ -10,46 +10,54 @@ using Christofel.Plugins.Lifetime;
 
 namespace Christofel.Plugins
 {
+#pragma warning disable SA1402 // FileMayOnlyContainASingleType
+    /// <summary>
+    /// Runtime plugin with a <see cref="ILifetime"/> for managing the state of the plugin.
+    /// </summary>
     public interface IRuntimePlugin : IPlugin
     {
         /// <summary>
-        ///     Lifetime of the plugin allowing to stop the plugin
-        ///     and check its state.
+        /// Gets lifetime of the plugin allowing to stop the plugin
+        /// and check its state.
         /// </summary>
         public ILifetime Lifetime { get; }
 
         /// <summary>
-        ///     Run should register the plugin to the application by assigning its handlers and starting its purpose
+        /// Starts the operation of the plugin.
         /// </summary>
         /// <remarks>
-        ///     WARNING: Run is expected not to block for long time.
-        ///     If the run operation is going to block, it is heavy, it should create a new thread.
+        /// If the running operation blocks, another thread should be created.
         /// </remarks>
-        /// <returns></returns>
-        public Task RunAsync(CancellationToken token = new CancellationToken());
+        /// <param name="token">The cancellation token for this operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+        public Task RunAsync(CancellationToken token = default);
 
         /// <summary>
-        ///     Refresh should reload the configuration where needed.
+        /// Refreshes the plugin configuration.
         /// </summary>
-        /// <returns></returns>
-        public Task RefreshAsync(CancellationToken token = new CancellationToken());
+        /// <param name="token">The cancellation token for this operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+        public Task RefreshAsync(CancellationToken token = default);
     }
 
     /// <summary>
-    ///     Interface for implementing plugin
-    ///     Plugins are attached during runtime to allow changing parts of the application in runtime
-    ///     Plugin lifetime goes from uninitialized, initialized (InitAsync), running (RunAsync), stopped (StopAsync),
-    ///     destroyed (DestroyAsync).
-    ///     Separation of Init/Run and Stop/Destroy is not needed, but chosen to better separate what happens where
+    /// Runtime plugin receiving a state of the application along with a context of the plugin.
     /// </summary>
+    /// <typeparam name="TState">The state of the application that is given to the plugin.</typeparam>
+    /// <typeparam name="TContext">The context of the plugin that will be given to the application.</typeparam>
     public interface IRuntimePlugin<in TState, TContext> : IRuntimePlugin
     {
+        /// <summary>
+        /// Gets context of this plugin.
+        /// </summary>
         public TContext Context { get; }
 
         /// <summary>
-        ///     Used for initializing the module services
+        /// Initializes the services of this plugin.
         /// </summary>
-        /// <returns>Context of the plugin for registering responders</returns>
-        public Task InitAsync(TState state, CancellationToken token = new CancellationToken());
+        /// <param name="state">The state of application.</param>
+        /// <param name="token">The cancellation token for this operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+        public Task InitAsync(TState state, CancellationToken token = default);
     }
 }

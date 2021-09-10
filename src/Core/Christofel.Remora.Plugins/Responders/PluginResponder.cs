@@ -17,12 +17,22 @@ using Remora.Results;
 
 namespace Christofel.Remora.Responders
 {
+    /// <summary>
+    /// <see cref="IAnyResponder"/> for plugins that will call event responders
+    /// from <see cref="IResponderTypeRepository"/> that were registered.
+    /// </summary>
     public class PluginResponder : IAnyResponder
     {
         private readonly ILogger _logger;
         private readonly IResponderTypeRepository _responderTypeRepository;
         private readonly IServiceProvider _services;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginResponder"/> class.
+        /// </summary>
+        /// <param name="responderTypeRepository">The repository of responder types.</param>
+        /// <param name="services">The service provider for resolving event resolvers.</param>
+        /// <param name="logger">The logger.</param>
         public PluginResponder
         (
             IResponderTypeRepository responderTypeRepository,
@@ -35,6 +45,7 @@ namespace Christofel.Remora.Responders
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public async Task<Result> RespondAsync<TEvent>(TEvent gatewayEvent, CancellationToken ct = default)
             where TEvent : IGatewayEvent
         {
@@ -54,7 +65,7 @@ namespace Christofel.Remora.Responders
                             async rt =>
                             {
                                 using var serviceScope = _services.CreateScope();
-                                var responder = (IResponder<TEvent>) serviceScope.ServiceProvider
+                                var responder = (IResponder<TEvent>)serviceScope.ServiceProvider
                                     .GetRequiredService(rt);
 
                                 try
@@ -74,6 +85,11 @@ namespace Christofel.Remora.Responders
             return Result.FromSuccess(); // Everything error handled and logged
         }
 
+        /// <summary>
+        /// Handles the result of event.
+        /// </summary>
+        /// <param name="eventDispatch">The asynchronous task that represents the event.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         private async Task HandleEventResult(Task<Result> eventDispatch)
         {
             var responderResult = await eventDispatch;
@@ -86,6 +102,10 @@ namespace Christofel.Remora.Responders
             LogResult(responderResult);
         }
 
+        /// <summary>
+        /// Logs a result based on the type of the error.
+        /// </summary>
+        /// <param name="result">The result to be logged.</param>
         private void LogResult(IResult result)
         {
             if (result.IsSuccess)

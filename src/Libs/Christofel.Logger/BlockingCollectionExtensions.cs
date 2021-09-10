@@ -10,8 +10,18 @@ using System.Collections.Generic;
 
 namespace Christofel.Logger
 {
+    /// <summary>
+    /// Class containing extensions for waiting for <see cref="BlockingCollection{T}"/> to change into some state.
+    /// </summary>
     public static class BlockingCollectionExtensions
     {
+        /// <summary>
+        /// Fetches at least one element from the collection, but multiple if available without blocking.
+        /// </summary>
+        /// <param name="threadSafeQueue">The blocking collection.</param>
+        /// <param name="maxCount">The maximum count of items to look for.</param>
+        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <returns>A list of all elements that were retrieved from the collection.</returns>
         public static List<T> FetchAtLeastOneBlocking<T>(this BlockingCollection<T> threadSafeQueue, uint maxCount)
         {
             var resultList = new List<T>();
@@ -36,7 +46,7 @@ namespace Christofel.Logger
             }
             catch (Exception ex)
             {
-                //log.LogCritical($"Unknown error fetching more elements. Continuing to process the {resultList.Count} already fetched items.", ex);
+                // log.LogCritical($"Unknown error fetching more elements. Continuing to process the {resultList.Count} already fetched items.", ex);
             }
 
             return resultList;

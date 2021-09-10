@@ -7,11 +7,18 @@
 namespace Christofel.ReactHandler.Database.Models
 {
     /// <summary>
-    ///     Type of entity that should be added/removed
+    /// Type of entity that should be added/removed.
     /// </summary>
     public enum HandleReactType
     {
+        /// <summary>
+        /// Represents that the <see cref="HandleReact.EntityId"/> is role.
+        /// </summary>
         Role,
+
+        /// <summary>
+        /// Represents that the <see cref="HandleReact.EntityId"/> is channel.
+        /// </summary>
         Channel,
     }
 }

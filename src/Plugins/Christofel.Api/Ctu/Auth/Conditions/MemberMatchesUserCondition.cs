@@ -12,7 +12,7 @@ namespace Christofel.Api.Ctu.Auth.Conditions
 {
     public class MemberMatchesUserCondition : IPreAuthCondition
     {
-        public ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = new CancellationToken())
+        public ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = default)
         {
             if (!authData.GuildUser.User.HasValue)
             {

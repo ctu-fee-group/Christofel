@@ -26,7 +26,7 @@ namespace Christofel.Api.OAuth
         }
 
         /// <summary>
-        ///     Obtain ctu username from valid access token
+        /// Obtain ctu username from valid access token
         /// </summary>
         /// <param name="accessToken"></param>
         /// <param name="token"></param>

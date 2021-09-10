@@ -105,9 +105,12 @@ namespace Christofel.Api.Tests.Ctu.Auth
             var process = services.GetRequiredService<CtuAuthProcess>();
             await process.FinishAuthAsync
             (
-                _dummyAccessToken, successfulOauthHandler.Object, _dbContext,
+                _dummyAccessToken,
+                successfulOauthHandler.Object,
+                _dbContext,
                 _dummyGuildId,
-                user, dummyGuildMember
+                user,
+                dummyGuildMember
             );
 
             mockTask.Verify

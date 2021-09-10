@@ -17,12 +17,12 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    ///     Assign roles from YearRoleAssignments table
+    /// Assign roles from YearRoleAssignments table
     /// </summary>
     /// <remarks>
-    ///     Obtains year of the start from kos, tries to find matching entry in database
-    ///     If there are more student records in the record, earliest one of the same type will be
-    ///     obtained.
+    /// Obtains year of the start from kos, tries to find matching entry in database
+    /// If there are more student records in the record, earliest one of the same type will be
+    /// obtained.
     /// </remarks>
     public class YearRoleStep : IAuthStep
     {

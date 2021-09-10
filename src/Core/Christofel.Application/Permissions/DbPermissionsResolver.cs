@@ -19,8 +19,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Christofel.Application.Permissions
 {
     /// <summary>
-    ///     Resolver of permissions using database.
-    ///     Table with PermissionName, DiscordTarget is used
+    /// Resolver of permissions using database.
+    /// Table with PermissionName, DiscordTarget is used
     /// </summary>
     public sealed class DbPermissionsResolver : IPermissionsResolver
     {
@@ -32,7 +32,7 @@ namespace Christofel.Application.Permissions
         }
 
         public async Task<IEnumerable<DiscordTarget>> GetPermissionTargetsAsync
-            (string permissionName, CancellationToken token = new CancellationToken())
+            (string permissionName, CancellationToken token = default)
         {
             await using IReadableDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
             return await readOnlyContext.Set<PermissionAssignment>()
@@ -42,7 +42,7 @@ namespace Christofel.Application.Permissions
         }
 
         public async Task<bool> HasPermissionAsync
-            (string permissionName, DiscordTarget target, CancellationToken token = new CancellationToken())
+            (string permissionName, DiscordTarget target, CancellationToken token = default)
         {
             await using IReadableDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();
             return await readOnlyContext.Set<PermissionAssignment>()
@@ -58,7 +58,7 @@ namespace Christofel.Application.Permissions
         (
             string permissionName,
             IEnumerable<DiscordTarget> targets,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         )
         {
             await using IReadableDbContext readOnlyContext = _readOnlyDbContextFactory.CreateDbContext();

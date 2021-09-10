@@ -27,6 +27,9 @@ using Remora.Results;
 
 namespace Christofel.Management.Commands
 {
+    /// <summary>
+    /// Command group that handles /permissions commands.
+    /// </summary>
     [Group("permissions")]
     [Description("Manage user and role permissions")]
     [Ephemeral]
@@ -39,6 +42,13 @@ namespace Christofel.Management.Commands
         private readonly ILogger<MessageCommandsGroup> _logger;
         private readonly IPermissionService _permissions;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PermissionCommandsGroup"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="feedbackService">The feedback service.</param>
+        /// <param name="dbContext">The christofel base database context.</param>
+        /// <param name="permissions">The service for permissions.</param>
         public PermissionCommandsGroup
         (
             ILogger<MessageCommandsGroup> logger,
@@ -53,6 +63,15 @@ namespace Christofel.Management.Commands
             _permissions = permissions;
         }
 
+        /// <summary>
+        /// Handles /permissions grant command.
+        /// </summary>
+        /// <remarks>
+        /// Assigns permission to the given role or member.
+        /// </remarks>
+        /// <param name="permission">The permission to assign.</param>
+        /// <param name="entity">The entity to assign the permission to. May be role or guild member.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("grant")]
         [RequirePermission("management.permissions.grant")]
         [Description("Grant specified permission to user or role. Specify either user or role only")]
@@ -66,7 +85,8 @@ namespace Christofel.Management.Commands
         {
             PermissionAssignment assignment = new PermissionAssignment
             {
-                PermissionName = permission, Target = entity.ToDiscordTarget(),
+                PermissionName = permission,
+                Target = entity.ToDiscordTarget(),
             };
 
             try
@@ -96,6 +116,12 @@ namespace Christofel.Management.Commands
             }
         }
 
+        /// <summary>
+        /// Handles /permissions revoke.
+        /// </summary>
+        /// <param name="permission">The permission to remove from the entity.</param>
+        /// <param name="entity">The entity to remove the permission from.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("revoke")]
         [RequirePermission("management.permissions.revoke")]
         [Description
@@ -150,6 +176,10 @@ namespace Christofel.Management.Commands
                 : Result.FromError(feedbackResult);
         }
 
+        /// <summary>
+        /// Handles /permissions list.
+        /// </summary>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("list")]
         [Description("Show list of all permissions that are currently loaded in Christofel")]
         [RequirePermission("management.permissions.list")]
@@ -174,6 +204,11 @@ namespace Christofel.Management.Commands
                 : Result.FromError(feedbackResult);
         }
 
+        /// <summary>
+        /// Handles /permissions show.
+        /// </summary>
+        /// <param name="entity">The entity to show permissions of.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("show")]
         [Description("Show permissions of role or user. For users their role permissions will be shown as well")]
         [RequirePermission("management.permissions.show")]
@@ -259,7 +294,7 @@ namespace Christofel.Management.Commands
             }
 
             public int GetHashCode(DiscordTarget obj) => HashCode.Combine
-                (obj.DiscordId, obj.GuildId, (int) obj.TargetType);
+                (obj.DiscordId, obj.GuildId, (int)obj.TargetType);
         }
     }
 }

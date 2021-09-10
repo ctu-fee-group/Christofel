@@ -17,8 +17,8 @@ using Microsoft.Extensions.Options;
 namespace Christofel.Application.Plugins
 {
     /// <summary>
-    ///     Auto loads plugins specified in configuration
-    ///     on startup
+    /// Auto loads plugins specified in configuration
+    /// on startup
     /// </summary>
     public class PluginAutoloader : IStartable, IRefreshable, IStoppable
     {
@@ -41,7 +41,7 @@ namespace Christofel.Application.Plugins
             _logger = logger;
         }
 
-        public Task RefreshAsync(CancellationToken token = new CancellationToken())
+        public Task RefreshAsync(CancellationToken token = default)
         {
             return Task.WhenAll
             (
@@ -50,7 +50,7 @@ namespace Christofel.Application.Plugins
             );
         }
 
-        public async Task StartAsync(CancellationToken token = new CancellationToken())
+        public async Task StartAsync(CancellationToken token = default)
         {
             if (_options.AutoLoad == null)
             {
@@ -70,6 +70,6 @@ namespace Christofel.Application.Plugins
             }
         }
 
-        public Task StopAsync(CancellationToken token = new CancellationToken()) => _plugins.DetachAllAsync(token);
+        public Task StopAsync(CancellationToken token = default) => _plugins.DetachAllAsync(token);
     }
 }

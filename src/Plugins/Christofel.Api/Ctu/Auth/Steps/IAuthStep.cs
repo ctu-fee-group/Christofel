@@ -11,14 +11,14 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    ///     Individual step of the auth process used to
-    ///     assign roles etc.
+    /// Individual step of the auth process used to
+    /// assign roles etc.
     /// </summary>
     public interface IAuthStep
     {
         /// <summary>
-        ///     Handle the step, call next if the process
-        ///     should continue
+        /// Handle the step, call next if the process
+        /// should continue
         /// </summary>
         /// <param name="data"></param>
         /// <param name="next">Callback to start next step</param>

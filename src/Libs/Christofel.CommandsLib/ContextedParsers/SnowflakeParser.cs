@@ -14,6 +14,9 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.ContextedParsers
 {
+    /// <summary>
+    /// Parses snowflake by unmentioning the value.
+    /// </summary>
     public class SnowflakeParser : AbstractTypeParser<Snowflake>
     {
         /// <inheritdoc />

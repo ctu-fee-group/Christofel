@@ -23,6 +23,14 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib
 {
+    /// <summary>
+    /// <see cref="SlashService"/>-like service that is aware of Christofel permissions.
+    /// </summary>
+    /// <remarks>
+    /// Registers commands one-by-one to prevent race conditions with other plugins.
+    ///
+    /// Edits the permissions of the commands according to <see cref="RequirePermissionAttribute"/>.
+    /// </remarks>
     public class ChristofelSlashService
     {
         private readonly IDiscordRestApplicationAPI _applicationAPI;
@@ -32,12 +40,12 @@ namespace Christofel.CommandsLib
         private readonly ChristofelCommandPermissionResolver _permissionResolver;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="SlashService" /> class.
+        /// Initializes a new instance of the <see cref="ChristofelSlashService"/> class.
         /// </summary>
-        /// <param name="commandTree">The command tree.</param>
-        /// <param name="oauth2API">The OAuth2 API.</param>
-        /// <param name="applicationAPI">The application API.</param>
-        /// <param name="permissionResolver"></param>
+        /// <param name="commandTree">The command tree holding the commands.</param>
+        /// <param name="oauth2API">The oauth api.</param>
+        /// <param name="applicationAPI">The application api.</param>
+        /// <param name="permissionResolver">The permission resolver.</param>
         public ChristofelSlashService
         (
             CommandTree commandTree,
@@ -53,7 +61,7 @@ namespace Christofel.CommandsLib
         }
 
         /// <summary>
-        ///     Determines whether the application's commands support being bound to Discord slash commands.
+        /// Determines whether the application's commands support being bound to Discord slash commands.
         /// </summary>
         /// <returns>true if slash commands are supported; otherwise, false.</returns>
         public Result SupportsSlashCommands()
@@ -66,7 +74,7 @@ namespace Christofel.CommandsLib
         }
 
         /// <summary>
-        ///     Updates the application's slash commands.
+        /// Updates the application's slash commands.
         /// </summary>
         /// <param name="guildID">The ID of the guild to update slash commands in, if any.</param>
         /// <param name="ct">The cancellation token for this operation.</param>
@@ -111,8 +119,12 @@ namespace Christofel.CommandsLib
             {
                 var result = await CreateOrModifyCommandAsync
                 (
-                    application.ID, guildID, command, createdCommands.Entity,
-                    guildCommandPermissions.Entity, ct
+                    application.ID,
+                    guildID,
+                    command,
+                    createdCommands.Entity,
+                    guildCommandPermissions.Entity,
+                    ct
                 );
 
                 if (!result.IsSuccess)
@@ -124,6 +136,12 @@ namespace Christofel.CommandsLib
             return Result.FromSuccess();
         }
 
+        /// <summary>
+        /// Deletes all application's slash commands held by the command tree.
+        /// </summary>
+        /// <param name="guildID">The id of the guild where to delete the commands.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>Deletion result that may not have succeeded.</returns>
         public async Task<Result> DeleteSlashCommandsAsync
         (
             Snowflake guildID,
@@ -161,7 +179,9 @@ namespace Christofel.CommandsLib
                 var result =
                     await _applicationAPI.DeleteGuildApplicationCommandAsync
                     (
-                        application.ID, guildID, appCommand.ID,
+                        application.ID,
+                        guildID,
+                        appCommand.ID,
                         ct
                     );
 
@@ -194,9 +214,7 @@ namespace Christofel.CommandsLib
                     applicationID,
                     guildID,
                     command.Data.Name,
-                    command.Data.Description.HasValue
-                        ? command.Data.Description.Value
-                        : "",
+                    command.Data.Description.HasValue ? command.Data.Description.Value : string.Empty,
                     command.Data.Options,
                     command.DefaultPermission,
                     command.Data.Type,
@@ -224,9 +242,7 @@ namespace Christofel.CommandsLib
                     guildID,
                     registeredCommand.ID,
                     command.Data.Name,
-                    command.Data.Description.HasValue
-                        ? command.Data.Description.Value
-                        : "",
+                    command.Data.Description.HasValue ? command.Data.Description.Value : string.Empty,
                     options,
                     command.DefaultPermission,
                     ct
@@ -297,18 +313,15 @@ namespace Christofel.CommandsLib
                         break;
                     default:
                         throw new InvalidOperationException("Invalid root type");
-                    // Handle shomehow?
                 }
 
                 commandData = new BulkApplicationCommandData
                 (
                     commandData.Name,
-                    commandData.Description.HasValue
-                        ? commandData.Description
-                        : string.Empty, commandData.Options,
-                    commandData.DefaultPermission.HasValue
-                        ? commandData.DefaultPermission
-                        : false, commandData.Type
+                    commandData.Description.HasValue ? commandData.Description : string.Empty,
+                    commandData.Options,
+                    commandData.DefaultPermission.HasValue ? commandData.DefaultPermission : false,
+                    commandData.Type
                 );
                 returnData.Add(new CommandInfo(commandData, defaultPermission, permissions.ToList()));
             }

@@ -24,7 +24,7 @@ namespace Christofel.Api.GraphQL.Authentication
         }
 
         /// <summary>
-        ///     User filled with information that were obtained so far
+        /// User filled with information that were obtained so far
         /// </summary>
         public DbUser? User { get; }
     }

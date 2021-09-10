@@ -30,7 +30,7 @@ namespace Christofel.Api.Ctu.Resolvers
         }
 
         /// <summary>
-        ///     Finds duplicate by specified rules
+        /// Finds duplicate by specified rules
         /// </summary>
         /// <param name="user">What are the loaded information (from apis) about the user</param>
         /// <param name="dbUser">What is the record in the database that holds the specified user</param>

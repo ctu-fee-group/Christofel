@@ -17,11 +17,11 @@ using Usermap.Controllers;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    ///     Assign roles from TitleRoleAssignment table
+    /// Assign roles from TitleRoleAssignment table
     /// </summary>
     /// <remarks>
-    ///     Obtains titles either from kos (safer as there are titlesPre and titlesPost fields)
-    ///     or from usermap if kos user is not found (not safe, because the titles have to be parsed from full name)
+    /// Obtains titles either from kos (safer as there are titlesPre and titlesPost fields)
+    /// or from usermap if kos user is not found (not safe, because the titles have to be parsed from full name)
     /// </remarks>
     public class TitlesRoleStep : IAuthStep
     {

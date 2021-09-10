@@ -14,12 +14,21 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Management.Slowmode
 {
+    /// <summary>
+    /// Service for auto restoring slowmode disable tasks on startup of the plugin.
+    /// </summary>
     public class SlowmodeAutorestore : IStartable, IStoppable
     {
         private readonly IDbContextFactory<ManagementContext> _dbContextFactory;
         private readonly ILogger _logger;
         private readonly SlowmodeService _slowmodeService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SlowmodeAutorestore"/> class.
+        /// </summary>
+        /// <param name="dbContextFactory">The management database context factory.</param>
+        /// <param name="slowmodeService">The service for managing slowmodes.</param>
+        /// <param name="logger">The logger.</param>
         public SlowmodeAutorestore
         (
             IDbContextFactory<ManagementContext> dbContextFactory,
@@ -32,7 +41,8 @@ namespace Christofel.Management.Slowmode
             _dbContextFactory = dbContextFactory;
         }
 
-        public async Task StartAsync(CancellationToken token = new CancellationToken())
+        /// <inheritdoc />
+        public async Task StartAsync(CancellationToken token = default)
         {
             await using var dbContext = _dbContextFactory.CreateDbContext();
             var matchingSlowmodes = dbContext.TemporalSlowmodes;
@@ -87,7 +97,8 @@ namespace Christofel.Management.Slowmode
             }
         }
 
-        public Task StopAsync(CancellationToken token = new CancellationToken())
+        /// <inheritdoc />
+        public Task StopAsync(CancellationToken token = default)
         {
             var canceled = _slowmodeService.CancelAllDisableHandlers();
 

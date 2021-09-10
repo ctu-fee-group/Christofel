@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Christofel.BaseLib.Database.Models
 {
     /// <summary>
-    ///     Database table for assginments using Usermap roles
+    /// Database table for assginments using Usermap roles
     /// </summary>
     public class UsermapRoleAssignment
     {
@@ -18,8 +18,8 @@ namespace Christofel.BaseLib.Database.Models
         [MaxLength(512)] public string UsermapRole { get; set; } = null!;
 
         /// <summary>
-        ///     If true, match by regex.
-        ///     If false, match the whole string.
+        /// If true, match by regex.
+        /// If false, match the whole string.
         /// </summary>
         public bool RegexMatch { get; set; }
 

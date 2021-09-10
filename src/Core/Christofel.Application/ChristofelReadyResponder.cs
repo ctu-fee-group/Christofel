@@ -21,7 +21,7 @@ namespace Christofel.Application
             _app = app;
         }
 
-        public Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = new CancellationToken()) =>
+        public Task<Result> RespondAsync(IReady gatewayEvent, CancellationToken ct = default) =>
             // TODO: somehow move the logic here
             _app.HandleReady();
     }

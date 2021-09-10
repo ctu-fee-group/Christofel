@@ -24,6 +24,9 @@ using Remora.Results;
 
 namespace Christofel.Management.Commands
 {
+    /// <summary>
+    /// The command group for /slowmode commands.
+    /// </summary>
     [Group("slowmode")]
     [RequirePermission("management.slowmode")]
     [Description("Manage slowmode in a channel")]
@@ -37,6 +40,14 @@ namespace Christofel.Management.Commands
         private readonly SlowmodeService _slowmodeService;
         private readonly IThreadSafeStorage<RegisteredTemporalSlowmode> _slowmodeStorage;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MessageCommandsGroup"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="feedbackService">The feedback service.</param>
+        /// <param name="context">The context of the current command.</param>
+        /// <param name="slowmodeService">The service used for managing slowmodes.</param>
+        /// <param name="slowmodeStorage">The storage for the slowmodes.</param>
         public MessageCommandsGroup
         (
             ILogger<MessageCommandsGroup> logger,
@@ -53,6 +64,18 @@ namespace Christofel.Management.Commands
             _feedbackService = feedbackService;
         }
 
+        /// <summary>
+        /// Handles /slowmode for.
+        /// </summary>
+        /// <remarks>
+        /// Registers task for temporal slowmode for given channel.
+        ///
+        /// The task will disable the slowmode after the specified duration.
+        /// </remarks>
+        /// <param name="interval">The message rate for users.</param>
+        /// <param name="duration">The duration of the temporal slowmode.</param>
+        /// <param name="channel">The channel to enable temporal slowmode in.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("for")]
         [RequirePermission("management.slowmode.for")]
         [Description("Enables slowmode for specified duration (hours, minutes, seconds)")]
@@ -116,6 +139,13 @@ namespace Christofel.Management.Commands
                 : Result.FromError(feedbackResult);
         }
 
+        /// <summary>
+        /// Handles /slowmode show.
+        /// </summary>
+        /// <remarks>
+        /// Shows all active registered temporal slowmodes.
+        /// </remarks>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("show")]
         [RequirePermission("management.slowmode.show")]
         [Description("Shows what temporal slowmodes are currently enabled")]
@@ -124,7 +154,7 @@ namespace Christofel.Management.Commands
             var channels = _slowmodeStorage.Data.Select
                 (
                     x =>
-                        $"- <#{x.TemporalSlowmodeEntity.ChannelId}> - expires <t:{((DateTimeOffset) x.TemporalSlowmodeEntity.DeactivationDate).ToUnixTimeSeconds()}:R> with rate limit of {x.TemporalSlowmodeEntity.Interval}"
+                        $"- <#{x.TemporalSlowmodeEntity.ChannelId}> - expires <t:{((DateTimeOffset)x.TemporalSlowmodeEntity.DeactivationDate).ToUnixTimeSeconds()}:R> with rate limit of {x.TemporalSlowmodeEntity.Interval}"
                 )
                 .ToList();
 
@@ -138,6 +168,15 @@ namespace Christofel.Management.Commands
             return await _feedbackService.SendContextualInfoAsync(message + "\n" + string.Join("\n", channels));
         }
 
+        /// <summary>
+        /// Handles /slowmode enable.
+        /// </summary>
+        /// <remarks>
+        /// Enables permanent slowmode in the given channel.
+        /// </remarks>
+        /// <param name="interval">The message rate for users.</param>
+        /// <param name="channel">The channel where to enable the slowmode.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("enable")]
         [RequirePermission("management.slowmode.enable")]
         [Description("Enables slowmode **permanently** in specified channel")]
@@ -180,6 +219,14 @@ namespace Christofel.Management.Commands
             return await _feedbackService.SendContextualSuccessAsync("Slowmode enabled", ct: CancellationToken);
         }
 
+        /// <summary>
+        /// Handles /slowmode disable.
+        /// </summary>
+        /// <remarks>
+        /// Disables slowmode in the given channel.
+        /// </remarks>
+        /// <param name="channel">The channel where to disable slowmode.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("disable")]
         [RequirePermission("management.slowmode.disable")]
         [Description("Disables slowmode in specified channel")]

@@ -12,7 +12,7 @@ namespace Christofel.Api.Extensions
     public static class RestRequestExtensions
     {
         /// <summary>
-        ///     Add individual parameters from dictionary
+        /// Add individual parameters from dictionary
         /// </summary>
         /// <param name="request"></param>
         /// <param name="parameters"></param>

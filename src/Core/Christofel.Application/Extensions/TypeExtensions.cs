@@ -11,7 +11,7 @@ namespace Christofel.Application.Extensions
     public static class TypeExtensions
     {
         /// <summary>
-        ///     Check whether the type given implements the given interface
+        /// Check whether the type given implements the given interface
         /// </summary>
         /// <param name="type"></param>
         /// <typeparam name="T"></typeparam>

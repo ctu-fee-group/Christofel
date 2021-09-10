@@ -20,6 +20,9 @@ using Remora.Results;
 
 namespace Christofel.ReactHandler.Responders
 {
+    /// <summary>
+    /// Responder that deletes marked messages from the database if all the reactions are removed.
+    /// </summary>
     public class DeleteReactHandlerResponder
         : IResponder<IMessageDelete>, IResponder<IMessageReactionRemove>,
             IResponder<IMessageReactionRemoveAll>, IResponder<IMessageReactionRemoveEmoji>
@@ -28,6 +31,12 @@ namespace Christofel.ReactHandler.Responders
         private readonly ReactHandlerContext _dbContext;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeleteReactHandlerResponder"/> class.
+        /// </summary>
+        /// <param name="dbContext">The react handler database context.</param>
+        /// <param name="channelApi">The channel api.</param>
+        /// <param name="logger">The logger.</param>
         public DeleteReactHandlerResponder
         (
             ReactHandlerContext dbContext,
@@ -40,10 +49,11 @@ namespace Christofel.ReactHandler.Responders
             _dbContext = dbContext;
         }
 
+        /// <inheritdoc />
         public async Task<Result> RespondAsync
         (
             IMessageDelete gatewayEvent,
-            CancellationToken ct = new CancellationToken()
+            CancellationToken ct = default
         )
         {
             var matchingHandlers = _dbContext.HandleReacts
@@ -52,17 +62,20 @@ namespace Christofel.ReactHandler.Responders
             return await DeleteHandlers(gatewayEvent.ChannelID, gatewayEvent.ID, matchingHandlers, ct);
         }
 
+        /// <inheritdoc />
         public async Task<Result> RespondAsync
         (
             IMessageReactionRemove gatewayEvent,
-            CancellationToken ct = new CancellationToken()
+            CancellationToken ct = default
         )
         {
             var shouldHandle = await _dbContext.HandleReacts.AnyAsync
             (
                 x =>
-                    x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID, ct
+                    x.ChannelId == gatewayEvent.ChannelID && x.MessageId == gatewayEvent.MessageID,
+                ct
             );
+
             // We will handle only messages that are stored in database (database request is considered less costy than discord request).
             if (!shouldHandle)
             {
@@ -101,10 +114,11 @@ namespace Christofel.ReactHandler.Responders
             return await DeleteHandlers(gatewayEvent.ChannelID, gatewayEvent.MessageID, matchingHandlers, ct);
         }
 
+        /// <inheritdoc />
         public Task<Result> RespondAsync
         (
             IMessageReactionRemoveAll gatewayEvent,
-            CancellationToken ct = new CancellationToken()
+            CancellationToken ct = default
         )
         {
             var matchingHandlers = _dbContext.HandleReacts
@@ -113,10 +127,11 @@ namespace Christofel.ReactHandler.Responders
             return DeleteHandlers(gatewayEvent.ChannelID, gatewayEvent.MessageID, matchingHandlers, ct);
         }
 
+        /// <inheritdoc />
         public Task<Result> RespondAsync
         (
             IMessageReactionRemoveEmoji gatewayEvent,
-            CancellationToken ct = new CancellationToken()
+            CancellationToken ct = default
         )
         {
             var emoji = EmojiFormatter.GetEmojiString(gatewayEvent.Emoji);
@@ -147,7 +162,9 @@ namespace Christofel.ReactHandler.Responders
                 _logger.LogInformation
                 (
                     "Deleting {Count} react handlers for message {Message} in channel {Channel}",
-                    toDelete.Count, messageId, channelId
+                    toDelete.Count,
+                    messageId,
+                    channelId
                 );
             }
 

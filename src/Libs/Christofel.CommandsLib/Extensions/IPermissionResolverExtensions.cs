@@ -16,17 +16,20 @@ using Remora.Discord.API.Objects;
 
 namespace Christofel.CommandsLib.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for <see cref="IPermissionsResolver"/>.
+    /// </summary>
     public static class IPermissionResolverExtensions
     {
         /// <summary>
-        ///     Get assigned permissions for a slash command
+        /// Get assigned permissions for a slash command.
         /// </summary>
-        /// <param name="resolver"></param>
-        /// <param name="permission"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
+        /// <param name="resolver">The resolver to use.</param>
+        /// <param name="permission">The permission that represents the permission of the command.</param>
+        /// <param name="token">The cancellation token for the operation.</param>
+        /// <returns>Permissions that should be assigned to the slash command.</returns>
         public static async Task<IEnumerable<IApplicationCommandPermissions>> GetSlashCommandPermissionsAsync
-            (this IPermissionsResolver resolver, string permission, CancellationToken token = new CancellationToken())
+            (this IPermissionsResolver resolver, string permission, CancellationToken token = default)
         {
             IEnumerable<DiscordTarget> allowedDiscordTargets = await resolver
                 .GetPermissionTargetsAsync(permission, token);

@@ -8,8 +8,17 @@ using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.CommandsLib.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for <see cref="IApplicationCommandPermissions"/>.
+    /// </summary>
     public static class ApplicationCommandPermissionsExtensions
     {
+        /// <summary>
+        /// Checks if the <see cref="leftPermission"/> matches <see cref="rightPermission"/>.
+        /// </summary>
+        /// <param name="leftPermission">The permission to be matched against <see cref="rightPermission"/>.</param>
+        /// <param name="rightPermission">The permission to be matched against <see cref="leftPermission"/>.</param>
+        /// <returns>Whether <see cref="leftPermission"/> matches <see cref="rightPermission"/>.</returns>
         public static bool PermissionMatches
             (this IApplicationCommandPermissions leftPermission, IApplicationCommandPermissions rightPermission)
             => leftPermission.ID == rightPermission.ID &&

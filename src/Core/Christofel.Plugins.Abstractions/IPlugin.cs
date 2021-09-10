@@ -6,6 +6,9 @@
 
 namespace Christofel.Plugins
 {
+    /// <summary>
+    /// Plugin that may be attached.
+    /// </summary>
     public interface IPlugin : IHasPluginInfo
     {
     }

@@ -12,7 +12,7 @@ using System.Runtime.Loader;
 namespace Christofel.Plugins.Assemblies
 {
     /// <summary>
-    ///     Class for holding loaded assembly in AssemblyLoadContext
+    /// Class for holding loaded assembly inside of <see cref="AssemblyLoadContext"/>.
     /// </summary>
     public class ContextedAssembly
     {
@@ -21,12 +21,21 @@ namespace Christofel.Plugins.Assemblies
         private AssemblyLoadContext? _context;
         private WeakReference? _weakReference;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContextedAssembly"/> class.
+        /// </summary>
+        /// <param name="context">The context assembly is loaded in.</param>
+        /// <param name="assembly">The assembly that was loaded into ALC.</param>
         public ContextedAssembly(AssemblyLoadContext context, Assembly assembly)
         {
             _assembly = assembly;
             _context = context;
         }
 
+        /// <summary>
+        /// Gets <see cref="AssemblyLoadContext"/> the assemby is loaded in.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Will be thrown if the assembly was already unloaded using <see cref="Detach"/>.</exception>
         public AssemblyLoadContext Context
         {
             get
@@ -40,6 +49,10 @@ namespace Christofel.Plugins.Assemblies
             }
         }
 
+        /// <summary>
+        /// Gets the wrapped assembly that was requested to be loaded.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Will be thrown if the assembly was already unloaded using <see cref="Detach"/>.</exception>
         public Assembly Assembly
         {
             get
@@ -54,9 +67,9 @@ namespace Christofel.Plugins.Assemblies
         }
 
         /// <summary>
-        ///     Unloads AssemblyLoadContext and throws away it's reference
+        /// Unloads AssemblyLoadContext and throws away it's reference.
         /// </summary>
-        /// <returns>Weak reference to AssemblyLoadContext so it can be checked whether the AssemblyLoadContext was destroyed</returns>
+        /// <returns>Weak reference to AssemblyLoadContext so it can be checked whether the AssemblyLoadContext was destroyed.</returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public WeakReference Detach()
         {

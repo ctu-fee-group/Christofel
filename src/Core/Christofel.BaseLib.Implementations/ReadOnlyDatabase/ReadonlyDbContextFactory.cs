@@ -10,7 +10,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Christofel.BaseLib.Implementations.ReadOnlyDatabase
 {
     /// <summary>
-    ///     Creates ReadonlyDbContext for specified DbContextFactory
+    ///
+ Creates ReadonlyDbContext for specified DbContextFactory
     /// </summary>
     /// <typeparam name="TContext"></typeparam>
     public class ReadonlyDbContextFactory<TContext>

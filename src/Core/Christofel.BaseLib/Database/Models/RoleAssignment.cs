@@ -16,12 +16,12 @@ namespace Christofel.BaseLib.Database.Models
         [Key] public int RoleAssignmentId { get; set; }
 
         /// <summary>
-        ///     Discord role id
+        /// Discord role id
         /// </summary>
         public Snowflake RoleId { get; set; }
 
         /// <summary>
-        ///     Type of the role for special behaviors
+        /// Type of the role for special behaviors
         /// </summary>
         public RoleType RoleType { get; set; }
 

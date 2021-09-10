@@ -15,8 +15,8 @@ namespace Christofel.Api.GraphQL.Extensions
     public static class ObjectFieldDescriptorExtensions
     {
         /// <summary>
-        ///     Use database context of given type as scoped service
-        ///     IDbContextFactory<TDbContext> must be available from services
+        /// Use database context of given type as scoped service
+        /// IDbContextFactory<TDbContext> must be available from services
         /// </summary>
         /// <param name="descriptor"></param>
         /// <typeparam name="TDbContext"></typeparam>
@@ -35,8 +35,8 @@ namespace Christofel.Api.GraphQL.Extensions
         }
 
         /// <summary>
-        ///     Use read only context of given type as scoped service
-        ///     ReadOnlyDbContextFactory<TDbContextg> muset be available from services
+        /// Use read only context of given type as scoped service
+        /// ReadOnlyDbContextFactory<TDbContextg> muset be available from services
         /// </summary>
         /// <param name="descriptor"></param>
         /// <typeparam name="TDbContext"></typeparam>

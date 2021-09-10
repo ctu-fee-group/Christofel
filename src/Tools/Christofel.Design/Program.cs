@@ -8,6 +8,9 @@ using System;
 
 namespace Christofel.Design
 {
+    /// <summary>
+    /// The startup class.
+    /// </summary>
     internal class Program
     {
         private static void Main(string[] args)

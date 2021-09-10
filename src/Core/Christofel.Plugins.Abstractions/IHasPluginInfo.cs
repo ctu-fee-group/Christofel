@@ -7,12 +7,23 @@
 namespace Christofel.Plugins
 {
     /// <summary>
-    ///     Abstraction of plugin info to be able to use info about plugin even after plugin was destroyed
+    /// Holds information about a plugin.
     /// </summary>
     public interface IHasPluginInfo
     {
+        /// <summary>
+        /// Gets the name of the plugin.
+        /// </summary>
         public string Name { get; }
+
+        /// <summary>
+        /// Gets the description of the plugin.
+        /// </summary>
         public string Description { get; }
+
+        /// <summary>
+        /// Gets the version of the plugin.
+        /// </summary>
         public string Version { get; }
     }
 }

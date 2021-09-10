@@ -77,7 +77,7 @@ namespace Christofel.Api
             }
         }
 
-        public async Task RunAsync(CancellationToken token = new CancellationToken())
+        public async Task RunAsync(CancellationToken token = default)
         {
             try
             {
@@ -101,7 +101,7 @@ namespace Christofel.Api
             }
         }
 
-        public Task RefreshAsync(CancellationToken token = new CancellationToken()) =>
+        public Task RefreshAsync(CancellationToken token = default) =>
             // Nothing to refresh for Api
             Task.CompletedTask;
 

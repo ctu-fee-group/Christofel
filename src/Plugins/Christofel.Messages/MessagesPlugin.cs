@@ -25,11 +25,17 @@ using Remora.Commands.Extensions;
 
 namespace Christofel.Messages
 {
+    /// <summary>
+    /// Plugin for handling commands with messages.
+    /// </summary>
     public class MessagesPlugin : ChristofelDIPlugin
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<MessagesPlugin>? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MessagesPlugin"/> class.
+        /// </summary>
         public MessagesPlugin()
         {
             _lifetimeHandler = new PluginLifetimeHandler
@@ -39,35 +45,46 @@ namespace Christofel.Messages
             );
         }
 
+        /// <inheritdoc />
         public override string Name => "Christofel.Messages";
+
+        /// <inheritdoc />
         public override string Description => "Plugin for handling commands with messages";
+
+        /// <inheritdoc />
         public override string Version => "v1.0.0";
 
+        /// <inheritdoc />
         protected override IEnumerable<IRefreshable> Refreshable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStoppable> Stoppable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStartable> Startable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
+        /// <inheritdoc />
         protected override Task InitializeServices
-            (IServiceProvider services, CancellationToken token = new CancellationToken())
+            (IServiceProvider services, CancellationToken token = default)
         {
             _logger = services.GetRequiredService<ILogger<MessagesPlugin>>();
-            ((PluginContext) Context).PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         protected override IServiceCollection ConfigureServices
             (IServiceCollection serviceCollection) => serviceCollection
             .AddDiscordState(State)

@@ -18,28 +18,28 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
         public class FailingCondition : IPreAuthCondition
         {
             public ValueTask<Result> CheckPreAsync
-                (IAuthData authData, CancellationToken ct = new CancellationToken()) => ValueTask.FromResult<Result>
+                (IAuthData authData, CancellationToken ct = default) => ValueTask.FromResult<Result>
                 (new InvalidOperationError());
         }
 
         public class SuccessfulCondition : IPreAuthCondition
         {
             public ValueTask<Result> CheckPreAsync
-                (IAuthData authData, CancellationToken ct = new CancellationToken()) => ValueTask.FromResult
+                (IAuthData authData, CancellationToken ct = default) => ValueTask.FromResult
                 (Result.FromSuccess());
         }
 
         public class ExceptionThrowingCondition : IPreAuthCondition
         {
             public ValueTask<Result> CheckPreAsync
-                (IAuthData authData, CancellationToken ct = new CancellationToken())
+                (IAuthData authData, CancellationToken ct = default)
                 => throw new InvalidOperationException();
         }
 
         public abstract class MockCondition : IPreAuthCondition
         {
             public abstract ValueTask<Result> CheckPreAsync
-                (IAuthData authData, CancellationToken ct = new CancellationToken());
+                (IAuthData authData, CancellationToken ct = default);
         }
     }
 }

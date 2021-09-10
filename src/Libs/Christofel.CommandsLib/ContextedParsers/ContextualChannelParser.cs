@@ -19,18 +19,37 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.ContextedParsers
 {
+    /// <summary>
+    /// Parses <see cref="IPartialChannel"/> by using <see cref="ICommandContext"/>.
+    /// </summary>
+    /// <remarks>
+    /// For interaction context, the data will be obtained from <see cref="IInteractionData.Resolved"/>,
+    /// if it cannot be found there, error will be returned.
+    ///
+    /// For message context, the channel will be loaded using channel api.
+    ///
+    /// Slash commands have to be executed
+    /// with parameters using mentions, not by ids of the objects
+    /// as that won't put them into Resolved.
+    /// </remarks>
     public class ContextualChannelParser : AbstractTypeParser<IPartialChannel>
     {
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly ICommandContext _commandContext;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContextualChannelParser"/> class.
+        /// </summary>
+        /// <param name="commandContext">The context of the current command.</param>
+        /// <param name="channelApi">The api for getting information about channels.</param>
         public ContextualChannelParser(ICommandContext commandContext, IDiscordRestChannelAPI channelApi)
         {
             _channelApi = channelApi;
             _commandContext = commandContext;
         }
 
-        public override async ValueTask<Result<IPartialChannel>> TryParseAsync(string value, CancellationToken ct)
+        /// <inheritdoc />
+        public override async ValueTask<Result<IPartialChannel>> TryParseAsync(string value, CancellationToken ct = default)
         {
             if (_commandContext is InteractionContext interactionContext &&
                 Snowflake.TryParse(value.Unmention(), out var channelID) &&
@@ -55,14 +74,32 @@ namespace Christofel.CommandsLib.ContextedParsers
 
             return new PartialChannel
             (
-                result.Entity.ID, result.Entity.Type, result.Entity.GuildID,
-                result.Entity.Position, result.Entity.PermissionOverwrites, result.Entity.Name, result.Entity.Topic,
-                result.Entity.IsNsfw, result.Entity.LastMessageID, result.Entity.Bitrate, result.Entity.UserLimit,
-                result.Entity.RateLimitPerUser, result.Entity.Recipients, result.Entity.Icon, result.Entity.OwnerID,
-                result.Entity.ApplicationID, result.Entity.ParentID, result.Entity.LastPinTimestamp,
-                result.Entity.RTCRegion, result.Entity.VideoQualityMode, result.Entity.MessageCount,
-                result.Entity.MemberCount, result.Entity.ThreadMetadata, result.Entity.Member,
-                result.Entity.DefaultAutoArchiveDuration, result.Entity.Permissions
+                result.Entity.ID,
+                result.Entity.Type,
+                result.Entity.GuildID,
+                result.Entity.Position,
+                result.Entity.PermissionOverwrites,
+                result.Entity.Name,
+                result.Entity.Topic,
+                result.Entity.IsNsfw,
+                result.Entity.LastMessageID,
+                result.Entity.Bitrate,
+                result.Entity.UserLimit,
+                result.Entity.RateLimitPerUser,
+                result.Entity.Recipients,
+                result.Entity.Icon,
+                result.Entity.OwnerID,
+                result.Entity.ApplicationID,
+                result.Entity.ParentID,
+                result.Entity.LastPinTimestamp,
+                result.Entity.RTCRegion,
+                result.Entity.VideoQualityMode,
+                result.Entity.MessageCount,
+                result.Entity.MemberCount,
+                result.Entity.ThreadMetadata,
+                result.Entity.Member,
+                result.Entity.DefaultAutoArchiveDuration,
+                result.Entity.Permissions
             );
         }
     }

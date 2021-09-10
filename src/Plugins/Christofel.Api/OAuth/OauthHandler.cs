@@ -18,7 +18,7 @@ using RestSharp.Serializers.NewtonsoftJson;
 namespace Christofel.Api.OAuth
 {
     /// <summary>
-    ///     Handler of post oauth access token retrieval
+    /// Handler of post oauth access token retrieval
     /// </summary>
     public abstract class OauthHandler<TOptions>
         where TOptions : IOauthOptions
@@ -40,7 +40,7 @@ namespace Christofel.Api.OAuth
         }
 
         /// <summary>
-        ///     Obtain access token or error
+        /// Obtain access token or error
         /// </summary>
         /// <param name="code"></param>
         /// <param name="redirectUri"></param>

@@ -27,7 +27,7 @@ using Remora.Results;
 namespace Christofel.CommandsLib.ExecutionEvents
 {
     /// <summary>
-    ///     Prints correct usage of command to the user
+    /// Event catching missing command errors and telling the user correct syntax or what commands are in the group.
     /// </summary>
     public class WrongParametersExecutionEvent : IPostExecutionEvent
     {
@@ -37,12 +37,12 @@ namespace Christofel.CommandsLib.ExecutionEvents
         private readonly WrongParametersEventOptions _options;
 
         /// <summary>
-        ///     Creates instance of <see cref="WrongParametersExecutionEvent" />
+        /// Initializes a new instance of the <see cref="WrongParametersExecutionEvent"/> class.
         /// </summary>
-        /// <param name="feedbackService">Service used for sending feedback to the user</param>
-        /// <param name="interactionApi">Api used for sending interaction response</param>
-        /// <param name="commandTree">Command tree holding all application commands</param>
-        /// <param name="options">Options used for formatting of the usage</param>
+        /// <param name="feedbackService">Service used for sending feedback to the user.</param>
+        /// <param name="interactionApi">Api used for sending interaction response.</param>
+        /// <param name="commandTree">Command tree holding all application commands.</param>
+        /// <param name="options">Options used for formatting of the usage.</param>
         public WrongParametersExecutionEvent
         (
             FeedbackService feedbackService,
@@ -62,7 +62,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
         (
             ICommandContext context,
             IResult commandResult,
-            CancellationToken ct = new CancellationToken()
+            CancellationToken ct = default
         )
         {
             if (!commandResult.IsSuccess && commandResult.Error is CommandNotFoundError commandNotFoundError)
@@ -73,8 +73,8 @@ namespace Christofel.CommandsLib.ExecutionEvents
                 {
                     var explained = foundChildNode switch
                     {
-                        CommandNode commandNode => ExplainCommandNode(commandNode, ct),
-                        GroupNode groupNode => ExplainGroupNode(groupNode, ct),
+                        CommandNode commandNode => ExplainCommandNode(commandNode),
+                        GroupNode groupNode => ExplainGroupNode(groupNode),
                         _ => null,
                     };
 
@@ -89,12 +89,12 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Sends message to the user using embed
+        /// Sends message to the user using embed.
         /// </summary>
-        /// <param name="context">Context of the command</param>
-        /// <param name="message">Message to be sent</param>
-        /// <param name="ct"></param>
-        /// <returns>Result containing response from the feedback service</returns>
+        /// <param name="context">Context of the command.</param>
+        /// <param name="message">Message to be sent.</param>
+        /// <param name="ct">The cancellation token for this operation.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         private async Task<Result> SendResponse(ICommandContext context, string message, CancellationToken ct)
         {
             if (context is InteractionContext interactionContext)
@@ -122,16 +122,11 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Creates explanation string for matched group node
+        /// Creates explanation string for matched group node.
         /// </summary>
-        /// <param name="groupNode">Matched group node</param>
-        /// <param name="ct"></param>
-        /// <returns>Formatted explanation of the usage of the group</returns>
-        private string ExplainGroupNode
-        (
-            GroupNode groupNode,
-            CancellationToken ct
-        )
+        /// <param name="groupNode">Matched group node.</param>
+        /// <returns>Formatted explanation of the usage of the group.</returns>
+        private string ExplainGroupNode(GroupNode groupNode)
         {
             var fullName = GetFullExecutionName(groupNode);
             var childNames = string.Join('|', groupNode.Children.Select(x => x.Key));
@@ -141,16 +136,11 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Creates explanation string for matched command node
+        /// Creates explanation string for matched command node.
         /// </summary>
-        /// <param name="commandNode">Matched command node</param>
-        /// <param name="ct"></param>
-        /// <returns>Formatted explanation of the usage of the command</returns>
-        private string ExplainCommandNode
-        (
-            CommandNode commandNode,
-            CancellationToken ct
-        )
+        /// <param name="commandNode">Matched command node.</param>
+        /// <returns>Formatted explanation of the usage of the command.</returns>
+        private string ExplainCommandNode(CommandNode commandNode)
         {
             var fullName = GetFullExecutionName(commandNode);
             var explainedParameters = commandNode.Shape.Parameters.Select(ExplainParameter);
@@ -164,10 +154,10 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Creates explanation string for one parameter
+        /// Creates explanation string for one parameter.
         /// </summary>
-        /// <param name="parameterShape">Current parameter of matched command</param>
-        /// <returns>Formatted explanation of the parameter</returns>
+        /// <param name="parameterShape">Current parameter of matched command.</param>
+        /// <returns>Formatted explanation of the parameter.</returns>
         private string ExplainParameter(IParameterShape parameterShape)
         {
             var format = parameterShape.IsOmissible()
@@ -182,14 +172,13 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Obtains full name of the command by iterating through parents
+        /// Obtains full name of the command by iterating through parents.
         /// </summary>
-        /// <param name="commandNode"></param>
-        /// <returns>Full name of the command</returns>
+        /// <param name="commandNode">The node.</param>
+        /// <returns>Full name of the command.</returns>
         private string GetFullExecutionName(CommandNode commandNode)
         {
-            var nameParts = new List<string>();
-            nameParts.Add(commandNode.Key);
+            var nameParts = new List<string> { commandNode.Key };
 
             GetPartialExecutionName(commandNode.Parent, nameParts);
 
@@ -198,10 +187,10 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Obtains full name of the group by iterating through parents
+        /// Obtains full name of the group by iterating through parents.
         /// </summary>
-        /// <param name="groupNode"></param>
-        /// <returns>Full name of the group</returns>
+        /// <param name="groupNode">The node.</param>
+        /// <returns>Full name of the group.</returns>
         private string GetFullExecutionName(GroupNode groupNode)
         {
             var nameParts = new List<string>();
@@ -213,7 +202,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Fills list with parent names.
+        /// Fills list with parent names.
         /// </summary>
         /// <param name="parent">Current node.</param>
         /// <param name="parts">Parts list to be filled.</param>
@@ -235,7 +224,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Tries to obtain command node by command name.
+        /// Tries to obtain command node by command name.
         /// </summary>
         /// <param name="command">Name of the command.</param>
         /// <returns>Last matched node.</returns>
@@ -246,7 +235,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Tries to obtain command node from parent node and token enumerator.
+        /// Tries to obtain command node from parent node and token enumerator.
         /// </summary>
         /// <param name="node">Current node to search.</param>
         /// <param name="tokenizingEnumerator">Tokenizing enumerator.</param>
@@ -280,7 +269,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Determines whether a node matches the current state of the tokenizer.
+        /// Determines whether a node matches the current state of the tokenizer.
         /// </summary>
         /// <param name="node">The node.</param>
         /// <param name="tokenizer">The tokenizer.</param>
@@ -315,14 +304,14 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <summary>
-        ///     Replaces parameters inside of the string.
+        /// Replaces parameters inside of the string.
         /// </summary>
         /// <remarks>
-        ///     Replaces parameters enclosed in curly braces {} by the value that is in parameters Dictionary.
+        /// Replaces parameters enclosed in curly braces {} by the value that is in parameters Dictionary.
         /// </remarks>
-        /// <param name="format"></param>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
+        /// <param name="format">The format that should be printed.</param>
+        /// <param name="parameters">The parameters that will be replaces.</param>
+        /// <returns>Formatted string.</returns>
         private string FormatString(string format, Dictionary<string, string> parameters)
         {
             parameters.Add("Prefix", _options.Prefix);

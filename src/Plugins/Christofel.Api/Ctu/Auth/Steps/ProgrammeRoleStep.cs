@@ -17,10 +17,10 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    ///     Assign roles from ProgrammeRoleAssignment table
+    /// Assign roles from ProgrammeRoleAssignment table
     /// </summary>
     /// <remarks>
-    ///     Uses kos api to obtain programme of the user
+    /// Uses kos api to obtain programme of the user
     /// </remarks>
     public class ProgrammeRoleStep : IAuthStep
     {

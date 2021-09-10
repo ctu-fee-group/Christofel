@@ -48,10 +48,10 @@ namespace Christofel.Application.State
         }
 
         /// <summary>
-        ///     Runs application in delay task until stop is requested using cancellation token
+        /// Runs application in delay task until stop is requested using cancellation token
         /// </summary>
         /// <param name="token"></param>
-        public async Task RunApplication(CancellationToken token = new CancellationToken())
+        public async Task RunApplication(CancellationToken token = default)
         {
             _logger.LogInformation("Running application");
             CancellationTokenSource tokenSource =

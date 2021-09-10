@@ -22,8 +22,8 @@ using Remora.Results;
 namespace Christofel.Api.Ctu
 {
     /// <summary>
-    ///     Service used for storing roles to be assigned in database,
-    ///     enqueues pending data from the database when needed
+    /// Service used for storing roles to be assigned in database,
+    /// enqueues pending data from the database when needed
     /// </summary>
     public class CtuAuthRoleAssignService
     {
@@ -47,7 +47,7 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        ///     Enqueues roles to be assigned and/or removed from the given user
+        /// Enqueues roles to be assigned and/or removed from the given user
         /// </summary>
         /// <param name="guildMember">Loaded guild member with roles that are currently</param>
         /// <param name="userId">Id of the user/member the roles should be assigned/removed from</param>
@@ -80,7 +80,7 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        ///     Save given roles to database to be able to retrieve them in case the bot is stopped
+        /// Save given roles to database to be able to retrieve them in case the bot is stopped
         /// </summary>
         /// <param name="userId">What user should the roles be assigned to</param>
         /// <param name="guildId">What guild are the roles in</param>
@@ -124,7 +124,7 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        ///     Remove roles of the given user from the database as they are no longer needed
+        /// Remove roles of the given user from the database as they are no longer needed
         /// </summary>
         /// <param name="userId">What user should be removed from the database</param>
         /// <param name="guildId">What guild is the user in</param>
@@ -150,12 +150,12 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        ///     Enqueue all roles to the processor
+        /// Enqueue all roles to the processor
         /// </summary>
         /// <remarks>
-        ///     Enqueues roles from cache database,
-        ///     users who didn't get roles assigned in previous run,
-        ///     will get roles assigned in this one.
+        /// Enqueues roles from cache database,
+        /// users who didn't get roles assigned in previous run,
+        /// will get roles assigned in this one.
         /// </remarks>
         /// <returns>Number of users that were enqueued for role addition</returns>
         public async Task<uint> EnqueueRemainingRoles(CancellationToken ct = default)

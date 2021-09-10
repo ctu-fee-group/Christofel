@@ -20,12 +20,31 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.ContextedParsers
 {
+    /// <summary>
+    /// Parses <see cref="IPartialGuildMember"/> by using <see cref="ICommandContext"/>.
+    /// </summary>
+    /// <remarks>
+    /// For interaction context, the data will be obtained from <see cref="IInteractionData.Resolved"/>,
+    /// if it cannot be found there, error will be returned.
+    ///
+    /// For message context, the channel will be loaded using channel and guild api.
+    ///
+    /// Slash commands have to be executed
+    /// with parameters using mentions, not by ids of the objects
+    /// as that won't put them into Resolved.
+    /// </remarks>
     public class ContextualGuildMemberParser : AbstractTypeParser<IPartialGuildMember>
     {
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly ICommandContext _commandContext;
         private readonly IDiscordRestGuildAPI _guildApi;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContextualGuildMemberParser"/> class.
+        /// </summary>
+        /// <param name="commandContext">The context of the command.</param>
+        /// <param name="channelApi">The channel api.</param>
+        /// <param name="guildApi">The guild api.</param>
         public ContextualGuildMemberParser
             (ICommandContext commandContext, IDiscordRestChannelAPI channelApi, IDiscordRestGuildAPI guildApi)
         {
@@ -34,7 +53,9 @@ namespace Christofel.CommandsLib.ContextedParsers
             _commandContext = commandContext;
         }
 
-        public override async ValueTask<Result<IPartialGuildMember>> TryParseAsync(string value, CancellationToken ct)
+        /// <inheritdoc />
+        public override async ValueTask<Result<IPartialGuildMember>> TryParseAsync
+            (string value, CancellationToken ct = default)
         {
             PartialGuildMember? retrievedMember = null;
 
@@ -47,7 +68,9 @@ namespace Christofel.CommandsLib.ContextedParsers
                 {
                     retrievedMember = new PartialGuildMember
                     (
-                        member.User, member.Nickname, member.Roles,
+                        member.User,
+                        member.Nickname,
+                        member.Roles,
                         member.JoinedAt,
                         member.PremiumSince,
                         member.IsDeafened,

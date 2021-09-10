@@ -23,7 +23,7 @@ using Remora.Results;
 namespace Christofel.Api.Ctu
 {
     /// <summary>
-    ///     Used to iterate through all steps of auth process
+    /// Used to iterate through all steps of auth process
     /// </summary>
     public class CtuAuthProcess
     {
@@ -32,7 +32,7 @@ namespace Christofel.Api.Ctu
         private readonly IServiceProvider _services;
 
         /// <summary>
-        ///     Initialize CtuAuthProcess
+        /// Initialize CtuAuthProcess
         /// </summary>
         public CtuAuthProcess
         (
@@ -45,8 +45,8 @@ namespace Christofel.Api.Ctu
         }
 
         /// <summary>
-        ///     Proceed to do all the steps
-        ///     If step fails, exception will be thrown
+        /// Proceed to do all the steps
+        /// If step fails, exception will be thrown
         /// </summary>
         /// <param name="accessToken">Valid token that can be used for Kos and Usermap</param>
         /// <param name="ctuOauthHandler"></param>

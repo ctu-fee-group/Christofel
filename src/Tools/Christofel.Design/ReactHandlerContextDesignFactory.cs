@@ -12,8 +12,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Christofel.Design
 {
+    /// <summary>
+    /// Factory of <see cref="ReactHandlerContext"/>.
+    /// </summary>
     public class ReactHandlerContextDesignFactory : IDesignTimeDbContextFactory<ReactHandlerContext>
     {
+        /// <inheritdoc />
         public ReactHandlerContext CreateDbContext(string[] args)
         {
             DbContextOptionsBuilder<ReactHandlerContext> builder = new DbContextOptionsBuilder<ReactHandlerContext>();

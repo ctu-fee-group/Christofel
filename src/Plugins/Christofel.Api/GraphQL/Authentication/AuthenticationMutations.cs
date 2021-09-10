@@ -44,9 +44,9 @@ namespace Christofel.Api.GraphQL.Authentication
         }
 
         /// <summary>
-        ///     Register using discord.
-        ///     This should be first step of registration.
-        ///     Second one is to register using CTU (registerCtu).
+        /// Register using discord.
+        /// This should be first step of registration.
+        /// Second one is to register using CTU (registerCtu).
         /// </summary>
         /// <param name="input">Input of the mutation</param>
         /// <param name="dbContext">Db context to write user to</param>
@@ -124,9 +124,9 @@ namespace Christofel.Api.GraphQL.Authentication
         }
 
         /// <summary>
-        ///     Register using CTU.
-        ///     This should be second and last step of registration.
-        ///     The first step is to register using Discord (registerDiscord).
+        /// Register using CTU.
+        /// This should be second and last step of registration.
+        /// The first step is to register using Discord (registerDiscord).
         /// </summary>
         /// <param name="input">Input of the mutation</param>
         /// <param name="dbContext">Context with user information</param>
@@ -182,9 +182,9 @@ namespace Christofel.Api.GraphQL.Authentication
         }
 
         /// <summary>
-        ///     Register using CTU using access token. If you want to use oauth2, use registerCtu mutation.
-        ///     This should be second and last step of registration.
-        ///     The first step is to register using Discord (registerDiscord).
+        /// Register using CTU using access token. If you want to use oauth2, use registerCtu mutation.
+        /// This should be second and last step of registration.
+        /// The first step is to register using Discord (registerDiscord).
         /// </summary>
         /// <param name="input">Input of the mutation</param>
         /// <param name="dbContext">Context with user information</param>
@@ -219,8 +219,8 @@ namespace Christofel.Api.GraphQL.Authentication
         }
 
         /// <summary>
-        ///     Verify specified registration code to know what stage
-        ///     of registration should be used (registerDiscord or registerCtu)
+        /// Verify specified registration code to know what stage
+        /// of registration should be used (registerDiscord or registerCtu)
         /// </summary>
         /// <param name="input">Input of the mutation</param>
         /// <param name="dbContext"></param>

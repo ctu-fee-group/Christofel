@@ -11,8 +11,18 @@ using Remora.Results;
 
 namespace Christofel.Remora
 {
+    /// <summary>
+    /// Responds to any <see cref="IGatewayEvent"/>.
+    /// </summary>
     public interface IAnyResponder
     {
+        /// <summary>
+        /// Responds to given event.
+        /// </summary>
+        /// <param name="gatewayEvent">The event to respond to.</param>
+        /// <param name="ct">The cancellation token for this operation.</param>
+        /// <typeparam name="TEvent">The type of the event.</typeparam>
+        /// <returns>Response result that may no have succeeded.</returns>
         public Task<Result> RespondAsync<TEvent>(TEvent gatewayEvent, CancellationToken ct = default)
             where TEvent : IGatewayEvent;
     }

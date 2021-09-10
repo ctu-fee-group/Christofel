@@ -15,8 +15,8 @@ namespace Christofel.BaseLib.Extensions
     public static class PermissionResolverExtensions
     {
         /// <summary>
-        ///     Alias for <see cref="IPermissionsResolver.GetPermissionTargetsAsync" />
-        ///     using permission object
+        /// Alias for <see cref="IPermissionsResolver.GetPermissionTargetsAsync" />
+        /// using permission object
         /// </summary>
         /// <param name="resolver"></param>
         /// <param name="permission"></param>
@@ -26,12 +26,12 @@ namespace Christofel.BaseLib.Extensions
         (
             this IPermissionsResolver resolver,
             IPermission permission,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         ) => resolver.GetPermissionTargetsAsync(permission.PermissionName, token);
 
         /// <summary>
-        ///     Alias for <see cref="IPermissionsResolver.HasPermissionAsync" />
-        ///     using permission object
+        /// Alias for <see cref="IPermissionsResolver.HasPermissionAsync" />
+        /// using permission object
         /// </summary>
         /// <param name="resolver"></param>
         /// <param name="permission"></param>
@@ -43,12 +43,12 @@ namespace Christofel.BaseLib.Extensions
             this IPermissionsResolver resolver,
             IPermission permission,
             DiscordTarget target,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         ) => resolver.HasPermissionAsync(permission.PermissionName, target, token);
 
         /// <summary>
-        ///     Alias for <see cref="IPermissionsResolver.AnyHasPermissionAsync" />
-        ///     using permission object
+        /// Alias for <see cref="IPermissionsResolver.AnyHasPermissionAsync" />
+        /// using permission object
         /// </summary>
         /// <param name="resolver"></param>
         /// <param name="permission"></param>
@@ -60,7 +60,7 @@ namespace Christofel.BaseLib.Extensions
             this IPermissionsResolver resolver,
             IPermission permission,
             IEnumerable<DiscordTarget> target,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         ) => resolver.AnyHasPermissionAsync(permission.PermissionName, target, token);
     }
 }

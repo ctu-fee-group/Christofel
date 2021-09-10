@@ -28,6 +28,9 @@ using Remora.Results;
 
 namespace Christofel.ReactHandler.Commands
 {
+    /// <summary>
+    /// Handles /handlereact unmark|mark|show commands.
+    /// </summary>
     [Group("handlereact")]
     [RequirePermission("reacthandler.handlereact")]
     [Description("Mark messages so that the bot handles reacts on them")]
@@ -41,6 +44,14 @@ namespace Christofel.ReactHandler.Commands
         private readonly FeedbackService _feedbackService;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HandleReactCommands"/> class.
+        /// </summary>
+        /// <param name="dbContext">The react handler database context.</param>
+        /// <param name="commandContext">The context of the current command.</param>
+        /// <param name="feedbackService">The feedback service.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="channelApi">The channel api.</param>
         public HandleReactCommands
         (
             ReactHandlerContext dbContext,
@@ -57,6 +68,13 @@ namespace Christofel.ReactHandler.Commands
             _channelApi = channelApi;
         }
 
+        /// <summary>
+        /// Handles /handlereact unmark command.
+        /// </summary>
+        /// <param name="messageId">The message to react to.</param>
+        /// <param name="reactEmoji">The emoji to react to.</param>
+        /// <param name="channel">The channel the message is located in.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("unmark")]
         [Description("Unmark specified message to not be handled by the bot on user reaction.")]
         public async Task<Result> HandleReactRemove
@@ -109,6 +127,14 @@ namespace Christofel.ReactHandler.Commands
                 : Result.FromError(feedbackResult);
         }
 
+        /// <summary>
+        /// Handles /handlereact mark command.
+        /// </summary>
+        /// <param name="messageId">The message to react to.</param>
+        /// <param name="reactEmoji">The emoji to react to.</param>
+        /// <param name="entity">The entity that should be assigned. Has to be Role or Channel.</param>
+        /// <param name="channel">The channel the message is in.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("mark")]
         [Description("Mark specified message to be handled by the bot to add channel or role on user reaction.")]
         public async Task<Result> HandleReactAdd
@@ -179,6 +205,13 @@ namespace Christofel.ReactHandler.Commands
                 : Result.FromError(feedbackResult);
         }
 
+        /// <summary>
+        /// Handles /handlereact show command.
+        /// </summary>
+        /// <param name="messageId">The message to show information about.</param>
+        /// <param name="reactEmoji">The emoji to show information about.</param>
+        /// <param name="channel">The channel where the message is in.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("show")]
         [Description("Show information about reacts of the specified message that are handled by the bot.")]
         public async Task<Result> HandleReactShow

@@ -15,8 +15,18 @@ using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.CommandsLib.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for converting members or roles to DiscordTarget.
+    /// </summary>
     public static class GuildMemberOrRoleExtensions
     {
+        /// <summary>
+        /// Creates <see cref="ToDiscordTarget"/> out of <see cref="memberOrRole"/>.
+        /// </summary>
+        /// <param name="memberOrRole">The member or role to be converted.</param>
+        /// <returns>The target representing <see cref="memberOrRole"/>.</returns>
+        /// <exception cref="ArgumentException">Thrown if the user does not have a value.</exception>
+        /// <exception cref="InvalidOperationException">Thrown if nor user, nor role is set.</exception>
         public static DiscordTarget ToDiscordTarget(this OneOf<IPartialGuildMember, IRole> memberOrRole)
         {
             if (memberOrRole.IsT0)
@@ -47,6 +57,17 @@ namespace Christofel.CommandsLib.Extensions
             throw new InvalidOperationException("Nor User, nor role is set");
         }
 
+        /// <summary>
+        /// Creates <see cref="DiscordTarget"/> of the given <see cref="memberOrRole"/>.
+        /// </summary>
+        /// <remarks>
+        /// For role, returns only the role.
+        ///
+        /// For user, returns the user and each his role with everyone as well.
+        /// </remarks>
+        /// <param name="memberOrRole">The member or role to be converted.</param>
+        /// <returns>All <see cref="DiscordTarget"/>s that represent <see cref="memberOrRole"/>.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the parsing has failed.</exception>
         public static IEnumerable<DiscordTarget> GetAllDiscordTargets
         (
             this OneOf<IPartialGuildMember, IRole> memberOrRole

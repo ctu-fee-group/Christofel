@@ -13,7 +13,7 @@ namespace Christofel.Api.Ctu.Auth.Conditions
     public class CtuUsernameFilledCondition : IPreAuthCondition
     {
         public ValueTask<Result> CheckPreAsync
-            (IAuthData authData, CancellationToken ct = new CancellationToken()) => ValueTask.FromResult
+            (IAuthData authData, CancellationToken ct = default) => ValueTask.FromResult
         (
             string.IsNullOrEmpty(authData.LoadedUser.CtuUsername)
                 ? new InvalidOperationError("Cannot proceed if ctu username is null")

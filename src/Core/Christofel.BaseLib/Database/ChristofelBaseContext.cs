@@ -15,7 +15,7 @@ using Remora.Discord.Core;
 namespace Christofel.BaseLib.Database
 {
     /// <summary>
-    ///     Context for base database holding users, permissions and information about roles
+    /// Context for base database holding users, permissions and information about roles
     /// </summary>
     public sealed class ChristofelBaseContext : DbContext, IReadableDbContext<ChristofelBaseContext>
     {
@@ -96,7 +96,7 @@ namespace Christofel.BaseLib.Database
         public override Task<int> SaveChangesAsync
         (
             bool acceptAllChangesOnSuccess,
-            CancellationToken cancellationToken = new CancellationToken()
+            CancellationToken cancellationtoken = default
         )
         {
             this.AddTimestamps();

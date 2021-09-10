@@ -16,15 +16,28 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.Validator
 {
+    /// <summary>
+    /// Feedback service supporting converting validation failures into embed to notify the user.
+    /// </summary>
     public class ValidationFeedbackService
     {
         private readonly FeedbackService _feedbackService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ValidationFeedbackService"/> class.
+        /// </summary>
+        /// <param name="feedbackService">The feedback service to send embed with.</param>
         public ValidationFeedbackService(FeedbackService feedbackService)
         {
             _feedbackService = feedbackService;
         }
 
+        /// <summary>
+        /// Sends embed with validation error information.
+        /// </summary>
+        /// <param name="validationFailures">The validations that should be sent to the user.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public Task<Result<IMessage>> SendContextualValidationError
         (
             IReadOnlyList<ValidationFailure> validationFailures,

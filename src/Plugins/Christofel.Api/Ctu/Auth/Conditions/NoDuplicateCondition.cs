@@ -21,7 +21,7 @@ namespace Christofel.Api.Ctu.Auth.Conditions
             _duplicates = duplicates;
         }
 
-        public async ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = new CancellationToken())
+        public async ValueTask<Result> CheckPreAsync(IAuthData authData, CancellationToken ct = default)
         {
             Duplicate duplicate = await _duplicates.ResolveDuplicateAsync(authData.LoadedUser, ct);
             var duplicityType = duplicate.Type;

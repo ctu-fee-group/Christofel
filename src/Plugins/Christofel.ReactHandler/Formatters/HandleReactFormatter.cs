@@ -8,8 +8,16 @@ using Christofel.ReactHandler.Database.Models;
 
 namespace Christofel.ReactHandler.Formatters
 {
+    /// <summary>
+    /// The formatter for <see cref="HandleReact"/>.
+    /// </summary>
     public static class HandleReactFormatter
     {
+        /// <summary>
+        /// Formats mention from the given handler.
+        /// </summary>
+        /// <param name="handler">The handler to format.</param>
+        /// <returns>Channel or Role mention.</returns>
         public static string FormatHandlerTarget(HandleReact handler)
             => handler.Type switch
             {

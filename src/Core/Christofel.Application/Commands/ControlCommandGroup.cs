@@ -20,7 +20,7 @@ using Remora.Results;
 namespace Christofel.Application.Commands
 {
     /// <summary>
-    ///     Handler of /refresh and /quit commands
+    /// Handler of /refresh and /quit commands
     /// </summary>
     public class ControlCommands : CommandGroup
     {

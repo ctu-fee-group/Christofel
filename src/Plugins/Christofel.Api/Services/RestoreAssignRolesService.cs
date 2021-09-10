@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 namespace Christofel.Api.Services
 {
     /// <summary>
-    ///     Restores process of assigning roles where it was left
+    /// Restores process of assigning roles where it was left
     /// </summary>
     public class RestoreAssignRolesService : IHostedService
     {

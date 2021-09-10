@@ -11,10 +11,10 @@ namespace Christofel.BaseLib.Implementations.Storages
     /// <summary>
     /// </summary>
     /// <remarks>
-    ///     Useful for storages where there is not a lot of reading as well as not a lot of writing.
-    ///     Uses locking for both reading and writing.
-    ///     Use this in favor of <see cref="ThreadSafeImmutableArrayStorage{TData}" />
-    ///     if you do not need a lot of WR and want to save some space.
+    /// Useful for storages where there is not a lot of reading as well as not a lot of writing.
+    /// Uses locking for both reading and writing.
+    /// Use this in favor of <see cref="ThreadSafeImmutableArrayStorage{TData}" />
+    /// if you do not need a lot of WR and want to save some space.
     /// </remarks>
     /// <typeparam name="TData"></typeparam>
     public class ThreadSafeListStorage<TData> : IThreadSafeStorage<TData>

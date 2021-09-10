@@ -17,12 +17,21 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.ExecutionEvents
 {
+    /// <summary>
+    /// Event catching parsing errors for notifying the user about what happened.
+    /// </summary>
     public class ParsingErrorExecutionEvent : IPostExecutionEvent
     {
         private readonly ICommandContext _commandContext;
         private readonly FeedbackService _feedbackService;
         private readonly IDiscordRestInteractionAPI _interactionApi;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ParsingErrorExecutionEvent"/> class.
+        /// </summary>
+        /// <param name="interactionApi">The interaction api.</param>
+        /// <param name="commandContext">The context of the current command.</param>
+        /// <param name="feedbackService">The feedback service to respond with.</param>
         public ParsingErrorExecutionEvent
         (
             IDiscordRestInteractionAPI interactionApi,
@@ -35,11 +44,12 @@ namespace Christofel.CommandsLib.ExecutionEvents
             _commandContext = commandContext;
         }
 
+        /// <inheritdoc />
         public async Task<Result> AfterExecutionAsync
         (
             ICommandContext context,
             IResult commandResult,
-            CancellationToken ct = new CancellationToken()
+            CancellationToken ct = default
         )
         {
             if (!commandResult.IsSuccess &&
@@ -55,7 +65,8 @@ namespace Christofel.CommandsLib.ExecutionEvents
                 {
                     var result = await _interactionApi.CreateInteractionResponseAsync
                     (
-                        interactionContext.ID, interactionContext.Token,
+                        interactionContext.ID,
+                        interactionContext.Token,
                         new InteractionResponse
                         (
                             InteractionCallbackType.ChannelMessageWithSource,
@@ -64,7 +75,8 @@ namespace Christofel.CommandsLib.ExecutionEvents
                                 Content: message,
                                 Flags: InteractionCallbackDataFlags.Ephemeral
                             )
-                        ), ct
+                        ),
+                        ct
                     );
 
                     return result;

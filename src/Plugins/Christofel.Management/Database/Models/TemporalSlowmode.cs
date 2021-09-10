@@ -10,37 +10,37 @@ using Remora.Discord.Core;
 namespace Christofel.Management.Database.Models
 {
     /// <summary>
-    ///     Representing table TemporalSlowmode holding data about slowmodes that were enabled by the bot
+    /// Representing table TemporalSlowmode holding data about slowmodes that were enabled by the bot.
     /// </summary>
     public class TemporalSlowmode
     {
         /// <summary>
-        ///     Primary key of <see cref="TemporalSlowmode" />>
+        /// Gets or sets primary key of <see cref="TemporalSlowmode" />.
         /// </summary>
         public int TemporalSlowmodeId { get; set; }
 
         /// <summary>
-        ///     User who activated the slowmode
+        /// Gets or sets user who activated the slowmode.
         /// </summary>
         public Snowflake UserId { get; set; }
 
         /// <summary>
-        ///     Channel where the slowmode was enabled
+        /// Gets or sets channel where the slowmode was enabled.
         /// </summary>
         public Snowflake ChannelId { get; set; }
 
         /// <summary>
-        ///     Interval between sending messages
+        /// Gets or sets interval between sending messages.
         /// </summary>
         public TimeSpan Interval { get; set; }
 
         /// <summary>
-        ///     When should the slowmode be deactivated
+        /// Gets or sets when should the slowmode be deactivated.
         /// </summary>
         public DateTime DeactivationDate { get; set; }
 
         /// <summary>
-        ///     When was the slowmode activated
+        /// Gets or sets when was the slowmode activated.
         /// </summary>
         public DateTime ActivationDate { get; set; }
     }

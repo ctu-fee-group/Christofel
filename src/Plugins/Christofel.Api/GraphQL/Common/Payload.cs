@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace Christofel.Api.GraphQL.Common
 {
     /// <summary>
-    ///     Base payload of mutations
+    /// Base payload of mutations
     /// </summary>
     public abstract class Payload
     {
@@ -19,7 +19,7 @@ namespace Christofel.Api.GraphQL.Common
         }
 
         /// <summary>
-        ///     Validation errors in case that there are any
+        /// Validation errors in case that there are any
         /// </summary>
         public ICollection<UserError> Errors { get; }
     }

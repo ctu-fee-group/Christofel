@@ -14,7 +14,7 @@ namespace Christofel.Api.GraphQL.Types
     public class SnowflakeType : ScalarType<Snowflake, IntValueNode>
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="SnowflakeType" /> class.
+        /// Initializes a new instance of the <see cref="SnowflakeType" /> class.
         /// </summary>
         public SnowflakeType()
             : this
@@ -26,7 +26,7 @@ namespace Christofel.Api.GraphQL.Types
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="SnowflakeType" /> class.
+        /// Initializes a new instance of the <see cref="SnowflakeType" /> class.
         /// </summary>
         public SnowflakeType
         (

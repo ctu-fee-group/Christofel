@@ -12,8 +12,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Christofel.Design
 {
+    /// <summary>
+    /// Factory of <see cref="ApiCacheContext"/>.
+    /// </summary>
     public class ApiCacheContextDesignFactory : IDesignTimeDbContextFactory<ApiCacheContext>
     {
+        /// <inheritdoc />
         public ApiCacheContext CreateDbContext(string[] args)
         {
             DbContextOptionsBuilder<ApiCacheContext> builder = new DbContextOptionsBuilder<ApiCacheContext>();

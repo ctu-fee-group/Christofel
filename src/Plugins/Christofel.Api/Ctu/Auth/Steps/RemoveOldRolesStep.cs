@@ -14,7 +14,7 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    ///     Softly removes discord roles that should not be added again, but were added as part of the auth process
+    /// Softly removes discord roles that should not be added again, but were added as part of the auth process
     /// </summary>
     public class RemoveOldRolesStep : IAuthStep
     {

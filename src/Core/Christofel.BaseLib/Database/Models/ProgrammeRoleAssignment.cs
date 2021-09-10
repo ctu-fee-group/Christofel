@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Christofel.BaseLib.Database.Models
 {
     /// <summary>
-    ///     Database table for assignment of roles based on programme the student is studying.
+    /// Database table for assignment of roles based on programme the student is studying.
     /// </summary>
     public class ProgrammeRoleAssignment
     {

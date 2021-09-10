@@ -11,11 +11,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Logger
 {
+    /// <summary>
+    /// Logger that logs into Discord using Remora Discord API.
+    /// </summary>
     public class DiscordLogger : ILogger
     {
         private readonly string _categoryName;
         private readonly DiscordLoggerProcessor _queueProcessor;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiscordLogger"/> class.
+        /// </summary>
+        /// <param name="config">The config of the logger.</param>
+        /// <param name="queueProcessor">The processor of the logs.</param>
+        /// <param name="categoryName">The name of the category of this logger.</param>
         public DiscordLogger(DiscordLoggerOptions config, DiscordLoggerProcessor queueProcessor, string categoryName)
         {
             _categoryName = categoryName;
@@ -23,10 +32,18 @@ namespace Christofel.Logger
             _queueProcessor = queueProcessor;
         }
 
-        public IExternalScopeProvider? ScopeProvider { get; set; }
-        public DiscordLoggerOptions Config { get; set; }
+        /// <summary>
+        /// Gets the scope provider that will be used for logging correctly.
+        /// </summary>
+        public IExternalScopeProvider? ScopeProvider { get; internal set; }
+
+        /// <summary>
+        /// Gets the config of the logger.
+        /// </summary>
+        public DiscordLoggerOptions Config { get; internal set; }
 
 #nullable disable
+        /// <inheritdoc />
         public void Log<TState>
         (
             LogLevel logLevel,
@@ -44,7 +61,7 @@ namespace Christofel.Logger
             var messageContent = formatter(state, exception);
             if (messageContent == null)
             {
-                messageContent = state?.ToString() ?? "";
+                messageContent = state?.ToString() ?? string.Empty;
             }
 
             if (exception != null)
@@ -66,8 +83,10 @@ namespace Christofel.Logger
         }
 #nullable enable
 
+        /// <inheritdoc />
         public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None;
 
+        /// <inheritdoc />
         public IDisposable BeginScope<TState>(TState state) => ScopeProvider?.Push(state) ?? NullScope.Instance;
 
         private string GetLevelText(LogLevel level) =>
@@ -97,6 +116,7 @@ namespace Christofel.Logger
         private class NullScope : IDisposable
         {
             private static NullScope? _instance;
+
             public static NullScope Instance => _instance ??= new NullScope();
 
             public void Dispose()

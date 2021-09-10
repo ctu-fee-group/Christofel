@@ -15,12 +15,27 @@ using Microsoft.Extensions.Logging;
 
 namespace Christofel.Plugins.Runtime
 {
+    /// <summary>
+    /// Handles initialization and destroy of <see cref="IRuntimePlugin{TState, TContext}"/>.
+    /// </summary>
+    /// <typeparam name="TState">State of the application that will be passed to the plugin.</typeparam>
+    /// <typeparam name="TContext">Context of the plugin that will be shared with the application.</typeparam>
     public class RuntimePluginService<TState, TContext> : IPluginLifetimeService
     {
         private readonly ILogger _logger;
         private readonly PluginService _pluginService;
-        protected TState State;
 
+        /// <summary>
+        /// State of the application.
+        /// </summary>
+        protected TState State { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RuntimePluginService{TState, TContext}"/> class.
+        /// </summary>
+        /// <param name="state">The state of the application.</param>
+        /// <param name="pluginService">The service that will be used for detaching plugins that request it.</param>
+        /// <param name="logger">The logger used for logging state of the plugin.</param>
         public RuntimePluginService
             (TState state, PluginService pluginService, ILogger<RuntimePluginService<TState, TContext>> logger)
         {
@@ -29,11 +44,14 @@ namespace Christofel.Plugins.Runtime
             State = state;
         }
 
+        /// <inheritdoc />
         public bool ShouldHandle(IPlugin plugin) => plugin is IRuntimePlugin<TState, TContext>;
 
+        /// <inheritdoc />
         public Task<bool> InitializeAsync(AttachedPlugin plugin, CancellationToken token = default) =>
             InitializeAsync(GetState(plugin), plugin, token);
 
+        /// <inheritdoc />
         public async Task<bool> DestroyAsync(AttachedPlugin plugin, CancellationToken token = default)
         {
             if (plugin.Plugin is not IRuntimePlugin<TState, TContext> runtimePlugin)
@@ -87,6 +105,13 @@ namespace Christofel.Plugins.Runtime
             return false;
         }
 
+        /// <summary>
+        /// Initializes the plugin with specified <see cref="state"/>.
+        /// </summary>
+        /// <param name="state">The state that will be passed to the plugin.</param>
+        /// <param name="plugin">The plugin that should be initialized.</param>
+        /// <param name="token">The cancellation token for this operation.</param>
+        /// <returns>Whether the initialization succeeded.</returns>
         public async Task<bool> InitializeAsync(TState state, AttachedPlugin plugin, CancellationToken token = default)
         {
             if (plugin.Plugin is not IRuntimePlugin<TState, TContext> runtimePlugin)
@@ -112,11 +137,11 @@ namespace Christofel.Plugins.Runtime
         }
 
         /// <summary>
-        ///     Registers lifetime callbacks to allow plugin detach
-        ///     without calling detach from the application
+        /// Registers lifetime callbacks to allow plugin detach
+        /// without calling detach from the application.
         /// </summary>
-        /// <param name="lifetime"></param>
-        /// <param name="plugin"></param>
+        /// <param name="lifetime">The lifetime that should have events registered.</param>
+        /// <param name="plugin">The plugin that is owner of the lifetime.</param>
         public void RegisterLifetimeCallbacks(ILifetime lifetime, AttachedPlugin plugin)
         {
             lifetime.Errored.Register
@@ -205,6 +230,11 @@ namespace Christofel.Plugins.Runtime
             );
         }
 
+        /// <summary>
+        /// Gets the current state of the application.
+        /// </summary>
+        /// <param name="plugin">The plugin that the state will be given to.</param>
+        /// <returns>The state of the application.</returns>
         protected virtual TState GetState(AttachedPlugin plugin) => State;
     }
 }

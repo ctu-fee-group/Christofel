@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Christofel.BaseLib.Database.Models
 {
     /// <summary>
-    ///     Database table for assignment based on titles in their name
+    /// Database table for assignment based on titles in their name
     /// </summary>
     public class TitleRoleAssignment
     {

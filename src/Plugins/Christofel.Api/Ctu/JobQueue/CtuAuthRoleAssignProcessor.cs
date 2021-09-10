@@ -27,11 +27,11 @@ namespace Christofel.Api.Ctu.JobQueue
     );
 
     /// <summary>
-    ///     Processor of role assigns, works on different thread
+    /// Processor of role assigns, works on different thread
     /// </summary>
     /// <remarks>
-    ///     Creates thread only if there is job assigned,
-    ///     if there isn't, the thread is freed (thread pool is used)
+    /// Creates thread only if there is job assigned,
+    /// if there isn't, the thread is freed (thread pool is used)
     /// </remarks>
     public class CtuAuthRoleAssignProcessor : ThreadPoolJobQueue<CtuAuthRoleAssign>
     {

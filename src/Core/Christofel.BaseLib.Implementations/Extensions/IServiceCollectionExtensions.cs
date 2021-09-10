@@ -18,7 +18,7 @@ namespace Christofel.BaseLib.Extensions
     public static class IServiceCollectionExtensions
     {
         /// <summary>
-        ///     Adds Christofel state and it's properties to provider
+        /// Adds Christofel state and it's properties to provider
         /// </summary>
         /// <param name="provider"></param>
         /// <param name="state"></param>
@@ -40,7 +40,7 @@ namespace Christofel.BaseLib.Extensions
         }
 
         /// <summary>
-        ///     Adds Christofel database context factory and read only database factory
+        /// Adds Christofel database context factory and read only database factory
         /// </summary>
         /// <param name="provider"></param>
         /// <param name="state"></param>

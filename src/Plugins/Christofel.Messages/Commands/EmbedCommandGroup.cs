@@ -24,6 +24,9 @@ using Remora.Results;
 
 namespace Christofel.Messages.Commands
 {
+    /// <summary>
+    /// Handles /embed msg|file send|edit commands.
+    /// </summary>
     [Group("embed")]
     [Description("Manage embeds")]
     [RequirePermission("messages.embed")]
@@ -71,8 +74,10 @@ namespace Christofel.Messages.Commands
         {
             var messageResult = await channelApi.CreateMessageAsync
             (
-                channelId, embeds: new[] { embed },
-                allowedMentions: AllowedMentionsHelper.None, ct: ct
+                channelId,
+                embeds: new[] { embed },
+                allowedMentions: AllowedMentionsHelper.None,
+                ct: ct
             );
             if (!messageResult.IsSuccess)
             {
@@ -87,6 +92,9 @@ namespace Christofel.Messages.Commands
                 : Result.FromError(feedbackResult);
         }
 
+        /// <summary>
+        /// Handles /embed file commands.
+        /// </summary>
         [Group("file")]
         [Description("Manage embeds using json files in the filesystem")]
         [RequirePermission("messages.embed.file")]
@@ -98,7 +106,14 @@ namespace Christofel.Messages.Commands
             private readonly FeedbackService _feedbackService;
             private readonly ILogger<EmbedCommandGroup> _logger;
 
-
+            /// <summary>
+            /// Initializes a new instance of the <see cref="FileInner"/> class.
+            /// </summary>
+            /// <param name="logger">The logger.</param>
+            /// <param name="embeds">The embed provider.</param>
+            /// <param name="feedbackService">The feedback service.</param>
+            /// <param name="context">The context of the current command.</param>
+            /// <param name="channelApi">The channel api.</param>
             public FileInner
             (
                 ILogger<EmbedCommandGroup> logger,
@@ -134,6 +149,16 @@ namespace Christofel.Messages.Commands
                 }
             }
 
+            /// <summary>
+            /// Handles /embed file edit command.
+            /// </summary>
+            /// <remarks>
+            /// Edits the message with parsed embed from the given file.
+            /// </remarks>
+            /// <param name="messageId">The message to edit.</param>
+            /// <param name="embed">Name of the json file.</param>
+            /// <param name="channel">The channel where the message is located.</param>
+            /// <returns>A result that may not have succeeded.</returns>
             [Command("edit")]
             [Description("Edit an embed from json file")]
             [RequirePermission("messages.embed.file.edit")]
@@ -155,13 +180,24 @@ namespace Christofel.Messages.Commands
 
                 return await HandleEditEmbed
                 (
-                    _feedbackService, _channelApi,
+                    _feedbackService,
+                    _channelApi,
                     channel ?? _context.ChannelID,
-                    messageId, parseResult.Entity, CancellationToken
+                    messageId,
+                    parseResult.Entity,
+                    CancellationToken
                 );
             }
 
-
+            /// <summary>
+            /// Handles /embed file send command.
+            /// </summary>
+            /// <remarks>
+            /// Sends the message with parsed embed from the given file.
+            /// </remarks>
+            /// <param name="embed">Name of the json file.</param>
+            /// <param name="channel">The channel where the message is located.</param>
+            /// <returns>A result that may not have succeeded.</returns>
             [Command("send")]
             [Description("Create an embed from json file")]
             [RequirePermission("messages.embed.file.send")]
@@ -181,12 +217,18 @@ namespace Christofel.Messages.Commands
 
                 return await HandleCreateEmbed
                 (
-                    _feedbackService, _channelApi, channel ?? _context.ChannelID,
-                    parseResult.Entity, CancellationToken
+                    _feedbackService,
+                    _channelApi,
+                    channel ?? _context.ChannelID,
+                    parseResult.Entity,
+                    CancellationToken
                 );
             }
         }
 
+        /// <summary>
+        /// Handles /embed msg commands.
+        /// </summary>
         [Group("msg")]
         [Description("Manage embeds using json messages")]
         [RequirePermission("messages.embed.msg")]
@@ -198,7 +240,14 @@ namespace Christofel.Messages.Commands
             private readonly FeedbackService _feedbackService;
             private readonly ILogger<EmbedCommandGroup> _logger;
 
-
+            /// <summary>
+            /// Initializes a new instance of the <see cref="MessageInner"/> class.
+            /// </summary>
+            /// <param name="logger">The logger.</param>
+            /// <param name="embeds">The embed provider.</param>
+            /// <param name="feedbackService">The feedback service.</param>
+            /// <param name="context">The context of the current command.</param>
+            /// <param name="channelApi">The channel api.</param>
             public MessageInner
             (
                 ILogger<EmbedCommandGroup> logger,
@@ -234,6 +283,13 @@ namespace Christofel.Messages.Commands
                 }
             }
 
+            /// <summary>
+            /// Handles /embed msg edit command.
+            /// </summary>
+            /// <param name="messageId">Id of the message to edit.</param>
+            /// <param name="embed">The json embed to send.</param>
+            /// <param name="channel">The channel the message is in.</param>
+            /// <returns>A result that may not have succeeded.</returns>
             [Command("edit")]
             [Description("Edit message with embed from json string")]
             [RequirePermission("messages.embed.msg.edit")]
@@ -254,12 +310,21 @@ namespace Christofel.Messages.Commands
 
                 return await HandleEditEmbed
                 (
-                    _feedbackService, _channelApi,
+                    _feedbackService,
+                    _channelApi,
                     channel ?? _context.ChannelID,
-                    messageId, parseResult.Entity, CancellationToken
+                    messageId,
+                    parseResult.Entity,
+                    CancellationToken
                 );
             }
 
+            /// <summary>
+            /// Handles /embed msg send command.
+            /// </summary>
+            /// <param name="embed">The json embed to send.</param>
+            /// <param name="channel">The channel to send the embed into.</param>
+            /// <returns>A result that may not have succeeded.</returns>
             [RequirePermission("messages.embed.msg.send")]
             [Command("send")]
             [Description("Create an embed from json string")]
@@ -279,8 +344,11 @@ namespace Christofel.Messages.Commands
 
                 return await HandleCreateEmbed
                 (
-                    _feedbackService, _channelApi, channel ?? _context.ChannelID,
-                    parseResult.Entity, CancellationToken
+                    _feedbackService,
+                    _channelApi,
+                    channel ?? _context.ChannelID,
+                    parseResult.Entity,
+                    CancellationToken
                 );
             }
         }

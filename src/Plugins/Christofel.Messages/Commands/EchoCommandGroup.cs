@@ -20,6 +20,9 @@ using Remora.Results;
 
 namespace Christofel.Messages.Commands
 {
+    /// <summary>
+    /// Command group handling /echo command for creating and editing echo messages.
+    /// </summary>
     [Group("echo")]
     [Description]
     [Ephemeral]
@@ -29,11 +32,18 @@ namespace Christofel.Messages.Commands
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly ICommandContext _context;
         private readonly FeedbackService _feedbackService;
-        private readonly ILogger<ReactCommandGroup> _logger;
+        private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EchoCommandGroup"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="channelApi">The channel api.</param>
+        /// <param name="context">The context of the current command.</param>
+        /// <param name="feedbackService">The feedback service.</param>
         public EchoCommandGroup
         (
-            ILogger<ReactCommandGroup> logger,
+            ILogger<EchoCommandGroup> logger,
             IDiscordRestChannelAPI channelApi,
             ICommandContext context,
             FeedbackService feedbackService
@@ -45,6 +55,15 @@ namespace Christofel.Messages.Commands
             _logger = logger;
         }
 
+        /// <summary>
+        /// Handles /echo send.
+        /// </summary>
+        /// <remarks>
+        /// Sends given message to the given channel.
+        /// </remarks>
+        /// <param name="text">The message to be sent.</param>
+        /// <param name="channel">The channel to send the message into. If omitted, the channel from the context will be used.</param>
+        /// <returns>A result of the command that may not have succeeded.</returns>
         [Command("send")]
         [Description("Send a message")]
         [RequirePermission("messages.echo.send")]
@@ -77,6 +96,16 @@ namespace Christofel.Messages.Commands
                 : Result.FromError(feedbackResult);
         }
 
+        /// <summary>
+        /// Handles /echo edit command.
+        /// </summary>
+        /// <remarks>
+        /// Edits the given message.
+        /// </remarks>
+        /// <param name="messageId">The id of the message to edit.</param>
+        /// <param name="text">The text to edit the content with.</param>
+        /// <param name="channel">The channel where the message is located.</param>
+        /// <returns>A result of the command that may not have succeeded.</returns>
         [Command("edit")]
         [Description("Edit a message sent by the bot")]
         [RequirePermission("messages.echo.edit")]

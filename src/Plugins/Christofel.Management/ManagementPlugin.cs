@@ -30,11 +30,17 @@ using Remora.Commands.Extensions;
 
 namespace Christofel.Management
 {
+    /// <summary>
+    /// Plugin for admins and moderators to manage users, messages, permissions etc.
+    /// </summary>
     public class ManagementPlugin : ChristofelDIPlugin
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ManagementPlugin>? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ManagementPlugin"/> class.
+        /// </summary>
         public ManagementPlugin()
         {
             _lifetimeHandler = new PluginLifetimeHandler
@@ -44,18 +50,23 @@ namespace Christofel.Management
             );
         }
 
+        /// <inheritdoc />
         public override string Name => "Christofel.Management";
 
+        /// <inheritdoc />
         public override string Description =>
             "Plugin for user and messages management. Supports basic management commands.";
 
+        /// <inheritdoc />
         public override string Version => "v1.0.0";
 
+        /// <inheritdoc />
         protected override IEnumerable<IRefreshable> Refreshable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStoppable> Stoppable
         {
             get
@@ -65,6 +76,7 @@ namespace Christofel.Management
             }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStartable> Startable
         {
             get
@@ -74,13 +86,17 @@ namespace Christofel.Management
             }
         }
 
+        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
+        /// <inheritdoc />
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
+
                 // Christofel
                 .AddDiscordState(State)
+
                 // Databases
                 .AddChristofelDatabase(State)
                 .AddDbContextFactory<ManagementContext>
@@ -98,34 +114,41 @@ namespace Christofel.Management
                         p.GetRequiredService<IDbContextFactory<ManagementContext>>().CreateDbContext()
                 )
                 .AddReadOnlyDbContext<ManagementContext>()
+
                 // Service for resolving ctu identities
                 .AddSingleton<CtuIdentityResolver>()
+
                 // Responder for every event to delegate to other registered responders
                 .AddSingleton<PluginResponder>()
+
                 // Commands
                 .AddChristofelCommands()
                 .AddCommandGroup<MessageCommandsGroup>()
                 .AddCommandGroup<PermissionCommandsGroup>()
                 .AddCommandGroup<UserCommandsGroup>()
+
                 // Slowmodes
                 .AddSingleton<IThreadSafeStorage<RegisteredTemporalSlowmode>,
                     ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
                 .AddTransient<SlowmodeService>()
                 .AddTransient<SlowmodeAutorestore>()
+
                 // Misc
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)
+
                 // Configurations
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
+        /// <inheritdoc />
         protected override Task InitializeServices
         (
             IServiceProvider services,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         )
         {
             _logger = services.GetRequiredService<ILogger<ManagementPlugin>>();
-            ((PluginContext) Context).PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

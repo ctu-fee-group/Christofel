@@ -13,9 +13,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Christofel.Application.State
 {
     /// <summary>
-    ///     Thread-safe is achieved using locks.
-    ///     This service should not be modified to by other threads,
-    ///     but just to be sure
+    /// Thread-safe is achieved using locks.
+    /// This service should not be modified to by other threads,
+    /// but just to be sure
     /// </summary>
     public sealed class ListPermissionService : IPermissionService
     {

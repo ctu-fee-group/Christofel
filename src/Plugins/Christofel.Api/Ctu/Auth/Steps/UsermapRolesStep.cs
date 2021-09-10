@@ -16,11 +16,11 @@ using Usermap.Controllers;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    ///     Assign roles from UsermapRoleAssignment table
+    /// Assign roles from UsermapRoleAssignment table
     /// </summary>
     /// <remarks>
-    ///     Obtains usermap roles if possible, then tries to match them against the ones
-    ///     in database. If there are matches, they are added
+    /// Obtains usermap roles if possible, then tries to match them against the ones
+    /// in database. If there are matches, they are added
     /// </remarks>
     public class UsermapRolesStep : IAuthStep
     {

@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Christofel.BaseLib.Database.Models
 {
     /// <summary>
-    ///     Database table for assignments using year the student started studying
+    /// Database table for assignments using year the student started studying
     /// </summary>
     public class YearRoleAssignment
     {

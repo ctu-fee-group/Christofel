@@ -31,6 +31,9 @@ using Remora.Results;
 
 namespace Christofel.Management.Commands
 {
+    /// <summary>
+    /// Command group that handles /users commands.
+    /// </summary>
     [Group("users")]
     [RequirePermission("management.users")]
     [Description("Manage users and their identities")]
@@ -42,16 +45,17 @@ namespace Christofel.Management.Commands
         private readonly FeedbackService _feedbackService;
 
         private readonly CtuIdentityResolver _identityResolver;
-        // /users add @user ctuUsername
-        // /users showidentity @user or discordId
-        // /users duplicate allow @user
-        //   - respond who is the duplicity
-        //   - respond with auth link
-        // /users duplicate show @user
-        //   - show duplicate information
 
         private readonly ILogger<MessageCommandsGroup> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserCommandsGroup"/> class.
+        /// </summary>
+        /// <param name="feedbackService">The feedback service.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="identityResolver">The identity resolver.</param>
+        /// <param name="dbContext">The christofel base database context.</param>
+        /// <param name="context">The context of the current command.</param>
         public UserCommandsGroup
         (
             FeedbackService feedbackService,
@@ -68,6 +72,12 @@ namespace Christofel.Management.Commands
             _dbContext = dbContext;
         }
 
+        /// <summary>
+        /// Handles /users add.
+        /// </summary>
+        /// <param name="user">Discord id of the user to add to the database.</param>
+        /// <param name="ctuUsername">Username of the user.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("add")]
         [Description("Add user to database manually")]
         [RequirePermission("management.users.add")]
@@ -79,7 +89,12 @@ namespace Christofel.Management.Commands
             string ctuUsername
         )
         {
-            DbUser dbUser = new DbUser { CtuUsername = ctuUsername, DiscordId = user, AuthenticatedAt = DateTime.Now };
+            DbUser dbUser = new DbUser
+            {
+                CtuUsername = ctuUsername,
+                DiscordId = user,
+                AuthenticatedAt = DateTime.Now
+            };
 
             Result<IReadOnlyList<IMessage>> feedbackResponse;
             try
@@ -104,6 +119,16 @@ namespace Christofel.Management.Commands
                 : Result.FromError(feedbackResponse);
         }
 
+        /// <summary>
+        /// Handles /users showidentity.
+        /// </summary>
+        /// <remarks>
+        /// Shows identity of the given user. The user will be notified about this action.
+        /// </remarks>
+        /// <param name="user">Discord id of the user to show identity of. Specified as User in slash command.</param>
+        /// <param name="discordId">Discord id of the user to show identity of. Specified as string in slash command.</param>
+        /// <returns>A result that may not have succeeded.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the validation has failed due to programmers error.</exception>
         [Command("showidentity")]
         [Description
             ("Show identity of a user. The user will be notified about this and your identity will be shown to him")]
@@ -193,12 +218,13 @@ namespace Christofel.Management.Commands
             return Result.FromSuccess();
         }
 
-        private Result ExactlyOneValidation<T, U>(string name, T? left, U? right)
+        private Result ExactlyOneValidation<TLeft, TRight>(string name, TLeft? left, TRight? right)
         {
             var validationResult = new CommandValidator()
                 .MakeSure
                 (
-                    name, (left, right),
+                    name,
+                    (left, right),
                     o => o
                         .Must(x => x.left is not null ^ x.right is not null)
                         .WithMessage("Exactly one must be specified.")
@@ -209,6 +235,9 @@ namespace Christofel.Management.Commands
             return validationResult;
         }
 
+        /// <summary>
+        /// Handles /users duplicate commands.
+        /// </summary>
         [Group("duplicate")]
         [Description("Manage user duplicates")]
         [RequirePermission("management.users.duplicate")]
@@ -220,6 +249,14 @@ namespace Christofel.Management.Commands
             private readonly ILogger<MessageCommandsGroup> _logger;
             private readonly IDiscordRestUserAPI _userApi;
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="InnerDuplicate"/> class.
+            /// </summary>
+            /// <param name="feedbackService">The feedback service.</param>
+            /// <param name="logger">The logger.</param>
+            /// <param name="userApi">The user api.</param>
+            /// <param name="dbContext">The christofel base database context.</param>
+            /// <param name="identityResolver">The identity resolver.</param>
             public InnerDuplicate
             (
                 FeedbackService feedbackService,
@@ -236,6 +273,11 @@ namespace Christofel.Management.Commands
                 _dbContext = dbContext;
             }
 
+            /// <summary>
+            /// Handles /users duplicity allow command.
+            /// </summary>
+            /// <param name="user">The user to allow duplicate to.</param>
+            /// <returns>A result that may not have succeeded.</returns>
             [Command("allow")]
             [Description("Allow duplicate user to be registered")]
             [RequirePermission("management.users.duplicate.allow")]
@@ -287,6 +329,11 @@ namespace Christofel.Management.Commands
                     : Result.FromError(feedbackResult);
             }
 
+            /// <summary>
+            /// Handles /users duplicate show.
+            /// </summary>
+            /// <param name="user">The user to show duplicates of.</param>
+            /// <returns>A result that may not have succeeded.</returns>
             [Command("show")]
             [Description("Show information about specified user duplicates")]
             [RequirePermission("management.users.duplicate.show")]
@@ -327,9 +374,7 @@ namespace Christofel.Management.Commands
                                 new EmbedAuthor
                                 (
                                     $"{currentUser.Username}#{currentUser.Discriminator} <@{currentUser.ID.Value}>",
-                                    IconUrl: avatar.IsSuccess
-                                        ? avatar.Entity.ToString()
-                                        : string.Empty
+                                    IconUrl: avatar.IsSuccess ? avatar.Entity.ToString() : string.Empty
                                 );
                         }
 

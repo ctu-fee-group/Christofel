@@ -7,7 +7,7 @@
 namespace Christofel.Api.GraphQL.Authentication
 {
     /// <summary>
-    ///     Input of verifyRegistration mutation
+    /// Input of verifyRegistration mutation
     /// </summary>
     /// <param name="RegistrationCode">Code to verify</param>
     public record VerifyRegistrationCodeInput

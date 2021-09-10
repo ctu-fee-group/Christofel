@@ -11,6 +11,9 @@ using Microsoft.Extensions.Options;
 
 namespace Christofel.Logger
 {
+    /// <summary>
+    /// Logger provider logging into Discord using Remora Discord API.
+    /// </summary>
     [ProviderAlias("Discord")]
     public class DiscordLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
@@ -21,6 +24,11 @@ namespace Christofel.Logger
 
         private IExternalScopeProvider? _scopeProvider;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DiscordLoggerProvider"/> class.
+        /// </summary>
+        /// <param name="config">The config of the provider.</param>
+        /// <param name="provider">The provider of services.</param>
         public DiscordLoggerProvider(IOptionsMonitor<DiscordLoggerOptions> config, IServiceProvider provider)
         {
             _config = config.CurrentValue;
@@ -30,6 +38,7 @@ namespace Christofel.Logger
             _onChangeToken = config.OnChange(HandleConfigChanged);
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _loggers.Clear();
@@ -37,15 +46,17 @@ namespace Christofel.Logger
             _onChangeToken.Dispose();
         }
 
+        /// <inheritdoc />
         public ILogger CreateLogger(string categoryName)
         {
             return _loggers.GetOrAdd
             (
                 categoryName,
-                category => new DiscordLogger(_config, _queueProcessor, categoryName) { ScopeProvider = _scopeProvider }
+                category => new DiscordLogger(_config, _queueProcessor, category) { ScopeProvider = _scopeProvider }
             );
         }
 
+        /// <inheritdoc />
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
         {
             _scopeProvider = scopeProvider;
@@ -56,6 +67,10 @@ namespace Christofel.Logger
             }
         }
 
+        /// <summary>
+        /// Replaces config in itself, all loggers and in the processor.
+        /// </summary>
+        /// <param name="config">New config to be set.</param>
         private void HandleConfigChanged(DiscordLoggerOptions config)
         {
             _config = config;

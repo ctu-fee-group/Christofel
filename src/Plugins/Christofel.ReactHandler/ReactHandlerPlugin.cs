@@ -29,11 +29,17 @@ using Remora.Discord.Gateway.Extensions;
 
 namespace Christofel.ReactHandler
 {
+    /// <summary>
+    /// Plugin for handling commands that specify what messages to react to and reacting to these messages.
+    /// </summary>
     public class ReactHandlerPlugin : ChristofelDIPlugin
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<ReactHandlerPlugin>? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReactHandlerPlugin"/> class.
+        /// </summary>
         public ReactHandlerPlugin()
         {
             _lifetimeHandler = new PluginLifetimeHandler
@@ -43,30 +49,38 @@ namespace Christofel.ReactHandler
             );
         }
 
+        /// <inheritdoc />
         public override string Name => "Christofel.ReactHandler";
 
+        /// <inheritdoc />
         public override string Description =>
             "Plugin for handling reacts on messages, marking messages to assign channels/roles on react";
 
+        /// <inheritdoc />
         public override string Version => "v1.0.0";
 
+        /// <inheritdoc />
         protected override IEnumerable<IRefreshable> Refreshable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStoppable> Stoppable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStartable> Startable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
+        /// <inheritdoc />
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
             return serviceCollection
@@ -96,14 +110,15 @@ namespace Christofel.ReactHandler
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
+        /// <inheritdoc />
         protected override Task InitializeServices
         (
             IServiceProvider services,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         )
         {
             _logger = services.GetRequiredService<ILogger<ReactHandlerPlugin>>();
-            ((PluginContext) Context).PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

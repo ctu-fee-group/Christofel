@@ -21,6 +21,9 @@ using Remora.Results;
 
 namespace Christofel.Messages.Commands
 {
+    /// <summary>
+    /// Handles /react command.
+    /// </summary>
     [Ephemeral]
     [DiscordDefaultPermission(false)]
     public class ReactCommandGroup : CommandGroup
@@ -30,6 +33,13 @@ namespace Christofel.Messages.Commands
         private readonly FeedbackService _feedbackService;
         private readonly ILogger<ReactCommandGroup> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReactCommandGroup"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="context">The context of the current command.</param>
+        /// <param name="feedbackService">The feedback service.</param>
+        /// <param name="channelApi">The channel api.</param>
         public ReactCommandGroup
         (
             ILogger<ReactCommandGroup> logger,
@@ -44,7 +54,13 @@ namespace Christofel.Messages.Commands
             _logger = logger;
         }
 
-        // /react handler
+        /// <summary>
+        /// Handles /react command.
+        /// </summary>
+        /// <param name="messageId">The id of the message to react to.</param>
+        /// <param name="emoji">The emoji to react with.</param>
+        /// <param name="channel">The channel the message is in.</param>
+        /// <returns>A result that may not have succeeded.</returns>
         [Command("react")]
         [RequirePermission("messages.react")]
         public async Task<Result> HandleReactAsync

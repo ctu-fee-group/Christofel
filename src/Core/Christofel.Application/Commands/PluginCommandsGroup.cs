@@ -23,7 +23,8 @@ using Remora.Results;
 namespace Christofel.Application.Commands
 {
     /// <summary>
-    ///     Handler of /plugin attach, detach, reattach, list, check commands
+    ///
+ Handler of /plugin attach, detach, reattach, list, check commands
     /// </summary>
     [Group("plugins")]
     [DiscordDefaultPermission(false)]

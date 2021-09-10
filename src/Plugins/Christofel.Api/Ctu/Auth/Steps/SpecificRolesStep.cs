@@ -18,11 +18,11 @@ using Remora.Results;
 namespace Christofel.Api.Ctu.Auth.Steps
 {
     /// <summary>
-    ///     Assign roles from SpecificRoleAssignment table
+    /// Assign roles from SpecificRoleAssignment table
     /// </summary>
     /// <remarks>
-    ///     Adds authenticated role to everyone
-    ///     Uses kos api to obtain whether the user is a teacher, assigns teacher role if he is
+    /// Adds authenticated role to everyone
+    /// Uses kos api to obtain whether the user is a teacher, assigns teacher role if he is
     /// </remarks>
     public class SpecificRolesStep : IAuthStep
     {

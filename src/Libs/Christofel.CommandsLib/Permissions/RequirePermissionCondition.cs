@@ -17,12 +17,22 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.Permissions
 {
+    /// <summary>
+    /// Condition for <see cref="RequirePermissionAttribute"/> that makes sure
+    /// only users with the given permission can execute the command.
+    /// </summary>
     public class RequirePermissionCondition : ICondition<RequirePermissionAttribute>
     {
         private readonly ICommandContext _context;
         private readonly ILogger _logger;
         private readonly ChristofelCommandPermissionResolver _permissionResolver;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RequirePermissionCondition"/> class.
+        /// </summary>
+        /// <param name="permissionResolver">The permission resolver.</param>
+        /// <param name="context">The context of the current command.</param>
+        /// <param name="logger">The logger.</param>
         public RequirePermissionCondition
         (
             ChristofelCommandPermissionResolver permissionResolver,
@@ -35,10 +45,11 @@ namespace Christofel.CommandsLib.Permissions
             _permissionResolver = permissionResolver;
         }
 
+        /// <inheritdoc />
         public async ValueTask<Result> CheckAsync
         (
             RequirePermissionAttribute attribute,
-            CancellationToken ct = new CancellationToken()
+            CancellationToken ct = default
         )
         {
             var result = false;
@@ -48,15 +59,18 @@ namespace Christofel.CommandsLib.Permissions
             {
                 result = await _permissionResolver.HasPermissionAsync
                 (
-                    _context.User.ID, roles.Value,
-                    attribute.Permission, ct
+                    _context.User.ID,
+                    roles.Value,
+                    attribute.Permission,
+                    ct
                 );
             }
             else
             {
                 result = await _permissionResolver.HasPermissionAsync
                 (
-                    _context.User, attribute.Permission,
+                    _context.User,
+                    attribute.Permission,
                     ct
                 );
             }

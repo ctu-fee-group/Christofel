@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Christofel.BaseLib.Database
 {
     /// <summary>
-    ///     Representing database context that supports reading
+    /// Representing database context that supports reading
     /// </summary>
     public interface IReadableDbContext<TContext> : IReadableDbContext
         where TContext : DbContext
@@ -20,7 +20,7 @@ namespace Christofel.BaseLib.Database
 
 
     /// <summary>
-    ///     Representing database context that supports reading
+    /// Representing database context that supports reading
     /// </summary>
     public interface IReadableDbContext : IDisposable, IAsyncDisposable
     {

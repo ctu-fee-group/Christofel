@@ -13,7 +13,7 @@ namespace Christofel.BaseLib.Extensions
     public static class IRoleExtensions
     {
         /// <summary>
-        ///     Converts discord role to DiscordTarget for better use with permissions
+        /// Converts discord role to DiscordTarget for better use with permissions
         /// </summary>
         /// <param name="role"></param>
         /// <returns></returns>

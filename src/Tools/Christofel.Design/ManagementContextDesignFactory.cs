@@ -12,8 +12,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Christofel.Design
 {
+    /// <summary>
+    /// Factory of <see cref="ManagementContext"/>.
+    /// </summary>
     public class ManagementContextDesignFactory : IDesignTimeDbContextFactory<ManagementContext>
     {
+        /// <inheritdoc />
         public ManagementContext CreateDbContext(string[] args)
         {
             DbContextOptionsBuilder<ManagementContext> builder = new DbContextOptionsBuilder<ManagementContext>();

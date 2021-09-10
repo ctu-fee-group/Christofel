@@ -22,11 +22,17 @@ using Remora.Commands.Extensions;
 
 namespace Christofel.HelloWorld
 {
+    /// <summary>
+    /// Hello world plugin that responds pong to /ping command.
+    /// </summary>
     public class HelloworldPlugin : ChristofelDIPlugin
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
         private ILogger<HelloworldPlugin>? _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HelloworldPlugin"/> class.
+        /// </summary>
         public HelloworldPlugin()
         {
             _lifetimeHandler = new PluginLifetimeHandler
@@ -36,27 +42,37 @@ namespace Christofel.HelloWorld
             );
         }
 
+        /// <inheritdoc />
         public override string Name => "Christofel.HelloWorld";
+
+        /// <inheritdoc />
         public override string Description => "Plugin for testing purposes. Supports ping command";
+
+        /// <inheritdoc />
         public override string Version => "v1.0.0";
 
+        /// <inheritdoc />
         protected override IEnumerable<IRefreshable> Refreshable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStoppable> Stoppable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<IStartable> Startable
         {
             get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
         }
 
+        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
+        /// <inheritdoc />
         protected override IServiceCollection ConfigureServices
             (IServiceCollection serviceCollection) => serviceCollection
             .AddDiscordState(State)
@@ -66,11 +82,12 @@ namespace Christofel.HelloWorld
             .AddSingleton(_lifetimeHandler.LifetimeSpecific)
             .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
 
+        /// <inheritdoc />
         protected override Task InitializeServices
-            (IServiceProvider services, CancellationToken token = new CancellationToken())
+            (IServiceProvider services, CancellationToken token = default)
         {
             _logger = services.GetRequiredService<ILogger<HelloworldPlugin>>();
-            ((PluginContext) Context).PluginResponder = services.GetRequiredService<PluginResponder>();
+            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
         }
     }

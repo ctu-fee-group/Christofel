@@ -20,17 +20,36 @@ using Remora.Results;
 
 namespace Christofel.CommandsLib.ContextedParsers
 {
+    /// <summary>
+    /// Parses <see cref="IUser"/> by using <see cref="ICommandContext"/>.
+    /// </summary>
+    /// <remarks>
+    /// For interaction context, the data will be obtained from <see cref="IInteractionData.Resolved"/>,
+    /// if it cannot be found there, error will be returned.
+    ///
+    /// For message context, the channel will be loaded using user api.
+    ///
+    /// Slash commands have to be executed
+    /// with parameters using mentions, not by ids of the objects
+    /// as that won't put them into Resolved.
+    /// </remarks>
     public class ContextualUserParser : AbstractTypeParser<IUser>
     {
         private readonly ICommandContext? _commandContext;
         private readonly IDiscordRestUserAPI _userApi;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContextualUserParser"/> class.
+        /// </summary>
+        /// <param name="commandContext">The context of the command.</param>
+        /// <param name="userApi">The user api.</param>
         public ContextualUserParser(IEnumerable<ICommandContext> commandContext, IDiscordRestUserAPI userApi)
         {
             _userApi = userApi;
             _commandContext = commandContext.FirstOrDefault();
         }
 
+        /// <inheritdoc />
         public override ValueTask<Result<IUser>> TryParseAsync(string value, CancellationToken ct)
         {
             if (_commandContext is InteractionContext interactionContext &&

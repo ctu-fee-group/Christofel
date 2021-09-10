@@ -9,8 +9,18 @@ using Remora.Discord.API.Abstractions.Objects;
 
 namespace Christofel.CommandsLib.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for <see cref="IApplicationCommand"/>.
+    /// </summary>
     public static class ApplicationCommandExtensions
     {
+        /// <summary>
+        /// Checks if the <see cref="command"/> matches <see cref="commandData"/>.
+        /// </summary>
+        /// <param name="command">The command to match against <see cref="commandData"/>.</param>
+        /// <param name="defaultPermission">The value of default permission of <see cref="commandData"/>.</param>
+        /// <param name="commandData">The bulk data to match against <see cref="command"/>.</param>
+        /// <returns>Whether <see cref="command"/> matches <see cref="commandData"/>.</returns>
         public static bool MatchesBulkCommand
         (
             this IApplicationCommand command,
@@ -19,7 +29,7 @@ namespace Christofel.CommandsLib.Extensions
         )
         {
             if (command.Name != commandData.Name ||
-                command.Description != commandData.Description && command.Type != commandData.Type ||
+                (command.Description != commandData.Description && command.Type != commandData.Type) ||
                 (command.DefaultPermission.HasValue
                     ? command.DefaultPermission
                     : false) != defaultPermission ||
@@ -36,7 +46,6 @@ namespace Christofel.CommandsLib.Extensions
                            CommandOptionMatches
                        );
         }
-
 
         private static bool CommandOptionMatches
         (

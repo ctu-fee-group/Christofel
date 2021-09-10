@@ -13,7 +13,7 @@ using HotChocolate.Types.Descriptors;
 namespace Christofel.Api.GraphQL.Attributes
 {
     /// <summary>
-    ///     Adds readonly ChristofelBaseContext as scoped service
+    /// Adds readonly ChristofelBaseContext as scoped service
     /// </summary>
     public class UseReadOnlyChristofelBaseDatabaseAttribute : ObjectFieldDescriptorAttribute
     {

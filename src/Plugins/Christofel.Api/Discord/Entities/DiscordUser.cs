@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 namespace Christofel.Api.Discord
 {
     /// <summary>
-    ///     User result obtained from Discord API v9
+    /// User result obtained from Discord API v9
     /// </summary>
     /// <param name="Id"></param>
     /// <param name="Username"></param>

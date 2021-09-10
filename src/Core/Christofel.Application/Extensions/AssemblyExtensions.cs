@@ -12,7 +12,8 @@ namespace Christofel.Application.Extensions
     public static class AssemblyExtensions
     {
         /// <summary>
-        ///     Obtain class implementing given interface
+        ///
+ Obtain class implementing given interface
         /// </summary>
         /// <param name="assembly"></param>
         /// <typeparam name="T"></typeparam>

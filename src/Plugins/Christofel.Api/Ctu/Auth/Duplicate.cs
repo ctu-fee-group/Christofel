@@ -11,22 +11,22 @@ namespace Christofel.Api.Ctu.Auth
     public enum DuplicityType
     {
         /// <summary>
-        ///     There is no duplicity found
+        /// There is no duplicity found
         /// </summary>
         None,
 
         /// <summary>
-        ///     Duplicity on ctu side (meaning the same CTU account is already registered)
+        /// Duplicity on ctu side (meaning the same CTU account is already registered)
         /// </summary>
         CtuSide,
 
         /// <summary>
-        ///     Duplicity on Discord side (meaning the same Discord account is already registered)
+        /// Duplicity on Discord side (meaning the same Discord account is already registered)
         /// </summary>
         DiscordSide,
 
         /// <summary>
-        ///     This account is already registered, just remove the current user and update his roles
+        /// This account is already registered, just remove the current user and update his roles
         /// </summary>
         Both,
     }

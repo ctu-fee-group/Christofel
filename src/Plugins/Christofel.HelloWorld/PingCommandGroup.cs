@@ -17,11 +17,19 @@ using Remora.Results;
 
 namespace Christofel.HelloWorld
 {
+    /// <summary>
+    /// Command group responding pong to /ping command.
+    /// </summary>
     public class PingCommandGroup : CommandGroup
     {
         private readonly FeedbackService _feedbackService;
         private readonly ILogger<PingCommandGroup> _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PingCommandGroup"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="feedbackService">The feedback service.</param>
         public PingCommandGroup
         (
             ILogger<PingCommandGroup> logger,
@@ -32,6 +40,13 @@ namespace Christofel.HelloWorld
             _logger = logger;
         }
 
+        /// <summary>
+        /// Handles /ping command.
+        /// </summary>
+        /// <remarks>
+        /// Responds with Pong.
+        /// </remarks>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         [Command("ping")]
         [RequirePermission("helloworld.ping")]
         [Description("The bot will respond pong if everything went okay")]

@@ -6,19 +6,11 @@
 
 namespace Christofel.Logger
 {
-    public class DiscordLogMessage
-    {
-        public DiscordLogMessage(ulong guildId, ulong channelId, string message)
-        {
-            GuildId = guildId;
-            ChannelId = channelId;
-            Message = message;
-        }
-
-        public ulong GuildId { get; set; }
-
-        public ulong ChannelId { get; set; }
-
-        public string Message { get; set; }
-    }
+    /// <summary>
+    /// Message to be logged into Discord.
+    /// </summary>
+    /// <param name="GuildId">The id of the guild to send the message to.</param>
+    /// <param name="ChannelId">The id of the channel to send the message to.</param>
+    /// <param name="Message">The message to send.</param>
+    public record DiscordLogMessage(ulong GuildId, ulong ChannelId, string Message);
 }

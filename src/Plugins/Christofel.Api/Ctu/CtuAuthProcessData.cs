@@ -16,46 +16,46 @@ using Remora.Discord.Core;
 namespace Christofel.Api.Ctu
 {
     /// <summary>
-    ///     Data used in ctu authentication process
+    /// Data used in ctu authentication process
     /// </summary>
     public interface IAuthData
     {
         /// <summary>
-        ///     Access token that can be used to provide access to ctu services
+        /// Access token that can be used to provide access to ctu services
         /// </summary>
         [Obsolete("Use injection of authorized apis instead")]
         string AccessToken { get; }
 
         /// <summary>
-        ///     Loaded user from oauth check token
+        /// Loaded user from oauth check token
         /// </summary>
         ILinkUser LoadedUser { get; }
 
         /// <summary>
-        ///     Id of the guild where the user is located
+        /// Id of the guild where the user is located
         /// </summary>
         Snowflake GuildId { get; }
 
         ChristofelBaseContext DbContext { get; }
 
         /// <summary>
-        ///     User stored in the database, can be edited during the process
+        /// User stored in the database, can be edited during the process
         /// </summary>
         DbUser DbUser { get; }
 
         /// <summary>
-        ///     What guild user is in question of the auth process
+        /// What guild user is in question of the auth process
         /// </summary>
         IGuildMember GuildUser { get; }
 
         /// <summary>
-        ///     What roles should be assigned and removed at the end of the process
+        /// What roles should be assigned and removed at the end of the process
         /// </summary>
         CtuAuthAssignedRoles Roles { get; }
     }
 
     /// <summary>
-    ///     Data used along the ctu auth process in each step
+    /// Data used along the ctu auth process in each step
     /// </summary>
     /// <param name="AccessToken"></param>
     /// <param name="DbContext"></param>
@@ -75,7 +75,7 @@ namespace Christofel.Api.Ctu
         : IAuthData;
 
     /// <summary>
-    ///     Role to be assigned or deleted
+    /// Role to be assigned or deleted
     /// </summary>
     public record CtuAuthRole
     {
@@ -86,8 +86,8 @@ namespace Christofel.Api.Ctu
     }
 
     /// <summary>
-    ///     Holds information about roles to be added and removed,
-    ///     should be changed during the auth process
+    /// Holds information about roles to be added and removed,
+    /// should be changed during the auth process
     /// </summary>
     public class CtuAuthAssignedRoles
     {

@@ -83,7 +83,7 @@ namespace Christofel.Application
         protected override IEnumerable<IStartable> Startable => Enumerable.Empty<IStartable>();
 
         /// <summary>
-        ///     Start after Ready event was received
+        /// Start after Ready event was received
         /// </summary>
         private IEnumerable<IStartable> DeferStartable
         {
@@ -191,7 +191,7 @@ namespace Christofel.Application
         protected override Task InitializeServices
         (
             IServiceProvider services,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         )
         {
             _logger = services.GetRequiredService<ILogger<ChristofelApp>>();
@@ -211,7 +211,7 @@ namespace Christofel.Application
             );
         }
 
-        public override async Task DestroyAsync(CancellationToken token = new CancellationToken())
+        public override async Task DestroyAsync(CancellationToken token = default)
         {
             foreach (DiscordLoggerProvider provider in Services.GetRequiredService<IEnumerable<ILoggerProvider>>()
                 .OfType<DiscordLoggerProvider>())

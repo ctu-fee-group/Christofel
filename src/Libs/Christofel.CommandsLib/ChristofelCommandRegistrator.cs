@@ -15,6 +15,15 @@ using Remora.Discord.Core;
 
 namespace Christofel.CommandsLib
 {
+    /// <summary>
+    /// Service for managing slash commands in <see cref="DIRuntimePlugin{TState,TContext}"/>.
+    /// </summary>
+    /// <remarks>
+    /// Registers commands on start, refreshes permissions on refresh and deletes the commands on stop.
+    ///
+    /// If the whole application is closing, then the commands will not be deleted, but instead treated
+    /// like they will be added again next start of the bot.
+    /// </remarks>
     public class ChristofelCommandRegistrator : IStartable, IRefreshable, IStoppable
     {
         private readonly IApplicationLifetime _lifetime;
@@ -22,6 +31,13 @@ namespace Christofel.CommandsLib
         private readonly BotOptions _options;
         private readonly ChristofelSlashService _slashService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChristofelCommandRegistrator"/> class.
+        /// </summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="slashService">The service used for registering the commands.</param>
+        /// <param name="lifetime">The lifetime of the application.</param>
+        /// <param name="options">The options of the bot.</param>
         public ChristofelCommandRegistrator
         (
             ILogger<ChristofelCommandRegistrator> logger,
@@ -36,7 +52,8 @@ namespace Christofel.CommandsLib
             _options = options.Value;
         }
 
-        public async Task RefreshAsync(CancellationToken token = new CancellationToken())
+        /// <inheritdoc />
+        public async Task RefreshAsync(CancellationToken token = default)
         {
             var checkSlashSupport = _slashService.SupportsSlashCommands();
             if (!checkSlashSupport.IsSuccess)
@@ -57,9 +74,11 @@ namespace Christofel.CommandsLib
             }
         }
 
-        public Task StartAsync(CancellationToken token = new CancellationToken()) => RefreshAsync(token);
+        /// <inheritdoc />
+        public Task StartAsync(CancellationToken token = default) => RefreshAsync(token);
 
-        public async Task StopAsync(CancellationToken token = new CancellationToken())
+        /// <inheritdoc />
+        public async Task StopAsync(CancellationToken token = default)
         {
             if (_lifetime.State >= LifetimeState.Stopping)
             {

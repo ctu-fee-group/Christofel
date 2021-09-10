@@ -9,6 +9,10 @@ using Remora.Discord.Gateway.Responders;
 
 namespace Christofel.Remora
 {
+#pragma warning disable SA1402 // FileMayOnlyContainASingleType
+    /// <summary>
+    /// Implements every possible <see cref="IGatewayEvent"/> responder.
+    /// </summary>
     public interface IEveryResponder :
         IChannelsResponder,
         IConnectingResumingResponder,
@@ -24,28 +28,43 @@ namespace Christofel.Remora
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every webhook event.
+    /// </summary>
     public interface IWebhooksResponder :
         IResponder<IWebhooksUpdate>
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every voice event.
+    /// </summary>
     public interface IVoiceResponder :
         IResponder<IVoiceServerUpdate>,
         IResponder<IVoiceStateUpdate>
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every users event.
+    /// </summary>
     public interface IUsersResponder :
         IResponder<ITypingStart>,
         IResponder<IUserUpdate>
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every presence event.
+    /// </summary>
     public interface IPresenceResponder :
         IResponder<IPresenceUpdate>
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every message event.
+    /// </summary>
     public interface IMessagesResponder :
         IResponder<IMessageCreate>,
         IResponder<IMessageDelete>,
@@ -58,17 +77,26 @@ namespace Christofel.Remora
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every invite event.
+    /// </summary>
     public interface IInvitesResponder :
         IResponder<IInviteCreate>,
         IResponder<IInviteDelete>
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every interaction event.
+    /// </summary>
     public interface IInteractionsResponder :
         IResponder<IInteractionCreate>
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every integration event.
+    /// </summary>
     public interface IIntegrationResponder :
         IResponder<IIntegrationCreate>,
         IResponder<IIntegrationUpdate>,
@@ -76,6 +104,9 @@ namespace Christofel.Remora
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every guild event.
+    /// </summary>
     public interface IGuildResponder :
         IResponder<IGuildBanAdd>,
         IResponder<IGuildBanRemove>,
@@ -95,6 +126,9 @@ namespace Christofel.Remora
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every connecting or resuming event.
+    /// </summary>
     public interface IConnectingResumingResponder :
         IResponder<IHello>,
         IResponder<IInvalidSession>,
@@ -104,6 +138,9 @@ namespace Christofel.Remora
     {
     }
 
+    /// <summary>
+    /// Implements <see cref="IGatewayEvent"/> responders for every channel event.
+    /// </summary>
     public interface IChannelsResponder :
         IResponder<IChannelCreate>,
         IResponder<IChannelDelete>,

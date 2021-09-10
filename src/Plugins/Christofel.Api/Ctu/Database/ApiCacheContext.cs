@@ -19,7 +19,7 @@ namespace Christofel.Api.Ctu.Database
         }
 
         /// <summary>
-        ///     Cache of roles to assign
+        /// Cache of roles to assign
         /// </summary>
         public DbSet<AssignRole> AssignRoles => Set<AssignRole>();
 

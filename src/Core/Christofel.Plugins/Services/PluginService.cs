@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Loader;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ using Microsoft.Extensions.Options;
 namespace Christofel.Plugins.Services
 {
     /// <summary>
-    ///     Service used for attaching and detaching plugins
+    /// Service used for attaching, detaching plugins along with distributing handling of their lifetime to PluginLifetimeService.
     /// </summary>
     public class PluginService : IDisposable
     {
@@ -33,6 +34,14 @@ namespace Christofel.Plugins.Services
 
         private PluginServiceOptions _options;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginService"/> class.
+        /// </summary>
+        /// <param name="options">The options for attaching plugins.</param>
+        /// <param name="storage">The storage for the plugins.</param>
+        /// <param name="logger">The logger used for logging error states.</param>
+        /// <param name="assemblyService">The service for loading and unloading plugin assemblies from memory.</param>
+        /// <param name="lifetimeService">The service for handling initialization and destroyal of plugins.</param>
         public PluginService
         (
             IOptionsMonitor<PluginServiceOptions> options,
@@ -51,29 +60,35 @@ namespace Christofel.Plugins.Services
             _onOptionsChange = options.OnChange(o => _options = o);
         }
 
+        /// <summary>
+        /// Regex that all plugin names must match.
+        /// </summary>
         public static string ModuleNameRegex => "^[a-zA-Z0-9\\.]+$";
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _onOptionsChange.Dispose();
         }
 
         /// <summary>
+        /// Gets whether plugin with given name is attached.
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns>If plugin with given name is attached</returns>
+        /// <param name="name">The name to check.</param>
+        /// <returns>If plugin with given name is attached.</returns>
         public bool IsAttached(string name) => _storage.IsAttached(name);
 
         /// <summary>
+        /// Gets whether plugin assembly with given name exists.
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns>If plugin file exists</returns>
+        /// <param name="name">The name to check.</param>
+        /// <returns>If plugin assembly with given name exists.</returns>
         public bool Exists(string name) => File.Exists(GetModulePath(name));
 
         /// <summary>
-        ///     Returns names of plugins that can be attached (excluding these that are attached)
+        /// Gets names of plugins that can be attached (excluding these that are attached).
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Names of plugins that can be attached.</returns>
         public IEnumerable<string> GetAttachablePluginNames()
         {
             string pluginsPath = Path.GetFullPath(_options.Folder);
@@ -85,11 +100,11 @@ namespace Christofel.Plugins.Services
         }
 
         /// <summary>
-        ///     Detached all attached plugins
+        /// Detached all attached plugins at once.
         /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public Task DetachAllAsync(CancellationToken token = new CancellationToken())
+        /// <param name="token">The cancellation token for the operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+        public Task DetachAllAsync(CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
             _logger.LogInformation("Detaching all plugins");
@@ -102,15 +117,17 @@ namespace Christofel.Plugins.Services
         }
 
         /// <summary>
-        ///     Attaches plugin given by name
+        /// Attaches plugin given by name.
         /// </summary>
-        /// <param name="state">State to initialize the plugin with</param>
-        /// <param name="name">Name of the plugin to search for</param>
-        /// <param name="token">Cancel token</param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        /// <exception cref="FileNotFoundException"></exception>
-        public Task<IHasPluginInfo> AttachAsync(string name, CancellationToken token = new CancellationToken())
+        /// <remarks>
+        /// Loads plugin into memory and initializes it using <see cref="PluginLifetimeService"/>.
+        /// </remarks>
+        /// <param name="name">The name of the plugin to search for.</param>
+        /// <param name="token">The cancellation token for this operation.</param>
+        /// <returns>Complete information about the attached plugin.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the name cannot be accepted or if the plugin was already attached.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when the plugin does not exist.</exception>
+        public Task<IHasPluginInfo> AttachAsync(string name, CancellationToken token = default)
         {
             token.ThrowIfCancellationRequested();
 
@@ -133,13 +150,16 @@ namespace Christofel.Plugins.Services
         }
 
         /// <summary>
-        ///     Tries to detach plugin given by name
+        /// Detaches plugin given by name.
         /// </summary>
-        /// <param name="name">Name of the plugin</param>
-        /// <param name="token">Cancel token</param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public Task<IHasPluginInfo> DetachAsync(string name, CancellationToken token = new CancellationToken())
+        /// <remarks>
+        /// Destroys the plugin using <see cref="PluginLifetimeService"/> and unloads it from the memory.
+        /// </remarks>
+        /// <param name="name">The name of the plugin.</param>
+        /// <param name="token">The cancellation token for this operation.</param>
+        /// <returns>Complete information about the detached plugin.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if plugin with the given name is not attached.</exception>
+        public Task<IHasPluginInfo> DetachAsync(string name, CancellationToken token = default)
         {
             if (!IsAttached(name))
             {
@@ -152,20 +172,19 @@ namespace Christofel.Plugins.Services
         }
 
         /// <summary>
-        ///     Tries to detach and then attach a plugin given by name
+        /// Reattaches the given plugin by detaching it and then attaching it again.
         /// </summary>
         /// <remarks>
-        ///     If the plugin fails to detach in time, InvalidOperationException is thrown
+        /// If the plugin fails to detach in time, it will be in an undefined state.
         /// </remarks>
-        /// <param name="state">State to initialize new plugin with</param>
-        /// <param name="name"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <param name="name">The name of the plugin to reattach.</param>
+        /// <param name="token">The cancellation token for this operation.</param>
+        /// <returns>Complete information about the attached plugin.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if plugin with the given name is not attached.</exception>
         public Task<IHasPluginInfo> ReattachAsync
         (
             string name,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         )
         {
             if (!IsAttached(name))
@@ -177,10 +196,36 @@ namespace Christofel.Plugins.Services
             return InternalReattachAsync(_storage.GetAttachedPlugin(name), token);
         }
 
+        /// <summary>
+        /// Checks whether detached plugins were removed from the memory.
+        /// </summary>
+        /// <remarks>
+        /// Forces garbage collection, iterates over detached plugins and checks whether reference
+        /// to <see cref="AssemblyLoadContext"/> was lost already. Logs the results into <see cref="ILogger"/>.
+        /// </remarks>
+        public void CheckDetached()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            foreach (DetachedPlugin plugin in _storage.DetachedPlugins.ToList())
+            {
+                if (plugin.AssemblyContextReference?.IsAlive ?? false)
+                {
+                    _logger.LogError($@"Plugin {plugin} was not unloaded correctly yet");
+                }
+                else
+                {
+                    _storage.RemoveDetachedPlugin(plugin);
+                    _logger.LogInformation($@"{plugin} was finally unloaded");
+                }
+            }
+        }
+
         private async Task<IHasPluginInfo> InternalAttachAsync
         (
             string name,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         )
         {
             token.ThrowIfCancellationRequested();
@@ -230,32 +275,10 @@ namespace Christofel.Plugins.Services
             }
         }
 
-        /// <summary>
-        ///     Checks memory used by detached plugins, reports using logging only
-        /// </summary>
-        public void CheckDetached()
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
-            foreach (DetachedPlugin plugin in _storage.DetachedPlugins.ToList())
-            {
-                if (plugin.AssemblyContextReference?.IsAlive ?? false)
-                {
-                    _logger.LogError($@"Plugin {plugin} was not unloaded correctly yet");
-                }
-                else
-                {
-                    _storage.RemoveDetachedPlugin(plugin);
-                    _logger.LogInformation($@"{plugin} was finally unloaded");
-                }
-            }
-        }
-
         private async Task<IHasPluginInfo> InternalDetachAsync
         (
             AttachedPlugin plugin,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         )
         {
             DetachedPlugin detached = new DetachedPlugin(plugin);
@@ -278,11 +301,11 @@ namespace Christofel.Plugins.Services
         private async Task<IHasPluginInfo> InternalReattachAsync
         (
             AttachedPlugin plugin,
-            CancellationToken token = new CancellationToken()
+            CancellationToken token = default
         )
         {
             _logger.LogInformation($@"Reattaching plugin {plugin}");
-            DetachedPlugin detached = (DetachedPlugin) await InternalDetachAsync(plugin, token);
+            DetachedPlugin detached = (DetachedPlugin)await InternalDetachAsync(plugin, token);
             token.ThrowIfCancellationRequested();
 
             if (!detached.Destroyed)
