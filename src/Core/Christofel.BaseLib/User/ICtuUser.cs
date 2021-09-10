@@ -1,19 +1,19 @@
 //
-//   BotOptions.cs
+//   ICtuUser.cs
 //
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Christofel.BaseLib.Configuration
+namespace Christofel.BaseLib.User
 {
     /// <summary>
-    /// Options for the whole Christofel bot.
+    /// User containing ctu username.
     /// </summary>
-    public class BotOptions
+    public interface ICtuUser
     {
         /// <summary>
-        /// This is the main guild id Christofel is part of.
+        /// Gets the ctu username of the user.
         /// </summary>
-        public ulong GuildId { get; set; }
+        public string CtuUsername { get; }
     }
 }

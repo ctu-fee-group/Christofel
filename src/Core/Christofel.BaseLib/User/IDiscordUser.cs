@@ -1,19 +1,21 @@
 //
-//   BotOptions.cs
+//   IDiscordUser.cs
 //
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Christofel.BaseLib.Configuration
+using Remora.Discord.Core;
+
+namespace Christofel.BaseLib.User
 {
     /// <summary>
-    /// Options for the whole Christofel bot.
+    /// Discord user with set DiscordId.
     /// </summary>
-    public class BotOptions
+    public interface IDiscordUser
     {
         /// <summary>
-        /// This is the main guild id Christofel is part of.
+        /// Gets Discord id of the user.
         /// </summary>
-        public ulong GuildId { get; set; }
+        public Snowflake DiscordId { get; }
     }
 }

@@ -11,24 +11,50 @@ using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.Database.Models
 {
+    /// <summary>
+    /// Database table that holds roles that will be assigned during auth process.
+    /// </summary>
     public class RoleAssignment
     {
-        [Key] public int RoleAssignmentId { get; set; }
+        /// <summary>
+        /// Gets or sets primary key of <see cref="RoleAssignment"/>.
+        /// </summary>
+        [Key]
+        public int RoleAssignmentId { get; set; }
 
         /// <summary>
-        /// Discord role id
+        /// Gets or sets Discord id of the role.
         /// </summary>
         public Snowflake RoleId { get; set; }
 
         /// <summary>
-        /// Type of the role for special behaviors
+        /// Gets or rests the type of the role for special behaviors.
         /// </summary>
         public RoleType RoleType { get; set; }
 
+        /// <summary>
+        /// Gets or sets specific role assignments that reference this assignment.
+        /// </summary>
         public virtual ICollection<SpecificRoleAssignment>? SpecificRoleAssignments { get; set; }
+
+        /// <summary>
+        /// Gets or sets year role assignments that reference this assignment.
+        /// </summary>
         public virtual ICollection<YearRoleAssignment>? YearRoleAssignments { get; set; }
+
+        /// <summary>
+        /// Gets or sets programme role assignments that reference this assignment.
+        /// </summary>
         public virtual ICollection<ProgrammeRoleAssignment>? ProgrammeRoleAssignments { get; set; }
+
+        /// <summary>
+        /// Gets or sets title role assignments that reference this assignment.
+        /// </summary>
         public virtual ICollection<TitleRoleAssignment>? TitleRoleAssignments { get; set; }
+
+        /// <summary>
+        /// Gets or sets usermap role assignments that reference this assignment.
+        /// </summary>
         public virtual ICollection<UsermapRoleAssignment>? UsermapRoleAssignments { get; set; }
     }
 }

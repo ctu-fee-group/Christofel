@@ -15,14 +15,17 @@ using Remora.Discord.Gateway.Extensions;
 
 namespace Christofel.BaseLib.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for <see cref="IServiceCollection"/>.
+    /// </summary>
     public static class IServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds Christofel state and it's properties to provider
+        /// Adds Christofel state and it's properties to provider.
         /// </summary>
-        /// <param name="provider"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
+        /// <param name="provider">The service collection to add state to.</param>
+        /// <param name="state">The state of the Christofel application.</param>
+        /// <returns>The passed collection.</returns>
         public static IServiceCollection AddDiscordState(this IServiceCollection provider, IChristofelState state)
         {
             return provider
@@ -40,11 +43,12 @@ namespace Christofel.BaseLib.Extensions
         }
 
         /// <summary>
-        /// Adds Christofel database context factory and read only database factory
+        /// Adds Christofel database context factory and read only database factory.
         /// </summary>
-        /// <param name="provider"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
+        /// <param name="provider">The service collection to add state to.</param>
+        /// <param name="state">The state of the Christofel application.</param>
+        /// <param name="write">Whether write should be enabled. If false, only ReadOnly context will be added.</param>
+        /// <returns>The passed collection.</returns>
         public static IServiceCollection AddChristofelDatabase
         (
             this IServiceCollection provider,

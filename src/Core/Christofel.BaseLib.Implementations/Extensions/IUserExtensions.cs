@@ -13,21 +13,31 @@ using Remora.Discord.Core;
 
 namespace Christofel.BaseLib.Extensions
 {
+    /// <summary>
+    /// Class containing extensions for <see cref="IUser"/>.
+    /// </summary>
     public static class IUserExtensions
     {
         /// <summary>
-        /// Converts discord user to DiscordTarget for better use with permissions
+        /// Converts discord user to DiscordTarget for better use with permissions.
         /// </summary>
-        /// <param name="role"></param>
-        /// <returns></returns>
-        public static DiscordTarget ToDiscordTarget(this IUser role) => new DiscordTarget
-        {
-            DiscordId = role.ID, TargetType = TargetType.User,
-        };
+        /// <param name="user">The user to be converted.</param>
+        /// <returns>Converted <see cref="DiscordTarget"/>.</returns>
+        public static DiscordTarget ToDiscordTarget(this IUser user) => new DiscordTarget(user.ID, TargetType.User);
 
+        /// <summary>
+        /// Gets all discord targets of the specified member.
+        /// </summary>
+        /// <param name="guildMember">The member to get targets of.</param>
+        /// <returns>All of the targets that are associated with the guild member.</returns>
         public static IEnumerable<DiscordTarget> GetAllDiscordTargets
             (this IGuildMember guildMember) => GetAllDiscordTargets(guildMember.Roles, guildMember.User);
 
+        /// <summary>
+        /// Gets all discord targets of the specified member.
+        /// </summary>
+        /// <param name="guildMember">The member to get targets of.</param>
+        /// <returns>All of the targets that are associated with the guild member.</returns>
         public static IEnumerable<DiscordTarget> GetAllDiscordTargets
             (this IPartialGuildMember guildMember) => GetAllDiscordTargets(guildMember.Roles.Value, guildMember.User);
 

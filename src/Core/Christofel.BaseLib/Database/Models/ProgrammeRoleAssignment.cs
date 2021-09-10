@@ -13,12 +13,26 @@ namespace Christofel.BaseLib.Database.Models
     /// </summary>
     public class ProgrammeRoleAssignment
     {
-        [Key] public int ProgrammeRoleAssignmentId { get; set; }
+        /// <summary>
+        /// Gets or sets primary key of the <see cref="ProgrammeRoleAssignment"/>.
+        /// </summary>
+        [Key]
+        public int ProgrammeRoleAssignmentId { get; set; }
 
-        [MaxLength(256)] public string Programme { get; set; } = null!;
+        /// <summary>
+        /// Gets or sets the name of the programme.
+        /// </summary>
+        [MaxLength(256)]
+        public string Programme { get; set; } = null!;
 
+        /// <summary>
+        /// Gets or sets id of the assignment.
+        /// </summary>
         public int AssignmentId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the assignment.
+        /// </summary>
         public RoleAssignment Assignment { get; set; } = null!;
     }
 }

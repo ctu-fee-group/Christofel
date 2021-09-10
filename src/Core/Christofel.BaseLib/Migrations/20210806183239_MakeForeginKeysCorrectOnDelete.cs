@@ -1,9 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿//
+//  20210806183239_MakeForeginKeysCorrectOnDelete.cs
+//
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.BaseLib.Migrations
 {
+    /// <summary>
+    /// Migration that makes foreign keys behave correctly on delete.
+    /// </summary>
     public partial class MakeForeginKeysCorrectOnDelete : Migration
     {
+        /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
@@ -77,6 +87,7 @@ namespace Christofel.BaseLib.Migrations
                 onDelete: ReferentialAction.Restrict);
         }
 
+        /// <inheritdoc/>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

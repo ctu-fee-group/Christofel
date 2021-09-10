@@ -12,17 +12,17 @@ namespace Christofel.BaseLib.Database.Models.Enums
     public enum TargetType
     {
         /// <summary>
-        /// Targets specific discord user
+        /// Targets specific discord user.
         /// </summary>
         User,
 
         /// <summary>
-        /// Targets specific discord role
+        /// Targets specific discord role.
         /// </summary>
         Role,
 
         /// <summary>
-        /// Targets everyone
+        /// Targets everyone.
         /// </summary>
         Everyone,
     }

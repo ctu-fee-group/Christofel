@@ -10,20 +10,27 @@ using Microsoft.EntityFrameworkCore;
 namespace Christofel.BaseLib.Implementations.ReadOnlyDatabase
 {
     /// <summary>
-    ///
- Creates ReadonlyDbContext for specified DbContextFactory
+    /// Creates ReadonlyDbContext for specified DbContextFactory.
     /// </summary>
-    /// <typeparam name="TContext"></typeparam>
+    /// <typeparam name="TContext">The type of the context.</typeparam>
     public class ReadonlyDbContextFactory<TContext>
         where TContext : DbContext, IReadableDbContext<TContext>
     {
-        protected readonly IDbContextFactory<TContext> _dbContextFactory;
+        private readonly IDbContextFactory<TContext> _dbContextFactory;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReadonlyDbContextFactory{TContext}"/> class.
+        /// </summary>
+        /// <param name="dbContextFactory">The database context factory.</param>
         public ReadonlyDbContextFactory(IDbContextFactory<TContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
         }
 
+        /// <summary>
+        /// Creates the readable context.
+        /// </summary>
+        /// <returns>Read only context representing <typeparamref name="TContext"/>.</returns>
         public virtual IReadableDbContext<TContext> CreateDbContext() => _dbContextFactory.CreateDbContext();
     }
 }

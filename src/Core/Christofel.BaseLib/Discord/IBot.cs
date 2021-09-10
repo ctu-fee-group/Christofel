@@ -9,12 +9,19 @@ using Remora.Discord.Gateway;
 
 namespace Christofel.BaseLib.Discord
 {
+    /// <summary>
+    /// State of Discord bot.
+    /// </summary>
     public interface IBot
     {
+        /// <summary>
+        /// Gets Remora Discord client.
+        /// </summary>
         public DiscordGatewayClient Client { get; }
 
-        //public CacheService Cache { get; }
-
+        /// <summary>
+        /// Gets http client factory with Remora Discord.
+        /// </summary>
         public IHttpClientFactory HttpClientFactory { get; }
     }
 }

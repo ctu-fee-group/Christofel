@@ -7,22 +7,22 @@
 namespace Christofel.BaseLib.Permissions
 {
     /// <summary>
-    /// Permission information that can be used in lists of permissions
+    /// Permission information that can be used in lists of permissions.
     /// </summary>
     public interface IPermission
     {
         /// <summary>
-        /// Name in dot notation
+        /// Gets name of the permission in dot notation.
         /// </summary>
         public string PermissionName { get; }
 
         /// <summary>
-        /// Display name for better orientation of what the permission does
+        /// Gets display name of the permission.
         /// </summary>
         public string DisplayName { get; }
 
         /// <summary>
-        /// Short description saying what this permission is used for
+        /// Gets short description of the permission.
         /// </summary>
         public string Description { get; }
     }

@@ -12,37 +12,45 @@ using Christofel.BaseLib.Database.Models;
 namespace Christofel.BaseLib.Permissions
 {
     /// <summary>
-    /// Get discord targets off of permissions or whether specified target has permissions
+    /// Service for resolving permissions of users and roles.
     /// </summary>
+    /// <remarks>
+    /// Dot notation permissions are supported.
+    /// Wildcards may be used for specifying multiple permissions.
+    /// Permission `a.*` will grant the user permissions like `a.a`, `a.b`, `a.a.a`.
+    /// </remarks>
     public interface IPermissionsResolver
     {
         /// <summary>
-        /// Get what targets have permission with the given name
+        /// Gets what targets have permission with the given name.
         /// </summary>
-        /// <param name="permissionName">Name of the permission</param>
-        /// <returns>Collection containing all DiscordTargets</returns>
+        /// <param name="permissionName">Name of the permission.</param>
+        /// <param name="token">The cancellation token for the operation.</param>
+        /// <returns>Collection containing all DiscordTargets that have the permission assigned.</returns>
         public Task<IEnumerable<DiscordTarget>> GetPermissionTargetsAsync
             (string permissionName, CancellationToken token = default);
 
         /// <summary>
-        /// Check for permission on specified target
+        /// Checks whether the specified target has the given permission.
         /// </summary>
-        /// <param name="permissionName"></param>
-        /// <param name="target"></param>
-        /// <returns>Whether the target has the permission</returns>
+        /// <param name="permissionName">The name of the permission to be checked.</param>
+        /// <param name="target">The target to be checked.</param>
+        /// <param name="token">The cancellation token for the operation.</param>
+        /// <returns>Whether the target has the permission.</returns>
         public Task<bool> HasPermissionAsync
             (string permissionName, DiscordTarget target, CancellationToken token = default);
 
         /// <summary>
-        /// Return whether any of the specified targets has the permission needed
+        /// Checks whether any of the specified targets has the permission needed.
         /// </summary>
-        /// <param name="permissionName"></param>
-        /// <param name="target"></param>
-        /// <returns></returns>
+        /// <param name="permissionName">The name of the permission to be checked.</param>
+        /// <param name="targets">The targets that .</param>
+        /// <param name="token">The cancellation token for the operation.</param>
+        /// <returns>Whether any of the targets has the permission.</returns>
         public Task<bool> AnyHasPermissionAsync
         (
             string permissionName,
-            IEnumerable<DiscordTarget> target,
+            IEnumerable<DiscordTarget> targets,
             CancellationToken token = default
         );
     }

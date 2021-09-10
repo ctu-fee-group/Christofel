@@ -8,8 +8,14 @@ using Christofel.Remora;
 
 namespace Christofel.BaseLib.Plugins
 {
+    /// <summary>
+    /// Context implementation of the plugin context.
+    /// </summary>
     public class PluginContext : IPluginContext
     {
+        /// <summary>
+        /// Gets responder of the plugin.
+        /// </summary>
         public IAnyResponder? PluginResponder { get; set; }
     }
 }

@@ -12,11 +12,34 @@ namespace Christofel.BaseLib.Database.Models.Enums
     /// </summary>
     public enum RoleType
     {
+        /// <summary>
+        /// General type of role.
+        /// </summary>
         General,
+
+        /// <summary>
+        /// Year type of role.
+        /// </summary>
         Year,
+
+        /// <summary>
+        /// Programme type of role.
+        /// </summary>
         Programme,
+
+        /// <summary>
+        /// Finished studies type of role.
+        /// </summary>
         FinishedStudies,
+
+        /// <summary>
+        /// Current studies type of role.
+        /// </summary>
         CurrentStudies,
+
+        /// <summary>
+        /// Faculty type of role.
+        /// </summary>
         Faculty,
     }
 }

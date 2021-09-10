@@ -1,9 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿//
+//  20210803150918_SetMaxLengths.cs
+//
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.BaseLib.Migrations
 {
+    /// <summary>
+    /// Migration that sets max lengths of strings.
+    /// </summary>
     public partial class SetMaxLengths : Migration
     {
+        /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
@@ -64,6 +74,7 @@ namespace Christofel.BaseLib.Migrations
                 onDelete: ReferentialAction.Cascade);
         }
 
+        /// <inheritdoc/>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(

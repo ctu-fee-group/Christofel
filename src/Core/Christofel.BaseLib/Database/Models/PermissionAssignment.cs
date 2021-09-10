@@ -13,7 +13,7 @@ namespace Christofel.BaseLib.Database.Models
     /// permission assignments to discord targets.
     /// </summary>
     /// <remarks>
-    /// Wildcards may be used
+    /// Wildcards may be used.
     /// <example>
     ///     For example,
     ///     Suppose we have permissions <c>management.messages.slowmode</c>, <c>management.users.create</c>
@@ -23,19 +23,19 @@ namespace Christofel.BaseLib.Database.Models
     public class PermissionAssignment
     {
         /// <summary>
-        /// Primary key
+        /// Primary key of the <see cref="PermissionAssignment"/>.
         /// </summary>
         [Key]
         public int PermissionAssignmentId { get; set; }
 
         /// <summary>
-        /// Name of the permission to be granted (wildcards may be used)
+        /// Name of the permission to be granted (wildcards may be used).
         /// </summary>
         [MaxLength(512)]
         public string PermissionName { get; set; } = null!;
 
         /// <summary>
-        /// Target to assign this permission to
+        /// Target to assign this permission to.
         /// </summary>
         public DiscordTarget Target { get; set; } = null!;
     }

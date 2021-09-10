@@ -15,37 +15,73 @@ using Remora.Discord.Core;
 namespace Christofel.BaseLib.Database
 {
     /// <summary>
-    /// Context for base database holding users, permissions and information about roles
+    /// Context for base database holding users, permissions and information about roles.
     /// </summary>
     public sealed class ChristofelBaseContext : DbContext, IReadableDbContext<ChristofelBaseContext>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChristofelBaseContext"/> class.
+        /// </summary>
+        /// <param name="options">The options for the context.</param>
         public ChristofelBaseContext(DbContextOptions<ChristofelBaseContext> options)
             : base(options)
         {
         }
 
+        /// <summary>
+        /// Gets users set.
+        /// </summary>
         public DbSet<DbUser> Users => Set<DbUser>();
+
+        /// <summary>
+        /// Gets permissions set.
+        /// </summary>
         public DbSet<PermissionAssignment> Permissions => Set<PermissionAssignment>();
+
+        /// <summary>
+        /// Gets role assignments set.
+        /// </summary>
         public DbSet<RoleAssignment> RoleAssignments => Set<RoleAssignment>();
 
+        /// <summary>
+        /// Gets year role assignments set.
+        /// </summary>
         public DbSet<YearRoleAssignment> YearRoleAssignments => Set<YearRoleAssignment>();
+
+        /// <summary>
+        /// Gets specific role assignments set.
+        /// </summary>
         public DbSet<SpecificRoleAssignment> SpecificRoleAssignments => Set<SpecificRoleAssignment>();
+
+        /// <summary>
+        /// Gets programme role assignments set.
+        /// </summary>
         public DbSet<ProgrammeRoleAssignment> ProgrammeRoleAssignments => Set<ProgrammeRoleAssignment>();
+
+        /// <summary>
+        /// Gets usermap role assignments set.
+        /// </summary>
         public DbSet<UsermapRoleAssignment> UsermapRoleAssignments => Set<UsermapRoleAssignment>();
+
+        /// <summary>
+        /// Gets title role assignments set.
+        /// </summary>
         public DbSet<TitleRoleAssignment> TitleRoleAssignment => Set<TitleRoleAssignment>();
 
+        /// <inheritdoc/>
         IQueryable<TEntity> IReadableDbContext.Set<TEntity>()
             where TEntity : class => Set<TEntity>().AsNoTracking();
 
+        /// <inheritdoc/>
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbUser>()
                 .Property(x => x.DiscordId)
-                .HasConversion(v => (long) v.Value, v => new Snowflake((ulong) v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
 
             modelBuilder.Entity<RoleAssignment>()
                 .Property(x => x.RoleId)
-                .HasConversion(v => (long) v.Value, v => new Snowflake((ulong) v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
 
             modelBuilder.Entity<PermissionAssignment>()
                 .OwnsOne
@@ -53,7 +89,7 @@ namespace Christofel.BaseLib.Database
                     x => x.Target,
                     b => b
                         .Property(x => x.DiscordId)
-                        .HasConversion(v => (long) v.Value, v => new Snowflake((ulong) v))
+                        .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v))
                 );
 
             modelBuilder.Entity<DbUser>()
@@ -93,16 +129,18 @@ namespace Christofel.BaseLib.Database
                 .OnDelete(DeleteBehavior.Restrict);
         }
 
+        /// <inheritdoc />
         public override Task<int> SaveChangesAsync
         (
             bool acceptAllChangesOnSuccess,
-            CancellationToken cancellationtoken = default
+            CancellationToken cancellationToken = default
         )
         {
             this.AddTimestamps();
             return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
         }
 
+        /// <inheritdoc />
         public override int SaveChanges()
         {
             this.AddTimestamps();
