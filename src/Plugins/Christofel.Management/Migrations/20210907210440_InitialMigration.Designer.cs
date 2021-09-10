@@ -12,6 +12,7 @@ namespace Christofel.Management.Migrations
     [Migration("20210907210440_InitialMigration")]
     partial class InitialMigration
     {
+        /// <inheritdoc/>
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

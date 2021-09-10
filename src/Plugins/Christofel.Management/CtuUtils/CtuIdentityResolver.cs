@@ -98,7 +98,7 @@ namespace Christofel.Management.CtuUtils
         /// </summary>
         /// <param name="context">The database context holding users.</param>
         /// <param name="userDiscordId">The id of the user to find duplicates for.</param>
-        /// <returns>A queryable that filters out identities of <see cref="userDiscordId"/>.</returns>
+        /// <returns>A queryable that filters out identities of the specified user discord id.</returns>
         public IQueryable<ILinkUser> GetIdentities(IReadableDbContext context, Snowflake userDiscordId)
         {
             return context.Set<DbUser>()

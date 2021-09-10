@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.Management.Migrations
 {
+    /// <summary>
+    /// Initial migration.
+    /// </summary>
     public partial class InitialMigration : Migration
     {
         /// <inheritdoc/>
