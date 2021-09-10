@@ -107,7 +107,8 @@ namespace Christofel.Logger
                 (scope, state) =>
                 {
                     state.Add(scope?.ToString() ?? "null");
-                }, builder
+                },
+                builder
             );
 
             return string.Join(" => ", builder);
