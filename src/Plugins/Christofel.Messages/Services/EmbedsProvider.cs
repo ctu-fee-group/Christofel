@@ -29,7 +29,7 @@ namespace Christofel.Messages.Services
         /// Initializes a new instance of the <see cref="EmbedsProvider"/> class.
         /// </summary>
         /// <param name="options">The options.</param>
-        /// <param name="jsonOptions">The serializer options.</param
+        /// <param name="jsonOptions">The serializer options.</param>
         public EmbedsProvider(IOptionsMonitor<EmbedsOptions> options, IOptions<JsonSerializerOptions> jsonOptions)
         {
             _embedsOptionsUpdateToken = options.OnChange(c => _embedsOptions = c);
