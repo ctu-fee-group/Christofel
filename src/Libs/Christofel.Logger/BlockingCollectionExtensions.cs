@@ -44,7 +44,7 @@ namespace Christofel.Logger
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // log.LogCritical($"Unknown error fetching more elements. Continuing to process the {resultList.Count} already fetched items.", ex);
             }
