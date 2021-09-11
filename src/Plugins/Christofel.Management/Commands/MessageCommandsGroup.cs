@@ -16,6 +16,7 @@ using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
@@ -39,6 +40,7 @@ namespace Christofel.Management.Commands
         private readonly ILogger<MessageCommandsGroup> _logger;
         private readonly SlowmodeService _slowmodeService;
         private readonly IThreadSafeStorage<RegisteredTemporalSlowmode> _slowmodeStorage;
+        private readonly IDiscordRestChannelAPI _channelApi;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageCommandsGroup"/> class.
@@ -48,13 +50,15 @@ namespace Christofel.Management.Commands
         /// <param name="context">The context of the current command.</param>
         /// <param name="slowmodeService">The service used for managing slowmodes.</param>
         /// <param name="slowmodeStorage">The storage for the slowmodes.</param>
+        /// <param name="channelApi">The channel api.</param>
         public MessageCommandsGroup
         (
             ILogger<MessageCommandsGroup> logger,
             FeedbackService feedbackService,
             ICommandContext context,
             SlowmodeService slowmodeService,
-            IThreadSafeStorage<RegisteredTemporalSlowmode> slowmodeStorage
+            IThreadSafeStorage<RegisteredTemporalSlowmode> slowmodeStorage,
+            IDiscordRestChannelAPI channelApi
         )
         {
             _slowmodeStorage = slowmodeStorage;
@@ -62,18 +66,24 @@ namespace Christofel.Management.Commands
             _logger = logger;
             _context = context;
             _feedbackService = feedbackService;
+            _channelApi = channelApi;
         }
 
         /// <summary>
         /// Handles /slowmode for.
         /// </summary>
         /// <remarks>
-        /// Registers task for temporal slowmode for given channel.
+        /// Registers task for temporal slowmode for given channel
+        /// and enable the slowmode with message rate of <paramref name="interval"/>.
         ///
-        /// The task will disable the slowmode after the specified duration.
+        /// The task will disable the slowmode after the specified duration
+        /// by returning to the specified <paramref name="returnInterval"/> message rate.
+        /// If <paramref name="returnInterval"/> is not specified, the channel's current
+        /// slowmode interval value will be used.
         /// </remarks>
         /// <param name="interval">The message rate for users.</param>
         /// <param name="duration">The duration of the temporal slowmode.</param>
+        /// <param name="returnInterval">The message rate for the users to return to after the temporal slowmode has passed.</param>
         /// <param name="channel">The channel to enable temporal slowmode in.</param>
         /// <returns>A result that may not have succeeded.</returns>
         [Command("for")]
@@ -86,6 +96,11 @@ namespace Christofel.Management.Commands
             [Description
                 ("How long should the slowmode be enabled for (formatted time 3m, 3m20s etc.). Maximum is 48 hours.")]
             TimeSpan duration,
+            [Description
+            (
+                "Interval to return to after the temporal slowmode is disabled. By default, the old one will be used."
+            )]
+            TimeSpan? returnInterval = null,
             [Description("Channel to enable slowmode in. Current channel if omitted.")]
             [DiscordTypeHint(TypeHint.Channel)]
             Snowflake? channel = null
@@ -93,6 +108,7 @@ namespace Christofel.Management.Commands
         {
             var validationResult = new CommandValidator()
                 .MakeSure("interval", interval.TotalHours, o => o.GreaterThan(0).LessThanOrEqualTo(6))
+                .MakeSure("returnInterval", returnInterval?.TotalHours ?? 1, o => o.GreaterThan(0).LessThanOrEqualTo(6))
                 .MakeSure("totalSeconds", duration.TotalHours, o => o.GreaterThan(0).LessThanOrEqualTo(48))
                 .Validate()
                 .GetResult();
@@ -103,6 +119,25 @@ namespace Christofel.Management.Commands
             }
 
             var channelId = channel ?? _context.ChannelID;
+
+            if (returnInterval is null)
+            {
+                var channelResult = await _channelApi.GetChannelAsync(channelId, CancellationToken);
+
+                if (!channelResult.IsSuccess)
+                {
+                    return Result.FromError(channelResult);
+                }
+
+                if (channelResult.Entity.RateLimitPerUser.IsDefined(out var setReturnInterval))
+                {
+                    returnInterval = setReturnInterval;
+                }
+                else
+                {
+                    returnInterval = TimeSpan.Zero;
+                }
+            }
 
             var enableResult = await _slowmodeService.EnableSlowmodeAsync(channelId, interval, CancellationToken);
 
@@ -117,7 +152,7 @@ namespace Christofel.Management.Commands
             try
             {
                 temporalSlowmode = await _slowmodeService.RegisterTemporalSlowmodeAsync
-                    (channelId, _context.User.ID, interval, duration);
+                    (channelId, _context.User.ID, interval, (TimeSpan)returnInterval, duration);
             }
             catch (Exception e)
             {
@@ -130,7 +165,7 @@ namespace Christofel.Management.Commands
 
             var feedbackResult = await _feedbackService.SendContextualSuccessAsync
             (
-                $"Enabled slowmode in channel <#{channelId}> for {duration} (until {temporalSlowmode.TemporalSlowmodeEntity.DeactivationDate})",
+                $"Enabled slowmode in channel <#{channelId}> for {duration} (until {temporalSlowmode.TemporalSlowmodeEntity.DeactivationDate}). The return slowmode interval will be {returnInterval}. Use this command again for changing the return interval.",
                 ct: CancellationToken
             );
 

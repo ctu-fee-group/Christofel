@@ -129,6 +129,7 @@ namespace Christofel.Management.Slowmode
         /// <param name="channelId">Id of the channel where to register slowmode to.</param>
         /// <param name="userId">Id of the user who enabled the slowmode.</param>
         /// <param name="interval">The rate of messages for the user.</param>
+        /// <param name="returnInterval">The rate of the messages to return to after the slowmode has passed.</param>
         /// <param name="duration">The duration after what the temporal slowmode will be removed.</param>
         /// <param name="ct">The cancellation token of the operation.</param>
         /// <returns>Information about the registered temporal slowmode.</returns>
@@ -137,6 +138,7 @@ namespace Christofel.Management.Slowmode
             Snowflake channelId,
             Snowflake userId,
             TimeSpan interval,
+            TimeSpan returnInterval,
             TimeSpan duration,
             CancellationToken ct = default
         )
@@ -150,6 +152,7 @@ namespace Christofel.Management.Slowmode
                 UserId = userId,
                 DeactivationDate = DateTime.Now.Add(duration),
                 Interval = interval,
+                ReturnInterval = returnInterval,
             };
 
             dbContext.Add(temporalSlowmodeEntity);
@@ -204,19 +207,20 @@ namespace Christofel.Management.Slowmode
 
                     if (!canceled)
                     {
-                        var result = await DisableSlowmodeAsync
+                        var result = await EnableSlowmodeAsync
                         (
-                            registeredTemporalSlowmode.TemporalSlowmodeEntity.ChannelId,
-                            default
+                            temporalSlowmodeEntity.ChannelId,
+                            temporalSlowmodeEntity.ReturnInterval
                         ); // Cannot use cancellation token from registered slowmode, as that one will be canceled.
 
                         if (result.IsSuccess)
                         {
                             _logger.LogInformation
                             (
-                                "Disabled temporal slowmode in channel <#{Channel}> enabled by <@{User}>",
+                                "Disabled temporal slowmode in channel <#{Channel}> enabled by <@{User}>. Returned to interval {ReturnInterval}",
                                 temporalSlowmodeEntity.ChannelId,
-                                temporalSlowmodeEntity.UserId
+                                temporalSlowmodeEntity.UserId,
+                                temporalSlowmodeEntity.ReturnInterval
                             );
                         }
                         else
