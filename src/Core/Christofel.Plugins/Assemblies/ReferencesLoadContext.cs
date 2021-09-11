@@ -18,17 +18,9 @@ namespace Christofel.Plugins.Assemblies
     /// <remarks>
     /// Tries to load references using AssemblyDependencyResolver,
     /// if that fails, tries to look for a dll in directory of the assembly.
-    ///
-    /// Holds information about what libraries should always be loaded even if they were already loaded into memory.
     /// </remarks>
     public class ReferencesLoadContext : AssemblyLoadContext
     {
-        private readonly string[] _loadAlways =
-        {
-            "Christofel.CommandsLib", "Remora.Commands", "Remora.Discord.Commands",
-            "Christofel.BaseLib.Implementations",
-        };
-
         private readonly string _pluginLoadDirectory;
         private readonly AssemblyDependencyResolver _resolver;
 
@@ -44,17 +36,6 @@ namespace Christofel.Plugins.Assemblies
 
             Resolving += LoadAssembly;
             ResolvingUnmanagedDll += LoadUnmanagedDllAssembly;
-        }
-
-        /// <inheritdoc/>
-        protected override Assembly? Load(AssemblyName assemblyName)
-        {
-            if (_loadAlways.Contains(assemblyName.Name))
-            {
-                return LoadAssembly(this, assemblyName) ?? base.Load(assemblyName);
-            }
-
-            return null;
         }
 
         /// <inheritdoc />
