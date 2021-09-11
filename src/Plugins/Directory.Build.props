@@ -1,4 +1,6 @@
 <Project>
+    <Import Project="..\Directory.Build.props"/>
+    
     <Target Name="CopyPluginFiles" AfterTargets="Build">
         <ItemGroup>
             <_CopyPlugin Include="$(ProjectDir)/$(OutDir)/*"/>
