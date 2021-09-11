@@ -22,6 +22,7 @@ using Christofel.Management.Slowmode;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Christofel.Remora.Responders;
+using Christofel.Scheduler.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -97,6 +98,9 @@ namespace Christofel.Management
                 // Christofel
                 .AddDiscordState(State)
 
+                // Scheduler
+                .AddPluginScheduler()
+
                 // Databases
                 .AddChristofelDatabase(State)
                 .AddChristofelDbContextFactory<ManagementContext>(State.Configuration)
@@ -140,7 +144,8 @@ namespace Christofel.Management
         )
         {
             _logger = services.GetRequiredService<ILogger<ManagementPlugin>>();
-            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
+            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
+            Context.SchedulerJobStore = services.GetRequiredService<IJobStore>();
             return Task.CompletedTask;
         }
     }
