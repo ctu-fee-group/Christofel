@@ -7,6 +7,9 @@
 using System;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
+using Christofel.BaseLib.Implementations.Scheduler;
+using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduler.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
@@ -160,5 +163,13 @@ namespace Christofel.BaseLib.Extensions
                     }
                 );
         }
+    
+        /// Adds <see cref="IScheduler"/>.
+        /// </summary>
+        /// <param name="services">The collection to be configured.</param>
+        /// <returns>The passed collection.</returns>
+        public static IServiceCollection AddPluginScheduler(this IServiceCollection services) => services
+            .AddScheduler()
+            .Replace(ServiceDescriptor.Singleton<IScheduler, PluginScheduler>());
     }
 }
