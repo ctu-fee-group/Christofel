@@ -35,6 +35,12 @@ namespace Christofel.Management.Database.Models
         public TimeSpan Interval { get; set; }
 
         /// <summary>
+        /// Gets or sets the interval between sending messages
+        /// that should be restored after disabling temporal slowmode.
+        /// </summary>
+        public TimeSpan ReturnInterval { get; set; }
+
+        /// <summary>
         /// Gets or sets when should the slowmode be deactivated.
         /// </summary>
         public DateTime DeactivationDate { get; set; }
