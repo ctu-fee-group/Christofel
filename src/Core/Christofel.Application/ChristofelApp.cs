@@ -13,6 +13,7 @@ using Christofel.Application.Commands;
 using Christofel.Application.Permissions;
 using Christofel.Application.Plugins;
 using Christofel.Application.Responders;
+using Christofel.Application.Scheduler;
 using Christofel.Application.State;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
@@ -29,9 +30,12 @@ using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Christofel.Remora;
+using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduler.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Extensions;
@@ -98,11 +102,18 @@ namespace Christofel.Application
                 yield return this;
                 yield return Services.GetRequiredService<PluginAutoloader>();
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
+                yield return Services.GetRequiredService<ApplicationScheduler>();
             }
         }
 
         /// <inheritdoc />
-        protected override IEnumerable<IStartable> Startable => Enumerable.Empty<IStartable>();
+        protected override IEnumerable<IStartable> Startable
+        {
+            get
+            {
+                yield return Services.GetRequiredService<ApplicationScheduler>();
+            }
+        }
 
         /// <summary>
         /// Start after Ready event was received.
@@ -161,7 +172,14 @@ namespace Christofel.Application
                 // plugins
                 .AddPlugins()
                 .AddTransient<PluginAutoloader>()
-                .AddRuntimePlugins<IChristofelState, IPluginContext>()
+                .AddRuntimePlugins<IChristofelState, PluginContext>()
+
+                // scheduling
+                .AddScheduler()
+                .AddRetryableJobListener()
+                .AddSingleton<ApplicationScheduler>()
+                .Replace(ServiceDescriptor.Singleton<IJobStore, ApplicationJobStore>())
+                .Replace(ServiceDescriptor.Singleton<IScheduler, ApplicationScheduler>(p => p.GetRequiredService<ApplicationScheduler>()))
 
                 // config
                 .AddSingleton<IConfiguration>(_configuration)
@@ -208,6 +226,7 @@ namespace Christofel.Application
 
                 // events
                 .AddResponder<ChristofelReadyResponder>()
+                .AddResponder<ApplicationResponder<IChristofelState, PluginContext>>()
                 .AddResponder<ApplicationResponder<IChristofelState, IPluginContext>>()
                 .AddScoped(p => new ChristofelReadyResponder(this))
 
