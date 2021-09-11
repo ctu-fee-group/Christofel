@@ -38,7 +38,7 @@ namespace Christofel.Scheduler
         {
             _jobStore = jobStore;
             _schedulerThread = new SchedulerThread
-                (this, new SchedulerEventExecutors(listeners), jobStore, jobThreadScheduler, logger);
+                (new SchedulerEventExecutors(listeners), jobStore, jobThreadScheduler, logger);
         }
 
         /// <inheritdoc />

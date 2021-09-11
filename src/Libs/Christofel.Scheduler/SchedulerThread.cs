@@ -19,7 +19,6 @@ namespace Christofel.Scheduler
     /// </summary>
     public class SchedulerThread
     {
-        private readonly IScheduler _scheduler;
         private readonly SchedulerEventExecutors _eventExecutors;
         private readonly IJobStore _jobStore;
         private readonly IJobThreadScheduler _jobThreadScheduler;
@@ -30,21 +29,18 @@ namespace Christofel.Scheduler
         /// <summary>
         /// Initializes a new instance of the <see cref="SchedulerThread"/> class.
         /// </summary>
-        /// <param name="scheduler">The scheduler.</param>
         /// <param name="eventExecutors">The executor of listener events.</param>
         /// <param name="jobStore">The storage for the jobs.</param>
         /// <param name="jobThreadScheduler">The job thread scheduler.</param>
         /// <param name="logger">The logger.</param>
         public SchedulerThread
         (
-            IScheduler scheduler,
             SchedulerEventExecutors eventExecutors,
             IJobStore jobStore,
             IJobThreadScheduler jobThreadScheduler,
             ILogger<SchedulerThread> logger
         )
         {
-            _scheduler = scheduler;
             _eventExecutors = eventExecutors;
             _jobStore = jobStore;
             _jobThreadScheduler = jobThreadScheduler;
@@ -128,7 +124,7 @@ namespace Christofel.Scheduler
                 _executingJobs.Add(job);
             }
 
-            var jobContext = new JobContext(job, _scheduler, job.Job, job.Trigger);
+            var jobContext = new JobContext(job, job.Job, job.Trigger);
             var beforeEventResult = await _eventExecutors.ExecuteBeforeExecutionAsync(jobContext, ct);
             if (!beforeEventResult.IsSuccess)
             {
@@ -204,6 +200,6 @@ namespace Christofel.Scheduler
             }
         }
 
-        private record JobContext(IJobDescriptor JobDescriptor, IScheduler Scheduler, IJob Job, ITrigger Trigger) : IJobContext;
+        private record JobContext(IJobDescriptor JobDescriptor, IJob Job, ITrigger Trigger) : IJobContext;
     }
 }

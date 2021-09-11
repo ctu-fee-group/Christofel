@@ -17,11 +17,6 @@ namespace Christofel.Scheduler.Abstractions
         public IJobDescriptor JobDescriptor { get; }
 
         /// <summary>
-        /// Gets the scheduler that executes the job.
-        /// </summary>
-        public IScheduler Scheduler { get; }
-
-        /// <summary>
         /// Gets the job that is being executed.
         /// </summary>
         public IJob Job { get; }
