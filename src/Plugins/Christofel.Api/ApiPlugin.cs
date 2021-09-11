@@ -26,7 +26,7 @@ namespace Christofel.Api
     /// <summary>
     /// Plugin representing GraphQL api.
     /// </summary>
-    public class ApiPlugin : IRuntimePlugin<IChristofelState, IPluginContext>
+    public class ApiPlugin : IRuntimePlugin<IChristofelState, PluginContext>
     {
         private readonly PluginLifetimeHandler _lifetimeHandler;
         private IHostApplicationLifetime? _aspLifetime;
@@ -39,6 +39,7 @@ namespace Christofel.Api
         /// </summary>
         public ApiPlugin()
         {
+            Context = new PluginContext();
             _lifetimeHandler = new PluginLifetimeHandler
             (
                 HandleError,
@@ -59,7 +60,7 @@ namespace Christofel.Api
         public ILifetime Lifetime => _lifetimeHandler.Lifetime;
 
         /// <inheritdoc />
-        public IPluginContext Context => new PluginContext();
+        public PluginContext Context { get; }
 
         /// <inheritdoc />
         public async Task InitAsync(IChristofelState state, CancellationToken token)
