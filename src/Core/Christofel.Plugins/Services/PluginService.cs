@@ -250,26 +250,20 @@ namespace Christofel.Plugins.Services
 
                 var attached = new AttachedPlugin(rawPlugin, assembly);
                 _logger.LogDebug(@"Initialization started");
-                var initialized = false;
 
                 try
                 {
-                    initialized = await _lifetimeService.InitializeAsync(attached, token);
+                    await _lifetimeService.InitializeAsync(attached, token);
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, $"Could not attach {attached}");
+                    _logger.LogError(e, $"Could not initialize plugin {attached}");
+                    _assemblyService.UnloadPlugin(attached, new DetachedPlugin(attached));
+                    throw;
                 }
 
-                if (initialized)
-                {
-                    _storage.AddAttachedPlugin(attached);
-                    _logger.LogInformation($@"Plugin {attached} was initialized successfully");
-                }
-                else
-                {
-                    _assemblyService.UnloadPlugin(attached, new DetachedPlugin(attached));
-                }
+                _storage.AddAttachedPlugin(attached);
+                _logger.LogInformation($@"Plugin {attached} was initialized successfully");
 
                 return attached;
             }
