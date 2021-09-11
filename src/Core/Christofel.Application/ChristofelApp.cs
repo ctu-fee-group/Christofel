@@ -13,6 +13,7 @@ using Christofel.Application.Commands;
 using Christofel.Application.Permissions;
 using Christofel.Application.Plugins;
 using Christofel.Application.Responders;
+using Christofel.Application.Scheduler;
 using Christofel.Application.State;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
@@ -29,9 +30,12 @@ using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Christofel.Remora;
+using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduler.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Extensions;
@@ -186,6 +190,7 @@ namespace Christofel.Application
 
                 // events
                 .AddResponder<ChristofelReadyResponder>()
+                .AddResponder<ApplicationResponder<IChristofelState, PluginContext>>()
                 .AddResponder<ApplicationResponder<IChristofelState, IPluginContext>>()
                 .AddScoped(p => new ChristofelReadyResponder(this))
 
