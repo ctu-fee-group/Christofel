@@ -46,6 +46,7 @@ namespace Christofel.Api.Ctu.Auth.Conditions
                     {
                         _logger.LogWarning
                             ("Found a {Type} duplicate of <@{DiscordUser}>", duplicityType, duplicate.User?.DiscordId);
+                        authData.DbUser.DuplicitUserId = duplicate.User?.UserId; // TODO: out better way to set the id.
                         return UserErrors.RejectedDuplicateUser;
                     }
 
