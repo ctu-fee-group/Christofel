@@ -47,7 +47,9 @@ namespace Christofel.Management.CtuUtils
                 .Where
                 (
                     x => x.DiscordId == userDiscordId ||
-                         (x.DuplicitUser != null && x.DuplicitUser.DiscordId == userDiscordId)
+                         (x.DuplicitUser != null &&
+                          x.DuplicitUser.DiscordId == userDiscordId &&
+                          x.AuthenticatedAt != null)
                 );
         }
 
