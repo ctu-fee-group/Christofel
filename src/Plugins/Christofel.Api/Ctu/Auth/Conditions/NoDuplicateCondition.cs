@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Resolvers;
 using Christofel.Api.GraphQL.Common;
+using Microsoft.Extensions.Logging;
 using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Conditions
@@ -18,13 +19,16 @@ namespace Christofel.Api.Ctu.Auth.Conditions
     public class NoDuplicateCondition : IPreAuthCondition
     {
         private readonly DuplicateResolver _duplicates;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NoDuplicateCondition"/> class.
         /// </summary>
-        /// <param name="duplicates">Resolver of the duplicates.</param>
-        public NoDuplicateCondition(DuplicateResolver duplicates)
+        /// <param name="duplicates">The resolver of the duplicates.</param>
+        /// <param name="logger">The logger.</param>
+        public NoDuplicateCondition(DuplicateResolver duplicates, ILogger<NoDuplicateCondition> logger)
         {
+            _logger = logger;
             _duplicates = duplicates;
         }
 
@@ -40,6 +44,8 @@ namespace Christofel.Api.Ctu.Auth.Conditions
                 case DuplicityType.DiscordSide:
                     if (!authData.DbUser.DuplicityApproved)
                     {
+                        _logger.LogWarning
+                            ("Found a {Type} duplicate of <@{DiscordUser}>", duplicityType, duplicate.User?.DiscordId);
                         return UserErrors.RejectedDuplicateUser;
                     }
 
