@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Christofel.Remora;
+using Christofel.Scheduler.Abstractions;
 
 namespace Christofel.BaseLib.Plugins
 {
@@ -13,6 +14,11 @@ namespace Christofel.BaseLib.Plugins
     /// </summary>
     public class PluginContext : IPluginContext
     {
+        /// <summary>
+        /// Gets the store of the jobs.
+        /// </summary>
+        public IJobStore? SchedulerJobStore { get; set; }
+
         /// <summary>
         /// Gets responder of the plugin.
         /// </summary>

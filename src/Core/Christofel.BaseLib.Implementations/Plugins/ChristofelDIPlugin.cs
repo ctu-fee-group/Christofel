@@ -17,9 +17,9 @@ namespace Christofel.BaseLib.Plugins
     /// allowing the user to implement
     /// how services should be created.
     /// </remarks>
-    public abstract class ChristofelDIPlugin : DIRuntimePlugin<IChristofelState, IPluginContext>
+    public abstract class ChristofelDIPlugin : DIRuntimePlugin<IChristofelState, PluginContext>
     {
         /// <inheritdoc />
-        protected override IPluginContext InitializeContext() => new PluginContext();
+        protected override PluginContext InitializeContext() => new PluginContext();
     }
 }

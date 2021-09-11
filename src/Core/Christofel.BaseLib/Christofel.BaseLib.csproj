@@ -18,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Libs\Christofel.Scheduler\Christofel.Scheduler.csproj" />
         <ProjectReference Include="..\Christofel.Plugins.Abstractions\Christofel.Plugins.Abstractions.csproj" />
         <ProjectReference Include="..\Christofel.Remora.Plugins\Christofel.Remora.Plugins.csproj" />
     </ItemGroup>
