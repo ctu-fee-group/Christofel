@@ -14,6 +14,11 @@ namespace Christofel.BaseLib.Plugins
     public class PluginContext : IPluginContext
     {
         /// <summary>
+        /// Gets the job executor.
+        /// </summary>
+        public IJobExecutor? SchedulerJobExecutor { get; set; }
+
+        /// <summary>
         /// Gets responder of the plugin.
         /// </summary>
         public IAnyResponder? PluginResponder { get; set; }
