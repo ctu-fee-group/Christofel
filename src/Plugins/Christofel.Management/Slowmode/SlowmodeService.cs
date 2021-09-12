@@ -185,58 +185,16 @@ namespace Christofel.Management.Slowmode
         /// <returns>Information about the registered slowmode.</returns>
         public RegisteredTemporalSlowmode RegisterDisableHandler(TemporalSlowmode temporalSlowmodeEntity)
         {
-            var registeredTemporalSlowmode =
-                new RegisteredTemporalSlowmode(temporalSlowmodeEntity, new CancellationTokenSource());
-            _slowmodeStorage.Add(registeredTemporalSlowmode);
+            var jobData = new TypedJobData<SlowmodeDisableJob>
+                    (new JobKey("TemporalSlowmode", temporalSlowmode.ChannelId.ToString()))
+                .AddData("Data", temporalSlowmode);
 
-            var duration = temporalSlowmodeEntity.DeactivationDate - DateTime.Now;
-
-            Task.Run
-            (
-                async () =>
-                {
-                    var canceled = false;
-                    try
-                    {
-                        await Task.Delay(duration, registeredTemporalSlowmode.CancellationTokenSource.Token);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        canceled = true;
-                        _logger.LogDebug("Temporal slowmode disable was canceled");
-                    }
-
-                    if (!canceled)
-                    {
-                        var result = await EnableSlowmodeAsync
-                        (
-                            temporalSlowmodeEntity.ChannelId,
-                            temporalSlowmodeEntity.ReturnInterval
-                        ); // Cannot use cancellation token from registered slowmode, as that one will be canceled.
-
-                        if (result.IsSuccess)
-                        {
-                            _logger.LogInformation
-                            (
-                                "Disabled temporal slowmode in channel <#{Channel}> enabled by <@{User}>. Returned to interval {ReturnInterval}",
-                                temporalSlowmodeEntity.ChannelId,
-                                temporalSlowmodeEntity.UserId,
-                                temporalSlowmodeEntity.ReturnInterval
-                            );
-                        }
-                        else
-                        {
-                            _logger.LogResultError
-                            (
-                                result,
-                                "Could not disable temporal slowmode in channel <#{ChannelId}> enabled by <@{UserId}>:",
-                                temporalSlowmodeEntity.ChannelId,
-                                temporalSlowmodeEntity.UserId
-                            );
-                        }
-                    }
-                }
-            );
+            var trigger = new DelayedTrigger(temporalSlowmode.DeactivationDate);
+            var jobDescriptorResult = await _scheduler.ScheduleAsync(jobData, trigger, ct);
+            if (!jobDescriptorResult.IsSuccess)
+            {
+                throw new Exception(jobDescriptorResult.Error.Message);
+            }
 
             return registeredTemporalSlowmode;
         }
