@@ -170,6 +170,18 @@ namespace Christofel.BaseLib.Extensions
         /// <returns>The passed collection.</returns>
         public static IServiceCollection AddPluginScheduler(this IServiceCollection services) => services
             .AddScheduler()
+            .AddSingleton<PluginJobsRepository>(p => p.GetRequiredService<IOptions<PluginJobsRepository>>().Value)
+            .Replace(ServiceDescriptor.Singleton<IJobExecutor, PluginExecutor>())
             .Replace(ServiceDescriptor.Singleton<IScheduler, PluginScheduler>());
+
+        /// <summary>
+        /// Addds the given scheduler job type.
+        /// </summary>
+        /// <param name="services">The collection to be configured.</param>
+        /// <typeparam name="TJob">The type of the job to register.</typeparam>
+        /// <returns>The passed collection.</returns>
+        public static IServiceCollection AddSchedulerJob<TJob>(this IServiceCollection services)
+            where TJob : IJob
+            => services.Configure<PluginJobsRepository>((repository) => repository.RegisterType(typeof(TJob)));
     }
 }

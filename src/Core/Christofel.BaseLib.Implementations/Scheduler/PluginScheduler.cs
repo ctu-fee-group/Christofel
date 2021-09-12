@@ -45,7 +45,7 @@ namespace Christofel.BaseLib.Implementations.Scheduler
 
         /// <inheritdoc />
         public ValueTask<Result<IJobDescriptor>> ScheduleAsync
-            (IJob job, ITrigger trigger, CancellationToken ct = default)
+            (IJobData job, ITrigger trigger, CancellationToken ct = default)
             => _jobStore.AddJobAsync(job, trigger);
     }
 }
