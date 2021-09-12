@@ -25,7 +25,7 @@ namespace Christofel.Scheduler.Recoverable
         /// <param name="scheduler">The scheduler.</param>
         /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>A result that may not have succeeded.</returns>
-        public Task<Result<IReadOnlyList<TJob>>> RecoverJobsAsync(IScheduler scheduler, CancellationToken ct = default);
+        public Task<Result<IReadOnlyList<IJobData>>> RecoverJobsAsync(IScheduler scheduler, CancellationToken ct = default);
 
         /// <summary>
         /// Saves job data to the persistent store.
@@ -33,7 +33,7 @@ namespace Christofel.Scheduler.Recoverable
         /// <param name="job">The job to be saved.</param>
         /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>A result that may not have succeeded.</returns>
-        public Task<Result> SaveJobDataAsync(TJob job, CancellationToken ct = default);
+        public Task<Result> SaveJobDataAsync(IJobData job, CancellationToken ct = default);
 
         /// <summary>
         /// Removes job data from the persistent store.
@@ -41,7 +41,7 @@ namespace Christofel.Scheduler.Recoverable
         /// <param name="job">The job data to be removed.</param>
         /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>A result that may not have succeeded.</returns>
-        public Task<Result> RemoveJobDataAsync(TJob job, CancellationToken ct = default);
+        public Task<Result> RemoveJobDataAsync(IJobData job, CancellationToken ct = default);
 
         /// <summary>
         /// Saves job data to the persistent store and then schedules it to scheduler.
@@ -50,6 +50,6 @@ namespace Christofel.Scheduler.Recoverable
         /// <param name="job">The job to be saved.</param>
         /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>A result that may not have succeeded.</returns>
-        public Task<Result<IJobDescriptor>> SaveAndScheduleJobAsync(IScheduler scheduler, TJob job, CancellationToken ct = default);
+        public Task<Result<IJobDescriptor>> SaveAndScheduleJobAsync(IScheduler scheduler, IJobData job, CancellationToken ct = default);
     }
 }

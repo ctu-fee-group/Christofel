@@ -24,6 +24,8 @@ namespace Christofel.Scheduler.Extensions
         public static IServiceCollection AddScheduler(this IServiceCollection services) => services
             .AddSingleton<IScheduler, Scheduler>()
             .AddSingleton<IJobThreadScheduler, JobThreadScheduler>()
+            .AddSingleton<IJobExecutor, JobExecutor>()
+            .AddSingleton<SchedulerEventExecutors>()
             .AddSingleton<IJobStore, ImmutableListJobStore>();
 
         /// <summary>

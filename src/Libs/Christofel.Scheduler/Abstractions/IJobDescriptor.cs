@@ -14,7 +14,7 @@ namespace Christofel.Scheduler.Abstractions
         /// <summary>
         /// Gets the job.
         /// </summary>
-        public IJob Job { get; }
+        public IJobData JobData { get; }
 
         /// <summary>
         /// Gets the trigger that schedules the job.
@@ -24,6 +24,6 @@ namespace Christofel.Scheduler.Abstractions
         /// <summary>
         /// Gets the key of this descriptor.
         /// </summary>
-        public string Key { get; }
+        public JobKey Key { get; }
     }
 }

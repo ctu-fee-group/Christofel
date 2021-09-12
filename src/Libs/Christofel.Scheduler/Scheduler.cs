@@ -25,20 +25,17 @@ namespace Christofel.Scheduler
         /// Initializes a new instance of the <see cref="Scheduler"/> class.
         /// </summary>
         /// <param name="jobStore">The store of the jobs.</param>
-        /// <param name="listeners">The listeners that should be fired on events.</param>
-        /// <param name="jobThreadScheduler">The scheduler of threads.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="executor">The executor.</param>
         public Scheduler
         (
             IJobStore jobStore,
-            IEnumerable<IJobListener> listeners,
-            IJobThreadScheduler jobThreadScheduler,
-            ILogger<SchedulerThread> logger
+            ILogger<SchedulerThread> logger,
+            IJobExecutor executor
         )
         {
             _jobStore = jobStore;
-            _schedulerThread = new SchedulerThread
-                (new SchedulerEventExecutors(listeners), jobStore, jobThreadScheduler, logger);
+            _schedulerThread = new SchedulerThread(jobStore, logger, executor);
         }
 
         /// <inheritdoc />
@@ -57,6 +54,7 @@ namespace Christofel.Scheduler
 
         /// <inheritdoc />
         public ValueTask<Result<IJobDescriptor>> ScheduleAsync
-            (IJob job, ITrigger trigger, CancellationToken ct = default) => _jobStore.AddJobAsync(job, trigger);
+            (IJobData jobData, ITrigger trigger, CancellationToken ct = default) => _jobStore.AddJobAsync
+            (jobData, trigger);
     }
 }

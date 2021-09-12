@@ -35,9 +35,9 @@ namespace Christofel.Scheduler
         public ImmutableArray<IJobDescriptor> Data { get; private set; }
 
         /// <inheritdoc />
-        public ValueTask<Result<IJobDescriptor>> AddJobAsync(IJob job, ITrigger trigger)
+        public ValueTask<Result<IJobDescriptor>> AddJobAsync(IJobData job, ITrigger trigger)
         {
-            var jobDescriptor = new JobDescriptor(job, trigger, Guid.NewGuid().ToString());
+            var jobDescriptor = new JobDescriptor(job, trigger, job.Key);
             lock (_lock)
             {
                 Data = Data.Add(jobDescriptor);
@@ -47,7 +47,7 @@ namespace Christofel.Scheduler
         }
 
         /// <inheritdoc />
-        public ValueTask<Result> RemoveJobAsync(string jobKey)
+        public ValueTask<Result> RemoveJobAsync(JobKey jobKey)
         {
             lock (_lock)
             {
@@ -66,6 +66,6 @@ namespace Christofel.Scheduler
         /// <inheritdoc />
         public IEnumerable<IJobDescriptor> EnumerateJobs() => Data;
 
-        private record JobDescriptor(IJob Job, ITrigger Trigger, string Key) : IJobDescriptor;
+        private record JobDescriptor(IJobData JobData, ITrigger Trigger, JobKey Key) : IJobDescriptor;
     }
 }

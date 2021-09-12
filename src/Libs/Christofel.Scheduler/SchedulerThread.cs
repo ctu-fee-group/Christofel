@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduler.Extensions;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 
@@ -19,32 +20,28 @@ namespace Christofel.Scheduler
     /// </summary>
     public class SchedulerThread
     {
-        private readonly SchedulerEventExecutors _eventExecutors;
         private readonly IJobStore _jobStore;
-        private readonly IJobThreadScheduler _jobThreadScheduler;
         private readonly ILogger _logger;
+        private readonly IJobExecutor _executor;
         private readonly HashSet<IJobDescriptor> _executingJobs;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchedulerThread"/> class.
         /// </summary>
-        /// <param name="eventExecutors">The executor of listener events.</param>
         /// <param name="jobStore">The storage for the jobs.</param>
-        /// <param name="jobThreadScheduler">The job thread scheduler.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="executor">The executor that executes the given jobs.</param>
         public SchedulerThread
         (
-            SchedulerEventExecutors eventExecutors,
             IJobStore jobStore,
-            IJobThreadScheduler jobThreadScheduler,
-            ILogger<SchedulerThread> logger
+            ILogger<SchedulerThread> logger,
+            IJobExecutor executor
         )
         {
-            _eventExecutors = eventExecutors;
             _jobStore = jobStore;
-            _jobThreadScheduler = jobThreadScheduler;
             _logger = logger;
+            _executor = executor;
             _executingJobs = new HashSet<IJobDescriptor>();
             _cancellationTokenSource = new CancellationTokenSource();
         }
@@ -86,7 +83,30 @@ namespace Christofel.Scheduler
 
                         if (job.Trigger.ShouldBeExecuted())
                         {
-                            await ExecuteJob(job, _cancellationTokenSource.Token);
+                            lock (_executingJobs)
+                            {
+                                _executingJobs.Add(job);
+                            }
+
+                            var beginExecutionResult = await _executor.BeginExecutionAsync
+                            (
+                                job,
+                                returnedJob =>
+                                {
+                                    lock (_executingJobs)
+                                    {
+                                        _executingJobs.Remove(returnedJob);
+                                    }
+
+                                    return Task.CompletedTask;
+                                },
+                                _cancellationTokenSource.Token
+                            );
+
+                            if (!beginExecutionResult.IsSuccess)
+                            {
+                                _logger.LogResult(beginExecutionResult, $"Could not begin execution of job {job.Key}");
+                            }
                         }
 
                         if (job.Trigger.CanBeDeleted())
@@ -94,7 +114,8 @@ namespace Christofel.Scheduler
                             var removalResult = await _jobStore.RemoveJobAsync(job.Key);
                             if (!removalResult.IsSuccess)
                             {
-                                LogResult("Could not remove trigger from the store", removalResult);
+                                _logger.LogResult
+                                    (removalResult, $"Could not remove job description of {job.Key} from the store");
                             }
                         }
 
@@ -116,90 +137,5 @@ namespace Christofel.Scheduler
                 }
             }
         }
-
-        private async Task ExecuteJob(IJobDescriptor job, CancellationToken ct)
-        {
-            lock (_executingJobs)
-            {
-                _executingJobs.Add(job);
-            }
-
-            var jobContext = new JobContext(job, job.Job, job.Trigger);
-            var beforeEventResult = await _eventExecutors.ExecuteBeforeExecutionAsync(jobContext, ct);
-            if (!beforeEventResult.IsSuccess)
-            {
-                LogResult("Before execution events failed", beforeEventResult);
-            }
-
-            var result = await _jobThreadScheduler.ScheduleExecutionAsync
-                (WrappedJobExecutor, jobContext, _cancellationTokenSource.Token);
-            if (!result.IsSuccess)
-            {
-                LogResult("Could not schedule execution {Error}", result);
-            }
-        }
-
-        private async Task WrappedJobExecutor(IJobContext jobContext, CancellationToken ct)
-        {
-            Func<Task<Result>> wrapped = async () =>
-            {
-                try
-                {
-                    return await jobContext.Job.ExecuteAsync(jobContext, ct);
-                }
-                catch (Exception e)
-                {
-                    return e;
-                }
-            };
-
-            var executionResult = await wrapped();
-
-            var afterEventResult = await _eventExecutors.ExecuteAfterExecutionAsync(jobContext, executionResult, ct);
-            if (!afterEventResult.IsSuccess)
-            {
-                LogResult("After execution events failed", afterEventResult);
-            }
-
-            if (jobContext.Trigger.CanBeDeleted())
-            {
-                var removalResult = await _jobStore.RemoveJobAsync(jobContext.JobDescriptor.Key);
-                if (!removalResult.IsSuccess)
-                {
-                    LogResult("Could not remove trigger from the store", removalResult);
-                }
-            }
-
-            lock (_executingJobs)
-            {
-                _executingJobs.Remove(jobContext.JobDescriptor);
-            }
-        }
-
-        private void LogResult(string message, IResult result)
-        {
-            if (result.IsSuccess)
-            {
-                return;
-            }
-
-            switch (result.Error)
-            {
-                case ExceptionError exeptionError:
-                    _logger.LogError(exeptionError.Exception, message);
-                    break;
-                case AggregateError aggregateError:
-                    foreach (var errorResult in aggregateError.Errors)
-                    {
-                        LogResult(message, errorResult);
-                    }
-                    break;
-                default:
-                    _logger.LogError("{Message} {Error}", message, result.Error?.Message);
-                    break;
-            }
-        }
-
-        private record JobContext(IJobDescriptor JobDescriptor, IJob Job, ITrigger Trigger) : IJobContext;
     }
 }

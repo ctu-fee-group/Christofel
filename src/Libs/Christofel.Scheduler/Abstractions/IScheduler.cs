@@ -38,10 +38,10 @@ namespace Christofel.Scheduler.Abstractions
         /// <summary>
         /// Schedules the given task that will be executed when <see cref="ITrigger"/> says it should be.
         /// </summary>
-        /// <param name="job">The job to be executed.</param>
+        /// <param name="job">The job data that holds information about the job that will be executed.</param>
         /// <param name="trigger">The trigger that schedules the time of the job execution.</param>
         /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
-        public ValueTask<Result<IJobDescriptor>> ScheduleAsync(IJob job, ITrigger trigger, CancellationToken ct = default);
+        public ValueTask<Result<IJobDescriptor>> ScheduleAsync(IJobData job, ITrigger trigger, CancellationToken ct = default);
     }
 }

@@ -18,17 +18,17 @@ namespace Christofel.Scheduler.Abstractions
         /// <summary>
         /// Adds the specified job to the store.
         /// </summary>
-        /// <param name="job">The job to be added.</param>
+        /// <param name="job">The data of the job to be added.</param>
         /// <param name="trigger">The trigger associated with the job that schedules execution of the job.</param>
         /// <returns>A result that may not have succeeded.</returns>
-        public ValueTask<Result<IJobDescriptor>> AddJobAsync(IJob job, ITrigger trigger);
+        public ValueTask<Result<IJobDescriptor>> AddJobAsync(IJobData job, ITrigger trigger);
 
         /// <summary>
         /// Removes the specified job from the store.
         /// </summary>
         /// <param name="jobKey">The key of the job to be removed.</param>
         /// <returns>A result that may not have succeeded.</returns>
-        public ValueTask<Result> RemoveJobAsync(string jobKey);
+        public ValueTask<Result> RemoveJobAsync(JobKey jobKey);
 
         /// <summary>
         /// Enumerates all of the jobs that are available.

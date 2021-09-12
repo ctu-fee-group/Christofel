@@ -21,16 +21,16 @@ namespace Christofel.Scheduler.Recoverable
         where TJob : IDataJob<TEntity>
     {
         /// <inheritdoc />
-        public async Task<Result<IReadOnlyList<TJob>>> RecoverJobsAsync
+        public async Task<Result<IReadOnlyList<IJobData>>> RecoverJobsAsync
             (IScheduler scheduler, CancellationToken ct = default)
         {
             var entitiesResult = await GetEntitiesAsync(ct);
             if (!entitiesResult.IsSuccess)
             {
-                return Result<IReadOnlyList<TJob>>.FromError(entitiesResult);
+                return Result<IReadOnlyList<IJobData>>.FromError(entitiesResult);
             }
 
-            var jobs = new List<TJob>();
+            var jobs = new List<IJobData>();
             var errors = new List<IResult>();
             foreach (var entity in entitiesResult.Entity)
             {
@@ -49,21 +49,21 @@ namespace Christofel.Scheduler.Recoverable
 
             return errors.Count > 0
                 ? new AggregateError(errors)
-                : Result<IReadOnlyList<TJob>>.FromSuccess(jobs);
+                : Result<IReadOnlyList<IJobData>>.FromSuccess(jobs);
         }
 
         /// <inheritdoc />
         public Task<Result> SaveJobDataAsync
-            (TJob job, CancellationToken ct = default)
-            => SaveEntityAsync(job.Data, ct);
+            (IJobData job, CancellationToken ct = default)
+            => SaveEntityAsync((TEntity)job.Data["Data"], ct);
 
         /// <inheritdoc />
-        public Task<Result> RemoveJobDataAsync(TJob job, CancellationToken ct = default) => RemoveEntityAsync
-            (job.Data, ct);
+        public Task<Result> RemoveJobDataAsync(IJobData job, CancellationToken ct = default) => RemoveEntityAsync
+            ((TEntity)job.Data["Data"], ct);
 
         /// <inheritdoc />
         public async Task<Result<IJobDescriptor>> SaveAndScheduleJobAsync
-            (IScheduler scheduler, TJob job, CancellationToken ct = default)
+            (IScheduler scheduler, IJobData job, CancellationToken ct = default)
         {
             var saveResult = await SaveJobDataAsync(job, ct);
             if (!saveResult.IsSuccess)
@@ -83,7 +83,7 @@ namespace Christofel.Scheduler.Recoverable
         /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>A result that may not have succeeded.</returns>
         protected virtual async Task<Result<IJobDescriptor>> ScheduleJobAsync
-            (IScheduler scheduler, TJob job, ITrigger trigger, CancellationToken ct = default)
+            (IScheduler scheduler, IJobData job, ITrigger trigger, CancellationToken ct = default)
         {
             var scheduleResult = await scheduler.ScheduleAsync(job, trigger, ct);
             if (!scheduleResult.IsSuccess)
@@ -123,14 +123,14 @@ namespace Christofel.Scheduler.Recoverable
         /// </summary>
         /// <param name="entity">The entity to be passed to the job.</param>
         /// <returns>Created job with the given entity.</returns>
-        protected abstract TJob CreateJob(TEntity entity);
+        protected abstract IJobData CreateJob(TEntity entity);
 
         /// <summary>
         /// Creates instance of trigger for the specified job.
         /// </summary>
         /// <param name="job">The job to be scheduled.</param>
         /// <returns>Created job with the given entity.</returns>
-        protected abstract ITrigger CreateTrigger(TJob job);
+        protected abstract ITrigger CreateTrigger(IJobData job);
 
         /// <summary>
         /// Executes after job is scheduled using the scheduler.
