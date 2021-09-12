@@ -179,6 +179,7 @@ namespace Christofel.Application
                 .AddRetryableJobListener()
                 .AddSingleton<ApplicationScheduler>()
                 .Replace(ServiceDescriptor.Singleton<IJobStore, ApplicationJobStore>())
+                .Replace(ServiceDescriptor.Singleton<IJobExecutor, ApplicationJobExecutor>())
                 .Replace(ServiceDescriptor.Singleton<IScheduler, ApplicationScheduler>(p => p.GetRequiredService<ApplicationScheduler>()))
 
                 // config

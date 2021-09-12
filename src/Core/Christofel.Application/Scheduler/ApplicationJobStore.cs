@@ -33,11 +33,11 @@ namespace Christofel.Application.Scheduler
 
         /// <inheritdoc />
         public ValueTask<Result<IJobDescriptor>> AddJobAsync
-            (IJob job, ITrigger trigger)
+            (IJobData job, ITrigger trigger)
             => ValueTask.FromResult<Result<IJobDescriptor>>(new NotSupportedError());
 
         /// <inheritdoc />
-        public async ValueTask<Result> RemoveJobAsync(string jobKey)
+        public async ValueTask<Result> RemoveJobAsync(JobKey jobKey)
         {
             var errors = new List<IResult>();
 
