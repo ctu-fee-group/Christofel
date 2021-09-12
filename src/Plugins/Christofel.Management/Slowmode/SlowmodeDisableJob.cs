@@ -28,7 +28,7 @@ namespace Christofel.Management.Slowmode
         /// <param name="slowmodeService">The service for slowmode.</param>
         /// <param name="logger">The logger.</param>
         public SlowmodeDisableJob
-            (TemporalSlowmode temporalSlowmode, SlowmodeService slowmodeService, ILogger logger)
+            (TemporalSlowmode temporalSlowmode, SlowmodeService slowmodeService, ILogger<SlowmodeDisableJob> logger)
         {
             _slowmodeService = slowmodeService;
             _logger = logger;

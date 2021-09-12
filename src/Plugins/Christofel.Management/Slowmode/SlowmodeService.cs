@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Implementations.Storages;
 using Christofel.Management.Database;
 using Christofel.Management.Database.Models;
+using Christofel.Scheduler;
 using Christofel.Scheduler.Abstractions;
 using Christofel.Scheduler.Triggers;
 using Microsoft.EntityFrameworkCore;
@@ -211,9 +212,12 @@ namespace Christofel.Management.Slowmode
         public async Task<RegisteredTemporalSlowmode> RegisterDisableHandlerAsync
             (TemporalSlowmode temporalSlowmode, CancellationToken ct)
         {
-            var job = new SlowmodeDisableJob(temporalSlowmode, this, _logger);
+            var jobData = new TypedJobData<SlowmodeDisableJob>
+                    (new JobKey("TemporalSlowmode", temporalSlowmode.ChannelId.ToString()))
+                .AddData("Data", temporalSlowmode);
+
             var trigger = new DelayedTrigger(temporalSlowmode.DeactivationDate);
-            var jobDescriptorResult = await _scheduler.ScheduleAsync(job, trigger, ct);
+            var jobDescriptorResult = await _scheduler.ScheduleAsync(jobData, trigger, ct);
             if (!jobDescriptorResult.IsSuccess)
             {
                 throw new Exception(jobDescriptorResult.Error.Message);

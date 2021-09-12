@@ -100,6 +100,7 @@ namespace Christofel.Management
 
                 // Scheduler
                 .AddPluginScheduler()
+                .AddSchedulerJob<SlowmodeDisableJob>()
 
                 // Databases
                 .AddChristofelDatabase(State)
@@ -146,6 +147,7 @@ namespace Christofel.Management
             _logger = services.GetRequiredService<ILogger<ManagementPlugin>>();
             Context.PluginResponder = services.GetRequiredService<PluginResponder>();
             Context.SchedulerJobStore = services.GetRequiredService<IJobStore>();
+            Context.SchedulerJobExecutor = services.GetRequiredService<IJobExecutor>();
             return Task.CompletedTask;
         }
     }
