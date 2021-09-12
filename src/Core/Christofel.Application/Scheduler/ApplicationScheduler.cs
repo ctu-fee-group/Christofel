@@ -21,17 +21,10 @@ namespace Christofel.Application.Scheduler
         /// Initializes a new instance of the <see cref="ApplicationScheduler"/> class.
         /// </summary>
         /// <param name="jobStore">The store of the jobs.</param>
-        /// <param name="listeners">The listeners that should be fired on events.</param>
-        /// <param name="jobThreadScheduler">The scheduler of threads.</param>
         /// <param name="logger">The logger.</param>
-        public ApplicationScheduler
-        (
-            IJobStore jobStore,
-            IEnumerable<IJobListener> listeners,
-            IJobThreadScheduler jobThreadScheduler,
-            ILogger<SchedulerThread> logger
-        )
-            : base(jobStore, listeners, jobThreadScheduler, logger)
+        /// <param name="executor">The executor.</param>
+        public ApplicationScheduler(IJobStore jobStore, ILogger<SchedulerThread> logger, IJobExecutor executor)
+            : base(jobStore, logger, executor)
         {
         }
 
