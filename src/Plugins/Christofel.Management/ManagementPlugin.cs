@@ -73,6 +73,10 @@ namespace Christofel.Management
                 // Christofel
                 .AddDiscordState(State)
 
+                // Scheduler
+                .AddPluginScheduler()
+                .AddSchedulerJob<SlowmodeDisableJob>()
+
                 // Databases
                 .AddChristofelDatabase(State)
                 .AddChristofelDbContextFactory<ManagementContext>(State.Configuration)
