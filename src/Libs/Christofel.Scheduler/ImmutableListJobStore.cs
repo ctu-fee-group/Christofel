@@ -26,13 +26,13 @@ namespace Christofel.Scheduler
         public ImmutableListJobStore()
         {
             _lock = new object();
-            Data = ImmutableArray<IJobDescriptor>.Empty;
+            Data = ImmutableList<IJobDescriptor>.Empty;
         }
 
         /// <summary>
         /// Gets the data in the store.
         /// </summary>
-        public ImmutableArray<IJobDescriptor> Data { get; private set; }
+        public ImmutableList<IJobDescriptor> Data { get; private set; }
 
         /// <inheritdoc />
         public ValueTask<Result<IJobDescriptor>> AddJobAsync(IJobData job, ITrigger trigger)
@@ -64,7 +64,7 @@ namespace Christofel.Scheduler
         }
 
         /// <inheritdoc />
-        public IEnumerable<IJobDescriptor> EnumerateJobs() => Data;
+        public IReadOnlyList<IJobDescriptor> EnumerateJobs() => Data;
 
         private record JobDescriptor(IJobData JobData, ITrigger Trigger, JobKey Key) : IJobDescriptor;
     }

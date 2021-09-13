@@ -61,20 +61,23 @@ namespace Christofel.Application.Scheduler
         }
 
         /// <inheritdoc />
-        public IEnumerable<IJobDescriptor> EnumerateJobs()
+        public IReadOnlyList<IJobDescriptor> EnumerateJobs()
         {
-            foreach (var plugin in _pluginStorage.AttachedPlugins
-                .Select(x => x.Plugin)
-                .OfType<IRuntimePlugin<IChristofelState, PluginContext>>())
+            var jobDescriptors = new List<IJobDescriptor>();
+            foreach (var attachedPlugin in _pluginStorage.AttachedPlugins)
             {
+                if (attachedPlugin.Plugin is not IRuntimePlugin<IChristofelState, PluginContext> plugin)
+                {
+                    continue;
+                }
+
                 if (plugin.Context.SchedulerJobStore is not null)
                 {
-                    foreach (var storedJob in plugin.Context.SchedulerJobStore.EnumerateJobs())
-                    {
-                        yield return storedJob;
-                    }
+                    jobDescriptors.AddRange(plugin.Context.SchedulerJobStore.EnumerateJobs());
                 }
             }
+
+            return jobDescriptors;
         }
     }
 }

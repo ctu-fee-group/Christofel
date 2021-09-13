@@ -34,6 +34,6 @@ namespace Christofel.Scheduler.Abstractions
         /// Enumerates all of the jobs that are available.
         /// </summary>
         /// <returns>A result that may not have succeeded.</returns>
-        public IEnumerable<IJobDescriptor> EnumerateJobs();
+        public IReadOnlyList<IJobDescriptor> EnumerateJobs();
     }
 }

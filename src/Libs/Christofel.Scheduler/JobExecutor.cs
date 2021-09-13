@@ -48,7 +48,7 @@ namespace Christofel.Scheduler
         }
 
         /// <inheritdoc />
-        public async Task<Result<IJobContext>> BeginExecutionAsync
+        public virtual async Task<Result<IJobContext>> BeginExecutionAsync
             (IJobDescriptor jobDescriptor, Func<IJobDescriptor, Task> afterExecutionCallback, CancellationToken ct)
         {
             var scope = _services.CreateScope();
