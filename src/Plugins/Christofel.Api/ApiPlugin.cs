@@ -14,6 +14,7 @@ using Christofel.Common;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Remora;
+using Christofel.Scheduler.Abstractions;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -74,6 +75,8 @@ namespace Christofel.Api
                     _host = CreateHostBuilder(state).Build();
                     _aspLifetime = _host.Services.GetRequiredService<IHostApplicationLifetime>();
                     _logger = _host.Services.GetRequiredService<ILogger<ApiPlugin>>();
+                    Context.SchedulerJobExecutor = _host.Services.GetRequiredService<IJobExecutor>();
+                    Context.SchedulerJobStore = _host.Services.GetRequiredService<IJobStore>();
 
 #if DEBUG
                     var schemaPath = state.Configuration.GetValue<string?>("Debug:SchemaFile", null);

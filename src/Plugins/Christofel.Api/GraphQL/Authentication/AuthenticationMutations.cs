@@ -417,6 +417,7 @@ namespace Christofel.Api.GraphQL.Authentication
                         }
                     }
 
+                    _logger.LogInformation("User successfully authenticated");
                     return new RegisterCtuPayload(dbUser);
                 }
                 catch (Exception e)

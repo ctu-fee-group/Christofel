@@ -5,6 +5,11 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using Christofel.Api.Ctu;
+using Christofel.Api.Ctu.Auth.Tasks.Options;
+using Christofel.Api.Ctu.Database;
+using Christofel.Api.Ctu.Extensions;
+using Christofel.Api.Ctu.Jobs;
 using Christofel.Api.Discord;
 using Christofel.Api.GraphQL.Authentication;
 using Christofel.Api.GraphQL.Diagnostics;
@@ -19,6 +24,8 @@ using Christofel.CtuAuth.Extensions;
 using Christofel.CtuAuth.JobQueue;
 using Christofel.Helpers.JobQueue;
 using Christofel.OAuth;
+using Christofel.Scheduler.Recoverable;
+using Christofel.Scheduler.Triggers;
 using Kos;
 using Kos.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -128,11 +135,15 @@ namespace Christofel.Api
             services.Configure<WarnOptions>(_configuration.GetSection("Auth"));
             services.Configure<EditInteractionOptions>(_configuration.GetSection("Auth"));
             services
-                .AddSingleton<IJobQueue<CtuAuthRoleAssign>, CtuAuthRoleAssignProcessor>()
-                .AddSingleton<IJobQueue<CtuAuthNicknameSet>, CtuAuthNicknameSetProcessor>()
-                .AddSingleton<IJobQueue<CtuAuthWarnMessage>, CtuAuthWarnMessageProcessor>()
                 .AddSingleton<IJobQueue<CtuAuthInteractionEdit>, CtuAuthInteractionProcessor>()
                 .AddSingleton<CtuAuthRoleAssignService>();
+            // scheduler
+            services
+                .AddPluginScheduler()
+                .AddSchedulerJob<CtuAuthAssignRoleJob>()
+                .AddSchedulerJob<CtuAuthNicknameSetJob>()
+                .AddSingleton<NonConcurrentTrigger.State>()
+                .AddScoped<IJobRecoverService<CtuAuthAssignRoleJob>, AssignRoleEntityRecoverableService>();
 
             // add CTU authentication process along with all the steps
             services
