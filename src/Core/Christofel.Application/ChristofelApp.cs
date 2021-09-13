@@ -181,7 +181,7 @@ namespace Christofel.Application
                                 ServerVersion.AutoDetect(_configuration.GetConnectionString("ChristofelBase"))
                             )
                 )
-                .AddTransient
+                .AddScoped
                 (
                     p =>
                         p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext()

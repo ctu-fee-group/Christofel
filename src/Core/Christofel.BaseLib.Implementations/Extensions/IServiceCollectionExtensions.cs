@@ -60,7 +60,7 @@ namespace Christofel.BaseLib.Extensions
             {
                 provider
                     .AddSingleton(state.DatabaseFactory)
-                    .AddTransient
+                    .AddScoped
                         (p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext());
             }
 

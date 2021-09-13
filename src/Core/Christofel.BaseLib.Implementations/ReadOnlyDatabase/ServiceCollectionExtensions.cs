@@ -37,7 +37,7 @@ namespace Christofel.BaseLib.Implementations.ReadOnlyDatabase
         {
             return services
                 .AddReadOnlyDbContextFactory<TContext>()
-                .AddTransient
+                .AddScoped
                 (
                     p =>
                         p.GetRequiredService<ReadonlyDbContextFactory<TContext>>().CreateDbContext()
