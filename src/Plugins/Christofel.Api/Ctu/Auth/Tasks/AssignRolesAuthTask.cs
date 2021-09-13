@@ -8,6 +8,10 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Ctu.Jobs;
+using Christofel.Scheduler;
+using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduler.Recoverable;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 
@@ -19,21 +23,25 @@ namespace Christofel.Api.Ctu.Auth.Tasks
     public class AssignRolesAuthTask : IAuthTask
     {
         private readonly ILogger _logger;
-        private readonly CtuAuthRoleAssignService _roleAssignService;
+        private readonly IScheduler _scheduler;
+        private readonly IJobRecoverService<CtuAuthAssignRoleJob> _roleAssignService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AssignRolesAuthTask"/> class.
         /// </summary>
         /// <param name="logger">The logger.</param>
+        /// <param name="scheduler">The scheduler.</param>
         /// <param name="roleAssignService">The service for processing roles assignment.</param>
         public AssignRolesAuthTask
         (
             ILogger<AssignRolesAuthTask> logger,
-            CtuAuthRoleAssignService roleAssignService
+            IScheduler scheduler,
+            IJobRecoverService<CtuAuthAssignRoleJob> roleAssignService
         )
         {
             _roleAssignService = roleAssignService;
             _logger = logger;
+            _scheduler = scheduler;
         }
 
         /// <inheritdoc />
@@ -62,34 +70,22 @@ namespace Christofel.Api.Ctu.Auth.Tasks
                 $"Going to enqueue role assignments for member <@{data.DbUser.DiscordId}>. Add roles: {string.Join(", ", data.Roles.AddRoles.Select(x => x.RoleId))}. Remove roles: {string.Join(", ", data.Roles.SoftRemoveRoles.Select(x => x.RoleId))}"
             );
 
-            // Save to cache
-            try
-            {
-                await _roleAssignService.SaveRoles
-                (
-                    data.DbUser.DiscordId,
-                    data.GuildId,
-                    assignRoles,
-                    removeRoles,
-                    ct
-                );
-            }
-            catch (Exception e)
-            {
-                _logger.LogWarning
-                    (e, "Could not save roles to assign/remove to database, going to enqueue them anyway");
-            }
-
-            _roleAssignService.EnqueueRoles
+            // Save to cach
+            var result = await _roleAssignService.SaveAndScheduleJobAsync
             (
-                data.GuildUser,
-                data.DbUser.DiscordId,
-                data.GuildId,
-                assignRoles,
-                removeRoles
+                _scheduler,
+                new TypedJobData<CtuAuthAssignRoleJob>(new JobKey("Auth", "Assign roles"))
+                    .AddData
+                    (
+                        "Data",
+                        new CtuAuthRoleAssign(data.DbUser.DiscordId, data.GuildId, assignRoles, removeRoles)
+                    ),
+                ct
             );
 
-            return Result.FromSuccess();
+            return result.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(result);
         }
     }
 }

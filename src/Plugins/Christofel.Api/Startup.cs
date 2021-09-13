@@ -9,7 +9,7 @@ using Christofel.Api.Ctu;
 using Christofel.Api.Ctu.Auth.Tasks.Options;
 using Christofel.Api.Ctu.Database;
 using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Ctu.JobQueue;
+using Christofel.Api.Ctu.Jobs;
 using Christofel.Api.Discord;
 using Christofel.Api.GraphQL.Authentication;
 using Christofel.Api.GraphQL.DataLoaders;
@@ -19,6 +19,8 @@ using Christofel.Api.OAuth;
 using Christofel.Api.Services;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
+using Christofel.Scheduler.Recoverable;
+using Christofel.Scheduler.Triggers;
 using Kos;
 using Kos.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -96,13 +98,15 @@ namespace Christofel.Api
                 .AddScopedKosCaching()
                 .Configure<KosApiOptions>(_configuration.GetSection("Apis:Kos"));
 
-            // processors of queues
-            services.Configure<WarnOptions>(_configuration.GetSection("Auth"));
+            // scheduler
             services
-                .AddSingleton<IJobQueue<CtuAuthRoleAssign>, CtuAuthRoleAssignProcessor>()
-                .AddSingleton<IJobQueue<CtuAuthNicknameSet>, CtuAuthNicknameSetProcessor>()
-                .AddSingleton<IJobQueue<CtuAuthWarnMessage>, CtuAuthWarnMessageProcessor>()
-                .AddSingleton<CtuAuthRoleAssignService>();
+                .Configure<WarnOptions>(_configuration.GetSection("Auth"));
+            services
+                .AddPluginScheduler()
+                .AddSchedulerJob<CtuAuthAssignRoleJob>()
+                .AddSchedulerJob<CtuAuthNicknameSetJob>()
+                .AddSingleton<NonConcurrentTrigger.State>()
+                .AddScoped<IJobRecoverService<CtuAuthAssignRoleJob>, AssignRoleEntityRecoverableService>();
 
             // add CTU authentication process along with all the steps
             services
