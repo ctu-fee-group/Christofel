@@ -67,10 +67,14 @@ namespace Christofel.Scheduler
             while (!_cancellationTokenSource.IsCancellationRequested)
             {
                 bool jobsEnqueued = false;
-                foreach (var job in _jobStore.EnumerateJobs())
+                var list = _jobStore.EnumerateJobs();
+
+                // ReSharper disable once ForCanBeConvertedToForeach
+                for (int i = 0; i < list.Count; i++)
                 {
                     try
                     {
+                        var job = list[i];
                         jobsEnqueued = true;
 
                         lock (_executingJobs)
@@ -119,7 +123,7 @@ namespace Christofel.Scheduler
                             }
                         }
 
-                        await Task.Delay(1);
+                        await Task.Delay(100);
                     }
                     catch (OperationCanceledException)
                     {
