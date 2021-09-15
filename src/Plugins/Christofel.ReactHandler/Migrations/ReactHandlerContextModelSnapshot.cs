@@ -9,6 +9,7 @@ namespace Christofel.ReactHandler.Migrations
     [DbContext(typeof(ReactHandlerContext))]
     partial class ReactHandlerContextModelSnapshot : ModelSnapshot
     {
+        /// <inheritdoc/ss
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
@@ -40,7 +41,7 @@ namespace Christofel.ReactHandler.Migrations
 
                     b.HasKey("HandleReactId");
 
-                    b.ToTable("HandleReacts");
+                    b.ToTable("HandleReact", "ReactHandler");
                 });
 #pragma warning restore 612, 618
         }
