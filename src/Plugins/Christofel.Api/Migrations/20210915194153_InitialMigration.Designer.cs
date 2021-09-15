@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Christofel.Api.Migrations
 {
     [DbContext(typeof(ApiCacheContext))]
-    [Migration("20210827180519_InitialMigration")]
+    [Migration("20210915194153_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc/>
@@ -28,18 +28,18 @@ namespace Christofel.Api.Migrations
                     b.Property<bool>("Add")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<ulong>("GuildDiscordId")
-                        .HasColumnType("bigint unsigned");
+                    b.Property<long>("GuildDiscordId")
+                        .HasColumnType("bigint");
 
-                    b.Property<ulong>("RoleId")
-                        .HasColumnType("bigint unsigned");
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint");
 
-                    b.Property<ulong>("UserDiscordId")
-                        .HasColumnType("bigint unsigned");
+                    b.Property<long>("UserDiscordId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("AssignRoleId");
 
-                    b.ToTable("AssignRoles");
+                    b.ToTable("AssignRole", "Api");
                 });
 #pragma warning restore 612, 618
         }
