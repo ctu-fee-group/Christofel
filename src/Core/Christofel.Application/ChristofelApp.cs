@@ -172,7 +172,7 @@ namespace Christofel.Application
                 .AddSingleton<IBot, DiscordBot>()
 
                 // db
-                .AddChristofelDbContextFactory<ChristofelBaseContext>(State.Configuration)
+                .AddChristofelDbContextFactory<ChristofelBaseContext>(_configuration)
                 .AddScoped
                 (
                     p =>
