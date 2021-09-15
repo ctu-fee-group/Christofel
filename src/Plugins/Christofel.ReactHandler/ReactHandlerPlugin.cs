@@ -91,16 +91,7 @@ namespace Christofel.ReactHandler
                 .AddResponder<DeleteReactHandlerResponder>()
                 .AddResponder<HandleReactResponder>()
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)
-                .AddDbContextFactory<ReactHandlerContext>
-                (
-                    options =>
-                        options
-                            .UseMySql
-                            (
-                                State.Configuration.GetConnectionString("ReactHandler"),
-                                ServerVersion.AutoDetect(State.Configuration.GetConnectionString("ReactHandler"))
-                            )
-                )
+                .AddChristofelDbContextFactory<ReactHandlerContext>(State.Configuration)
                 .AddTransient
                 (
                     p =>
