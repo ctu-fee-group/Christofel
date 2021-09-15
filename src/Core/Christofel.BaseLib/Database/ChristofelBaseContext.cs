@@ -11,20 +11,26 @@ using Christofel.BaseLib.Database.Models;
 using Christofel.BaseLib.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Remora.Discord.Core;
+using Remora.EntityFrameworkCore.Modular;
 
 namespace Christofel.BaseLib.Database
 {
     /// <summary>
     /// Context for base database holding users, permissions and information about roles.
     /// </summary>
-    public sealed class ChristofelBaseContext : DbContext, IReadableDbContext<ChristofelBaseContext>
+    public sealed class ChristofelBaseContext : SchemaAwareDbContext, IReadableDbContext<ChristofelBaseContext>
     {
+        /// <summary>
+        /// The name of the schema that this context's entities lie in.
+        /// </summary>
+        public const string SchemaName = "Core";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ChristofelBaseContext"/> class.
         /// </summary>
         /// <param name="options">The options for the context.</param>
         public ChristofelBaseContext(DbContextOptions<ChristofelBaseContext> options)
-            : base(options)
+            : base(SchemaName, options)
         {
         }
 

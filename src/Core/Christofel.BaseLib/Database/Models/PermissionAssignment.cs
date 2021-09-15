@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Christofel.BaseLib.Database.Models
 {
@@ -20,6 +21,7 @@ namespace Christofel.BaseLib.Database.Models
     ///     Permission <c>management.*</c> will grant both of these permissions at once.
     /// </example>
     /// </remarks>
+    [Table("PermissionAssignment", Schema = ChristofelBaseContext.SchemaName)]
     public class PermissionAssignment
     {
         /// <summary>

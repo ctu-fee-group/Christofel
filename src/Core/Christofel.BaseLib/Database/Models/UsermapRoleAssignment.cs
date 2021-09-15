@@ -5,12 +5,14 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Christofel.BaseLib.Database.Models
 {
     /// <summary>
     /// Database table used for assignments using Usermap roles.
     /// </summary>
+    [Table("UsermapRoleAssignment", Schema = ChristofelBaseContext.SchemaName)]
     public class UsermapRoleAssignment
     {
         /// <summary>

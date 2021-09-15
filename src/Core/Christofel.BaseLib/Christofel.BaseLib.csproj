@@ -14,11 +14,16 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
         <PackageReference Include="Remora.Discord.Gateway" Version="4.0.5" />
+        <PackageReference Include="Remora.EntityFrameworkCore.Modular" Version="3.0.0" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Christofel.Plugins.Abstractions\Christofel.Plugins.Abstractions.csproj" />
         <ProjectReference Include="..\Christofel.Remora.Plugins\Christofel.Remora.Plugins.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Migrations" />
     </ItemGroup>
 
 </Project>

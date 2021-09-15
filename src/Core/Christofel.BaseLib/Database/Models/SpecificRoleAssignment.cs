@@ -5,12 +5,14 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Christofel.BaseLib.Database.Models
 {
     /// <summary>
     /// Database table for assignments matched by specific name.
     /// </summary>
+    [Table("SpecificRoleAssignment", Schema = ChristofelBaseContext.SchemaName)]
     public class SpecificRoleAssignment
     {
         /// <summary>
