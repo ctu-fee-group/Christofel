@@ -8,15 +8,21 @@ using System;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Extensions;
 using Remora.Discord.Gateway.Services;
 using Remora.Discord.Rest;
 using Remora.Discord.Rest.API;
+using Remora.EntityFrameworkCore.Modular;
+using Remora.EntityFrameworkCore.Modular.Extensions;
+using Remora.EntityFrameworkCore.Modular.Services;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -31,7 +37,8 @@ namespace Christofel.BaseLib.Extensions
         /// <param name="serviceCollection">The service collection to add state to.</param>
         /// <param name="state">The state of the Christofel application.</param>
         /// <returns>The passed collection.</returns>
-        public static IServiceCollection AddDiscordState(this IServiceCollection serviceCollection, IChristofelState state)
+        public static IServiceCollection AddDiscordState
+            (this IServiceCollection serviceCollection, IChristofelState state)
         {
             serviceCollection.TryAddTransient<DiscordHttpClient>();
             serviceCollection.TryAddTransient<IDiscordRestAuditLogAPI, DiscordRestAuditLogAPI>();
@@ -50,7 +57,8 @@ namespace Christofel.BaseLib.Extensions
             serviceCollection.TryAddTransient<IDiscordRestStageInstanceAPI, DiscordRestStageInstanceAPI>();
             serviceCollection.TryAddTransient<IDiscordRestStickerAPI, DiscordRestStickerAPI>();
 
-            serviceCollection.TryAddSingleton<IResponderTypeRepository>(s => s.GetRequiredService<IOptions<ResponderService>>().Value);
+            serviceCollection.TryAddSingleton<IResponderTypeRepository>
+                (s => s.GetRequiredService<IOptions<ResponderService>>().Value);
 
             return serviceCollection
                 .AddSingleton(state.Bot.Client)
@@ -84,13 +92,73 @@ namespace Christofel.BaseLib.Extensions
             {
                 provider
                     .AddSingleton(state.DatabaseFactory)
-                    .AddScoped
-                        (p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext());
+                    .AddScoped(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext());
             }
 
             return provider
                 .AddReadOnlyDbContextFactory<ChristofelBaseContext>()
                 .AddReadOnlyDbContext<ChristofelBaseContext>();
+        }
+
+        /// <summary>
+        /// Adds context factory that configures the given context to be added to the context awareness.
+        /// </summary>
+        /// <param name="serviceCollection">The collection to be configured.</param>
+        /// <param name="optionsAction">The options to be called on creation of database context.</param>
+        /// <typeparam name="TContext">The type of the context to be added.</typeparam>
+        /// <returns>The passed service collection.</returns>
+        public static IServiceCollection AddSchemaAwareDbContextFactory<TContext>
+        (
+            this IServiceCollection serviceCollection,
+            Action<IServiceProvider, DbContextOptionsBuilder>? optionsAction = null
+        )
+            where TContext : SchemaAwareDbContext
+        {
+            serviceCollection.TryAddSingleton<SchemaAwareDbContextService>();
+            return serviceCollection.AddDbContextFactory<TContext>
+            (
+                (provider, optionsBuilder) =>
+                {
+                    var contextService = provider.GetRequiredService<SchemaAwareDbContextService>();
+                    contextService.ConfigureSchemaAwareContext(optionsBuilder);
+                    optionsAction?.Invoke(provider, optionsBuilder);
+                }
+            );
+        }
+
+        /// <summary>
+        /// Adds context factory that configures the given context to be added to the context awareness.
+        /// Configures the context to use MySQL with the default connection string.
+        /// </summary>
+        /// <param name="serviceCollection">The collection to be configured.</param>
+        /// <param name="configuration">The configuration to get connection string from.</param>
+        /// <param name="optionsAction">The options to be called on creation of database context.</param>
+        /// <typeparam name="TContext">The type of the context to be added.</typeparam>
+        /// <returns>The passed service collection.</returns>
+        public static IServiceCollection AddChristofelDbContextFactory<TContext>
+        (
+            this IServiceCollection serviceCollection,
+            IConfiguration configuration,
+            Action<IServiceProvider, DbContextOptionsBuilder>? optionsAction = null
+        )
+            where TContext : SchemaAwareDbContext
+        {
+            return serviceCollection
+                .AddSchemaAwareDbContextFactory<TContext>
+                (
+                    (provider, optionsBuilder) =>
+                    {
+                        optionsBuilder.UseMySql
+                        (
+                            configuration.GetConnectionString("ChristofelBase"),
+                            ServerVersion.AutoDetect(configuration.GetConnectionString("ChristofelBase")),
+                            (mysqlOptions) => mysqlOptions.SchemaBehavior
+                                (MySqlSchemaBehavior.Translate, (name, objectName) => $"{name}_{objectName}")
+                        );
+
+                        optionsAction?.Invoke(provider, optionsBuilder);
+                    }
+                );
         }
     }
 }
