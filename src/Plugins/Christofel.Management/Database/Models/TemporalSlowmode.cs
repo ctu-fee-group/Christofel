@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using Remora.Discord.Core;
 
 namespace Christofel.Management.Database.Models
@@ -12,6 +13,7 @@ namespace Christofel.Management.Database.Models
     /// <summary>
     /// Representing table TemporalSlowmode holding data about slowmodes that were enabled by the bot.
     /// </summary>
+    [Table("TemporalSlowmode", Schema = ManagementContext.SchemaName)]
     public class TemporalSlowmode
     {
         /// <summary>
