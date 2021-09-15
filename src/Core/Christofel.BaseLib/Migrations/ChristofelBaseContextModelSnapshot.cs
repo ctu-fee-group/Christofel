@@ -52,7 +52,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("DuplicitUserId");
 
-                    b.ToTable("Users");
+                    b.ToTable("User", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.PermissionAssignment", b =>
@@ -68,7 +68,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasKey("PermissionAssignmentId");
 
-                    b.ToTable("Permissions");
+                    b.ToTable("PermissionAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.ProgrammeRoleAssignment", b =>
@@ -89,7 +89,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("ProgrammeRoleAssignments");
+                    b.ToTable("ProgrammeRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.RoleAssignment", b =>
@@ -106,7 +106,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasKey("RoleAssignmentId");
 
-                    b.ToTable("RoleAssignments");
+                    b.ToTable("RoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.SpecificRoleAssignment", b =>
@@ -127,7 +127,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("SpecificRoleAssignments");
+                    b.ToTable("SpecificRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.TitleRoleAssignment", b =>
@@ -157,7 +157,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("TitleRoleAssignment");
+                    b.ToTable("TitleRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.UsermapRoleAssignment", b =>
@@ -181,7 +181,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("UsermapRoleAssignments");
+                    b.ToTable("UsermapRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.YearRoleAssignment", b =>
@@ -200,7 +200,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("YearRoleAssignments");
+                    b.ToTable("YearRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.DbUser", b =>
@@ -231,7 +231,7 @@ namespace Christofel.BaseLib.Migrations
 
                             b1.HasKey("PermissionAssignmentId");
 
-                            b1.ToTable("Permissions");
+                            b1.ToTable("PermissionAssignment");
 
                             b1.WithOwner()
                                 .HasForeignKey("PermissionAssignmentId");
