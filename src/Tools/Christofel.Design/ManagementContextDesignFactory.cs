@@ -5,10 +5,12 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Christofel.Application;
+using Christofel.BaseLib.Extensions;
 using Christofel.Management.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Design
 {
@@ -20,12 +22,11 @@ namespace Christofel.Design
         /// <inheritdoc />
         public ManagementContext CreateDbContext(string[] args)
         {
-            DbContextOptionsBuilder<ManagementContext> builder = new DbContextOptionsBuilder<ManagementContext>();
-            IConfiguration configuration = ChristofelApp.CreateConfiguration(args);
-            string connectionString = configuration.GetConnectionString("Management");
-            builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            var services = new ServiceCollection()
+                .AddChristofelDbContextFactory<ManagementContext>(ChristofelApp.CreateConfiguration(args))
+                .BuildServiceProvider();
 
-            return new ManagementContext(builder.Options);
+            return services.GetRequiredService<IDbContextFactory<ManagementContext>>().CreateDbContext();
         }
     }
 }

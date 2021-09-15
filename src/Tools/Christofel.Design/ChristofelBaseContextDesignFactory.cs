@@ -4,11 +4,14 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Christofel.Api.Ctu.Database;
 using Christofel.Application;
 using Christofel.BaseLib.Database;
+using Christofel.BaseLib.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Design
 {
@@ -20,13 +23,11 @@ namespace Christofel.Design
         /// <inheritdoc />
         public ChristofelBaseContext CreateDbContext(string[] args)
         {
-            DbContextOptionsBuilder<ChristofelBaseContext> builder =
-                new DbContextOptionsBuilder<ChristofelBaseContext>();
-            IConfiguration configuration = ChristofelApp.CreateConfiguration(args);
-            string connectionString = configuration.GetConnectionString("ChristofelBase");
-            builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            var services = new ServiceCollection()
+                .AddChristofelDbContextFactory<ChristofelBaseContext>(ChristofelApp.CreateConfiguration(args))
+                .BuildServiceProvider();
 
-            return new ChristofelBaseContext(builder.Options);
+            return services.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext();
         }
     }
 }
