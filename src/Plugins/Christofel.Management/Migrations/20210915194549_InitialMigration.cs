@@ -1,5 +1,5 @@
 ﻿//
-//  20210907210440_InitialMigration.cs
+//  20210915194549_InitialMigration.cs
 //
 //  Copyright (c) Christofel authors. All rights reserved.
 //  Licensed under the MIT license. See LICENSE file in the project root for full license information.
@@ -10,19 +10,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.Management.Migrations
 {
-    /// <summary>
-    /// Initial migration.
-    /// </summary>
     public partial class InitialMigration : Migration
     {
         /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "Management");
+
             migrationBuilder.AlterDatabase()
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "TemporalSlowmodes",
+                name: "TemporalSlowmode",
+                schema: "Management",
                 columns: table => new
                 {
                     TemporalSlowmodeId = table.Column<int>(type: "int", nullable: false)
@@ -30,12 +31,13 @@ namespace Christofel.Management.Migrations
                     UserId = table.Column<long>(type: "bigint", nullable: false),
                     ChannelId = table.Column<long>(type: "bigint", nullable: false),
                     Interval = table.Column<TimeSpan>(type: "time(6)", nullable: false),
+                    ReturnInterval = table.Column<TimeSpan>(type: "time(6)", nullable: false),
                     DeactivationDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     ActivationDate = table.Column<DateTime>(type: "datetime(6)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TemporalSlowmodes", x => x.TemporalSlowmodeId);
+                    table.PrimaryKey("PK_TemporalSlowmode", x => x.TemporalSlowmodeId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
@@ -44,7 +46,8 @@ namespace Christofel.Management.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "TemporalSlowmodes");
+                name: "TemporalSlowmode",
+                schema: "Management");
         }
     }
 }

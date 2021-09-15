@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Christofel.Management.Migrations
 {
     [DbContext(typeof(ManagementContext))]
-    [Migration("20210911102605_TemporalSlowmodeAddReturnInterval")]
-    partial class TemporalSlowmodeAddReturnInterval
+    [Migration("20210915194549_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc/>
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,7 +46,7 @@ namespace Christofel.Management.Migrations
 
                     b.HasKey("TemporalSlowmodeId");
 
-                    b.ToTable("TemporalSlowmodes");
+                    b.ToTable("TemporalSlowmode", "Management");
                 });
 #pragma warning restore 612, 618
         }

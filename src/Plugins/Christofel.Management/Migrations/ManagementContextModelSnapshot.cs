@@ -43,7 +43,7 @@ namespace Christofel.Management.Migrations
 
                     b.HasKey("TemporalSlowmodeId");
 
-                    b.ToTable("TemporalSlowmodes");
+                    b.ToTable("TemporalSlowmode", "Management");
                 });
 #pragma warning restore 612, 618
         }
