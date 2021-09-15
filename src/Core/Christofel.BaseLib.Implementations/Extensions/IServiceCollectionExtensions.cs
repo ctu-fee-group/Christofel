@@ -11,7 +11,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Extensions;
+using Remora.Discord.Gateway.Services;
+using Remora.Discord.Rest;
+using Remora.Discord.Rest.API;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -23,18 +28,37 @@ namespace Christofel.BaseLib.Extensions
         /// <summary>
         /// Adds Christofel state and it's properties to provider.
         /// </summary>
-        /// <param name="provider">The service collection to add state to.</param>
+        /// <param name="serviceCollection">The service collection to add state to.</param>
         /// <param name="state">The state of the Christofel application.</param>
         /// <returns>The passed collection.</returns>
-        public static IServiceCollection AddDiscordState(this IServiceCollection provider, IChristofelState state)
+        public static IServiceCollection AddDiscordState(this IServiceCollection serviceCollection, IChristofelState state)
         {
-            return provider
-                .AddDiscordGateway(_ => throw new InvalidOperationException("Token is obtained in the application"))
-                .Replace(ServiceDescriptor.Singleton(state.Bot.Client))
-                .Replace(ServiceDescriptor.Singleton(state.Bot.HttpClientFactory))
-                .Replace(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(Logger<>)))
-                .Replace(ServiceDescriptor.Singleton(state.LoggerFactory))
-                .Replace(ServiceDescriptor.Singleton(state.Configuration))
+            serviceCollection.TryAddTransient<DiscordHttpClient>();
+            serviceCollection.TryAddTransient<IDiscordRestAuditLogAPI, DiscordRestAuditLogAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestChannelAPI, DiscordRestChannelAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestEmojiAPI, DiscordRestEmojiAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestGatewayAPI, DiscordRestGatewayAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestGuildAPI, DiscordRestGuildAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestInviteAPI, DiscordRestInviteAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestUserAPI, DiscordRestUserAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestVoiceAPI, DiscordRestVoiceAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestWebhookAPI, DiscordRestWebhookAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestTemplateAPI, DiscordRestTemplateAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestInteractionAPI, DiscordRestInteractionAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestApplicationAPI, DiscordRestApplicationAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestOAuth2API, DiscordRestOAuth2API>();
+            serviceCollection.TryAddTransient<IDiscordRestStageInstanceAPI, DiscordRestStageInstanceAPI>();
+            serviceCollection.TryAddTransient<IDiscordRestStickerAPI, DiscordRestStickerAPI>();
+
+            serviceCollection.TryAddSingleton<IResponderTypeRepository>(s => s.GetRequiredService<IOptions<ResponderService>>().Value);
+
+            return serviceCollection
+                .AddSingleton(state.Bot.Client)
+                .AddSingleton(state.DiscordJsonOptions)
+                .AddSingleton(state.Bot.HttpClientFactory)
+                .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
+                .AddSingleton(state.LoggerFactory)
+                .AddSingleton(state.Configuration)
                 .AddSingleton(state)
                 .AddSingleton(state.Permissions.Resolver)
                 .AddSingleton(state.Bot)
