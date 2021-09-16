@@ -218,7 +218,7 @@ namespace Christofel.Api.Services
         /// <inheritdoc />
         protected override IJobData CreateJob
             (CtuAuthRoleAssign entity)
-            => new TypedJobData<CtuAuthAssignRoleJob>(new JobKey("Auth", $"Assign roles to <@{entity.UserId}>"))
+            => new TypedJobData<CtuAuthAssignRoleJob>(JobKeyUtils.GenerateRandom("Auth", $"Assign roles to <@{entity.UserId.ToString()}> "))
                 .AddData("Data", entity);
 
         /// <inheritdoc />
