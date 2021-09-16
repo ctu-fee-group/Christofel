@@ -9,8 +9,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Christofel.BaseLib.Migrations
 {
     [DbContext(typeof(ChristofelBaseContext))]
-    [Migration("20210806184152_MultileUserDuplicities")]
-    partial class MultileUserDuplicities
+    [Migration("20210915192134_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc/>
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -18,7 +18,7 @@ namespace Christofel.BaseLib.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.8");
+                .HasAnnotation("ProductVersion", "5.0.9");
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.DbUser", b =>
                 {
@@ -33,18 +33,20 @@ namespace Christofel.BaseLib.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("CtuUsername")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("varchar(256)");
 
-                    b.Property<ulong>("DiscordId")
-                        .HasColumnType("bigint unsigned");
+                    b.Property<long>("DiscordId")
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("DuplicitUserId")
                         .HasColumnType("int");
 
                     b.Property<bool>("DuplicityApproved")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("RegistrationCode")
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -53,7 +55,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("DuplicitUserId");
 
-                    b.ToTable("Users");
+                    b.ToTable("User", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.PermissionAssignment", b =>
@@ -69,7 +71,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasKey("PermissionAssignmentId");
 
-                    b.ToTable("Permissions");
+                    b.ToTable("PermissionAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.ProgrammeRoleAssignment", b =>
@@ -90,7 +92,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("ProgrammeRoleAssignments");
+                    b.ToTable("ProgrammeRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.RoleAssignment", b =>
@@ -99,15 +101,36 @@ namespace Christofel.BaseLib.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<ulong>("RoleId")
-                        .HasColumnType("bigint unsigned");
+                    b.Property<long>("RoleId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("RoleType")
                         .HasColumnType("int");
 
                     b.HasKey("RoleAssignmentId");
 
-                    b.ToTable("RoleAssignments");
+                    b.ToTable("RoleAssignment", "Core");
+                });
+
+            modelBuilder.Entity("Christofel.BaseLib.Database.Models.SpecificRoleAssignment", b =>
+                {
+                    b.Property<int>("SpecificRoleAssignmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("AssignmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("SpecificRoleAssignmentId");
+
+                    b.HasIndex("AssignmentId");
+
+                    b.ToTable("SpecificRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.TitleRoleAssignment", b =>
@@ -137,7 +160,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("TitleRoleAssignment");
+                    b.ToTable("TitleRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.UsermapRoleAssignment", b =>
@@ -161,7 +184,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("UsermapRoleAssignments");
+                    b.ToTable("UsermapRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.YearRoleAssignment", b =>
@@ -180,7 +203,7 @@ namespace Christofel.BaseLib.Migrations
 
                     b.HasIndex("AssignmentId");
 
-                    b.ToTable("YearRoleAssignments");
+                    b.ToTable("YearRoleAssignment", "Core");
                 });
 
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.DbUser", b =>
@@ -200,8 +223,8 @@ namespace Christofel.BaseLib.Migrations
                             b1.Property<int>("PermissionAssignmentId")
                                 .HasColumnType("int");
 
-                            b1.Property<ulong>("DiscordId")
-                                .HasColumnType("bigint unsigned");
+                            b1.Property<long>("DiscordId")
+                                .HasColumnType("bigint");
 
                             b1.Property<ulong?>("GuildId")
                                 .HasColumnType("bigint unsigned");
@@ -211,7 +234,7 @@ namespace Christofel.BaseLib.Migrations
 
                             b1.HasKey("PermissionAssignmentId");
 
-                            b1.ToTable("Permissions");
+                            b1.ToTable("PermissionAssignment");
 
                             b1.WithOwner()
                                 .HasForeignKey("PermissionAssignmentId");
@@ -225,6 +248,17 @@ namespace Christofel.BaseLib.Migrations
                 {
                     b.HasOne("Christofel.BaseLib.Database.Models.RoleAssignment", "Assignment")
                         .WithMany("ProgrammeRoleAssignments")
+                        .HasForeignKey("AssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assignment");
+                });
+
+            modelBuilder.Entity("Christofel.BaseLib.Database.Models.SpecificRoleAssignment", b =>
+                {
+                    b.HasOne("Christofel.BaseLib.Database.Models.RoleAssignment", "Assignment")
+                        .WithMany("SpecificRoleAssignments")
                         .HasForeignKey("AssignmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -273,6 +307,8 @@ namespace Christofel.BaseLib.Migrations
             modelBuilder.Entity("Christofel.BaseLib.Database.Models.RoleAssignment", b =>
                 {
                     b.Navigation("ProgrammeRoleAssignments");
+
+                    b.Navigation("SpecificRoleAssignments");
 
                     b.Navigation("TitleRoleAssignments");
 

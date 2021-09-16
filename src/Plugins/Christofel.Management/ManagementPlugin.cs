@@ -99,15 +99,7 @@ namespace Christofel.Management
 
                 // Databases
                 .AddChristofelDatabase(State)
-                .AddDbContextFactory<ManagementContext>
-                (
-                    options => options
-                        .UseMySql
-                        (
-                            State.Configuration.GetConnectionString("Management"),
-                            ServerVersion.AutoDetect(State.Configuration.GetConnectionString("Management"))
-                        )
-                )
+                .AddChristofelDbContextFactory<ManagementContext>(State.Configuration)
                 .AddTransient
                 (
                     p =>

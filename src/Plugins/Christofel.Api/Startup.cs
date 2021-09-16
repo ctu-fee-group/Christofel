@@ -17,6 +17,7 @@ using Christofel.Api.GraphQL.Types;
 using Christofel.Api.OAuth;
 using Christofel.Api.Services;
 using Christofel.BaseLib.Configuration;
+using Christofel.BaseLib.Extensions;
 using Kos;
 using Kos.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -60,15 +61,7 @@ namespace Christofel.Api
 
             // cache database
             services
-                .AddDbContextFactory<ApiCacheContext>
-                (
-                    options => options
-                        .UseMySql
-                        (
-                            _configuration.GetConnectionString("ApiCache"),
-                            ServerVersion.AutoDetect(_configuration.GetConnectionString("ApiCache"))
-                        )
-                );
+                .AddChristofelDbContextFactory<ApiCacheContext>(_configuration);
 
             // bot options containing guild id
             services

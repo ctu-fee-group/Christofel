@@ -1,5 +1,5 @@
 ﻿//
-//  20210730074811_InitialCreate.cs
+//  20210915192134_InitialMigration.cs
 //
 //  Copyright (c) Christofel authors. All rights reserved.
 //  Licensed under the MIT license. See LICENSE file in the project root for full license information.
@@ -10,95 +10,134 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.BaseLib.Migrations
 {
-    /// <summary>
-    /// Migration that represents initial creation of the database.
-    /// </summary>
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "Core");
+
             migrationBuilder.AlterDatabase()
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Permissions",
+                name: "PermissionAssignment",
+                schema: "Core",
                 columns: table => new
                 {
                     PermissionAssignmentId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    PermissionName = table.Column<string>(type: "longtext", nullable: false)
+                    PermissionName = table.Column<string>(type: "varchar(512)", maxLength: 512, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Target_DiscordId = table.Column<ulong>(type: "bigint unsigned", nullable: false),
+                    Target_DiscordId = table.Column<long>(type: "bigint", nullable: false),
                     Target_GuildId = table.Column<ulong>(type: "bigint unsigned", nullable: true),
                     Target_TargetType = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Permissions", x => x.PermissionAssignmentId);
+                    table.PrimaryKey("PK_PermissionAssignment", x => x.PermissionAssignmentId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "RoleAssignments",
+                name: "RoleAssignment",
+                schema: "Core",
                 columns: table => new
                 {
                     RoleAssignmentId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    RoleId = table.Column<ulong>(type: "bigint unsigned", nullable: false),
+                    RoleId = table.Column<long>(type: "bigint", nullable: false),
                     RoleType = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleAssignments", x => x.RoleAssignmentId);
+                    table.PrimaryKey("PK_RoleAssignment", x => x.RoleAssignmentId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "User",
+                schema: "Core",
                 columns: table => new
                 {
                     UserId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     AuthenticatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    DiscordId = table.Column<ulong>(type: "bigint unsigned", nullable: false),
-                    CtuUsername = table.Column<string>(type: "longtext", nullable: false)
+                    CtuUsername = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Duplicity = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    DuplicityApproved = table.Column<bool>(type: "tinyint(1)", nullable: false)
+                    DuplicityApproved = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    DuplicitUserId = table.Column<int>(type: "int", nullable: true),
+                    RegistrationCode = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DiscordId = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.UserId);
+                    table.PrimaryKey("PK_User", x => x.UserId);
+                    table.ForeignKey(
+                        name: "FK_User_User_DuplicitUserId",
+                        column: x => x.DuplicitUserId,
+                        principalSchema: "Core",
+                        principalTable: "User",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.SetNull);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "ProgrammeRoleAssignments",
+                name: "ProgrammeRoleAssignment",
+                schema: "Core",
                 columns: table => new
                 {
                     ProgrammeRoleAssignmentId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Programme = table.Column<string>(type: "longtext", nullable: false)
+                    Programme = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     AssignmentId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProgrammeRoleAssignments", x => x.ProgrammeRoleAssignmentId);
+                    table.PrimaryKey("PK_ProgrammeRoleAssignment", x => x.ProgrammeRoleAssignmentId);
                     table.ForeignKey(
-                        name: "FK_ProgrammeRoleAssignments_RoleAssignments_AssignmentId",
+                        name: "FK_ProgrammeRoleAssignment_RoleAssignment_AssignmentId",
                         column: x => x.AssignmentId,
-                        principalTable: "RoleAssignments",
+                        principalSchema: "Core",
+                        principalTable: "RoleAssignment",
                         principalColumn: "RoleAssignmentId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "SpecificRoleAssignment",
+                schema: "Core",
+                columns: table => new
+                {
+                    SpecificRoleAssignmentId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AssignmentId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SpecificRoleAssignment", x => x.SpecificRoleAssignmentId);
+                    table.ForeignKey(
+                        name: "FK_SpecificRoleAssignment_RoleAssignment_AssignmentId",
+                        column: x => x.AssignmentId,
+                        principalSchema: "Core",
+                        principalTable: "RoleAssignment",
+                        principalColumn: "RoleAssignmentId",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
                 name: "TitleRoleAssignment",
+                schema: "Core",
                 columns: table => new
                 {
                     TitleRoleAssignmentId = table.Column<int>(type: "int", nullable: false)
@@ -114,16 +153,18 @@ namespace Christofel.BaseLib.Migrations
                 {
                     table.PrimaryKey("PK_TitleRoleAssignment", x => x.TitleRoleAssignmentId);
                     table.ForeignKey(
-                        name: "FK_TitleRoleAssignment_RoleAssignments_AssignmentId",
+                        name: "FK_TitleRoleAssignment_RoleAssignment_AssignmentId",
                         column: x => x.AssignmentId,
-                        principalTable: "RoleAssignments",
+                        principalSchema: "Core",
+                        principalTable: "RoleAssignment",
                         principalColumn: "RoleAssignmentId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "UsermapRoleAssignments",
+                name: "UsermapRoleAssignment",
+                schema: "Core",
                 columns: table => new
                 {
                     UsermapRoleAssignmentId = table.Column<int>(type: "int", nullable: false)
@@ -135,18 +176,20 @@ namespace Christofel.BaseLib.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UsermapRoleAssignments", x => x.UsermapRoleAssignmentId);
+                    table.PrimaryKey("PK_UsermapRoleAssignment", x => x.UsermapRoleAssignmentId);
                     table.ForeignKey(
-                        name: "FK_UsermapRoleAssignments_RoleAssignments_AssignmentId",
+                        name: "FK_UsermapRoleAssignment_RoleAssignment_AssignmentId",
                         column: x => x.AssignmentId,
-                        principalTable: "RoleAssignments",
+                        principalSchema: "Core",
+                        principalTable: "RoleAssignment",
                         principalColumn: "RoleAssignmentId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "YearRoleAssignments",
+                name: "YearRoleAssignment",
+                schema: "Core",
                 columns: table => new
                 {
                     YearRoleAssignmentId = table.Column<int>(type: "int", nullable: false)
@@ -156,34 +199,51 @@ namespace Christofel.BaseLib.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_YearRoleAssignments", x => x.YearRoleAssignmentId);
+                    table.PrimaryKey("PK_YearRoleAssignment", x => x.YearRoleAssignmentId);
                     table.ForeignKey(
-                        name: "FK_YearRoleAssignments_RoleAssignments_AssignmentId",
+                        name: "FK_YearRoleAssignment_RoleAssignment_AssignmentId",
                         column: x => x.AssignmentId,
-                        principalTable: "RoleAssignments",
+                        principalSchema: "Core",
+                        principalTable: "RoleAssignment",
                         principalColumn: "RoleAssignmentId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProgrammeRoleAssignments_AssignmentId",
-                table: "ProgrammeRoleAssignments",
+                name: "IX_ProgrammeRoleAssignment_AssignmentId",
+                schema: "Core",
+                table: "ProgrammeRoleAssignment",
+                column: "AssignmentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SpecificRoleAssignment_AssignmentId",
+                schema: "Core",
+                table: "SpecificRoleAssignment",
                 column: "AssignmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TitleRoleAssignment_AssignmentId",
+                schema: "Core",
                 table: "TitleRoleAssignment",
                 column: "AssignmentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UsermapRoleAssignments_AssignmentId",
-                table: "UsermapRoleAssignments",
+                name: "IX_User_DuplicitUserId",
+                schema: "Core",
+                table: "User",
+                column: "DuplicitUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UsermapRoleAssignment_AssignmentId",
+                schema: "Core",
+                table: "UsermapRoleAssignment",
                 column: "AssignmentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_YearRoleAssignments_AssignmentId",
-                table: "YearRoleAssignments",
+                name: "IX_YearRoleAssignment_AssignmentId",
+                schema: "Core",
+                table: "YearRoleAssignment",
                 column: "AssignmentId");
         }
 
@@ -191,25 +251,36 @@ namespace Christofel.BaseLib.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Permissions");
+                name: "PermissionAssignment",
+                schema: "Core");
 
             migrationBuilder.DropTable(
-                name: "ProgrammeRoleAssignments");
+                name: "ProgrammeRoleAssignment",
+                schema: "Core");
 
             migrationBuilder.DropTable(
-                name: "TitleRoleAssignment");
+                name: "SpecificRoleAssignment",
+                schema: "Core");
 
             migrationBuilder.DropTable(
-                name: "UsermapRoleAssignments");
+                name: "TitleRoleAssignment",
+                schema: "Core");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "User",
+                schema: "Core");
 
             migrationBuilder.DropTable(
-                name: "YearRoleAssignments");
+                name: "UsermapRoleAssignment",
+                schema: "Core");
 
             migrationBuilder.DropTable(
-                name: "RoleAssignments");
+                name: "YearRoleAssignment",
+                schema: "Core");
+
+            migrationBuilder.DropTable(
+                name: "RoleAssignment",
+                schema: "Core");
         }
     }
 }

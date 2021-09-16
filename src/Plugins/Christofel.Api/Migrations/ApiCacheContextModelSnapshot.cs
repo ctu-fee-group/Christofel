@@ -36,7 +36,7 @@ namespace Christofel.Api.Migrations
 
                     b.HasKey("AssignRoleId");
 
-                    b.ToTable("AssignRoles");
+                    b.ToTable("AssignRole", "Api");
                 });
 #pragma warning restore 612, 618
         }

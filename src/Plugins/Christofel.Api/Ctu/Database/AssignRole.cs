@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu.Database
@@ -12,6 +13,7 @@ namespace Christofel.Api.Ctu.Database
     /// <summary>
     /// Database table representing role to be assigned to user.
     /// </summary>
+    [Table("AssignRole", Schema = ApiCacheContext.SchemaName)]
     public class AssignRole
     {
         /// <summary>

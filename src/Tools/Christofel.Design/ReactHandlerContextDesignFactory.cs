@@ -5,10 +5,12 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Christofel.Application;
+using Christofel.BaseLib.Extensions;
 using Christofel.ReactHandler.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Design
 {
@@ -20,12 +22,11 @@ namespace Christofel.Design
         /// <inheritdoc />
         public ReactHandlerContext CreateDbContext(string[] args)
         {
-            DbContextOptionsBuilder<ReactHandlerContext> builder = new DbContextOptionsBuilder<ReactHandlerContext>();
-            IConfiguration configuration = ChristofelApp.CreateConfiguration(args);
-            string connectionString = configuration.GetConnectionString("ReactHandler");
-            builder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            var services = new ServiceCollection()
+                .AddChristofelDbContextFactory<ReactHandlerContext>(ChristofelApp.CreateConfiguration(args))
+                .BuildServiceProvider();
 
-            return new ReactHandlerContext(builder.Options);
+            return services.GetRequiredService<IDbContextFactory<ReactHandlerContext>>().CreateDbContext();
         }
     }
 }

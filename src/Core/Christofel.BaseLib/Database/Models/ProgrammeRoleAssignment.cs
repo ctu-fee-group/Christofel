@@ -5,12 +5,14 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Christofel.BaseLib.Database.Models
 {
     /// <summary>
     /// Database table for assignment of roles based on programme the student is studying.
     /// </summary>
+    [Table("ProgrammeRoleAssignment", Schema = ChristofelBaseContext.SchemaName)]
     public class ProgrammeRoleAssignment
     {
         /// <summary>

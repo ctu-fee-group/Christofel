@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.ComponentModel.DataAnnotations.Schema;
 using Remora.Discord.Core;
 
 namespace Christofel.ReactHandler.Database.Models
@@ -11,6 +12,7 @@ namespace Christofel.ReactHandler.Database.Models
     /// <summary>
     /// Database model representing data about reactions that should assign channels or roles.
     /// </summary>
+    [Table("HandleReact", Schema = ReactHandlerContext.SchemaName)]
     public class HandleReact
     {
         /// <summary>

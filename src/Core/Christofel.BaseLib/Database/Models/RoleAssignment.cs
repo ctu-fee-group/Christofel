@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Christofel.BaseLib.Database.Models.Enums;
 using Remora.Discord.Core;
 
@@ -14,6 +15,7 @@ namespace Christofel.BaseLib.Database.Models
     /// <summary>
     /// Database table that holds roles that will be assigned during auth process.
     /// </summary>
+    [Table("RoleAssignment", Schema = ChristofelBaseContext.SchemaName)]
     public class RoleAssignment
     {
         /// <summary>

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Christofel.BaseLib.Database.Models.Abstractions;
 using Christofel.BaseLib.User;
 using Remora.Discord.Core;
@@ -17,6 +18,7 @@ namespace Christofel.BaseLib.Database.Models
     /// Database table that holds authenticated users
     /// or users in auth process.
     /// </summary>
+    [Table("User", Schema = ChristofelBaseContext.SchemaName)]
     public class DbUser : ITimestampsEntity, IDiscordUser
     {
         /// <summary>

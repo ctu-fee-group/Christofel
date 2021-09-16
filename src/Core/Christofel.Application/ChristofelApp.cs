@@ -18,6 +18,7 @@ using Christofel.BaseLib;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Discord;
+using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
 using Christofel.BaseLib.Permissions;
 using Christofel.BaseLib.Plugins;
@@ -171,16 +172,7 @@ namespace Christofel.Application
                 .AddSingleton<IBot, DiscordBot>()
 
                 // db
-                .AddDbContextFactory<ChristofelBaseContext>
-                (
-                    options =>
-                        options
-                            .UseMySql
-                            (
-                                _configuration.GetConnectionString("ChristofelBase"),
-                                ServerVersion.AutoDetect(_configuration.GetConnectionString("ChristofelBase"))
-                            )
-                )
+                .AddChristofelDbContextFactory<ChristofelBaseContext>(_configuration)
                 .AddScoped
                 (
                     p =>

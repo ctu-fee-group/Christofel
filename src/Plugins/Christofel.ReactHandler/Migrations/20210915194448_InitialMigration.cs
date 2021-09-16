@@ -1,5 +1,5 @@
 ﻿//
-//  20210906184526_InitialMigration.cs
+//  20210915194448_InitialMigration.cs
 //
 //  Copyright (c) Christofel authors. All rights reserved.
 //  Licensed under the MIT license. See LICENSE file in the project root for full license information.
@@ -9,19 +9,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Christofel.ReactHandler.Migrations
 {
-    /// <summary>
-    /// Initial migration.
-    /// </summary>
     public partial class InitialMigration : Migration
     {
         /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "ReactHandler");
+
             migrationBuilder.AlterDatabase()
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "HandleReacts",
+                name: "HandleReact",
+                schema: "ReactHandler",
                 columns: table => new
                 {
                     HandleReactId = table.Column<int>(type: "int", nullable: false)
@@ -35,7 +36,7 @@ namespace Christofel.ReactHandler.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HandleReacts", x => x.HandleReactId);
+                    table.PrimaryKey("PK_HandleReact", x => x.HandleReactId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
@@ -44,7 +45,8 @@ namespace Christofel.ReactHandler.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "HandleReacts");
+                name: "HandleReact",
+                schema: "ReactHandler");
         }
     }
 }

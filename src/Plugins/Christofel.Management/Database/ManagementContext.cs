@@ -9,20 +9,26 @@ using Christofel.BaseLib.Database;
 using Christofel.Management.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Remora.Discord.Core;
+using Remora.EntityFrameworkCore.Modular;
 
 namespace Christofel.Management.Database
 {
     /// <summary>
     /// Management database context that holds information about slowmodes.
     /// </summary>
-    public class ManagementContext : DbContext, IReadableDbContext<ManagementContext>
+    public class ManagementContext : SchemaAwareDbContext, IReadableDbContext<ManagementContext>
     {
+        /// <summary>
+        /// The name of the schema that this context's entities lie in.
+        /// </summary>
+        public const string SchemaName = "Management";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ManagementContext"/> class.
         /// </summary>
         /// <param name="options">The options for the context.</param>
         public ManagementContext(DbContextOptions<ManagementContext> options)
-            : base(options)
+            : base(SchemaName, options)
         {
         }
 
