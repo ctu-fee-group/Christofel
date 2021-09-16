@@ -9,7 +9,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Auth.Tasks.Options;
-using Christofel.Api.Ctu.JobQueue;
+using Christofel.Api.Ctu.Jobs;
+using Christofel.Scheduler;
+using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduler.Triggers;
 using Kos;
 using Kos.Abstractions;
 using Microsoft.Extensions.Options;
@@ -22,9 +25,10 @@ namespace Christofel.Api.Ctu.Auth.Tasks
     /// </summary>
     public class SendNoRolesMessageAuthTask : IAuthTask
     {
+        private readonly NonConcurrentTrigger.State _ncState;
         private readonly IKosPeopleApi _kosPeopleApi;
         private readonly IKosAtomApi _kosAtomApi;
-        private readonly IJobQueue<CtuAuthWarnMessage> _jobQueue;
+        private readonly IScheduler _scheduler;
         private readonly WarnOptions _options;
 
         /// <summary>
@@ -32,19 +36,22 @@ namespace Christofel.Api.Ctu.Auth.Tasks
         /// </summary>
         /// <param name="kosPeopleApi">The kos people api.</param>
         /// <param name="kosAtomApi">The kos atom api.</param>
-        /// <param name="jobQueue">The job queue.</param>
+        /// <param name="scheduler">The scheduler.</param>
         /// <param name="options">The options.</param>
+        /// <param name="ncState">The state of the non concurrency.</param>
         public SendNoRolesMessageAuthTask
         (
             IKosPeopleApi kosPeopleApi,
             IKosAtomApi kosAtomApi,
-            IJobQueue<CtuAuthWarnMessage> jobQueue,
-            IOptionsSnapshot<WarnOptions> options
+            IScheduler scheduler,
+            IOptionsSnapshot<WarnOptions> options,
+            NonConcurrentTrigger.State ncState
         )
         {
             _options = options.Value;
             _kosAtomApi = kosAtomApi;
-            _jobQueue = jobQueue;
+            _scheduler = scheduler;
+            _ncState = ncState;
             _kosPeopleApi = kosPeopleApi;
         }
 
@@ -56,7 +63,18 @@ namespace Christofel.Api.Ctu.Auth.Tasks
             if (data.Roles.AddRoles.Count == 1 &&
                 (kosStudent is null || kosStudent.StartDate > DateTime.Now.Subtract(TimeSpan.FromDays(5))))
             {
-                _jobQueue.EnqueueJob(new CtuAuthWarnMessage(data.LoadedUser.DiscordId, _options.NoRolesMessage));
+                var jobData = new TypedJobData<CtuAuthWarnMessageJob>
+                    (
+                        JobKeyUtils.GenerateRandom
+                            ("Auth", $"Send warn message to <{data.LoadedUser.DiscordId.ToString()}> ")
+                    )
+                    .AddData("Data", new CtuAuthWarnMessage(data.LoadedUser.DiscordId, _options.NoRolesMessage));
+                var scheduleResult = await _scheduler.ScheduleAsync
+                    (jobData, new NonConcurrentTrigger(new SimpleTrigger(), _ncState));
+                if (!scheduleResult.IsSuccess)
+                {
+                    return Result.FromError(scheduleResult);
+                }
             }
 
             return Result.FromSuccess();
