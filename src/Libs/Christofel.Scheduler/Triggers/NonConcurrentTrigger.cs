@@ -38,12 +38,12 @@ namespace Christofel.Scheduler.Triggers
         public async ValueTask<Result> BeforeExecutionAsync
             (IJobContext context, CancellationToken ct = default)
         {
-            if (!await _nonConcurrentState.SetRunningAsync())
+            if (!await _nonConcurrentState.SetRunningAsync(this))
             {
                 return new InvalidOperationError("The task cannot be executed, because there is one already running.");
             }
 
-            await _nonConcurrentState.SetRunningAsync();
+            await _nonConcurrentState.SetRunningAsync(this);
             return await _underlyingTrigger.BeforeExecutionAsync(context, ct);
         }
 
@@ -51,7 +51,7 @@ namespace Christofel.Scheduler.Triggers
         public async ValueTask<Result> AfterExecutionAsync
             (IJobContext context, Result jobResult, CancellationToken ct = default)
         {
-            await _nonConcurrentState.SetFinishedAsync();
+            await _nonConcurrentState.SetFinishedAsync(this);
             return await _underlyingTrigger.AfterExecutionAsync(context, jobResult, ct);
         }
 
@@ -75,38 +75,47 @@ namespace Christofel.Scheduler.Triggers
             private List<(object Owner, Func<Task> Action)> _callbacks =
                 new List<(object Owner, Func<Task> Action)>();
 
-            private bool _running;
+            private object? _lockOwner;
 
             /// <summary>
             /// Sets the state to running.
             /// </summary>
+            /// <param name="owner">The owner of the lock.</param>
             /// <returns>Whether the state could be set, false if already running.</returns>
-            public async Task<bool> SetRunningAsync()
+            public async Task<bool> SetRunningAsync(object owner)
             {
                 using (await _lock.LockAsync())
                 {
-                    var currentlyRunning = _running;
-                    _running = true;
-                    return !currentlyRunning;
+                    if (_lockOwner is null)
+                    {
+                        _lockOwner = owner;
+                        return true;
+                    }
+
+                    return false;
                 }
             }
 
             /// <summary>
             /// Sets the state to finished.
             /// </summary>
+            /// <param name="owner">The owner of the lock.</param>
             /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-            public async Task SetFinishedAsync()
+            public async Task SetFinishedAsync(object owner)
             {
                 using (await _lock.LockAsync())
                 {
-                    if (_callbacks.Count > 0)
+                    if (_lockOwner == owner)
                     {
-                        var first = _callbacks.First();
-                        await first.Action.Invoke();
-                        _callbacks.RemoveAt(0);
-                    }
+                        _lockOwner = null;
 
-                    _running = false;
+                        if (_callbacks.Count > 0)
+                        {
+                            var first = _callbacks.First();
+                            await first.Action.Invoke();
+                            _callbacks.RemoveAt(0);
+                        }
+                    }
                 }
             }
 
@@ -118,7 +127,7 @@ namespace Christofel.Scheduler.Triggers
             {
                 using (await _lock.LockAsync())
                 {
-                    return _running;
+                    return _lockOwner is not null;
                 }
             }
 
@@ -132,7 +141,7 @@ namespace Christofel.Scheduler.Triggers
             {
                 using (await _lock.LockAsync())
                 {
-                    if (!_running)
+                    if (_lockOwner is null)
                     {
                         await callback.Invoke();
                     }
