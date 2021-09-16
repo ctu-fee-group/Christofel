@@ -6,6 +6,7 @@
 
 using System;
 using Christofel.Api.Ctu;
+using Christofel.Api.Ctu.Auth.Tasks.Options;
 using Christofel.Api.Ctu.Database;
 using Christofel.Api.Ctu.Extensions;
 using Christofel.Api.Ctu.JobQueue;
@@ -96,9 +97,11 @@ namespace Christofel.Api
                 .Configure<KosApiOptions>(_configuration.GetSection("Apis:Kos"));
 
             // processors of queues
+            services.Configure<WarnOptions>(_configuration.GetSection("Auth"));
             services
                 .AddSingleton<IJobQueue<CtuAuthRoleAssign>, CtuAuthRoleAssignProcessor>()
                 .AddSingleton<IJobQueue<CtuAuthNicknameSet>, CtuAuthNicknameSetProcessor>()
+                .AddSingleton<IJobQueue<CtuAuthWarnMessage>, CtuAuthWarnMessageProcessor>()
                 .AddSingleton<CtuAuthRoleAssignService>();
 
             // add CTU authentication process along with all the steps
