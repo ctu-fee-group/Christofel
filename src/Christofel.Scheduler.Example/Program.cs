@@ -64,7 +64,6 @@ namespace Christofel.Scheduler.Example
             return new ServiceCollection()
                 .AddLogging(b => b.AddConsole())
                 .AddScheduler()
-                .Replace(ServiceDescriptor.Singleton<IJobStore, ApplicationJobStore>())
                 .BuildServiceProvider();
         }
     }
