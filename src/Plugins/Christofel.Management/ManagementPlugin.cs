@@ -18,6 +18,7 @@ using Christofel.CommandsLib.Extensions;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
+using Christofel.Management.Jobs;
 using Christofel.Management.Slowmode;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
@@ -84,6 +85,7 @@ namespace Christofel.Management
             {
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
                 yield return Services.GetRequiredService<SlowmodeAutorestore>();
+                yield return Services.GetRequiredService<CronJobs>();
             }
         }
 
@@ -101,6 +103,8 @@ namespace Christofel.Management
                 // Scheduler
                 .AddPluginScheduler()
                 .AddSchedulerJob<SlowmodeDisableJob>()
+                .AddSchedulerJob<RemoveOldUsersJob>()
+                .AddSingleton<CronJobs>()
 
                 // Databases
                 .AddChristofelDatabase(State)
