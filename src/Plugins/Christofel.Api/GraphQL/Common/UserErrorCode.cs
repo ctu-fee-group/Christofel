@@ -41,5 +41,14 @@ namespace Christofel.Api.GraphQL.Common
         /// The code may have been already used successfully, it has expired or was destroyed manually.
         /// </remarks>
         InvalidRegistrationCode,
+
+        /// <summary>
+        /// The auth process itself was successful, but there was an error in tasks stage.
+        /// </summary>
+        /// <remarks>
+        /// The user cannot be returned to the last step, he has to go over the whole authentication process again
+        /// in order to try to work around this error.
+        /// </remarks>
+        SoftAuthError,
     }
 }

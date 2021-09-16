@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Ctu.Auth;
 using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Auth.Steps;
 using Christofel.Api.Ctu.Auth.Tasks;
@@ -128,7 +129,13 @@ namespace Christofel.Api.Ctu
             }
 
             // 6. run tasks (if any failed, log it, but continue)
-            return await ExecuteTasks(services, authData, ct);
+            var tasksResult = await ExecuteTasks(services, authData, ct);
+            if (!tasksResult.IsSuccess)
+            {
+                return new SoftAuthError(tasksResult.Error);
+            }
+
+            return tasksResult;
         }
 
         private async Task<Result> ExecuteConditionsAsync

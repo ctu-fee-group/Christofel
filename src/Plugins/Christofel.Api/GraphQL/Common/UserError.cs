@@ -52,5 +52,11 @@ namespace Christofel.Api.GraphQL.Common
         /// </summary>
         public static UserError InvalidRegistrationCode => new UserError
             ("Specified registration code is not valid", UserErrorCode.InvalidRegistrationCode);
+
+        /// <summary>
+        /// Gets <see cref="UserErrorCode.SoftAuthError"/> error.
+        /// </summary>
+        public static UserError SoftAuthError => new UserError
+            ("There was an error while assigning Discord roles, nickname etc.", UserErrorCode.SoftAuthError);
     }
 }

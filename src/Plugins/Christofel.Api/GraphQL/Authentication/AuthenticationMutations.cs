@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
+using Christofel.Api.Ctu.Auth;
 using Christofel.Api.Discord;
 using Christofel.Api.GraphQL.Attributes;
 using Christofel.Api.GraphQL.Common;
@@ -395,6 +396,14 @@ namespace Christofel.Api.GraphQL.Authentication
                                         UserErrorCode.Unspecified
                                     )
                                 );
+                            case SoftAuthError softError:
+                                _logger.LogWarning
+                                (
+                                    "User error has occured during task stage of finalization of authentication of a user: {Error}",
+                                    softError.Error.Message
+                                );
+
+                                return new RegisterCtuPayload(UserErrors.SoftAuthError);
                             default:
                                 return new RegisterCtuPayload
                                 (
