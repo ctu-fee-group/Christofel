@@ -67,6 +67,7 @@ namespace Christofel.Scheduler
             {
                 _logger.LogResult(beforeEventResult, "Before execution events failed");
                 await _eventExecutors.ExecuteAfterExecutionAsync(services, jobContext, beforeEventResult, ct);
+                scope.Dispose();
                 return Result<IJobContext>.FromError(beforeEventResult);
             }
 
