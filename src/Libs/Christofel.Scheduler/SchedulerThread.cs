@@ -88,13 +88,12 @@ namespace Christofel.Scheduler
 
         private async Task Run()
         {
-            HashSet<IJobDescriptor> executingJobs = new HashSet<IJobDescriptor>();
+            HashSet<IJobDescriptor> executingJobs = new HashSet<IJobDescriptor>(new JobDescriptorEqualityComparer());
             AsyncLock executingJobsLock = new AsyncLock();
             var shouldWaitNext = false;
 
             while (!_cancellationTokenSource.IsCancellationRequested)
             {
-                _logger.LogInformation("Hello from start of the while");
                 var list = await _jobStore.GetJobsTillAsync(DateTimeOffset.UtcNow.Add(_getJobsTillTimespan));
                 var queue = new PriorityQueue<IJobDescriptor, DateTimeOffset>();
                 for (var i = 0; i < list.Count; i++)
@@ -121,7 +120,6 @@ namespace Christofel.Scheduler
                 // ReSharper disable once ForCanBeConvertedToForeach
                 while (queue.Count > 0)
                 {
-                    _logger.LogInformation("Hello from inside while start");
                     try
                     {
                         var dequeued = queue.TryDequeue(out var job, out _);
