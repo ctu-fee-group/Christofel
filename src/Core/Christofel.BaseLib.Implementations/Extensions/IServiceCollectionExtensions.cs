@@ -163,7 +163,8 @@ namespace Christofel.BaseLib.Extensions
                     }
                 );
         }
-    
+
+        /// <summary>
         /// Adds <see cref="IScheduler"/>.
         /// </summary>
         /// <param name="services">The collection to be configured.</param>
