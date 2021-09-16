@@ -77,7 +77,11 @@ namespace Christofel.CtuAuth.Auth.Tasks
             var result = await _roleAssignService.SaveAndScheduleJobAsync
             (
                 _scheduler,
-                new TypedJobData<CtuAuthAssignRoleJob>(new JobKey("Auth", "Assign roles"))
+                new TypedJobData<CtuAuthAssignRoleJob>
+                    (
+                        JobKeyUtils.GenerateRandom
+                            ("Auth", $"Assign roles to <@{data.LoadedUser.DiscordId.ToString()}> ")
+                    )
                     .AddData
                     (
                         "Data",
