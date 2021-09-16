@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Remora.Rest.Core;
+using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu.Jobs
 {
