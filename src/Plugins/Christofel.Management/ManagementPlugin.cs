@@ -23,6 +23,7 @@ using Christofel.Helpers.Storages;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
+using Christofel.Management.Jobs;
 using Christofel.Management.ResendRule;
 using Christofel.Management.Slowmode;
 using Christofel.OAuth;
@@ -82,6 +83,12 @@ namespace Christofel.Management
 
                 // Christofel
                 .AddDiscordState(State)
+
+                // Scheduler
+                .AddPluginScheduler()
+                .AddSchedulerJob<SlowmodeDisableJob>()
+                .AddSchedulerJob<RemoveOldUsersJob>()
+                .AddStateful<CronJobs>(ServiceLifetime.Transient)
 
                 // Databases
                 .AddChristofelDatabase(State)
