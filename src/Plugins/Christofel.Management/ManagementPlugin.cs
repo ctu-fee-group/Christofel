@@ -18,6 +18,7 @@ using Christofel.Helpers.Storages;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
+using Christofel.Management.Jobs;
 using Christofel.Management.ResendRule;
 using Christofel.Management.Slowmode;
 using Christofel.Plugins;
@@ -76,6 +77,8 @@ namespace Christofel.Management
                 // Scheduler
                 .AddPluginScheduler()
                 .AddSchedulerJob<SlowmodeDisableJob>()
+                .AddSchedulerJob<RemoveOldUsersJob>()
+                .AddSingleton<CronJobs>()
 
                 // Databases
                 .AddChristofelDatabase(State)
