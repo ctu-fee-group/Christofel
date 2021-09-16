@@ -16,6 +16,11 @@ namespace Christofel.Scheduler.Abstractions
     public interface IScheduler
     {
         /// <summary>
+        /// Gets whether the work was started.
+        /// </summary>
+        public bool IsRunning { get; }
+
+        /// <summary>
         /// Starts the process of the scheduling.
         /// </summary>
         /// <remarks>
@@ -43,5 +48,27 @@ namespace Christofel.Scheduler.Abstractions
         /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public ValueTask<Result<IJobDescriptor>> ScheduleAsync(IJobData job, ITrigger trigger, CancellationToken ct = default);
+
+        /*
+        /// <summary>
+        /// Reschedules job with the given key to use the new trigger.
+        /// </summary>
+        /// <remarks>
+        /// Joins and disposes the thread that handles scheduling.
+        /// </remarks>
+        /// <param name="jobKey">The key of the job to reschedule.</param>
+        /// <param name="newTrigger">The trigger to save instead of the old one.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+        public ValueTask<Result<IJobDescriptor>> RescheduleAsync(JobKey jobKey, ITrigger newTrigger, CancellationToken ct = default);
+
+        /// <summary>
+        /// Removes the job with the given key so it won't be executed.
+        /// </summary>
+        /// <param name="jobKey">The key of the job to reschedule.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
+        /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
+        public ValueTask<Result> UnscheduleAsync(JobKey jobKey, CancellationToken ct = default);
+        */
     }
 }

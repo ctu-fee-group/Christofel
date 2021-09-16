@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Remora.Results;
@@ -31,9 +32,16 @@ namespace Christofel.Scheduler.Abstractions
         public ValueTask<Result> RemoveJobAsync(JobKey jobKey);
 
         /// <summary>
+        /// Returns all the job that should fire till the specified date.
+        /// </summary>
+        /// <param name="till">The date till to find jobs.</param>
+        /// <returns>A result that may not have succeeded.</returns>
+        public ValueTask<IReadOnlyList<IJobDescriptor>> GetJobsTillAsync(DateTimeOffset till);
+
+        /// <summary>
         /// Enumerates all of the jobs that are available.
         /// </summary>
         /// <returns>A result that may not have succeeded.</returns>
-        public IReadOnlyList<IJobDescriptor> EnumerateJobs();
+        public IReadOnlyList<IJobDescriptor> GetAllJobs();
     }
 }

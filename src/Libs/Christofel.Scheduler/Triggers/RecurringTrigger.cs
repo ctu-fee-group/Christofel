@@ -24,7 +24,7 @@ namespace Christofel.Scheduler.Triggers
         /// <param name="recurringInterval">The interval that the job should repeat after.</param>
         public RecurringTrigger(DateTime startDate, TimeSpan recurringInterval)
         {
-            NextExecutionTime = startDate;
+            NextFireDate = startDate;
             RecurringInterval = recurringInterval;
         }
 
@@ -42,15 +42,25 @@ namespace Christofel.Scheduler.Triggers
         /// </summary>
         public TimeSpan RecurringInterval { get; private set; }
 
+        /// <inheritdoc />
+        public ValueTask<bool> CanBeExecutedAsync() => ValueTask.FromResult(true);
+
+        /// <inheritdoc />
+        public ValueTask RegisterReadyCallbackAsync(Func<Task> readyTask) => ValueTask.CompletedTask;
+
         /// <summary>
         /// Gets the date and time of the next execution.
         /// </summary>
-        public DateTimeOffset NextExecutionTime { get; private set; }
+        public DateTimeOffset? NextFireDate { get; private set; }
 
         /// <inheritdoc />
         public ValueTask<Result> BeforeExecutionAsync(IJobContext context, CancellationToken ct = default)
         {
-            NextExecutionTime = NextExecutionTime + RecurringInterval;
+            if (NextFireDate is not null)
+            {
+                NextFireDate = NextFireDate + RecurringInterval;
+            }
+
             return ValueTask.FromResult(Result.FromSuccess());
         }
 
@@ -58,11 +68,5 @@ namespace Christofel.Scheduler.Triggers
         public ValueTask<Result> AfterExecutionAsync
             (IJobContext context, Result jobResult, CancellationToken ct = default)
             => ValueTask.FromResult(Result.FromSuccess());
-
-        /// <inheritdoc />
-        public bool ShouldBeExecuted() => DateTimeOffset.Now > NextExecutionTime;
-
-        /// <inheritdoc />
-        public bool CanBeDeleted() => false;
     }
 }

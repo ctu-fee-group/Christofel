@@ -25,7 +25,7 @@ namespace Christofel.Scheduler.Triggers
         /// <param name="duration">The duration after which the trigger should be executed.</param>
         public DelayedTrigger(TimeSpan duration)
         {
-            ExecutionDate = DateTimeOffset.Now.Add(duration);
+            NextFireDate = DateTimeOffset.Now.Add(duration);
         }
 
         /// <summary>
@@ -34,24 +34,18 @@ namespace Christofel.Scheduler.Triggers
         /// <param name="executionDate">The date when the job should be executed.</param>
         public DelayedTrigger(DateTimeOffset executionDate)
         {
-            ExecutionDate = executionDate;
+            NextFireDate = executionDate;
         }
-
-        /// <summary>
-        /// Gets the date when the job should be executed.
-        /// </summary>
-        public DateTimeOffset ExecutionDate { get; }
 
         /// <inheritdoc />
         public ValueTask<Result> BeforeExecutionAsync(IJobContext context, CancellationToken ct = default)
         {
-            // TODO: lock?
-            if (_executed)
+            if (NextFireDate is null)
             {
                 return ValueTask.FromResult<Result>(new InvalidOperationError("Cannot execute this trigger twice."));
             }
 
-            _executed = true;
+            NextFireDate = null;
             return ValueTask.FromResult(Result.FromSuccess());
         }
 
@@ -61,9 +55,12 @@ namespace Christofel.Scheduler.Triggers
             => ValueTask.FromResult(Result.FromSuccess());
 
         /// <inheritdoc />
-        public bool ShouldBeExecuted() => DateTimeOffset.Now > ExecutionDate;
+        public ValueTask<bool> CanBeExecutedAsync() => ValueTask.FromResult(true);
 
         /// <inheritdoc />
-        public bool CanBeDeleted() => _executed;
+        public ValueTask RegisterReadyCallbackAsync(Func<Task> readyTask) => ValueTask.CompletedTask;
+
+        /// <inheritdoc />
+        public DateTimeOffset? NextFireDate { get; private set; }
     }
 }

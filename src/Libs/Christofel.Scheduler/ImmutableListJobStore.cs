@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Christofel.Scheduler.Abstractions;
 using Remora.Results;
@@ -64,7 +65,16 @@ namespace Christofel.Scheduler
         }
 
         /// <inheritdoc />
-        public IReadOnlyList<IJobDescriptor> EnumerateJobs() => Data;
+        public ValueTask<IReadOnlyList<IJobDescriptor>> GetJobsTillAsync(DateTimeOffset till)
+        {
+            return ValueTask.FromResult<IReadOnlyList<IJobDescriptor>>(Data
+                .Where(x => x.Trigger.NextFireDate is null || x.Trigger.NextFireDate <= till)
+                .OrderBy(x => x.Trigger.NextFireDate ?? DateTimeOffset.UtcNow)
+                .ToList());
+        }
+
+        /// <inheritdoc />
+        public IReadOnlyList<IJobDescriptor> GetAllJobs() => Data;
 
         private record JobDescriptor(IJobData JobData, ITrigger Trigger, JobKey Key) : IJobDescriptor;
     }

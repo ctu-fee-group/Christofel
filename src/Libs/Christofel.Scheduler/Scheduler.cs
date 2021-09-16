@@ -39,8 +39,12 @@ namespace Christofel.Scheduler
         }
 
         /// <inheritdoc />
+        public bool IsRunning { get; private set; }
+
+        /// <inheritdoc />
         public ValueTask<Result> StartAsync(CancellationToken ct = default)
         {
+            IsRunning = true;
             _schedulerThread.Start();
             return ValueTask.FromResult(Result.FromSuccess());
         }
@@ -48,13 +52,22 @@ namespace Christofel.Scheduler
         /// <inheritdoc />
         public ValueTask<Result> StopAsync(CancellationToken ct = default)
         {
+            IsRunning = false;
             _schedulerThread.Stop();
             return ValueTask.FromResult(Result.FromSuccess());
         }
 
         /// <inheritdoc />
-        public ValueTask<Result<IJobDescriptor>> ScheduleAsync
-            (IJobData jobData, ITrigger trigger, CancellationToken ct = default) => _jobStore.AddJobAsync
-            (jobData, trigger);
+        public async ValueTask<Result<IJobDescriptor>> ScheduleAsync
+            (IJobData jobData, ITrigger trigger, CancellationToken ct = default)
+        {
+            var addedResult = await _jobStore.AddJobAsync(jobData, trigger);
+            if (addedResult.IsSuccess)
+            {
+                await _schedulerThread.NotificationBroker.ChangedJobs.NotifyAsync(addedResult.Entity);
+            }
+
+            return addedResult;
+        }
     }
 }

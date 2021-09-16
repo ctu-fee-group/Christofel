@@ -4,9 +4,13 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Scheduler.Abstractions;
+using Nito.AsyncEx;
 using Remora.Results;
 
 namespace Christofel.Scheduler.Triggers
@@ -31,72 +35,77 @@ namespace Christofel.Scheduler.Triggers
         }
 
         /// <inheritdoc />
-        public ValueTask<Result> BeforeExecutionAsync
+        public async ValueTask<Result> BeforeExecutionAsync
             (IJobContext context, CancellationToken ct = default)
         {
-            if (!_nonConcurrentState.SetRunning())
+            if (!await _nonConcurrentState.SetRunningAsync())
             {
-                return ValueTask.FromResult<Result>
-                    (new InvalidOperationError("The task cannot be scheduled, because there is one already running."));
+                return new InvalidOperationError("The task cannot be executed, because there is one already running.");
             }
 
-            _nonConcurrentState.SetRunning();
-
-            return _underlyingTrigger.BeforeExecutionAsync(context, ct);
+            await _nonConcurrentState.SetRunningAsync();
+            return await _underlyingTrigger.BeforeExecutionAsync(context, ct);
         }
 
         /// <inheritdoc />
-        public ValueTask<Result> AfterExecutionAsync
+        public async ValueTask<Result> AfterExecutionAsync
             (IJobContext context, Result jobResult, CancellationToken ct = default)
         {
-            _nonConcurrentState.SetFinished();
-            return _underlyingTrigger.AfterExecutionAsync(context, jobResult, ct);
+            await _nonConcurrentState.SetFinishedAsync();
+            return await _underlyingTrigger.AfterExecutionAsync(context, jobResult, ct);
         }
 
         /// <inheritdoc />
-        public bool ShouldBeExecuted()
-        {
-            if (_nonConcurrentState.IsRunning())
-            {
-                return false;
-            }
-
-            return _underlyingTrigger.ShouldBeExecuted();
-        }
+        public async ValueTask<bool> CanBeExecutedAsync() => !await _nonConcurrentState.IsRunningAsync();
 
         /// <inheritdoc />
-        public bool CanBeDeleted() => _underlyingTrigger.CanBeDeleted();
+        public async ValueTask RegisterReadyCallbackAsync
+            (Func<Task> readyTask) => await _nonConcurrentState.RegisterCallbackAsync(this, readyTask);
+
+        /// <inheritdoc />
+        public DateTimeOffset? NextFireDate => _underlyingTrigger.NextFireDate;
 
         /// <summary>
         /// State of <see cref="NonConcurrentTrigger"/> to distinguish what jobs are non concurrent.
         /// </summary>
         public class State
         {
-            private readonly object _lock = new object();
+            private readonly AsyncLock _lock = new AsyncLock();
+
+            private List<(object Owner, Func<Task> Action)> _callbacks =
+                new List<(object Owner, Func<Task> Action)>();
+
             private bool _running;
 
             /// <summary>
             /// Sets the state to running.
             /// </summary>
             /// <returns>Whether the state could be set, false if already running.</returns>
-            public bool SetRunning()
+            public async Task<bool> SetRunningAsync()
             {
-                lock (_lock)
+                using (await _lock.LockAsync())
                 {
                     var currentlyRunning = _running;
                     _running = true;
                     return !currentlyRunning;
                 }
-
             }
 
             /// <summary>
             /// Sets the state to finished.
             /// </summary>
-            public void SetFinished()
+            /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+            public async Task SetFinishedAsync()
             {
-                lock (_lock)
+                using (await _lock.LockAsync())
                 {
+                    if (_callbacks.Count > 0)
+                    {
+                        var first = _callbacks.First();
+                        await first.Action.Invoke();
+                        _callbacks.RemoveAt(0);
+                    }
+
                     _running = false;
                 }
             }
@@ -105,11 +114,45 @@ namespace Christofel.Scheduler.Triggers
             /// Gets if the task is running.
             /// </summary>
             /// <returns>Whether the task with the given state is running.</returns>
-            public bool IsRunning()
+            public async Task<bool> IsRunningAsync()
             {
-                lock (_lock)
+                using (await _lock.LockAsync())
                 {
                     return _running;
+                }
+            }
+
+            /// <summary>
+            /// Registers the given callback to be called when the state is released.
+            /// </summary>
+            /// <param name="owner">The owner of the callback.</param>
+            /// <param name="callback">The callback to be called.</param>
+            /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+            public async Task RegisterCallbackAsync(object owner, Func<Task> callback)
+            {
+                using (await _lock.LockAsync())
+                {
+                    if (!_running)
+                    {
+                        await callback.Invoke();
+                    }
+                    else
+                    {
+                        bool any = false;
+                        foreach (var x in _callbacks)
+                        {
+                            if (x.Owner == owner)
+                            {
+                                any = true;
+                                break;
+                            }
+                        }
+
+                        if (!any)
+                        {
+                            _callbacks.Add((owner, callback));
+                        }
+                    }
                 }
             }
         }

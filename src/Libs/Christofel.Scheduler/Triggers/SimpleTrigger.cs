@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Scheduler.Abstractions;
@@ -16,12 +17,10 @@ namespace Christofel.Scheduler.Triggers
     /// </summary>
     public class SimpleTrigger : ITrigger
     {
-        private bool _executed;
-
         /// <inheritdoc />
         public ValueTask<Result> BeforeExecutionAsync(IJobContext context, CancellationToken ct = default)
         {
-            _executed = true;
+            NextFireDate = null;
             return ValueTask.FromResult(Result.FromSuccess());
         }
 
@@ -31,9 +30,12 @@ namespace Christofel.Scheduler.Triggers
             => ValueTask.FromResult<Result>(Result.FromSuccess());
 
         /// <inheritdoc />
-        public bool ShouldBeExecuted() => !_executed;
+        public ValueTask<bool> CanBeExecutedAsync() => ValueTask.FromResult(true);
 
         /// <inheritdoc />
-        public bool CanBeDeleted() => _executed;
+        public ValueTask RegisterReadyCallbackAsync(Func<Task> readyTask) => ValueTask.CompletedTask;
+
+        /// <inheritdoc />
+        public DateTimeOffset? NextFireDate { get; private set; } = DateTimeOffset.UtcNow;
     }
 }
