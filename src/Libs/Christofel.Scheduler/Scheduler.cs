@@ -69,5 +69,46 @@ namespace Christofel.Scheduler
 
             return addedResult;
         }
+
+        /// <inheritdoc />
+        public async ValueTask<Result<IJobDescriptor>> RescheduleAsync
+            (JobKey jobKey, ITrigger newTrigger, CancellationToken ct = default)
+        {
+            var jobResult = await _jobStore.GetJobAsync(jobKey);
+            if (!jobResult.IsSuccess)
+            {
+                return jobResult;
+            }
+
+            var removedResult = await _jobStore.RemoveJobAsync(jobKey);
+            if (!removedResult.IsSuccess)
+            {
+                return Result<IJobDescriptor>.FromError(removedResult);
+            }
+
+            var addedResult = await _jobStore.AddJobAsync(jobResult.Entity.JobData, newTrigger);
+            if (addedResult.IsSuccess)
+            {
+                await _schedulerThread.NotificationBroker.ChangedJobs.NotifyAsync(addedResult.Entity);
+            }
+            else
+            { // Unfortunately we have to report that the job was removed at this point.
+                await _schedulerThread.NotificationBroker.RemoveJobs.NotifyAsync(jobKey);
+            }
+
+            return addedResult;
+        }
+
+        /// <inheritdoc />
+        public async ValueTask<Result> UnscheduleAsync(JobKey jobKey, CancellationToken ct = default)
+        {
+            var removedResult = await _jobStore.RemoveJobAsync(jobKey);
+            if (removedResult.IsSuccess)
+            {
+                await _schedulerThread.NotificationBroker.RemoveJobs.NotifyAsync(jobKey);
+            }
+
+            return removedResult;
+        }
     }
 }

@@ -32,6 +32,13 @@ namespace Christofel.Scheduler.Abstractions
         public ValueTask<Result> RemoveJobAsync(JobKey jobKey);
 
         /// <summary>
+        /// Gets the specified job from the store.
+        /// </summary>
+        /// <param name="jobKey">The key of the job to be removed.</param>
+        /// <returns>A result that may not have succeeded.</returns>
+        public ValueTask<Result<IJobDescriptor>> GetJobAsync(JobKey jobKey);
+
+        /// <summary>
         /// Returns all the job that should fire till the specified date.
         /// </summary>
         /// <param name="till">The date till to find jobs.</param>
@@ -42,6 +49,6 @@ namespace Christofel.Scheduler.Abstractions
         /// Enumerates all of the jobs that are available.
         /// </summary>
         /// <returns>A result that may not have succeeded.</returns>
-        public IReadOnlyList<IJobDescriptor> GetAllJobs();
+        public IReadOnlyCollection<IJobDescriptor> GetAllJobs();
     }
 }

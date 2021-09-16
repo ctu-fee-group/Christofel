@@ -49,7 +49,6 @@ namespace Christofel.Scheduler.Abstractions
         /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public ValueTask<Result<IJobDescriptor>> ScheduleAsync(IJobData job, ITrigger trigger, CancellationToken ct = default);
 
-        /*
         /// <summary>
         /// Reschedules job with the given key to use the new trigger.
         /// </summary>
@@ -69,6 +68,5 @@ namespace Christofel.Scheduler.Abstractions
         /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>A <see cref="Task"/> that represents the asynchronous operation.</returns>
         public ValueTask<Result> UnscheduleAsync(JobKey jobKey, CancellationToken ct = default);
-        */
     }
 }
