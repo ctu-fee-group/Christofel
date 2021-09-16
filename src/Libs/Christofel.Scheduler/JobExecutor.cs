@@ -66,6 +66,8 @@ namespace Christofel.Scheduler
             if (!beforeEventResult.IsSuccess)
             {
                 _logger.LogResult(beforeEventResult, "Before execution events failed");
+                await _eventExecutors.ExecuteAfterExecutionAsync(services, jobContext, beforeEventResult, ct);
+                return Result<IJobContext>.FromError(beforeEventResult);
             }
 
             var result = await _threadScheduler.ScheduleExecutionAsync
