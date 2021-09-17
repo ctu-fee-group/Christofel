@@ -104,6 +104,7 @@ namespace Christofel.Api
             services
                 .AddSchedulerJob<CtuAuthAssignRoleJob>()
                 .AddSchedulerJob<CtuAuthNicknameSetJob>()
+                .AddSchedulerJob<CtuAuthWarnMessageJob>()
                 .AddSingleton<NonConcurrentTrigger.State>()
                 .AddScoped<IJobRecoverService<CtuAuthAssignRoleJob>, AssignRoleEntityRecoverableService>();
 
