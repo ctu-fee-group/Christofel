@@ -8,9 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Jobs;
 using Christofel.Api.Ctu.Resolvers;
-using Christofel.Scheduler;
-using Christofel.Scheduler.Abstractions;
-using Christofel.Scheduler.Triggers;
+using Christofel.Scheduling;
+using Christofel.Scheduling.Triggers;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 

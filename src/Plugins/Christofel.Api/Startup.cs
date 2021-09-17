@@ -26,6 +26,9 @@ using Christofel.Helpers.JobQueue;
 using Christofel.OAuth;
 using Christofel.Scheduler.Recoverable;
 using Christofel.Scheduler.Triggers;
+using Christofel.Helpers.Scheduler;
+using Christofel.Scheduling.Recoverable;
+using Christofel.Scheduling.Triggers;
 using Kos;
 using Kos.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -139,7 +142,6 @@ namespace Christofel.Api
                 .AddSingleton<CtuAuthRoleAssignService>();
             // scheduler
             services
-                .AddPluginScheduler()
                 .AddSchedulerJob<CtuAuthAssignRoleJob>()
                 .AddSchedulerJob<CtuAuthNicknameSetJob>()
                 .AddSingleton<NonConcurrentTrigger.State>()
