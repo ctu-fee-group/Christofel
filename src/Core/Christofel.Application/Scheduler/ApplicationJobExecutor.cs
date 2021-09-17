@@ -9,10 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib;
 using Christofel.BaseLib.Plugins;
+using Christofel.Common;
 using Christofel.Plugins;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
 using Remora.Results;
 
 namespace Christofel.Application.Scheduler

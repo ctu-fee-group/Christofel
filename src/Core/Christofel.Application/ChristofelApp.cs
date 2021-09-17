@@ -30,8 +30,8 @@ using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Christofel.Remora;
-using Christofel.Scheduler.Abstractions;
-using Christofel.Scheduler.Extensions;
+using Christofel.Scheduling;
+using Christofel.Scheduling.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,6 +94,7 @@ namespace Christofel.Application
             get
             {
                 yield return Services.GetRequiredService<PluginAutoloader>();
+                yield return Services.GetRequiredService<ApplicationScheduler>();
                 yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
             }
         }
@@ -143,7 +144,13 @@ namespace Christofel.Application
                 // plugins
                 .AddPlugins()
                 .AddStateful<PluginAutoloader>(ServiceLifetime.Transient)
-                .AddRuntimePlugins<IChristofelState, IPluginContext>()
+                .AddRuntimePlugins<IChristofelState, PluginContext>()
+
+                // scheduler
+                .AddScheduler()
+                .AddStateful<ApplicationScheduler>()
+                .Replace(ServiceDescriptor.Singleton<IScheduler>(p => p.GetRequiredService<ApplicationScheduler>()))
+                .Replace(ServiceDescriptor.Singleton<IJobExecutor, ApplicationJobExecutor>())
 
                 // config
                 .AddSingleton<IConfiguration>(_configuration)
