@@ -250,6 +250,7 @@ namespace Christofel.Plugins.Services
 
                 var attached = new AttachedPlugin(rawPlugin, assembly);
                 _logger.LogDebug(@"Initialization started");
+                _storage.AddAttachedPlugin(attached);
 
                 try
                 {
@@ -258,7 +259,9 @@ namespace Christofel.Plugins.Services
                 catch (Exception e)
                 {
                     _logger.LogError(e, $"Could not initialize plugin {attached}");
-                    _assemblyService.UnloadPlugin(attached, new DetachedPlugin(attached));
+                    var detached = attached.DetachedPlugin = new DetachedPlugin(attached);
+                    _assemblyService.UnloadPlugin(attached, detached);
+                    _storage.DetachAttachedPlugin(attached);
                     throw;
                 }
 
