@@ -32,6 +32,7 @@ namespace Christofel.Helpers.Scheduler
             .AddSingleton<SchedulerEventExecutors>()
             .AddSingleton<PluginJobsRepository>(p => p.GetRequiredService<IOptions<PluginJobsRepository>>().Value)
             .AddStateful<PluginScheduling>(ServiceLifetime.Transient)
+            .AddJobListener<LoggingJobListener>()
             .AddSingleton<IScheduler>(applicationScheduler);
 
         /// <summary>
