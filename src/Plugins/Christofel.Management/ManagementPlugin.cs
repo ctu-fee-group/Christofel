@@ -77,7 +77,7 @@ namespace Christofel.Management
                 .AddPluginScheduler(State.Scheduler)
                 .AddSchedulerJob<SlowmodeDisableJob>()
                 .AddSchedulerJob<RemoveOldUsersJob>()
-                .AddSingleton<CronJobs>()
+                .AddStateful<CronJobs>(ServiceLifetime.Transient)
 
                 // Databases
                 .AddChristofelDatabase(State)
