@@ -19,8 +19,9 @@ using Christofel.Api.OAuth;
 using Christofel.Api.Services;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
-using Christofel.Scheduler.Recoverable;
-using Christofel.Scheduler.Triggers;
+using Christofel.Helpers.Scheduler;
+using Christofel.Scheduling.Recoverable;
+using Christofel.Scheduling.Triggers;
 using Kos;
 using Kos.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -101,7 +102,6 @@ namespace Christofel.Api
             services
                 .Configure<WarnOptions>(_configuration.GetSection("Auth"));
             services
-                .AddPluginScheduler()
                 .AddSchedulerJob<CtuAuthAssignRoleJob>()
                 .AddSchedulerJob<CtuAuthNicknameSetJob>()
                 .AddSingleton<NonConcurrentTrigger.State>()

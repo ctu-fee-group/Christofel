@@ -7,10 +7,12 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.Common.Database;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Christofel.Logger;
 using Christofel.Plugins.Lifetime;
+using Christofel.Scheduling.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -148,19 +150,12 @@ namespace Christofel.Api
                         services
                             .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>();
 
+                        services
+                            .AddScheduler();
+
                         // Database
                         services
-                            .AddDbContextFactory<ChristofelBaseContext>
-                            (
-                                options =>
-                                    options
-                                        .UseMySql
-                                        (
-                                            configuration.GetConnectionString("ChristofelBase"),
-                                            ServerVersion.AutoDetect
-                                                (configuration.GetConnectionString("ChristofelBase"))
-                                        )
-                            )
+                            .AddChristofelDbContextFactory<ChristofelBaseContext>(configuration)
                             .AddTransient
                             (
                                 p =>
