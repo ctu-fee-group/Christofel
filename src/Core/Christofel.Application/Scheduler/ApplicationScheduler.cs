@@ -8,30 +8,27 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Plugins.Runtime;
-using Christofel.Scheduler;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Application.Scheduler
 {
-    /// <inheritdoc cref="Christofel.Scheduler.Scheduler" />
-    public class ApplicationScheduler : Christofel.Scheduler.Scheduler, IStartable, IStoppable
+    /// <inheritdoc cref="Scheduling.Scheduler" />
+    public class ApplicationScheduler : Scheduling.Scheduler, IStartable, IStoppable
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationScheduler"/> class.
         /// </summary>
         /// <param name="jobStore">The store of the jobs.</param>
-        /// <param name="listeners">The listeners that should be fired on events.</param>
-        /// <param name="jobThreadScheduler">The scheduler of threads.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="executor">The executor.</param>
         public ApplicationScheduler
         (
             IJobStore jobStore,
-            IEnumerable<IJobListener> listeners,
-            IJobThreadScheduler jobThreadScheduler,
-            ILogger<SchedulerThread> logger
+            ILogger<SchedulerThread> logger,
+            IJobExecutor executor
         )
-            : base(jobStore, listeners, jobThreadScheduler, logger)
+            : base(jobStore, logger, executor)
         {
         }
 
