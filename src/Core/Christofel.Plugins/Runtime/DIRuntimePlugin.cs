@@ -33,17 +33,17 @@ namespace Christofel.Plugins.Runtime
         /// <summary>
         /// Entities that will have <see cref="IRefreshable.RefreshAsync"/>> called on <see cref="RefreshAsync(CancellationToken)"/> call.
         /// </summary>
-        protected abstract IEnumerable<IRefreshable> Refreshable { get; }
+        protected virtual IEnumerable<IRefreshable> Refreshable => Services.GetServices<IRefreshable>();
 
         /// <summary>
         /// Entities that will have <see cref="IStoppable.StopAsync"/>> called on <see cref="StopAsync(CancellationToken)"/> call.
         /// </summary>
-        protected abstract IEnumerable<IStoppable> Stoppable { get; }
+        protected virtual IEnumerable<IStoppable> Stoppable => Services.GetServices<IStoppable>();
 
         /// <summary>
         /// Entities that will have <see cref="IStartable.StartAsync"/>> called on <see cref="RunAsync(CancellationToken)"/> call.
         /// </summary>
-        protected abstract IEnumerable<IStartable> Startable { get; }
+        protected virtual IEnumerable<IStartable> Startable => Services.GetServices<IStartable>();
 
         /// <summary>
         /// Handler of the lifetime of this plugin.
