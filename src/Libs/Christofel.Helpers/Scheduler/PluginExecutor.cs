@@ -8,12 +8,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Plugins.Lifetime;
-using Christofel.Scheduler;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 
-namespace Christofel.BaseLib.Implementations.Scheduler
+namespace Christofel.Helpers.Scheduler
 {
     /// <summary>
     /// Job executor for plugins that allows only types that should be handled by the plugin.
