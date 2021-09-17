@@ -13,6 +13,8 @@ using Christofel.BaseLib;
 using Christofel.BaseLib.Plugins;
 using Christofel.Plugins;
 using Christofel.Scheduler.Abstractions;
+using Christofel.Plugins.Data;
+using Christofel.Scheduling;
 using Remora.Results;
 
 namespace Christofel.Application.Scheduler
@@ -37,25 +39,25 @@ namespace Christofel.Application.Scheduler
         public async Task<Result<IJobContext>> BeginExecutionAsync
         (
             IJobDescriptor jobDescriptor,
-            Func<IJobDescriptor, Task> afterExecutionCallback,
+            Func<IJobDescriptor, Result, Task> afterExecutionCallback,
             CancellationToken ct = default
         )
         {
             var errors = new List<IResult>();
-            foreach (var plugin in _pluginStorage.AttachedPlugins
-                .Select(x => x.Plugin)
-                .OfType<IRuntimePlugin<IChristofelState, PluginContext>>())
+            foreach (AttachedPlugin attachedPlugin in _pluginStorage.AttachedPlugins)
             {
-                if (plugin.Context.SchedulerJobExecutor is not null)
+                if (attachedPlugin.Plugin is IRuntimePlugin<IChristofelState, PluginContext> plugin)
                 {
-                    var executionResult = await plugin.Context.SchedulerJobExecutor.BeginExecutionAsync
-                        (jobDescriptor, afterExecutionCallback, ct);
-                    if (executionResult.IsSuccess)
+                    if (plugin.Context.SchedulerJobExecutor is not null)
                     {
-                        return executionResult;
-                    }
+                        var executionResult = await plugin.Context.SchedulerJobExecutor.BeginExecutionAsync(jobDescriptor, afterExecutionCallback, ct);
+                        if (executionResult.IsSuccess)
+                        {
+                            return executionResult;
+                        }
 
-                    errors.Add(executionResult);
+                        errors.Add(executionResult);
+                    }
                 }
             }
 
