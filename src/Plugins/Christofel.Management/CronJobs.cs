@@ -9,9 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Management.Jobs;
 using Christofel.Plugins.Runtime;
-using Christofel.Scheduler;
-using Christofel.Scheduler.Abstractions;
-using Christofel.Scheduler.Triggers;
+using Christofel.Scheduling;
+using Christofel.Scheduling.Triggers;
 using Microsoft.Extensions.Logging;
 
 namespace Christofel.Management

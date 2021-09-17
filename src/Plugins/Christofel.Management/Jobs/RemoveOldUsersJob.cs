@@ -5,12 +5,11 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Database;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Common.Database;
+using Christofel.Scheduling;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 

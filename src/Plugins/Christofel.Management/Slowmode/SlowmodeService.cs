@@ -12,6 +12,8 @@ using Christofel.BaseLib.Extensions;
 using Christofel.Helpers.Storages;
 using Christofel.Management.Database;
 using Christofel.Management.Database.Models;
+using Christofel.Scheduling;
+using Christofel.Scheduling.Triggers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
@@ -28,6 +30,7 @@ namespace Christofel.Management.Slowmode
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDbContextFactory<ManagementContext> _dbContextFactory;
         private readonly ILogger _logger;
+        private readonly IScheduler _scheduler;
         private readonly IThreadSafeStorage<RegisteredTemporalSlowmode> _slowmodeStorage;
 
         /// <summary>
@@ -37,15 +40,18 @@ namespace Christofel.Management.Slowmode
         /// <param name="channelApi">The channel api.</param>
         /// <param name="slowmodeStorage">The thread-safe storage of the temporal slowmodes.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="scheduler">The scheduler.</param>
         public SlowmodeService
         (
             IDbContextFactory<ManagementContext> dbContextFactory,
             IDiscordRestChannelAPI channelApi,
             IThreadSafeStorage<RegisteredTemporalSlowmode> slowmodeStorage,
-            ILogger<SlowmodeService> logger
+            ILogger<SlowmodeService> logger,
+            IScheduler scheduler
         )
         {
             _logger = logger;
+            _scheduler = scheduler;
             _channelApi = channelApi;
             _dbContextFactory = dbContextFactory;
             _slowmodeStorage = slowmodeStorage;
@@ -110,7 +116,7 @@ namespace Christofel.Management.Slowmode
             foreach (var matchingSlowmode in matchingSlowmodes)
             {
                 unregistered = true;
-                matchingSlowmode.CancellationTokenSource.Cancel();
+                await _scheduler.UnscheduleAsync(matchingSlowmode.JobDescriptor.Key, ct);
                 _slowmodeStorage.Remove(matchingSlowmode);
 
                 dbContext.Remove(matchingSlowmode.TemporalSlowmodeEntity);
@@ -159,7 +165,7 @@ namespace Christofel.Management.Slowmode
             dbContext.Add(temporalSlowmodeEntity);
             await dbContext.SaveChangesAsync(ct);
 
-            return RegisterDisableHandler(temporalSlowmodeEntity);
+            return await RegisterDisableHandlerAsync(temporalSlowmodeEntity, ct);
         }
 
         /// <summary>
@@ -172,7 +178,7 @@ namespace Christofel.Management.Slowmode
             foreach (var registeredTemporalSlowmode in _slowmodeStorage.Data)
             {
                 canceled++;
-                registeredTemporalSlowmode.CancellationTokenSource.Cancel();
+                _scheduler.UnscheduleAsync(registeredTemporalSlowmode.JobDescriptor.Key);
             }
 
             return canceled;
@@ -182,21 +188,22 @@ namespace Christofel.Management.Slowmode
         /// Registers task for the temporal slowmode.
         /// </summary>
         /// <param name="temporalSlowmodeEntity">The entity that represents the slowmode to be registered.</param>
+        /// <param name="ct">The cancellation token for the operation.</param>
         /// <returns>Information about the registered slowmode.</returns>
-        public RegisteredTemporalSlowmode RegisterDisableHandler(TemporalSlowmode temporalSlowmodeEntity)
+        public async Task<RegisteredTemporalSlowmode> RegisterDisableHandlerAsync(TemporalSlowmode temporalSlowmodeEntity, CancellationToken ct)
         {
             var jobData = new TypedJobData<SlowmodeDisableJob>
-                    (new JobKey("TemporalSlowmode", temporalSlowmode.ChannelId.ToString()))
-                .AddData("Data", temporalSlowmode);
+                    (new JobKey("TemporalSlowmode", temporalSlowmodeEntity.ChannelId.ToString()))
+                .AddData("Data", temporalSlowmodeEntity);
 
-            var trigger = new DelayedTrigger(temporalSlowmode.DeactivationDate);
+            var trigger = new DelayedTrigger(temporalSlowmodeEntity.DeactivationDate);
             var jobDescriptorResult = await _scheduler.ScheduleAsync(jobData, trigger, ct);
             if (!jobDescriptorResult.IsSuccess)
             {
                 throw new Exception(jobDescriptorResult.Error.Message);
             }
 
-            return registeredTemporalSlowmode;
+            return new RegisteredTemporalSlowmode(temporalSlowmodeEntity, jobDescriptorResult.Entity);
         }
     }
 }
