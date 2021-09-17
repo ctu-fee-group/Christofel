@@ -106,6 +106,7 @@ namespace Christofel.Api
                 .AddSchedulerJob<CtuAuthNicknameSetJob>()
                 .AddSchedulerJob<CtuAuthWarnMessageJob>()
                 .AddSingleton<NonConcurrentTrigger.State>()
+                .AddSingleton<AssignRoleRetryProvider>()
                 .AddScoped<IJobRecoverService<CtuAuthAssignRoleJob>, AssignRoleEntityRecoverableService>();
 
             // add CTU authentication process along with all the steps

@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Services;
 using Christofel.Scheduling;
 using Christofel.Scheduling.Recoverable;
+using Christofel.Scheduling.Retryable;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
@@ -20,7 +22,7 @@ namespace Christofel.Api.Ctu.Jobs
     /// <summary>
     /// Job that assigns or removes roles on the guild for the specified user.
     /// </summary>
-    public class CtuAuthAssignRoleJob : IDataJob<CtuAuthRoleAssign>
+    public class CtuAuthAssignRoleJob : IDataJob<CtuAuthRoleAssign>, IRetryableJob
     {
         private readonly IDiscordRestGuildAPI _guildApi;
         private readonly ILogger<CtuAuthAssignRoleJob> _logger;
@@ -31,17 +33,27 @@ namespace Christofel.Api.Ctu.Jobs
         /// <param name="data">The entity that is associated with this entity.</param>
         /// <param name="guildApi">The guild api.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="retryProvider">The retry provider.</param>
         public CtuAuthAssignRoleJob
-            (CtuAuthRoleAssign data, IDiscordRestGuildAPI guildApi, ILogger<CtuAuthAssignRoleJob> logger)
+        (
+            CtuAuthRoleAssign data,
+            IDiscordRestGuildAPI guildApi,
+            ILogger<CtuAuthAssignRoleJob> logger,
+            AssignRoleRetryProvider retryProvider
+        )
         {
             _logger = logger;
             _guildApi = guildApi;
             _logger = logger;
             Data = data;
+            ExternalRetryProvider = retryProvider;
         }
 
         /// <inheritdoc />
         public CtuAuthRoleAssign Data { get; set; }
+
+        /// <inheritdoc />
+        public IRetryProvider ExternalRetryProvider { get; }
 
         /// <inheritdoc />
         public async Task<Result> ExecuteAsync(IJobContext jobContext, CancellationToken ct = default)
