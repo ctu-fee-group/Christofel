@@ -55,24 +55,6 @@ namespace Christofel.Messages
         public override string Version => "v1.0.0";
 
         /// <inheritdoc />
-        protected override IEnumerable<IRefreshable> Refreshable
-        {
-            get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
-        }
-
-        /// <inheritdoc />
-        protected override IEnumerable<IStoppable> Stoppable
-        {
-            get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
-        }
-
-        /// <inheritdoc />
-        protected override IEnumerable<IStartable> Startable
-        {
-            get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
-        }
-
-        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
         /// <inheritdoc />

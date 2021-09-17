@@ -80,28 +80,6 @@ namespace Christofel.Application
         public override string Version => "v0.0.1";
 
         /// <inheritdoc />
-        protected override IEnumerable<IRefreshable> Refreshable
-        {
-            get
-            {
-                yield return this;
-                yield return Services.GetRequiredService<PluginAutoloader>();
-                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
-            }
-        }
-
-        /// <inheritdoc />
-        protected override IEnumerable<IStoppable> Stoppable
-        {
-            get
-            {
-                yield return this;
-                yield return Services.GetRequiredService<PluginAutoloader>();
-                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
-            }
-        }
-
-        /// <inheritdoc />
         protected override IEnumerable<IStartable> Startable => Enumerable.Empty<IStartable>();
 
         /// <summary>
@@ -160,7 +138,7 @@ namespace Christofel.Application
 
                 // plugins
                 .AddPlugins()
-                .AddTransient<PluginAutoloader>()
+                .AddStateful<PluginAutoloader>(ServiceLifetime.Transient)
                 .AddRuntimePlugins<IChristofelState, IPluginContext>()
 
                 // config

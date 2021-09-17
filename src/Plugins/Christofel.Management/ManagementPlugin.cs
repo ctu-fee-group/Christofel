@@ -19,6 +19,7 @@ using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
 using Christofel.Management.Slowmode;
+using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Christofel.Remora.Responders;
@@ -60,32 +61,6 @@ namespace Christofel.Management
         public override string Version => "v1.0.0";
 
         /// <inheritdoc />
-        protected override IEnumerable<IRefreshable> Refreshable
-        {
-            get { yield return Services.GetRequiredService<ChristofelCommandRegistrator>(); }
-        }
-
-        /// <inheritdoc />
-        protected override IEnumerable<IStoppable> Stoppable
-        {
-            get
-            {
-                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
-                yield return Services.GetRequiredService<SlowmodeAutorestore>();
-            }
-        }
-
-        /// <inheritdoc />
-        protected override IEnumerable<IStartable> Startable
-        {
-            get
-            {
-                yield return Services.GetRequiredService<ChristofelCommandRegistrator>();
-                yield return Services.GetRequiredService<SlowmodeAutorestore>();
-            }
-        }
-
-        /// <inheritdoc />
         protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
         /// <inheritdoc />
@@ -122,7 +97,7 @@ namespace Christofel.Management
                 .AddSingleton<IThreadSafeStorage<RegisteredTemporalSlowmode>,
                     ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
                 .AddTransient<SlowmodeService>()
-                .AddTransient<SlowmodeAutorestore>()
+                .AddStateful<SlowmodeAutorestore>(ServiceLifetime.Transient)
 
                 // Misc
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)

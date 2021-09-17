@@ -8,6 +8,7 @@ using Christofel.CommandsLib.ContextedParsers;
 using Christofel.CommandsLib.ExecutionEvents;
 using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
+using Christofel.Plugins;
 using Christofel.Plugins.Runtime;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Commands.Extensions;
@@ -47,7 +48,7 @@ namespace Christofel.CommandsLib.Extensions
             .AddSingleton<ChristofelSlashService>()
             .AddScoped<ValidationFeedbackService>()
             .AddTransient<ChristofelCommandPermissionResolver>()
-            .AddTransient<ChristofelCommandRegistrator>()
+            .AddStateful<ChristofelCommandRegistrator>(ServiceLifetime.Transient)
 
             // parsers
             .AddParser<ContextualUserParser>()
