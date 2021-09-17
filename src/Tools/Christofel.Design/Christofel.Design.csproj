@@ -6,7 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\libs\kos-api\src\Kos\Kos.csproj"/>
         <ProjectReference Include="..\..\Plugins\Christofel.Api\Christofel.Api.csproj"/>
         <ProjectReference Include="..\..\Core\Christofel.Application\Christofel.Application.csproj"/>
         <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj"/>
@@ -23,6 +22,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1"/>
+        <PackageReference Include="KosApi" Version="0.0.1"/>
     </ItemGroup>
 
 </Project>
