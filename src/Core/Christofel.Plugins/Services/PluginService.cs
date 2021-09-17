@@ -265,7 +265,6 @@ namespace Christofel.Plugins.Services
                     throw;
                 }
 
-                _storage.AddAttachedPlugin(attached);
                 _logger.LogInformation($@"Plugin {attached} was initialized successfully");
 
                 return attached;
