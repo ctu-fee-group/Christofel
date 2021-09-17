@@ -71,7 +71,7 @@ namespace Christofel.Management.Slowmode
                 }
                 else
                 {
-                    _slowmodeService.RegisterDisableHandler(matchingSlowmode);
+                    await _slowmodeService.RegisterDisableHandlerAsync(matchingSlowmode, token);
                     registeredCount++;
                 }
             }
