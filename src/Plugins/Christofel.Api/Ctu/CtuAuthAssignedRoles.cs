@@ -5,7 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
-using Christofel.BaseLib.Database.Models.Enums;
+using Christofel.Common.Database.Models.Enums;
 using Remora.Discord.Core;
 
 namespace Christofel.Api.Ctu

@@ -6,7 +6,7 @@
 
 using System.Threading;
 using Christofel.Api.OAuth;
-using Christofel.BaseLib.Database.Models;
+using Christofel.Common.Database.Models;
 using Moq;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth

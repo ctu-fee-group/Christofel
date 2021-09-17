@@ -5,10 +5,10 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Text.Json;
-using Christofel.BaseLib;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Discord;
-using Christofel.BaseLib.Permissions;
+using Christofel.Common;
+using Christofel.Common.Database;
+using Christofel.Common.Discord;
+using Christofel.Common.Permissions;
 using Christofel.Plugins.Lifetime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

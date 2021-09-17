@@ -7,9 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
+using Christofel.Common.Database.Models;
+using Christofel.Common.Database.Models.Enums;
 using OneOf;
 using Remora.Discord.API.Abstractions.Objects;
 

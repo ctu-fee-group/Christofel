@@ -4,7 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Christofel.BaseLib.User;
+using Christofel.Common.User;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth
 {

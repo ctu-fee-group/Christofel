@@ -9,7 +9,7 @@ namespace Christofel.ReactHandler.Migrations
     [DbContext(typeof(ReactHandlerContext))]
     partial class ReactHandlerContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc/ss
+        /// <inheritdoc/>
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

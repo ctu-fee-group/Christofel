@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 using Christofel.Api.GraphQL.Common;
-using Christofel.BaseLib.Database.Models;
+using Christofel.Common.Database.Models;
 
 namespace Christofel.Api.GraphQL.Authentication
 {

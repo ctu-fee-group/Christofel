@@ -4,7 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Christofel.BaseLib.Database.Models;
+using Christofel.Common.Database.Models;
 using HotChocolate.Types;
 
 namespace Christofel.Api.GraphQL.Types

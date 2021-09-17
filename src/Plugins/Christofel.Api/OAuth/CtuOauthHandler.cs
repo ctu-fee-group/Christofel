@@ -7,7 +7,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.User;
+using Christofel.Common.User;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;

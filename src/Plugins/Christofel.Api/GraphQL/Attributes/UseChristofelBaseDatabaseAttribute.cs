@@ -6,7 +6,7 @@
 
 using System.Reflection;
 using Christofel.Api.GraphQL.Extensions;
-using Christofel.BaseLib.Database;
+using Christofel.Common.Database;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 

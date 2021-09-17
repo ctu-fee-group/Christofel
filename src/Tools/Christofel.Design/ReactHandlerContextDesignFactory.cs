@@ -9,7 +9,6 @@ using Christofel.BaseLib.Extensions;
 using Christofel.ReactHandler.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Design

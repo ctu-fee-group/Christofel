@@ -6,8 +6,8 @@
 
 using System;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Database.Models;
+using Christofel.Common.Database;
+using Christofel.Common.Database.Models;
 using Remora.Discord.Core;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth

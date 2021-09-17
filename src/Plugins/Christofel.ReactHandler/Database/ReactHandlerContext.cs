@@ -5,7 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Linq;
-using Christofel.BaseLib.Database;
+using Christofel.Common.Database;
 using Christofel.ReactHandler.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Remora.Discord.Core;

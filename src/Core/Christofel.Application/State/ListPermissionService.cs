@@ -7,7 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Christofel.BaseLib.Permissions;
+using Christofel.Common.Permissions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Application.State

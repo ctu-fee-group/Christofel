@@ -8,7 +8,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Discord;
+using Christofel.Common.Discord;
 using Christofel.Plugins.Extensions;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
@@ -18,7 +18,7 @@ using Remora.Results;
 
 namespace Christofel.Application.State
 {
-    /// <inheritdoc cref="Christofel.BaseLib.Discord.IBot" />
+    /// <inheritdoc cref="Christofel.Common.Discord.IBot" />
     public class DiscordBot : IBot, IDisposable
     {
         private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();

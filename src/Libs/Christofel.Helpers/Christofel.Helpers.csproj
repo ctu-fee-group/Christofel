@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <Nullable>enable</Nullable>
+
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Core\Christofel.Common\Christofel.Common.csproj" />
+        <ProjectReference Include="..\..\Core\Christofel.Common\Christofel.Common.csproj" />
+        <ProjectReference Include="..\..\Core\Christofel.Remora.Plugins\Christofel.Remora.Plugins.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+        <PackageReference Include="Remora.Discord.Gateway" Version="4.0.5" />
+        <PackageReference Include="Remora.EntityFrameworkCore.Modular" Version="3.0.0" />
+    </ItemGroup>
+
+</Project>

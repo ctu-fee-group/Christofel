@@ -7,7 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.User;
+using Christofel.Common.User;
 using Kos.Abstractions;
 using Remora.Discord.API.Abstractions.Objects;
 using Usermap.Controllers;

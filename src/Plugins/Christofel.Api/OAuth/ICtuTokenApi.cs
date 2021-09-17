@@ -6,7 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.User;
+using Christofel.Common.User;
 
 namespace Christofel.Api.OAuth
 {

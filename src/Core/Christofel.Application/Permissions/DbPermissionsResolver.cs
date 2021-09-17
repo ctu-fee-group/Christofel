@@ -8,12 +8,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Database.Models.Enums;
 using Christofel.BaseLib.Extensions;
-using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
-using Christofel.BaseLib.Permissions;
+using Christofel.Common.Database;
+using Christofel.Common.Database.Models;
+using Christofel.Common.Database.Models.Enums;
+using Christofel.Common.Permissions;
+using Christofel.Helpers.ReadOnlyDatabase;
 using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.Application.Permissions

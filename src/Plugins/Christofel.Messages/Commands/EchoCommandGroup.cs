@@ -6,8 +6,8 @@
 
 using System.ComponentModel;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Implementations.Helpers;
 using Christofel.CommandsLib.Permissions;
+using Christofel.Helpers.Helpers;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;

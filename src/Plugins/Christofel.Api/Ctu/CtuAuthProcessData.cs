@@ -5,11 +5,9 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Database.Models.Enums;
-using Christofel.BaseLib.User;
+using Christofel.Common.Database;
+using Christofel.Common.Database.Models;
+using Christofel.Common.User;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Core;
 

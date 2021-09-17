@@ -13,7 +13,6 @@ using Christofel.Api.Ctu.JobQueue;
 using Kos;
 using Kos.Abstractions;
 using Microsoft.Extensions.Options;
-using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Tasks

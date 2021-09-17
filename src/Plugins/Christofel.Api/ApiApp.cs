@@ -7,8 +7,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Implementations.ReadOnlyDatabase;
+using Christofel.Common.Database;
+using Christofel.Helpers.ReadOnlyDatabase;
 using Christofel.Logger;
 using Christofel.Plugins.Lifetime;
 using Microsoft.AspNetCore.Hosting;

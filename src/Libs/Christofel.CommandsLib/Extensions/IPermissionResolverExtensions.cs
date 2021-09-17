@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Database.Models.Enums;
-using Christofel.BaseLib.Permissions;
+using Christofel.Common.Database.Models;
+using Christofel.Common.Database.Models.Enums;
+using Christofel.Common.Permissions;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
 

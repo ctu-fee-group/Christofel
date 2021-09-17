@@ -12,8 +12,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
-        <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj" />
+        <ProjectReference Include="..\..\Libs\Christofel.Helpers\Christofel.Helpers.csproj" />
+        <ProjectReference Include="..\..\Core\Christofel.Common\Christofel.Common.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
     </ItemGroup>
 

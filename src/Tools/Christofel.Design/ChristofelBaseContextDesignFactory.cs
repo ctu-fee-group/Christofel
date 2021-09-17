@@ -4,13 +4,11 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Christofel.Api.Ctu.Database;
 using Christofel.Application;
-using Christofel.BaseLib.Database;
 using Christofel.BaseLib.Extensions;
+using Christofel.Common.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Design

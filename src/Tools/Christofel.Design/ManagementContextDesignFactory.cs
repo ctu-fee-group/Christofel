@@ -9,7 +9,6 @@ using Christofel.BaseLib.Extensions;
 using Christofel.Management.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Christofel.Design
