@@ -27,6 +27,8 @@
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
         <PackageReference Include="Remora.Commands" Version="7.0.2" />
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+        <PackageReference Include="Christofel.Scheduling.Abstractions" Version="1.0.0" />
+        <PackageReference Include="Christofel.Scheduling" Version="0.0.1" />
         <PackageReference Include="KosApi" Version="0.0.1" />
     </ItemGroup>
 

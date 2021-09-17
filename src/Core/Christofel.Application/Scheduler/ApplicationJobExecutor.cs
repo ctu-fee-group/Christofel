@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Christofel.BaseLib;
 using Christofel.BaseLib.Plugins;
 using Christofel.Plugins;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
 using Remora.Results;
 
 namespace Christofel.Application.Scheduler

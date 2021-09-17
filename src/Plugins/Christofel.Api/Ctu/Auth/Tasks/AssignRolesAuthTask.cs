@@ -9,9 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Jobs;
-using Christofel.Scheduler;
-using Christofel.Scheduler.Abstractions;
-using Christofel.Scheduler.Recoverable;
+using Christofel.Scheduling;
+using Christofel.Scheduling;
+using Christofel.Scheduling.Recoverable;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 

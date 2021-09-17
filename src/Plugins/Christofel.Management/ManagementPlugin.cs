@@ -23,7 +23,7 @@ using Christofel.Management.Slowmode;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Christofel.Remora.Responders;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

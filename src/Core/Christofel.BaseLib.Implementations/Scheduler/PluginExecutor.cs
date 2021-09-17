@@ -8,8 +8,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Plugins.Lifetime;
-using Christofel.Scheduler;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
+using Christofel.Scheduling;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 

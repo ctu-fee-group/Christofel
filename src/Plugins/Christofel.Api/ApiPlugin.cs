@@ -14,7 +14,7 @@ using Christofel.BaseLib.Plugins;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Remora;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

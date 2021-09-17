@@ -6,7 +6,7 @@
 
 using System.Threading;
 using Christofel.Management.Database.Models;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
 
 namespace Christofel.Management.Slowmode
 {

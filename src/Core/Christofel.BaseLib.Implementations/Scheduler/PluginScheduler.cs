@@ -6,7 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Scheduler.Abstractions;
+using Christofel.Scheduling;
 using Remora.Results;
 
 namespace Christofel.BaseLib.Implementations.Scheduler
