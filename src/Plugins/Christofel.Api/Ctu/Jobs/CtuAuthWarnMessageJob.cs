@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Scheduling;
+using Christofel.Scheduling.Extensions;
 using Christofel.Scheduling.Recoverable;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
@@ -54,13 +55,15 @@ namespace Christofel.Api.Ctu.Jobs
             var dmResult = await _userApi.CreateDMAsync(Data.UserId, ct);
             if (!dmResult.IsSuccess)
             {
-                return Result.FromError(dmResult);
+                _logger.LogResult(dmResult, $"Could not create DM channel for <@{Data.UserId}> to warn him about his roles.");
+                return Result.FromSuccess();
             }
 
             var messageResult = await _channelApi.CreateMessageAsync(dmResult.Entity.ID, Data.Message, ct: ct);
             if (!messageResult.IsSuccess)
             {
-                return Result.FromError(messageResult);
+                _logger.LogResult(dmResult, $"Could not send message in DM channel for <@{Data.UserId}> to warn him about his roles.");
+                return Result.FromSuccess();
             }
 
             return Result.FromSuccess();
