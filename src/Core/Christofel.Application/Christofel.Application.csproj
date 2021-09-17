@@ -10,7 +10,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\libs\kos-api\src\Kos\Kos.csproj" />
         <ProjectReference Include="..\..\Core\Christofel.BaseLib.Implementations\Christofel.BaseLib.Implementations.csproj" />
         <ProjectReference Include="..\..\Core\Christofel.BaseLib\Christofel.BaseLib.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
@@ -28,6 +27,7 @@
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
         <PackageReference Include="Remora.Commands" Version="7.0.2" />
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+        <PackageReference Include="KosApi" Version="0.0.1" />
     </ItemGroup>
 
 </Project>
