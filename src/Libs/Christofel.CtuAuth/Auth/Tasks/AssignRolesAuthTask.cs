@@ -71,15 +71,11 @@ namespace Christofel.CtuAuth.Auth.Tasks
                 string.Join(", ", data.Roles.SoftRemoveRoles.Select(x => x.RoleId))
             );
 
-            // Save to cach
             var result = await _roleAssignService.SaveAndScheduleJobAsync
             (
                 _scheduler,
                 new TypedJobData<CtuAuthAssignRoleJob>
-                    (
-                        JobKeyUtils.GenerateRandom
-                            ("Auth", $"Assign roles to <@{data.LoadedUser.DiscordId.ToString()}> ")
-                    )
+                        (new JobKey("Auth", $"Assign roles to <@{data.LoadedUser.DiscordId.ToString()}> "))
                     .AddData
                     (
                         "Data",
