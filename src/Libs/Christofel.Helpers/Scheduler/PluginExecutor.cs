@@ -48,7 +48,7 @@ namespace Christofel.Helpers.Scheduler
 
         /// <inheritdoc />
         public override async Task<Result<IJobContext>> BeginExecutionAsync
-            (IJobDescriptor jobDescriptor, Func<IJobDescriptor, Task> afterExecutionCallback, CancellationToken ct)
+            (IJobDescriptor jobDescriptor, Func<IJobDescriptor, Result, Task> afterExecutionCallback, CancellationToken ct)
         {
             if (!_jobsRepository.ContainsType(jobDescriptor.JobData.JobType))
             {
