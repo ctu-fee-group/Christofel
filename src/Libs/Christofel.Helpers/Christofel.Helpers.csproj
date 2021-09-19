@@ -18,7 +18,7 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
         <PackageReference Include="Remora.Discord.Gateway" Version="7.0.1" />
         <PackageReference Include="Christofel.Scheduling.Abstractions" Version="1.2.0" />
-        <PackageReference Include="Christofel.Scheduling" Version="0.2.0" />
+        <PackageReference Include="Christofel.Scheduling" Version="0.2.1" />
     </ItemGroup>
 
 </Project>
