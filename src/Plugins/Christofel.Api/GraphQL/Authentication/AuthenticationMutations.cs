@@ -19,6 +19,7 @@ using Christofel.CtuAuth;
 using Christofel.CtuAuth.Auth;
 using Christofel.CtuAuth.Errors;
 using Christofel.OAuth;
+using Christofel.Scheduling.Extensions;
 using HotChocolate;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
