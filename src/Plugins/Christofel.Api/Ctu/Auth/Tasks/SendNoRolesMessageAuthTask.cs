@@ -63,13 +63,11 @@ namespace Christofel.Api.Ctu.Auth.Tasks
                 (kosStudent is null || kosStudent.StartDate > DateTime.Now.Subtract(TimeSpan.FromDays(5))))
             {
                 var jobData = new TypedJobData<CtuAuthWarnMessageJob>
-                    (
-                        JobKeyUtils.GenerateRandom
-                            ("Auth", $"Send warn message to <{data.LoadedUser.DiscordId.ToString()}> ")
-                    )
+                        (new JobKey("Auth", $"Send warn message to <{data.LoadedUser.DiscordId.ToString()}>"))
                     .AddData("Data", new CtuAuthWarnMessage(data.LoadedUser.DiscordId, _options.NoRolesMessage));
-                var scheduleResult = await _scheduler.ScheduleAsync
-                    (jobData, new NonConcurrentTrigger(new SimpleTrigger(), _ncState));
+
+                var scheduleResult = await _scheduler.ScheduleOrUpdateAsync
+                    (jobData, new NonConcurrentTrigger(new SimpleTrigger(), _ncState), ct);
                 if (!scheduleResult.IsSuccess)
                 {
                     return Result.FromError(scheduleResult);

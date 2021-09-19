@@ -76,11 +76,11 @@ namespace Christofel.Api.Ctu.Auth.Tasks
             }
 
             var jobData = new TypedJobData<CtuAuthNicknameSetJob>
-                    (new JobKey("Auth", $"Set nickname <@{data.DbUser.DiscordId}>"))
+                    (new JobKey("Auth", $"Set nickname <@{data.DbUser.DiscordId.ToString()}>"))
                 .AddData("Data", new CtuAuthNickname(data.DbUser.DiscordId, data.GuildId, nickname));
             var trigger = new NonConcurrentTrigger(new SimpleTrigger(), _ncState);
 
-            var result = await _scheduler.ScheduleAsync(jobData, trigger, ct);
+            var result = await _scheduler.ScheduleOrUpdateAsync(jobData, trigger, ct);
 
             return result.IsSuccess
                 ? Result.FromSuccess()

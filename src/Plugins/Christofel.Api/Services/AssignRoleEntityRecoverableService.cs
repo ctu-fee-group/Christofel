@@ -217,11 +217,26 @@ namespace Christofel.Api.Services
         /// <inheritdoc />
         protected override IJobData CreateJob
             (CtuAuthRoleAssign entity)
-            => new TypedJobData<CtuAuthAssignRoleJob>(JobKeyUtils.GenerateRandom("Auth", $"Assign roles to <@{entity.UserId.ToString()}> "))
+            => new TypedJobData<CtuAuthAssignRoleJob>
+                    (new JobKey("Auth", $"Assign roles to <@{entity.UserId.ToString()}>"))
                 .AddData("Data", entity);
 
         /// <inheritdoc />
         protected override ITrigger CreateTrigger(IJobData job)
             => new NonConcurrentTrigger(new SimpleTrigger(), _ncState);
+
+        /// <inheritdoc />
+        protected override async Task<Result<IJobDescriptor>> ScheduleJobAsync
+            (IScheduler scheduler, IJobData job, ITrigger trigger, CancellationToken ct = default)
+        {
+            var scheduleResult = await scheduler.ScheduleOrUpdateAsync(job, trigger, ct);
+            if (!scheduleResult.IsSuccess)
+            {
+                return scheduleResult;
+            }
+
+            await OnJobScheduled(scheduleResult.Entity);
+            return scheduleResult;
+        }
     }
 }
