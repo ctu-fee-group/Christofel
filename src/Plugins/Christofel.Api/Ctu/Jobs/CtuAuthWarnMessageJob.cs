@@ -62,7 +62,7 @@ namespace Christofel.Api.Ctu.Jobs
             var messageResult = await _channelApi.CreateMessageAsync(dmResult.Entity.ID, Data.Message, ct: ct);
             if (!messageResult.IsSuccess)
             {
-                _logger.LogResult(dmResult, $"Could not send message in DM channel for <@{Data.UserId}> to warn him about his roles.");
+                _logger.LogResult(messageResult, $"Could not send message in DM channel for <@{Data.UserId}> to warn him about his roles.");
                 return Result.FromSuccess();
             }
 
