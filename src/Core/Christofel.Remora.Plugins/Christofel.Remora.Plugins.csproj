@@ -1,17 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>Christofel.Remora</RootNamespace>
         <Nullable>enable</Nullable>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Remora.Discord.Gateway" Version="4.0.5"/>
+        <PackageReference Include="Remora.Discord.Gateway" Version="6.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Christofel.Plugins\Christofel.Plugins.csproj"/>
+        <ProjectReference Include="..\Christofel.Plugins\Christofel.Plugins.csproj" />
     </ItemGroup>
 
 </Project>
