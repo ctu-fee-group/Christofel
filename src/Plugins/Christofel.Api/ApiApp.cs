@@ -98,7 +98,7 @@ namespace Christofel.Api
                 }
             );
 
-            _logger.LogInformation("Hello world from ApiApp");
+            _logger?.LogInformation("Hello world from ApiApp");
             await _host.RunAsync();
         }
 

@@ -100,7 +100,7 @@ namespace Christofel.Application
         /// <inheritdoc />
         Task IRefreshable.RefreshAsync(CancellationToken token)
         {
-            _logger.LogInformation("Refreshing Christofel");
+            _logger?.LogInformation("Refreshing Christofel");
             _configuration.Reload();
             return Task.CompletedTask;
         }
@@ -108,7 +108,7 @@ namespace Christofel.Application
         /// <inheritdoc />
         Task IStoppable.StopAsync(CancellationToken token)
         {
-            _logger.LogInformation("Stopping Christofel");
+            _logger?.LogInformation("Stopping Christofel");
             return Task.CompletedTask;
         }
 
@@ -253,11 +253,11 @@ namespace Christofel.Application
                 try
                 {
                     await RunAsync(false, DeferStartable, _lifetimeHandler.Lifetime.Stopped);
-                    _logger.LogInformation("Christofel is ready!");
+                    _logger?.LogInformation("Christofel is ready!");
                 }
                 catch (Exception e)
                 {
-                    _logger.LogCritical(0, e, "Christofel threw an exception when Starting");
+                    _logger?.LogCritical(0, e, "Christofel threw an exception when Starting");
                     LifetimeHandler.MoveToError(e);
 
                     return new InvalidOperationError("Christofel could not start");

@@ -7,8 +7,8 @@
 using System.Linq;
 using Christofel.Common.Database;
 using Microsoft.EntityFrameworkCore;
-using Remora.Discord.Core;
 using Remora.EntityFrameworkCore.Modular;
+using Remora.Rest.Core;
 
 namespace Christofel.Api.Ctu.Database
 {
@@ -45,15 +45,15 @@ namespace Christofel.Api.Ctu.Database
         {
             modelBuilder.Entity<AssignRole>()
                 .Property(x => x.RoleId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
 
             modelBuilder.Entity<AssignRole>()
                 .Property(x => x.GuildDiscordId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
 
             modelBuilder.Entity<AssignRole>()
                 .Property(x => x.UserDiscordId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
         }
     }
 }

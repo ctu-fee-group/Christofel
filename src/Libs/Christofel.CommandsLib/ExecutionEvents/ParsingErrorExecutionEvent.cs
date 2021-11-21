@@ -76,7 +76,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
                                 Flags: InteractionCallbackDataFlags.Ephemeral
                             )
                         ),
-                        ct
+                        ct: ct
                     );
 
                     return result;

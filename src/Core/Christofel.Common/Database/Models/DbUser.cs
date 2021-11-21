@@ -10,7 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Christofel.Common.Database.Models.Abstractions;
 using Christofel.Common.User;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Common.Database.Models
 {

@@ -104,7 +104,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
                     interactionContext.ID,
                     interactionContext.Token,
                     new InteractionResponse(InteractionCallbackType.DeferredChannelMessageWithSource),
-                    ct
+                    ct: ct
                 );
 
                 if (!response.IsSuccess)

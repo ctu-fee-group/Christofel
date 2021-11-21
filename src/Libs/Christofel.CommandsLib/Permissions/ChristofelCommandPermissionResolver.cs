@@ -15,7 +15,7 @@ using Christofel.Common.Database.Models.Enums;
 using Christofel.Common.Permissions;
 using Remora.Commands.Trees.Nodes;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.CommandsLib.Permissions
 {

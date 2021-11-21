@@ -3,15 +3,15 @@
     <PropertyGroup>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <OutputType>Exe</OutputType>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>nullable</WarningsAsErrors>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\Libs\Christofel.Helpers\Christofel.Helpers.csproj" />
-        <ProjectReference Include="..\Christofel.Helpers\Christofel.Helpers.csproj" />
         <ProjectReference Include="..\Christofel.Common\Christofel.Common.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.Logger\Christofel.Logger.csproj" />
@@ -20,14 +20,14 @@
 
     <ItemGroup>
         <PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.2.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="5.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="5.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
-        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
-        <PackageReference Include="Remora.Commands" Version="7.0.2" />
-        <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
+        <PackageReference Include="Remora.Commands" Version="7.1.4" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
         <PackageReference Include="KosApi" Version="0.0.1" />
     </ItemGroup>
 

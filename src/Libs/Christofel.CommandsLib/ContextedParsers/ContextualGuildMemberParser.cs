@@ -15,7 +15,7 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Parsers;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.CommandsLib.ContextedParsers
@@ -70,6 +70,7 @@ namespace Christofel.CommandsLib.ContextedParsers
                     (
                         member.User,
                         member.Nickname,
+                        member.Avatar,
                         member.Roles,
                         member.JoinedAt,
                         member.PremiumSince,
@@ -98,7 +99,7 @@ namespace Christofel.CommandsLib.ContextedParsers
             if (retrievedMember is null)
             {
                 var parsed =
-                    await new GuildMemberParser(_commandContext, _channelApi, _guildApi).TryParseAsync(value, ct);
+                    await new GuildMemberParser(_commandContext, _guildApi).TryParseAsync(value, ct);
 
                 if (!parsed.IsSuccess)
                 {
@@ -109,6 +110,7 @@ namespace Christofel.CommandsLib.ContextedParsers
                 (
                     parsed.Entity.User,
                     parsed.Entity.Nickname,
+                    parsed.Entity.Avatar,
                     new Optional<IReadOnlyList<Snowflake>>(parsed.Entity.Roles),
                     parsed.Entity.JoinedAt,
                     parsed.Entity.PremiumSince,

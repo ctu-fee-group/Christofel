@@ -52,7 +52,7 @@ namespace Christofel.CommandsLib.Validator
                 Colour: _feedbackService.Theme.FaultOrDanger
             );
 
-            return _feedbackService.SendContextualEmbedAsync(embed, ct);
+            return _feedbackService.SendContextualEmbedAsync(embed, ct: ct);
         }
 
         private IEmbedField GetField

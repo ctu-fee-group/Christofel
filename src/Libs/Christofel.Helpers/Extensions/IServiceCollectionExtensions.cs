@@ -5,6 +5,8 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Net.Http;
+using System.Text.Json;
 using Christofel.Common;
 using Christofel.Common.Database;
 using Christofel.Helpers.ReadOnlyDatabase;
@@ -16,11 +18,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Services;
 using Remora.Discord.Rest;
 using Remora.Discord.Rest.API;
+using Remora.Discord.Rest.Extensions;
 using Remora.EntityFrameworkCore.Modular;
 using Remora.EntityFrameworkCore.Modular.Services;
+using Remora.Rest;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -38,22 +43,157 @@ namespace Christofel.BaseLib.Extensions
         public static IServiceCollection AddDiscordState
             (this IServiceCollection serviceCollection, IChristofelState state)
         {
-            serviceCollection.TryAddTransient<DiscordHttpClient>();
-            serviceCollection.TryAddTransient<IDiscordRestAuditLogAPI, DiscordRestAuditLogAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestChannelAPI, DiscordRestChannelAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestEmojiAPI, DiscordRestEmojiAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestGatewayAPI, DiscordRestGatewayAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestGuildAPI, DiscordRestGuildAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestInviteAPI, DiscordRestInviteAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestUserAPI, DiscordRestUserAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestVoiceAPI, DiscordRestVoiceAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestWebhookAPI, DiscordRestWebhookAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestTemplateAPI, DiscordRestTemplateAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestInteractionAPI, DiscordRestInteractionAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestApplicationAPI, DiscordRestApplicationAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestOAuth2API, DiscordRestOAuth2API>();
-            serviceCollection.TryAddTransient<IDiscordRestStageInstanceAPI, DiscordRestStageInstanceAPI>();
-            serviceCollection.TryAddTransient<IDiscordRestStickerAPI, DiscordRestStickerAPI>();
+            serviceCollection.Replace(ServiceDescriptor.Transient(s =>
+            {
+                var options = s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord");
+                var client = state.Bot.HttpClientFactory.CreateClient("RestHttpClient<RestError>");
+
+                return new RestHttpClient<RestError>(client, options);
+            }));
+            serviceCollection.TryAddTransient<IRestHttpClient>(s => s.GetRequiredService<RestHttpClient<RestError>>());
+            serviceCollection.TryAddTransient<IDiscordRestAuditLogAPI>
+            (
+                s => new DiscordRestAuditLogAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestChannelAPI>
+            (
+                s => new DiscordRestChannelAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestEmojiAPI>
+            (
+                s => new DiscordRestEmojiAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestGatewayAPI>
+            (
+                s => new DiscordRestGatewayAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestGuildAPI>
+            (
+                s => new DiscordRestGuildAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestGuildScheduledEventAPI>
+            (
+                s => new DiscordRestGuildScheduledEventAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestInviteAPI>
+            (
+                s => new DiscordRestInviteAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestUserAPI>
+            (
+                s => new DiscordRestUserAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestVoiceAPI>
+            (
+                s => new DiscordRestVoiceAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestWebhookAPI>
+            (
+                s => new DiscordRestWebhookAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestTemplateAPI>
+            (
+                s => new DiscordRestTemplateAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestInteractionAPI>
+            (
+                s => new DiscordRestInteractionAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestApplicationAPI>
+            (
+                s => new DiscordRestApplicationAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestOAuth2API>
+            (
+                s => new DiscordRestOAuth2API
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestStageInstanceAPI>
+            (
+                s => new DiscordRestStageInstanceAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
+
+            serviceCollection.TryAddTransient<IDiscordRestStickerAPI>
+            (
+                s => new DiscordRestStickerAPI
+                (
+                    s.GetRequiredService<IRestHttpClient>(),
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                )
+            );
 
             serviceCollection.TryAddSingleton<IResponderTypeRepository>
                 (s => s.GetRequiredService<IOptions<ResponderService>>().Value);

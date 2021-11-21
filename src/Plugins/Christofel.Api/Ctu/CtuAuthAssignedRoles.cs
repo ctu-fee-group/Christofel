@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 using Christofel.Common.Database.Models.Enums;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Api.Ctu
 {

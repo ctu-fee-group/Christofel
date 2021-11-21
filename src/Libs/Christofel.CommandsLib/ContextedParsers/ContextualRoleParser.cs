@@ -13,7 +13,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Parsers;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.CommandsLib.ContextedParsers
@@ -33,7 +33,6 @@ namespace Christofel.CommandsLib.ContextedParsers
     /// </remarks>
     public class ContextualRoleParser : AbstractTypeParser<IRole>
     {
-        private readonly IDiscordRestChannelAPI _channelApi;
         private readonly ICommandContext _commandContext;
         private readonly IDiscordRestGuildAPI _guildApi;
 
@@ -41,12 +40,10 @@ namespace Christofel.CommandsLib.ContextedParsers
         /// Initializes a new instance of the <see cref="ContextualRoleParser"/> class.
         /// </summary>
         /// <param name="commandContext">The context of the command.</param>
-        /// <param name="channelApi">The channel api.</param>
         /// <param name="guildApi">The guild api.</param>
         public ContextualRoleParser
-            (ICommandContext commandContext, IDiscordRestChannelAPI channelApi, IDiscordRestGuildAPI guildApi)
+            (ICommandContext commandContext, IDiscordRestGuildAPI guildApi)
         {
-            _channelApi = channelApi;
             _guildApi = guildApi;
             _commandContext = commandContext;
         }
@@ -69,7 +66,7 @@ namespace Christofel.CommandsLib.ContextedParsers
                     (new ParsingError<IRole>("Could not find specified role in resolved data"));
             }
 
-            return new RoleParser(_commandContext, _channelApi, _guildApi).TryParseAsync(value, ct);
+            return new RoleParser(_commandContext, _guildApi).TryParseAsync(value, ct);
         }
     }
 }

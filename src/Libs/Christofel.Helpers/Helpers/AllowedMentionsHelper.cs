@@ -6,7 +6,7 @@
 
 using System.Collections.Generic;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Helpers.Helpers
 {

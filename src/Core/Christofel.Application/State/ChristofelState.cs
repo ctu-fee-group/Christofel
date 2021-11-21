@@ -38,7 +38,7 @@ namespace Christofel.Application.State
             IPermissionService permissions,
             ILoggerFactory loggerFactory,
             IApplicationLifetime lifetime,
-            IOptions<JsonSerializerOptions> discordJsonOptions
+            IOptionsMonitor<JsonSerializerOptions> discordJsonOptions
         )
         {
             Bot = bot;
@@ -69,6 +69,6 @@ namespace Christofel.Application.State
         public IApplicationLifetime Lifetime { get; }
 
         /// <inheritdoc />
-        public IOptions<JsonSerializerOptions> DiscordJsonOptions { get; }
+        public IOptionsMonitor<JsonSerializerOptions> DiscordJsonOptions { get; }
     }
 }

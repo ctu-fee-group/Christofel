@@ -6,7 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.CommandsLib.Extensions
 {

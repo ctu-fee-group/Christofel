@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Conditions;
 using Remora.Discord.Commands.Contexts;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.CommandsLib.Permissions
