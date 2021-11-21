@@ -8,8 +8,8 @@ using System.Linq;
 using Christofel.Common.Database;
 using Christofel.ReactHandler.Database.Models;
 using Microsoft.EntityFrameworkCore;
-using Remora.Discord.Core;
 using Remora.EntityFrameworkCore.Modular;
+using Remora.Rest.Core;
 
 namespace Christofel.ReactHandler.Database
 {
@@ -46,15 +46,15 @@ namespace Christofel.ReactHandler.Database
         {
             modelBuilder.Entity<HandleReact>()
                 .Property(x => x.ChannelId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
 
             modelBuilder.Entity<HandleReact>()
                 .Property(x => x.EntityId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
 
             modelBuilder.Entity<HandleReact>()
                 .Property(x => x.MessageId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
         }
     }
 }

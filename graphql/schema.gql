@@ -9,14 +9,10 @@ interface Node {
 }
 
 type Mutation {
-  "Register using discord.\nThis should be first step of registration.\nSecond one is to register using CTU (registerCtu)."
-  registerDiscord("Input of the mutation" input: RegisterDiscordInput!): RegisterDiscordPayload!
-  "Register using CTU.\nThis should be second and last step of registration.\nThe first step is to register using Discord (registerDiscord)."
-  registerCtu("Input of the mutation" input: RegisterCtuInput!): RegisterCtuPayload!
-  "Register using CTU using access token. If you want to use oauth2, use registerCtu mutation.\nThis should be second and last step of registration.\nThe first step is to register using Discord (registerDiscord)."
-  registerCtuToken("Input of the mutation" input: RegisterCtuTokenInput!): RegisterCtuPayload!
-  "Verify specified registration code to know what stage\nof registration should be used (registerDiscord or registerCtu)"
-  verifyRegistrationCode("Input of the mutation" input: VerifyRegistrationCodeInput!): VerifyRegistrationCodePayload!
+  registerDiscord(input: RegisterDiscordInput!): RegisterDiscordPayload!
+  registerCtu(input: RegisterCtuInput!): RegisterCtuPayload!
+  registerCtuToken(input: RegisterCtuTokenInput!): RegisterCtuPayload!
+  verifyRegistrationCode(input: VerifyRegistrationCodeInput!): VerifyRegistrationCodePayload!
 }
 
 type Query {
@@ -24,99 +20,80 @@ type Query {
 }
 
 type RegisterCtuPayload {
-  "User filled with information that were obtained so far"
   user: User
-  "Validation errors in case that there are any"
   errors: [UserError!]!
 }
 
-"Result of registerDiscord mutation"
 type RegisterDiscordPayload {
-  "Information about the user.\nOnly userId, discordId and registrationCode are expected to be filled at this point"
   user: User
-  "Registration code used for the second step of the registration (registerCtu)"
   registrationCode: String!
-  "Validation errors in case that there are any"
   errors: [UserError!]!
 }
 
 "Database table that holds authenticated users\nor users in auth process."
 type User implements Node {
+  "Gets or sets the primary key of DbUser."
   id: ID!
-  "Id of the user on Discord"
+  "Gets Discord id of the user."
   discordId: UnsignedLong
-  createdAt: DateTime!
-  updatedAt: DateTime
-  "Last date of authentication"
+  "Gets or sets last date of authentication."
   authenticatedAt: DateTime
-  "CTU account username"
+  "Gets or sets CTU account username."
   ctuUsername: String
-  "When this user is a duplicity (DuplicitUser is not null)\nthen set this to true if this user is allowed to finish the auth process"
+  "Gets or sets whether the duplicity was approved."
   duplicityApproved: Boolean!
-  "Code used for registration purposes"
+  "Gets or sets code used for registration purposes."
   registrationCode: String
+  "Date and time of creation of the entity."
+  createdAt: DateTime!
+  "Date and time of update of the entity, set if the entity was updated."
+  updatedAt: DateTime
 }
 
-"Validation error"
 type UserError {
-  message: String!
   errorCode: UserErrorCode!
+  message: String!
 }
 
-"Result of verifyRegistration mutation"
 type VerifyRegistrationCodePayload {
-  "What step of the registration should be used"
   verificationStage: RegistrationCodeVerification!
-  "Validation errors in case that there are any"
   errors: [UserError!]!
 }
 
-"Input for registerCtu mutation.\n            \nOauthCode is the code obtained from oauth2.\nRedirect uri is the one passed to oauth2.\nRegistration code is obtained from the first step of the registration (registerDiscord)."
 input RegisterCtuInput {
   oauthCode: String!
   redirectUri: String!
   registrationCode: String!
 }
 
-"Input for registerCtuToken mutation.\n            \nAccess token to kos api and usermap api\nRegistration code is obtained from the first step of the registration (registerDiscord)."
 input RegisterCtuTokenInput {
   accessToken: String!
   registrationCode: String!
 }
 
-"Input for registerDiscord mutation.\n            \nOauthCode is the code obtained from oauth2.\nRedirect uri is the one passed to oauth2."
 input RegisterDiscordInput {
   oauthCode: String!
   redirectUri: String!
 }
 
-"Input of verifyRegistration mutation"
 input VerifyRegistrationCodeInput {
   registrationCode: String!
 }
 
 enum RegistrationCodeVerification {
-  "Code was not found, use registerDiscord"
   NOT_VALID
-  "Code was found and only discord was registered, use registerCtu"
   DISCORD_AUTHORIZED
-  "Code was found and both discord and ctu were linked.\nThe process was not finalized, maybe because of a duplicity.\nUse registerCtu"
   CTU_AUTHORIZED
-  "This code was already used for registration and the user was successfully authenticated.\nThis typically should not be returned as codes are removed after authentication is done"
   DONE
 }
 
 enum UserErrorCode {
-  "Error of unknown type that cannot be shown to the user"
   UNSPECIFIED
-  "Token was rejected (or 500 from oauth handler)"
   OAUTH_TOKEN_REJECTED
-  "User trying to authenticate is a rejected duplicate"
   REJECTED_DUPLICATE_USER
-  "The user trying to log in is not in the correct guild"
   USER_NOT_IN_GUILD
-  "The given registration is not valid"
   INVALID_REGISTRATION_CODE
+  SOFT_AUTH_ERROR
 }
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
@@ -131,5 +108,5 @@ directive @stream("If this argument label has a value other than null, it will b
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")
 
-"The UnsignedLong scalar type represents a unsigned 64-bit numeric non-fractional value greater than or equal to 0."
+"Snowflake ulong type"
 scalar UnsignedLong

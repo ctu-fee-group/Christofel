@@ -11,7 +11,7 @@ using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.CommandsLib
 {

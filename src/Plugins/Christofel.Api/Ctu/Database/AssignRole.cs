@@ -6,7 +6,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Api.Ctu.Database
 {

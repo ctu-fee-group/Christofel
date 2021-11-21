@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Christofel.Common.Database.Models.Enums;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Common.Database.Models
 {

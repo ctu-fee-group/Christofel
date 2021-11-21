@@ -9,7 +9,7 @@ using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
 using Christofel.Common.User;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Api.Ctu
 {

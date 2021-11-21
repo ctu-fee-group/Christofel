@@ -12,7 +12,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\Libs\Christofel.Helpers\Christofel.Helpers.csproj" />
-        <ProjectReference Include="..\Christofel.Helpers\Christofel.Helpers.csproj" />
         <ProjectReference Include="..\Christofel.Common\Christofel.Common.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.Logger\Christofel.Logger.csproj" />
@@ -27,7 +26,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
-        <PackageReference Include="Remora.Commands" Version="7.0.2" />
+        <PackageReference Include="Remora.Commands" Version="7.1.4" />
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
         <PackageReference Include="KosApi" Version="0.0.1" />
     </ItemGroup>

@@ -8,8 +8,8 @@ using System.Linq;
 using Christofel.Common.Database;
 using Christofel.Management.Database.Models;
 using Microsoft.EntityFrameworkCore;
-using Remora.Discord.Core;
 using Remora.EntityFrameworkCore.Modular;
+using Remora.Rest.Core;
 
 namespace Christofel.Management.Database
 {
@@ -46,11 +46,11 @@ namespace Christofel.Management.Database
         {
             modelBuilder.Entity<TemporalSlowmode>()
                 .Property(x => x.ChannelId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
 
             modelBuilder.Entity<TemporalSlowmode>()
                 .Property(x => x.UserId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
         }
     }
 }

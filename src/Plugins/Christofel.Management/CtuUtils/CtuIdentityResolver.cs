@@ -14,7 +14,7 @@ using Christofel.Common.Database.Models;
 using Christofel.Common.User;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Microsoft.EntityFrameworkCore;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Management.CtuUtils
 {

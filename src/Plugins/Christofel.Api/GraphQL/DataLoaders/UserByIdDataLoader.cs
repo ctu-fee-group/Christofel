@@ -12,7 +12,6 @@ using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
 using Christofel.Helpers.ReadOnlyDatabase;
 using GreenDonut;
-using HotChocolate.DataLoader;
 using Microsoft.EntityFrameworkCore;
 
 namespace Christofel.Api.GraphQL.DataLoaders
@@ -34,7 +33,7 @@ namespace Christofel.Api.GraphQL.DataLoaders
         (
             IBatchScheduler batchScheduler,
             ReadonlyDbContextFactory<ChristofelBaseContext> dbContextFactory,
-            DataLoaderOptions<int>? options = null
+            DataLoaderOptions? options = null
         )
             : base(batchScheduler, options)
         {

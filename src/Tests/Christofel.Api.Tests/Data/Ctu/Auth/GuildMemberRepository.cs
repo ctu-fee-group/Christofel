@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using Christofel.Common.Database.Models;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth
 {
@@ -25,6 +25,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
         public static GuildMember CreateDummyGuildMember(DbUser user) => new GuildMember
         (
             new User(user.DiscordId, "DummyUser", 1234, default),
+            default,
             default,
             new List<Snowflake>(),
             default,

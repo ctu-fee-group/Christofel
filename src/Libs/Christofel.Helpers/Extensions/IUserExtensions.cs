@@ -9,7 +9,7 @@ using System.Linq;
 using Christofel.Common.Database.Models;
 using Christofel.Common.Database.Models.Enums;
 using Remora.Discord.API.Abstractions.Objects;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.BaseLib.Extensions
 {

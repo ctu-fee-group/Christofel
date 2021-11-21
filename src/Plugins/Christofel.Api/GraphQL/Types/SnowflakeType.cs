@@ -7,7 +7,7 @@
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Api.GraphQL.Types
 {

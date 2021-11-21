@@ -6,7 +6,7 @@
 
 using Christofel.Common.Database.Models.Enums;
 using Microsoft.EntityFrameworkCore;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.Common.Database.Models
 {

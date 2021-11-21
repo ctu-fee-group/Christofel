@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using Christofel.Common.Database.Models;
 using Christofel.Common.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Remora.Discord.Core;
 using Remora.EntityFrameworkCore.Modular;
+using Remora.Rest.Core;
 
 namespace Christofel.Common.Database
 {
@@ -83,11 +83,11 @@ namespace Christofel.Common.Database
         {
             modelBuilder.Entity<DbUser>()
                 .Property(x => x.DiscordId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
 
             modelBuilder.Entity<RoleAssignment>()
                 .Property(x => x.RoleId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v));
+                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
 
             modelBuilder.Entity<PermissionAssignment>()
                 .OwnsOne
@@ -95,7 +95,7 @@ namespace Christofel.Common.Database
                     x => x.Target,
                     b => b
                         .Property(x => x.DiscordId)
-                        .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v))
+                        .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0))
                 );
 
             modelBuilder.Entity<DbUser>()

@@ -26,7 +26,7 @@ using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.Management.Commands
@@ -403,7 +403,7 @@ namespace Christofel.Management.Commands
                         {
                             // TODO: group to one message?
                             var result =
-                                await _feedbackService.SendContextualEmbedAsync(embed, CancellationToken);
+                                await _feedbackService.SendContextualEmbedAsync(embed, ct: CancellationToken);
                             if (!result.IsSuccess)
                             {
                                 return Result.FromError(result);

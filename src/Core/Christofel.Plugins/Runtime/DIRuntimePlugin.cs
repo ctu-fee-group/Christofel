@@ -442,7 +442,7 @@ namespace Christofel.Plugins.Runtime
                 try
                 {
                     LifetimeHandler.RequestStop();
-                    logger.LogCritical(e, $@"{Name} plugin errored, trying to stop");
+                    logger?.LogCritical(e, $@"{Name} plugin errored, trying to stop");
                 }
                 catch (Exception ex)
                 {
