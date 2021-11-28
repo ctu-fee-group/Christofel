@@ -39,7 +39,7 @@ namespace Christofel.Management.Commands
     {
         private readonly ChristofelBaseContext _dbContext;
         private readonly FeedbackService _feedbackService;
-        private readonly ILogger<MessageCommandsGroup> _logger;
+        private readonly ILogger<PermissionCommandsGroup> _logger;
         private readonly IPermissionService _permissions;
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Christofel.Management.Commands
         /// <param name="permissions">The service for permissions.</param>
         public PermissionCommandsGroup
         (
-            ILogger<MessageCommandsGroup> logger,
+            ILogger<PermissionCommandsGroup> logger,
             FeedbackService feedbackService,
             ChristofelBaseContext dbContext,
             IPermissionService permissions
