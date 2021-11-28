@@ -7,7 +7,7 @@
 using System.Linq;
 using Christofel.Common.Database;
 using Microsoft.EntityFrameworkCore;
-using Remora.EntityFrameworkCore.Modular;
+using Remora.Discord.API;
 using Remora.Rest.Core;
 
 namespace Christofel.Api.Ctu.Database
@@ -15,7 +15,7 @@ namespace Christofel.Api.Ctu.Database
     /// <summary>
     /// Database context holding the roles to be assigned.
     /// </summary>
-    public sealed class ApiCacheContext : SchemaAwareDbContext, IReadableDbContext
+    public sealed class ApiCacheContext : ChristofelContext, IReadableDbContext
     {
         /// <summary>
         /// The name of the schema that this context's entities lie in.
@@ -39,21 +39,5 @@ namespace Christofel.Api.Ctu.Database
         /// <inheritdoc/>
         IQueryable<TEntity> IReadableDbContext.Set<TEntity>()
             where TEntity : class => Set<TEntity>().AsNoTracking();
-
-        /// <inheritdoc />
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<AssignRole>()
-                .Property(x => x.RoleId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-
-            modelBuilder.Entity<AssignRole>()
-                .Property(x => x.GuildDiscordId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-
-            modelBuilder.Entity<AssignRole>()
-                .Property(x => x.UserDiscordId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-        }
     }
 }

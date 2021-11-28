@@ -7,8 +7,9 @@
 using System.Linq;
 using Christofel.Common.Database;
 using Christofel.Management.Database.Models;
+using Christofel.Management.ResendRule;
 using Microsoft.EntityFrameworkCore;
-using Remora.EntityFrameworkCore.Modular;
+using Remora.Discord.API;
 using Remora.Rest.Core;
 
 namespace Christofel.Management.Database
@@ -16,7 +17,7 @@ namespace Christofel.Management.Database
     /// <summary>
     /// Management database context that holds information about slowmodes.
     /// </summary>
-    public class ManagementContext : SchemaAwareDbContext, IReadableDbContext<ManagementContext>
+    public class ManagementContext : ChristofelContext, IReadableDbContext<ManagementContext>
     {
         /// <summary>
         /// The name of the schema that this context's entities lie in.
@@ -37,20 +38,13 @@ namespace Christofel.Management.Database
         /// </summary>
         public DbSet<TemporalSlowmode> TemporalSlowmodes => Set<TemporalSlowmode>();
 
+        /// <summary>
+        /// Gets set holding resend rules.
+        /// </summary>
+        public DbSet<Models.ResendRule> ResendRules => Set<Models.ResendRule>();
+
         /// <inheritdoc/>
         IQueryable<TEntity> IReadableDbContext.Set<TEntity>()
             where TEntity : class => Set<TEntity>().AsNoTracking();
-
-        /// <inheritdoc />
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<TemporalSlowmode>()
-                .Property(x => x.ChannelId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-
-            modelBuilder.Entity<TemporalSlowmode>()
-                .Property(x => x.UserId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-        }
     }
 }

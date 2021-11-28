@@ -22,6 +22,7 @@ using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -102,8 +103,8 @@ namespace Christofel.Api.GraphQL.Authentication
             DiscordUser user = await authDiscordApi.GetMe();
             var memberResult = await guildApi.GetGuildMemberAsync
             (
-                new Snowflake(_botOptions.GuildId),
-                new Snowflake(user.Id),
+                new Snowflake(_botOptions.GuildId, Constants.DiscordEpoch),
+                new Snowflake(user.Id, Constants.DiscordEpoch),
                 cancellationToken
             );
             if (!memberResult.IsSuccess)
@@ -126,7 +127,7 @@ namespace Christofel.Api.GraphQL.Authentication
 
             DbUser dbUser = new DbUser
             {
-                DiscordId = new Snowflake(user.Id),
+                DiscordId = new Snowflake(user.Id, Constants.DiscordEpoch),
                 RegistrationCode = Guid.NewGuid().ToString(),
             };
 
@@ -326,7 +327,7 @@ namespace Christofel.Api.GraphQL.Authentication
         {
             var memberResult = await guildApi.GetGuildMemberAsync
             (
-                new Snowflake(_botOptions.GuildId),
+                new Snowflake(_botOptions.GuildId, Constants.DiscordEpoch),
                 dbUser.DiscordId,
                 cancellationToken
             );

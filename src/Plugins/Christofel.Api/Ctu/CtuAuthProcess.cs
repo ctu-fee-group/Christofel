@@ -18,9 +18,11 @@ using Christofel.Common.Database.Models;
 using Christofel.Common.User;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Remora.Commands;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Rest.Core;
 using Remora.Results;
+using Constants = Remora.Discord.API.Constants;
 
 namespace Christofel.Api.Ctu
 {
@@ -90,7 +92,7 @@ namespace Christofel.Api.Ctu
             (
                 accessToken,
                 new LinkUser(0, loadedUser.CtuUsername, dbUser.DiscordId),
-                new Snowflake(guildId),
+                new Snowflake(guildId, Constants.DiscordEpoch),
                 dbContext,
                 dbUser,
                 guildUser,

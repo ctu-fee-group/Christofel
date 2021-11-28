@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Christofel.Common.Database.Models;
 using Christofel.Common.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Remora.EntityFrameworkCore.Modular;
+using Remora.Discord.API;
 using Remora.Rest.Core;
 
 namespace Christofel.Common.Database
@@ -18,7 +18,7 @@ namespace Christofel.Common.Database
     /// <summary>
     /// Context for base database holding users, permissions and information about roles.
     /// </summary>
-    public sealed class ChristofelBaseContext : SchemaAwareDbContext, IReadableDbContext<ChristofelBaseContext>
+    public sealed class ChristofelBaseContext : ChristofelContext, IReadableDbContext<ChristofelBaseContext>
     {
         /// <summary>
         /// The name of the schema that this context's entities lie in.
@@ -82,23 +82,6 @@ namespace Christofel.Common.Database
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<DbUser>()
-                .Property(x => x.DiscordId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-
-            modelBuilder.Entity<RoleAssignment>()
-                .Property(x => x.RoleId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-
-            modelBuilder.Entity<PermissionAssignment>()
-                .OwnsOne
-                (
-                    x => x.Target,
-                    b => b
-                        .Property(x => x.DiscordId)
-                        .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0))
-                );
-
-            modelBuilder.Entity<DbUser>()
                 .HasOne<DbUser>(x => x.DuplicitUser!)
                 .WithMany(x => x.DuplicitUsersBack!)
                 .HasForeignKey(x => x.DuplicitUserId)
@@ -133,6 +116,8 @@ namespace Christofel.Common.Database
                 .WithMany(x => x.SpecificRoleAssignments)
                 .HasForeignKey(x => x.AssignmentId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            base.OnModelCreating(modelBuilder);
         }
 
         /// <inheritdoc />

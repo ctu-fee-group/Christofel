@@ -11,6 +11,7 @@ using Christofel.Api.Ctu;
 using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Tests.Data.Ctu.Auth;
 using Microsoft.Extensions.DependencyInjection;
+using Remora.Discord.API;
 using Remora.Discord.API.Objects;
 using Remora.Rest.Core;
 using Xunit;
@@ -76,7 +77,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = new GuildMember
             (
-                new User(new Snowflake(111), DummyUsername, 124, default),
+                new User(new Snowflake(111, Constants.DiscordEpoch), DummyUsername, 124, default),
                 default,
                 default,
                 new List<Snowflake>(),

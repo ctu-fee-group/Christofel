@@ -7,6 +7,7 @@
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Remora.Discord.API;
 using Remora.Rest.Core;
 
 namespace Christofel.Api.GraphQL.Types
@@ -49,7 +50,7 @@ namespace Christofel.Api.GraphQL.Types
         public override IValueNode ParseResult(object? resultValue) => ParseValue(resultValue);
 
         /// <inheritdoc/>
-        protected override Snowflake ParseLiteral(IntValueNode valueSyntax) => new Snowflake(valueSyntax.ToUInt64());
+        protected override Snowflake ParseLiteral(IntValueNode valueSyntax) => new Snowflake(valueSyntax.ToUInt64(), Constants.DiscordEpoch);
 
         /// <inheritdoc/>
         protected override IntValueNode ParseValue(Snowflake runtimeValue) => new IntValueNode(runtimeValue.Value);
