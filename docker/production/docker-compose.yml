@@ -1,0 +1,28 @@
+services:
+  database:
+    restart: unless-stopped
+    image: mariadb:10.7.1
+    command: mariadbd --character-set-server=utf8 --collation-server=utf8_unicode_ci --innodb-flush-log-at-trx-commit=0
+    environment:
+      - MARIADB_ROOT_PASSWORD=root
+      - MARIADB_DATABASE=christofel
+      - MYSQL_DATABASE=christofel
+    volumes:
+      - db-data:/var/lib/mysql
+  christofel:
+    restart: unless-stopped
+    build:
+      dockerfile: docker/production/Dockerfile
+      context: ../../
+    volumes:
+      - ./Plugins:/app/Plugins
+      - ./config.json:/app/config.json
+  migrator:
+    build:
+      context: ../../
+      dockerfile: docker/production/migrator/Dockerfile
+    volumes:
+      - ./config.json:/build/config.json
+volumes:
+  db-data:
+  
