@@ -18,6 +18,7 @@ using Christofel.Helpers.Storages;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
+using Christofel.Management.ResendRule;
 using Christofel.Management.Slowmode;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
@@ -93,6 +94,7 @@ namespace Christofel.Management
                 .AddCommandGroup<MessageCommandsGroup>()
                 .AddCommandGroup<PermissionCommandsGroup>()
                 .AddCommandGroup<UserCommandsGroup>()
+                .AddCommandGroup<ResendRuleCommandsGroup>()
 
                 // Responders
                 .AddResponder<ResendRuleResponder>()
