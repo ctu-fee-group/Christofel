@@ -23,8 +23,6 @@ using Remora.Discord.Gateway.Services;
 using Remora.Discord.Rest;
 using Remora.Discord.Rest.API;
 using Remora.Discord.Rest.Extensions;
-using Remora.EntityFrameworkCore.Modular;
-using Remora.EntityFrameworkCore.Modular.Services;
 using Remora.Rest;
 
 namespace Christofel.BaseLib.Extensions
@@ -43,13 +41,19 @@ namespace Christofel.BaseLib.Extensions
         public static IServiceCollection AddDiscordState
             (this IServiceCollection serviceCollection, IChristofelState state)
         {
-            serviceCollection.Replace(ServiceDescriptor.Transient(s =>
-            {
-                var options = s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord");
-                var client = state.Bot.HttpClientFactory.CreateClient("RestHttpClient<RestError>");
+            serviceCollection.Replace
+            (
+                ServiceDescriptor.Transient
+                (
+                    s =>
+                    {
+                        var options = s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord");
+                        var client = state.Bot.HttpClientFactory.CreateClient("RestHttpClient<RestError>");
 
-                return new RestHttpClient<RestError>(client, options);
-            }));
+                        return new RestHttpClient<RestError>(client, options);
+                    }
+                )
+            );
             serviceCollection.TryAddTransient<IRestHttpClient>(s => s.GetRequiredService<RestHttpClient<RestError>>());
             serviceCollection.TryAddTransient<IDiscordRestAuditLogAPI>
             (
@@ -250,15 +254,12 @@ namespace Christofel.BaseLib.Extensions
             this IServiceCollection serviceCollection,
             Action<IServiceProvider, DbContextOptionsBuilder>? optionsAction = null
         )
-            where TContext : SchemaAwareDbContext
+            where TContext : ChristofelContext
         {
-            serviceCollection.TryAddSingleton<SchemaAwareDbContextService>();
             return serviceCollection.AddDbContextFactory<TContext>
             (
                 (provider, optionsBuilder) =>
                 {
-                    var contextService = provider.GetRequiredService<SchemaAwareDbContextService>();
-                    contextService.ConfigureSchemaAwareContext(optionsBuilder);
                     optionsAction?.Invoke(provider, optionsBuilder);
                 }
             );
@@ -279,7 +280,7 @@ namespace Christofel.BaseLib.Extensions
             IConfiguration configuration,
             Action<IServiceProvider, DbContextOptionsBuilder>? optionsAction = null
         )
-            where TContext : SchemaAwareDbContext
+            where TContext : ChristofelContext
         {
             return serviceCollection
                 .AddSchemaAwareDbContextFactory<TContext>

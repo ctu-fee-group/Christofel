@@ -8,7 +8,7 @@ using System.Linq;
 using Christofel.Common.Database;
 using Christofel.ReactHandler.Database.Models;
 using Microsoft.EntityFrameworkCore;
-using Remora.EntityFrameworkCore.Modular;
+using Remora.Discord.API;
 using Remora.Rest.Core;
 
 namespace Christofel.ReactHandler.Database
@@ -16,7 +16,7 @@ namespace Christofel.ReactHandler.Database
     /// <summary>
     /// Database context holding what messages should be reacted to.
     /// </summary>
-    public sealed class ReactHandlerContext : SchemaAwareDbContext, IReadableDbContext<ReactHandlerContext>
+    public sealed class ReactHandlerContext : ChristofelContext, IReadableDbContext<ReactHandlerContext>
     {
         /// <summary>
         /// The name of the schema that this context's entities lie in.
@@ -40,21 +40,5 @@ namespace Christofel.ReactHandler.Database
         /// <inheritdoc/>
         IQueryable<TEntity> IReadableDbContext.Set<TEntity>()
             where TEntity : class => Set<TEntity>().AsNoTracking();
-
-        /// <inheritdoc />
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<HandleReact>()
-                .Property(x => x.ChannelId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-
-            modelBuilder.Entity<HandleReact>()
-                .Property(x => x.EntityId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-
-            modelBuilder.Entity<HandleReact>()
-                .Property(x => x.MessageId)
-                .HasConversion(v => (long)v.Value, v => new Snowflake((ulong)v, 0));
-        }
     }
 }

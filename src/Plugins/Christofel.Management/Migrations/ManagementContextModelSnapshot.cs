@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace Christofel.Management.Migrations
 {
     [DbContext(typeof(ManagementContext))]
@@ -14,8 +16,26 @@ namespace Christofel.Management.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Relational:MaxIdentifierLength", 64)
-                .HasAnnotation("ProductVersion", "5.0.9");
+                .HasDefaultSchema("Management")
+                .HasAnnotation("ProductVersion", "6.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            modelBuilder.Entity("Christofel.Management.Database.Models.ResendRule", b =>
+                {
+                    b.Property<int>("ResendRuleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<long>("FromChannel")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ToChannel")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ResendRuleId");
+
+                    b.ToTable("ResendRule", "Management");
+                });
 
             modelBuilder.Entity("Christofel.Management.Database.Models.TemporalSlowmode", b =>
                 {
