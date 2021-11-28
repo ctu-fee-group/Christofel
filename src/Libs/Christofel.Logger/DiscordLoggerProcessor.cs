@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
@@ -133,7 +134,7 @@ namespace Christofel.Logger
                 var result =
                     _channelApi.CreateMessageAsync
                     (
-                        new Snowflake(entry.ChannelId),
+                        new Snowflake(entry.ChannelId, Constants.DiscordEpoch),
                         part,
                         messageReference: message,
                         allowedMentions:

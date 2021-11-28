@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
+using Remora.Discord.API;
 using Remora.Rest.Core;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth
@@ -30,7 +31,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
             var user = new DbUser
             {
                 CreatedAt = DateTime.Now,
-                DiscordId = new Snowflake(discordId),
+                DiscordId = new Snowflake(discordId, Constants.DiscordEpoch),
                 RegistrationCode = "2345-234",
                 AuthenticatedAt = null,
                 CtuUsername = username,
@@ -60,7 +61,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
             var user = new DbUser
             {
                 CreatedAt = DateTime.Now,
-                DiscordId = new Snowflake(discordId),
+                DiscordId = new Snowflake(discordId, Constants.DiscordEpoch),
                 RegistrationCode = "2345-234",
                 AuthenticatedAt = DateTime.Now,
                 CtuUsername = username,

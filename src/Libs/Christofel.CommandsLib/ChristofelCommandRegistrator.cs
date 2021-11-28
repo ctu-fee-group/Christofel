@@ -11,6 +11,7 @@ using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Remora.Discord.API;
 using Remora.Rest.Core;
 
 namespace Christofel.CommandsLib
@@ -66,7 +67,8 @@ namespace Christofel.CommandsLib
             }
             else
             {
-                var updateSlash = await _slashService.UpdateSlashCommandsAsync(new Snowflake(_options.GuildId), token);
+                var updateSlash = await _slashService.UpdateSlashCommandsAsync
+                    (new Snowflake(_options.GuildId, Constants.DiscordEpoch), token);
                 if (!updateSlash.IsSuccess)
                 {
                     _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
@@ -98,7 +100,7 @@ namespace Christofel.CommandsLib
             else
             {
                 var updateSlash =
-                    await _slashService.DeleteSlashCommandsAsync(new Snowflake(_options.GuildId), token);
+                    await _slashService.DeleteSlashCommandsAsync(new Snowflake(_options.GuildId, Constants.DiscordEpoch), token);
                 if (!updateSlash.IsSuccess)
                 {
                     _logger.LogWarning("Failed to delete slash commands: {Reason}", updateSlash.Error.Message);

@@ -6,6 +6,7 @@
 
 using Christofel.Common.Database.Models.Enums;
 using Microsoft.EntityFrameworkCore;
+using Remora.Discord.API;
 using Remora.Rest.Core;
 
 namespace Christofel.Common.Database.Models
@@ -43,9 +44,9 @@ namespace Christofel.Common.Database.Models
         /// <param name="discordId">Id of the discord entity.</param>
         /// <param name="type">Type of the target.</param>
         public DiscordTarget(ulong discordId, TargetType type)
-            : this(new Snowflake(discordId), type)
+            : this(new Snowflake(discordId, Constants.DiscordEpoch), type)
         {
-            DiscordId = new Snowflake(discordId);
+            DiscordId = new Snowflake(discordId, Constants.DiscordEpoch);
             TargetType = type;
         }
 
