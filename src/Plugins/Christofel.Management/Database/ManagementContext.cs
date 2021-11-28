@@ -37,6 +37,11 @@ namespace Christofel.Management.Database
         /// </summary>
         public DbSet<TemporalSlowmode> TemporalSlowmodes => Set<TemporalSlowmode>();
 
+        /// <summary>
+        /// Gets set holding resend rules.
+        /// </summary>
+        public DbSet<Models.ResendRule> ResendRules => Set<Models.ResendRule>();
+
         /// <inheritdoc/>
         IQueryable<TEntity> IReadableDbContext.Set<TEntity>()
             where TEntity : class => Set<TEntity>().AsNoTracking();
