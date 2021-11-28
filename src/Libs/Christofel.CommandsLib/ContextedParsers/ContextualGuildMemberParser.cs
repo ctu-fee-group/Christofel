@@ -88,7 +88,10 @@ namespace Christofel.CommandsLib.ContextedParsers
                     retrievedMember = retrievedMember with { User = new Optional<IUser>(user) };
                 }
 
-                return retrievedMember;
+                if (retrievedMember is not null)
+                {
+                    return retrievedMember;
+                }
             }
 
             if (_commandContext is InteractionContext)
