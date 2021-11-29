@@ -3,10 +3,7 @@
     "SchemaFile": "../../../../../../graphql/schema.gql"
   },
   "ConnectionStrings": {
-    "ChristofelBase": "Server=localhost;Database=christofel_local;Uid=root;Pwd=root;",
-    "ApiCache": "Server=localhost;Database=christofel_api_cache_local;Uid=root;Pwd=root",
-    "ReactHandler": "Server=localhost;Database=christofel_react_handler_local;Uid=root;Pwd=root",
-    "Management": "Server=localhost;Database=christofel_management_local;Uid=root;Pwd=root"
+    "ChristofelBase": "Server=localhost;Database=christofel_base_local;Uid=root;Pwd=root;"
   },
   "Oauth": {
     "Discord": {
@@ -55,6 +52,11 @@
   "Embeds": {
     "Folder": "./Embeds"
   },
+  "Management": {
+    "Resend": {
+      "Header": "Přeposlaná zpráva z {channel} od {mention}"
+    }
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Trace",
@@ -90,13 +92,13 @@
       },
       "Channels": [
         {
-          "GuildId": <LogGuildId>,
-          "ChannelId": <LogChannelId>,
+          "GuildId": <GuildId>,
+          "ChannelId": <ChannelId>,
           "MinLevel": "Information"
         },
         {
-          "GuildId": <LogGuildId>,
-          "ChannelId": <LogChannelId>,
+          "GuildId": <GuildId>,
+          "ChannelId": <ChannelId>,
           "MinLevel": "Warning"
         }
       ]
