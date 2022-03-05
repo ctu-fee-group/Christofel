@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using RestSharp;
 using RestSharp.Authenticators;
+using RestSharp.Authenticators.OAuth2;
 using RestSharp.Serializers.NewtonsoftJson;
 
 namespace Christofel.Api.Discord
@@ -49,8 +50,8 @@ namespace Christofel.Api.Discord
         /// <exception cref="Exception">Thrown if the request was not successful.</exception>
         public async Task<DiscordUser> GetMe()
         {
-            IRestRequest request = new RestRequest("/users/@me", Method.GET);
-            IRestResponse<DiscordUser> response = await _client.ExecuteAsync<DiscordUser>(request);
+            var request = new RestRequest("/users/@me", Method.Get);
+            var response = await _client.ExecuteAsync<DiscordUser>(request);
             if (!response.IsSuccessful)
             {
                 throw new Exception
@@ -60,7 +61,7 @@ namespace Christofel.Api.Discord
                 );
             }
 
-            return response.Data;
+            return response.Data ?? throw new Exception("Could not parse /users/@me.");
         }
     }
 }

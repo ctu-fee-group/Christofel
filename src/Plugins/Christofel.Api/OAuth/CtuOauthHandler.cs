@@ -36,14 +36,14 @@ namespace Christofel.Api.OAuth
         /// <inheritdoc cref="ICtuTokenApi"/>
         public async Task<ICtuUser> CheckTokenAsync(string accessToken, CancellationToken token = default)
         {
-            IRestRequest request = new RestRequest
+            var request = new RestRequest
             (
                 Options.CheckTokenEndpoint ?? throw new InvalidOperationException("CheckTokenEndpoint is null"),
-                Method.POST
+                Method.Post
             );
             request.AddParameter("token", accessToken);
 
-            IRestResponse<CheckTokenResponse> response =
+            var response =
                 await Client.ExecuteAsync<CheckTokenResponse>(request, token);
             if (!response.IsSuccessful)
             {
@@ -51,7 +51,7 @@ namespace Christofel.Api.OAuth
                     ($"Could not obtain user information using check token ({response})");
             }
 
-            return response.Data;
+            return response.Data ?? throw new Exception("Could not parse check token data");
         }
 
         private class CheckTokenResponse : ICtuUser

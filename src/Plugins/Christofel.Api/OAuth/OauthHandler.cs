@@ -74,11 +74,15 @@ namespace Christofel.Api.OAuth
                 { "scope", string.Join(' ', Options.Scopes ?? Enumerable.Empty<string>()) },
             };
 
-            IRestRequest request = new RestRequest
-                (Options.TokenEndpoint ?? throw new InvalidOperationException("TokenEndpoint is null"), Method.POST);
-            request.AddParameters(tokenRequestParameters);
+            var request = new RestRequest
+                (Options.TokenEndpoint ?? throw new InvalidOperationException("TokenEndpoint is null"), Method.Post);
+            request.AddOrUpdateParameters
+            (
+                tokenRequestParameters
+                    .Select(x => new QueryParameter(x.Key, x.Value))
+            );
 
-            IRestResponse response = await Client.ExecuteAsync(request, token);
+            var response = await Client.ExecuteAsync(request, token);
             return ProcessTokenResponse(response);
         }
 
@@ -87,22 +91,22 @@ namespace Christofel.Api.OAuth
         /// </summary>
         /// <param name="response">The response to process.</param>
         /// <returns>Response of the oauth.</returns>
-        protected virtual OauthResponse ProcessTokenResponse(IRestResponse response)
+        protected virtual OauthResponse ProcessTokenResponse(RestResponse response)
         {
             OauthSuccessResponse? successResponse = null;
             OauthErrorResponse? errorResponse = null;
 
             if (response.IsSuccessful)
             {
-                successResponse = JsonConvert.DeserializeObject<OauthSuccessResponse>(response.Content);
+                successResponse = JsonConvert.DeserializeObject<OauthSuccessResponse>(response.Content ?? string.Empty);
             }
             else
             {
                 errorResponse = JsonConvert.DeserializeObject<OauthErrorResponse>
-                                    (response.Content) ??
-                                new OauthErrorResponse("Unknown", "Unknown");
-                errorResponse.Body = response.Content;
-                errorResponse.Headers = string.Join("; ", response.Headers);
+                        (response.Content ?? string.Empty) ??
+                    new OauthErrorResponse("Unknown", "Unknown");
+                errorResponse.Body = response.Content ?? string.Empty;
+                errorResponse.Headers = string.Join("; ", response.Headers ?? Array.Empty<HeaderParameter>());
                 errorResponse.StatusCode = (int)response.StatusCode;
             }
 
