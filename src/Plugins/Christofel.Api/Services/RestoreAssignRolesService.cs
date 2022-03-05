@@ -4,10 +4,11 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
+using Christofel.Api.Ctu.Jobs;
+using Christofel.Scheduling;
+using Christofel.Scheduling.Recoverable;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -19,31 +20,39 @@ namespace Christofel.Api.Services
     public class RestoreAssignRolesService : IHostedService
     {
         private readonly ILogger _logger;
-        private readonly CtuAuthRoleAssignService _roleAssignService;
+        private readonly IScheduler _scheduler;
+        private readonly IJobRecoverService<CtuAuthAssignRoleJob> _roleAssignService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RestoreAssignRolesService"/> class.
         /// </summary>
         /// <param name="roleAssignService">The service for assigning roles.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="scheduler">The scheduler to schedule tasks with.</param>
         public RestoreAssignRolesService
-            (CtuAuthRoleAssignService roleAssignService, ILogger<RestoreAssignRolesService> logger)
+        (
+            IJobRecoverService<CtuAuthAssignRoleJob> roleAssignService,
+            ILogger<RestoreAssignRolesService> logger,
+            IScheduler scheduler
+        )
         {
             _logger = logger;
+            _scheduler = scheduler;
             _roleAssignService = roleAssignService;
         }
 
         /// <inheritdoc />
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            try
+            var restoredResult = await _roleAssignService.RecoverJobsAsync(_scheduler, cancellationToken);
+            if (restoredResult.IsSuccess)
             {
-                var restoredCount = await _roleAssignService.EnqueueRemainingRoles(cancellationToken);
-                _logger.LogInformation("Restored role assignments for {restoredCount} members.", restoredCount);
+                _logger.LogInformation
+                    ("Restored role assignments for {restoredCount} members.", restoredResult.Entity.Count);
             }
-            catch (Exception e)
+            else
             {
-                _logger.LogError(e, "Could not restore assigning roles process");
+                _logger.LogError("Could not restore assigning roles process {Error}", restoredResult.Error.Message);
             }
         }
 

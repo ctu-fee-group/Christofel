@@ -17,6 +17,7 @@ using Christofel.Api.OAuth;
 using Christofel.BaseLib.Configuration;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
+using Christofel.Scheduling.Extensions;
 using HotChocolate;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -375,10 +376,10 @@ namespace Christofel.Api.GraphQL.Authentication
                         switch (authResult.Error)
                         {
                             case UserError userError:
-                                _logger.LogWarning
+                                _logger.LogResult
                                 (
-                                    "User error has occured during finalization of authentication of a user: {Error}",
-                                    authResult.Error.Message
+                                    authResult,
+                                    "User error has occured during finalization of authentication of a user."
                                 );
 
                                 return new RegisterCtuPayload(userError);
@@ -417,6 +418,7 @@ namespace Christofel.Api.GraphQL.Authentication
                         }
                     }
 
+                    _logger.LogInformation("User successfully authenticated");
                     return new RegisterCtuPayload(dbUser);
                 }
                 catch (Exception e)

@@ -5,25 +5,25 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
-using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.Helpers.ReadOnlyDatabase;
+using Christofel.Helpers.Scheduler;
 using Christofel.Helpers.Storages;
 using Christofel.Management.Commands;
 using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
+using Christofel.Management.Jobs;
 using Christofel.Management.ResendRule;
 using Christofel.Management.Slowmode;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
-using Christofel.Plugins.Runtime;
 using Christofel.Remora.Responders;
+using Christofel.Scheduling;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -72,6 +72,12 @@ namespace Christofel.Management
 
                 // Christofel
                 .AddDiscordState(State)
+
+                // Scheduler
+                .AddPluginScheduler(State.Scheduler)
+                .AddSchedulerJob<SlowmodeDisableJob>()
+                .AddSchedulerJob<RemoveOldUsersJob>()
+                .AddStateful<CronJobs>(ServiceLifetime.Transient)
 
                 // Databases
                 .AddChristofelDatabase(State)
@@ -123,7 +129,8 @@ namespace Christofel.Management
         )
         {
             _logger = services.GetRequiredService<ILogger<ManagementPlugin>>();
-            ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
+            Context.PluginResponder = services.GetRequiredService<PluginResponder>();
+            Context.SchedulerJobExecutor = services.GetRequiredService<IJobExecutor>();
             return Task.CompletedTask;
         }
     }
