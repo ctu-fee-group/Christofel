@@ -14,7 +14,7 @@ using Christofel.Scheduling.Recoverable;
 using Christofel.Scheduling.Retryable;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.Api.Ctu.Jobs
