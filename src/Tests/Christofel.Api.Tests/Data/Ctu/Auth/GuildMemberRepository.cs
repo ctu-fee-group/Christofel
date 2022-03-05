@@ -18,10 +18,10 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
     public class GuildMemberRepository
     {
         /// <summary>
-        /// Creates guild member using the specified <see cref="user"/>.
+        /// Creates guild member using the specified <paramref name="user"/>.
         /// </summary>
         /// <param name="user">The user to be set.</param>
-        /// <returns>GuildMember representing the <see cref="user"/>.</returns>
+        /// <returns>GuildMember representing the <paramref name="user"/>.</returns>
         public static GuildMember CreateDummyGuildMember(DbUser user) => new GuildMember
         (
             new User(user.DiscordId, "DummyUser", 1234, default),

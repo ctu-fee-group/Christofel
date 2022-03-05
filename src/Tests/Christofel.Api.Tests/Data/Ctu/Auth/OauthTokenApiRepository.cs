@@ -17,7 +17,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
     public class OauthTokenApiRepository
     {
         /// <summary>
-        /// Creates mocked <see cref="ICtuTokenApi"/> that will return the given <see cref="user"/> with <see cref="username"/>.
+        /// Creates mocked <see cref="ICtuTokenApi"/> that will return the given <paramref name="user"/> with <paramref name="username"/>.
         /// </summary>
         /// <param name="user">The user that should be returned.</param>
         /// <param name="username">The username that should be returned.</param>
