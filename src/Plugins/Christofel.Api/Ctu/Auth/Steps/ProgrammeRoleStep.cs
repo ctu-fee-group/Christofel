@@ -24,8 +24,8 @@ namespace Christofel.Api.Ctu.Auth.Steps
     /// </remarks>
     public class ProgrammeRoleStep : IAuthStep
     {
-        private readonly IKosAtomApi _kosApi;
         private readonly IKosPeopleApi _kosPeopleApi;
+        private readonly IKosStudentsApi _kosStudentsApi;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -33,11 +33,11 @@ namespace Christofel.Api.Ctu.Auth.Steps
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="kosPeopleApi">The kos people api.</param>
-        /// <param name="kosApi">The kos api.</param>
-        public ProgrammeRoleStep(ILogger<ProgrammeRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
+        /// <param name="kosStudentsApi">The kos students api.</param>
+        public ProgrammeRoleStep(ILogger<ProgrammeRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosStudentsApi kosStudentsApi)
         {
-            _kosApi = kosApi;
             _kosPeopleApi = kosPeopleApi;
+            _kosStudentsApi = kosStudentsApi;
             _logger = logger;
         }
 
@@ -50,7 +50,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
             var studentLoadable = kosPerson?.Roles.Students.LastOrDefault();
             if (studentLoadable is not null)
             {
-                var student = await _kosApi.LoadEntityAsync(studentLoadable, ct);
+                var student = await _kosStudentsApi.GetStudent(studentLoadable, token: ct);
 
                 if (student is null)
                 {

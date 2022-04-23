@@ -109,26 +109,26 @@ namespace Christofel.Api.Ctu.Auth.Steps
         {
             var person = await _kosPeopleApi.GetPersonAsync(username, token);
             var student = await _kosApi
-                .LoadEntityAsync(person?.Roles?.Students?.LastOrDefault(), token);
+                .LoadEntryAsync(person?.Roles?.Students?.LastOrDefault(), token: token);
 
             if (student is null)
             {
                 return null;
             }
 
-            var programme = await _kosApi.LoadEntityAsync(student.Programme, token);
+            var programme = await _kosApi.LoadEntryAsync(student.Content.Programme, token: token);
 
             if (programme is null)
             {
                 return null;
             }
 
-            return programme.ProgrammeType switch
+            return programme.Content.ProgrammeType switch
             {
-                KosProgrammeType.Bachelor => "BachelorProgramme",
-                KosProgrammeType.Master => "MasterProgramme",
-                KosProgrammeType.MasterLegacy => "MasterProgramme",
-                KosProgrammeType.Doctoral => "DoctoralProgramme",
+                ProgrammeType.Bachelor => "BachelorProgramme",
+                ProgrammeType.Master => "MasterProgramme",
+                ProgrammeType.MasterLegacy => "MasterProgramme",
+                ProgrammeType.Doctoral => "DoctoralProgramme",
                 _ => null,
             };
         }

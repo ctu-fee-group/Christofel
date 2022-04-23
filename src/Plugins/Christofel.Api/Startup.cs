@@ -80,19 +80,21 @@ namespace Christofel.Api
                 .Configure<DiscordApiOptions>(_configuration.GetSection("Apis:Discord"))
                 .Configure<UsermapApiOptions>(_configuration.GetSection("Apis:Usermap"))
                 .AddScoped<IMemoryCache, MemoryCache>()
-                .AddScopedUsermapApi
+                .AddUsermapApi
                 (
                     p => p.GetRequiredService<ICtuTokenProvider>().AccessToken ??
-                        throw new InvalidOperationException("No access token is provided for ctu services")
+                        throw new InvalidOperationException("No access token is provided for ctu services"),
+                    lifetime: ServiceLifetime.Scoped
                 )
-                .AddScopedUsermapCaching()
-                .AddScopedKosApi
+                .AddUsermapCaching(ServiceLifetime.Scoped)
+                .AddKosApi
                 (
                     p =>
                         p.GetRequiredService<ICtuTokenProvider>().AccessToken ??
-                        throw new InvalidOperationException("No access token is provided for ctu services")
+                        throw new InvalidOperationException("No access token is provided for ctu services"),
+                    lifetime: ServiceLifetime.Scoped
                 )
-                .AddScopedKosCaching()
+                .AddKosCaching(ServiceLifetime.Scoped)
                 .Configure<KosApiOptions>(_configuration.GetSection("Apis:Kos"));
 
             // processors of queues

@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -26,8 +27,8 @@ namespace Christofel.Api.Ctu.Auth.Steps
     /// </remarks>
     public class YearRoleStep : IAuthStep
     {
-        private readonly IKosAtomApi _kosApi;
         private readonly IKosPeopleApi _kosPeopleApi;
+        private readonly IKosStudentsApi _kosStudentApi;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -35,11 +36,11 @@ namespace Christofel.Api.Ctu.Auth.Steps
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="kosPeopleApi">The kos people api.</param>
-        /// <param name="kosApi">The kos pai.</param>
-        public YearRoleStep(ILogger<YearRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
+        /// <param name="kosStudentApi">The kos students api.</param>
+        public YearRoleStep(ILogger<YearRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosStudentsApi kosStudentApi)
         {
-            _kosApi = kosApi;
             _kosPeopleApi = kosPeopleApi;
+            _kosStudentApi = kosStudentApi;
             _logger = logger;
         }
 
@@ -52,13 +53,13 @@ namespace Christofel.Api.Ctu.Auth.Steps
             var studentLoadable = kosPerson?.Roles.Students.FirstOrDefault();
             if (studentLoadable is not null)
             {
-                var student = await _kosApi.LoadEntityAsync(studentLoadable, ct);
+                var student = await _kosStudentApi.GetStudent(studentLoadable, token: ct);
                 if (student is null)
                 {
                     return Result.FromSuccess();
                 }
 
-                var year = student.StartDate.Year;
+                var year = student.StartDate?.Year ?? 0;
 
                 List<CtuAuthRole> roles = await data.DbContext.YearRoleAssignments
                     .AsNoTracking()
@@ -69,7 +70,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
                 if (roles.Count == 0)
                 {
-                    _logger.LogWarning($"Could not find mapping for year {year}");
+                    _logger.LogWarning("Could not find mapping for year {Year}", year);
                 }
 
                 data.Roles.AddRange(roles);
