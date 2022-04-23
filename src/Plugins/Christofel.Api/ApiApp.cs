@@ -163,8 +163,10 @@ namespace Christofel.Api
                 (
                     webBuilder =>
                     {
-                        webBuilder.UseConfiguration(configuration);
-                        webBuilder.UseStartup<Startup>();
+                        webBuilder.UseStartup
+                        (
+                            _ => new Startup(configuration)
+                        );
                     }
                 );
 
