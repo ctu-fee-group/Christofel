@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -358,7 +359,7 @@ namespace Christofel.Api.GraphQL.Authentication
                                     )
                                 );
                             case SoftAuthError softError:
-                                _logger.LogWarning
+                                _logger.LogError
                                 (
                                     "User error has occured during task stage of finalization of authentication of a user: {Error}",
                                     softError.Error.Message
@@ -366,6 +367,11 @@ namespace Christofel.Api.GraphQL.Authentication
 
                                 return new RegisterCtuPayload(UserErrors.SoftAuthError);
                             default:
+                                _logger.LogError
+                                (
+                                    "There was an error in authentication process that prevented the user from registration. {Error}",
+                                    authResult.Error.Message
+                                );
                                 return new RegisterCtuPayload
                                 (
                                     new UserError
