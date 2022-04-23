@@ -59,6 +59,33 @@ namespace Christofel.Api
             services
                 .AddHostedService<RestoreAssignRolesService>();
 
+            // cors
+            services
+                .AddCors
+                (
+                    o =>
+                    {
+                        o.AddPolicy
+                        (
+                            "Default",
+                            policy =>
+                            {
+                                var origins = _configuration.GetSection("Cors").Get<string[]?>();
+                                if (origins?.Length > 0)
+                                {
+                                    policy.WithOrigins(origins);
+                                }
+                                else
+                                {
+                                    policy.WithOrigins("*");
+                                }
+
+                                policy.WithHeaders("Content-Type", "sentry-trace");
+                            }
+                        );
+                    }
+                );
+
             // cache database
             services
                 .AddChristofelDbContextFactory<ApiCacheContext>(_configuration);
@@ -118,13 +145,14 @@ namespace Christofel.Api
                 .AddTypeExtension<AuthenticationQueries>()
                 .AddQueryType(d => d.Name("Query"))
                 .AddType<DbUserType>()
-                .AddDataLoader<UserByIdDataLoader>()
+
+                // .AddDataLoader<UserByIdDataLoader>()
+                // .AddRelaySupport()
                 .AddDiagnosticEventListener
                 (
                     sp =>
                         new DiagnosticEventListener(sp.GetApplicationService<ILogger<DiagnosticEventListener>>())
                 )
-                .EnableRelaySupport()
                 .ModifyRequestOptions(x => x.ExecutionTimeout = TimeSpan.FromMinutes(2));
         }
 
@@ -141,6 +169,7 @@ namespace Christofel.Api
             }
 
             app.UseRouting();
+            app.UseCors("Default");
 
             app.UseEndpoints
             (
