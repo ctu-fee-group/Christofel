@@ -79,7 +79,7 @@ namespace Christofel.Api.OAuth
             request.AddOrUpdateParameters
             (
                 tokenRequestParameters
-                    .Select(x => new QueryParameter(x.Key, x.Value))
+                    .Select(x => Parameter.CreateParameter(x.Key, x.Value, ParameterType.GetOrPost))
             );
 
             var response = await Client.ExecuteAsync(request, token);
