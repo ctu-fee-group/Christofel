@@ -244,46 +244,6 @@ namespace Christofel.Api.GraphQL.Authentication
             );
         }
 
-        /// <summary>
-        /// Verify specified registration code to know what stage
-        /// of registration should be used (registerDiscord or registerCtu).
-        /// </summary>
-        /// <param name="input">Input of the mutation.</param>
-        /// <param name="dbContext">The database context.</param>
-        /// <param name="cancellationToken">The cancellation token for the operation.</param>
-        /// <returns>Payload for the user.</returns>
-        [UseReadOnlyChristofelBaseDatabase]
-        public async Task<VerifyRegistrationCodePayload> VerifyRegistrationCodeAsync
-        (
-            VerifyRegistrationCodeInput input,
-            [ScopedService] IReadableDbContext dbContext,
-            CancellationToken cancellationToken
-        )
-        {
-            var user =
-                await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Set<DbUser>(), cancellationToken);
-
-            RegistrationCodeVerification verificationStage;
-            if (user == null)
-            {
-                verificationStage = RegistrationCodeVerification.NotValid;
-            }
-            else if (user.AuthenticatedAt != null)
-            {
-                verificationStage = RegistrationCodeVerification.Done;
-            }
-            else if (user.CtuUsername != null)
-            {
-                verificationStage = RegistrationCodeVerification.CtuAuthorized;
-            }
-            else
-            {
-                verificationStage = RegistrationCodeVerification.DiscordAuthorized;
-            }
-
-            return new VerifyRegistrationCodePayload(verificationStage);
-        }
-
         private async Task<DbUser?> GetUserByRegistrationCode
         (
             string registrationCode,

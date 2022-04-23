@@ -83,7 +83,7 @@ namespace Christofel.Api
                 .AddScopedUsermapApi
                 (
                     p => p.GetRequiredService<ICtuTokenProvider>().AccessToken ??
-                         throw new InvalidOperationException("No access token is provided for ctu services")
+                        throw new InvalidOperationException("No access token is provided for ctu services")
                 )
                 .AddScopedUsermapCaching()
                 .AddScopedKosApi
@@ -113,6 +113,7 @@ namespace Christofel.Api
                 .AddGraphQLServer()
                 .AddMutationType(d => d.Name("Mutation"))
                 .AddTypeExtension<AuthenticationMutations>()
+                .AddTypeExtension<AuthenticationQueries>()
                 .AddQueryType(d => d.Name("Query"))
                 .AddType<DbUserType>()
                 .AddDataLoader<UserByIdDataLoader>()
