@@ -1,2 +1,4 @@
 Plugins/
+!Plugins/builder.sh
+!Plugins/build.sh
 config.json
