@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Database;
 using Christofel.Api.Ctu.JobQueue;
+using Christofel.BaseLib.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Objects;
@@ -215,10 +216,10 @@ namespace Christofel.Api.Ctu
                             await RemoveRoles(userId, guildId, ct);
                             continue;
                         default:
-                            _logger.LogWarning
+                            _logger.LogResultError
                             (
-                                "There was an error obtaining user from api: {Error}, but going to enqueue for addition anyway",
-                                guildMemberResult.Error.Message
+                                guildMemberResult,
+                                "There was an error obtaining user from api, but going to enqueue for addition anyway."
                             );
                             guildMember = new GuildMember
                             (

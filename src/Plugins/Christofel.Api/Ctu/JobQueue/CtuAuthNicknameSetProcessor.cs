@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
@@ -57,9 +58,10 @@ namespace Christofel.Api.Ctu.JobQueue
 
             if (!modifiedResult.IsSuccess)
             {
-                _logger.LogWarning
+                _logger.LogResultError
                 (
-                    $"Could not change nickname of <@{job.UserId}>, not going to retry. {modifiedResult.Error.Message}"
+                    modifiedResult,
+                    $"Could not change nickname of <@{job.UserId}>, not going to retry."
                 );
             }
         }

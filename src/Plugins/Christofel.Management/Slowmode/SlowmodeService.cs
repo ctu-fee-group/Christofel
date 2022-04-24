@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.Helpers.Storages;
 using Christofel.Management.Database;
 using Christofel.Management.Database.Models;
@@ -225,12 +226,10 @@ namespace Christofel.Management.Slowmode
                         }
                         else
                         {
-                            _logger.LogError
+                            _logger.LogResultError
                             (
-                                "Could not disable temporal slowmode in channel <#{Channel}> enabled by <@{User}>: {Error}",
-                                temporalSlowmodeEntity.ChannelId,
-                                temporalSlowmodeEntity.UserId,
-                                result.Error.Message
+                                result,
+                                $"Could not disable temporal slowmode in channel <#{temporalSlowmodeEntity.ChannelId}> enabled by <@{temporalSlowmodeEntity.UserId}>:"
                             );
                         }
                     }

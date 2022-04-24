@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.Common.Database;
 using Christofel.ReactHandler.Database;
 using Christofel.ReactHandler.Database.Models;
@@ -112,12 +113,7 @@ namespace Christofel.ReactHandler.Responders
 
                 if (!result.IsSuccess)
                 {
-                    _logger.LogWarning
-                    (
-                        "Could not assign channel or role ({ChannelOrRole}) to user. {Error}",
-                        matchingHandler.EntityId,
-                        result.Error.Message
-                    );
+                    _logger.LogResultError(result, $"Could not assign channel or role ({matchingHandler.EntityId}) to user.");
                     errors.Add(result);
                 }
                 else
@@ -194,12 +190,8 @@ namespace Christofel.ReactHandler.Responders
 
                 if (!result.IsSuccess)
                 {
-                    _logger.LogWarning
-                    (
-                        "Could not deassign channel or role ({ChannelOrRole}) from user. {Error}",
-                        matchingHandler.EntityId,
-                        result.Error.Message
-                    );
+                    _logger.LogResultError
+                        (result, $"Could not deassign channel or role ({matchingHandler.EntityId}) from user.");
                     errors.Add(result);
                 }
                 else

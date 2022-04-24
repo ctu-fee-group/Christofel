@@ -9,7 +9,9 @@ using System.Net.Http;
 using System.Text.Json;
 using Christofel.Common;
 using Christofel.Common.Database;
+using Christofel.Helpers;
 using Christofel.Helpers.ReadOnlyDatabase;
+using Christofel.Remora;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -203,6 +205,7 @@ namespace Christofel.BaseLib.Extensions
                 (s => s.GetRequiredService<IOptions<ResponderService>>().Value);
 
             return serviceCollection
+                .AddSingleton<IResultLoggerProvider, ResultLoggerProvider>()
                 .AddSingleton(state.Bot.Client)
                 .AddSingleton(state.DiscordJsonOptions)
                 .AddSingleton(state.Bot.HttpClientFactory)

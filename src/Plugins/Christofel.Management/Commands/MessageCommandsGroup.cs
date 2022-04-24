@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
 using Christofel.Helpers.Storages;
@@ -242,7 +243,7 @@ namespace Christofel.Management.Commands
 
             if (!result.IsSuccess)
             {
-                _logger.LogError($"Could not enable slowmode in channel <#{channelId}>: {result.Error?.Message}");
+                _logger.LogResultError(result, $"Could not enable slowmode in channel <#{channelId}>");
                 await _feedbackService.SendContextualErrorAsync
                 (
                     "Something has gone wrong",
@@ -277,7 +278,7 @@ namespace Christofel.Management.Commands
 
             if (!result.IsSuccess)
             {
-                _logger.LogError($"Could not disable slowmode in channel <#{channelId}>: {result.Error?.Message}");
+                _logger.LogResultError(result, $"Could not disable slowmode in channel <#{channelId}>");
                 await _feedbackService.SendContextualErrorAsync
                     ($"Could not disable slowmode in channel <#{channelId}>: {result.Error?.Message}.");
                 return result;

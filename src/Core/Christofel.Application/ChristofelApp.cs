@@ -23,6 +23,7 @@ using Christofel.Common;
 using Christofel.Common.Database;
 using Christofel.Common.Discord;
 using Christofel.Common.Permissions;
+using Christofel.Helpers;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Christofel.Logger;
 using Christofel.Plugins;
@@ -138,6 +139,7 @@ namespace Christofel.Application
 
                 // plugins
                 .AddPlugins()
+                .AddSingleton<IResultLoggerProvider, ResultLoggerProvider>()
                 .AddStateful<PluginAutoloader>(ServiceLifetime.Transient)
                 .AddRuntimePlugins<IChristofelState, IPluginContext>()
 

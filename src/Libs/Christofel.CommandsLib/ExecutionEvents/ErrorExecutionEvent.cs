@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Results;
 using Remora.Discord.Commands.Contexts;
@@ -40,15 +41,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
         {
             if (!commandResult.IsSuccess && commandResult.Error is not null and not CommandNotFoundError)
             {
-                switch (commandResult.Error)
-                {
-                    case ExceptionError exceptionError:
-                        _logger.LogError(exceptionError.Exception, "Command returned exception error");
-                        break;
-                    default:
-                        _logger.LogError($"Command returned an error: {commandResult.Error.Message}");
-                        break;
-                }
+                _logger.LogResultError(commandResult, "Command returned an error");
             }
 
             return Task.FromResult(Result.FromSuccess());

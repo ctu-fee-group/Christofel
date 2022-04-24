@@ -8,6 +8,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.Common.Discord;
 using Christofel.Plugins.Extensions;
 using Christofel.Plugins.Lifetime;
@@ -94,7 +95,7 @@ namespace Christofel.Application.State
                     }
                     default:
                     {
-                        _logger.LogError("Unknown error: {Message}", runResult.Error.Message);
+                        _logger.LogResultError(runResult, "Client crashed.");
                         break;
                     }
                 }

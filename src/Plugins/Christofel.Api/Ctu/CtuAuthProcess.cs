@@ -13,6 +13,7 @@ using Christofel.Api.Ctu.Auth.Conditions;
 using Christofel.Api.Ctu.Auth.Steps;
 using Christofel.Api.Ctu.Auth.Tasks;
 using Christofel.Api.OAuth;
+using Christofel.BaseLib.Extensions;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
 using Christofel.Common.User;
@@ -224,7 +225,7 @@ namespace Christofel.Api.Ctu
                 if (!taskResult.IsSuccess)
                 {
                     errors.Add(taskResult);
-                    _logger.LogError($"Could not finish auth task: {taskResult.Error.Message}");
+                    _logger.LogResultError(taskResult, "Could not finish auth task");
                 }
             }
 

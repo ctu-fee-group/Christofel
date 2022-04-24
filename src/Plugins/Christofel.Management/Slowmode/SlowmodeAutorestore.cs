@@ -7,6 +7,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.Management.Database;
 using Christofel.Plugins.Runtime;
 using Microsoft.EntityFrameworkCore;
@@ -56,10 +57,10 @@ namespace Christofel.Management.Slowmode
 
                     if (!result.IsSuccess)
                     {
-                        _logger.LogError
+                        _logger.LogResultError
                         (
-                            "Could not disable temporal slowmode that should've ended in the past {Error}",
-                            result.Error.Message
+                            result,
+                            "Could not disable temporal slowmode that should've ended in the past"
                         );
                     }
                     else

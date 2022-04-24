@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
@@ -53,8 +54,8 @@ namespace Christofel.Api.Ctu.JobQueue
             var dmResult = await _userApi.CreateDMAsync(job.UserId, _pluginLifetime.Stopping);
             if (!dmResult.IsSuccess)
             {
-                _logger.LogError
-                    ("Could not create DM channel for the user <@{User}> {Error}", job.UserId, dmResult.Error.Message);
+                _logger.LogResultError
+                    (dmResult, $"Could not create DM channel for the user <@{job.UserId}>");
                 return;
             }
 
@@ -62,8 +63,8 @@ namespace Christofel.Api.Ctu.JobQueue
                 (dmResult.Entity.ID, job.Message, ct: _pluginLifetime.Stopping);
             if (!messageResult.IsSuccess)
             {
-                _logger.LogError
-                    ("Could not send DM to the user <@{User}> {Error}", job.UserId, messageResult.Error.Message);
+                _logger.LogResultError
+                    (messageResult, $"Could not send DM to the user <@{job.UserId}>");
             }
         }
     }

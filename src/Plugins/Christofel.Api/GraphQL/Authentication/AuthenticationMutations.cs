@@ -16,6 +16,7 @@ using Christofel.Api.GraphQL.Attributes;
 using Christofel.Api.GraphQL.Common;
 using Christofel.Api.OAuth;
 using Christofel.BaseLib.Configuration;
+using Christofel.BaseLib.Extensions;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
 using HotChocolate;
@@ -119,9 +120,10 @@ namespace Christofel.Api.GraphQL.Authentication
                     return new RegisterDiscordPayload(UserErrors.UserNotInGuild);
                 }
 
-                _logger.LogError
+                _logger.LogResultError
                 (
-                    $"There was an error while getting the guild member ({user.Username}#{user.Discriminator}) from the rest api {memberResult.Error.Message}"
+                    memberResult,
+                    $"There was an error while getting the guild member ({user.Username}#{user.Discriminator}) from the rest api"
                 );
                 return new RegisterDiscordPayload(new UserError("Unspecified error", UserErrorCode.Unspecified));
             }
@@ -304,9 +306,10 @@ namespace Christofel.Api.GraphQL.Authentication
                     return new RegisterCtuPayload(UserErrors.UserNotInGuild);
                 }
 
-                _logger.LogError
+                _logger.LogResultError
                 (
-                    $"There was an error while getting the guild member (<@{dbUser.DiscordId}> - {dbUser.UserId}) from the rest api {memberResult.Error.Message}"
+                    memberResult,
+                    $"There was an error while getting the guild member (<@{dbUser.DiscordId}> - {dbUser.UserId}) from the rest api."
                 );
                 return new RegisterCtuPayload(new UserError("Unspecified error", UserErrorCode.Unspecified));
             }
@@ -336,10 +339,10 @@ namespace Christofel.Api.GraphQL.Authentication
                         switch (authResult.Error)
                         {
                             case UserError userError:
-                                _logger.LogWarning
+                                _logger.LogResultError
                                 (
-                                    "User error has occured during finalization of authentication of a user: {Error}",
-                                    authResult.Error.Message
+                                    authResult,
+                                    "User error has occured during finalization of authentication of a user"
                                 );
 
                                 return new RegisterCtuPayload(userError);
@@ -359,18 +362,18 @@ namespace Christofel.Api.GraphQL.Authentication
                                     )
                                 );
                             case SoftAuthError softError:
-                                _logger.LogError
+                                _logger.LogResultError
                                 (
-                                    "User error has occured during task stage of finalization of authentication of a user: {Error}",
-                                    softError.Error.Message
+                                    authResult,
+                                    "User error has occured during task stage of finalization of authentication of a user"
                                 );
 
                                 return new RegisterCtuPayload(UserErrors.SoftAuthError);
                             default:
-                                _logger.LogError
+                                _logger.LogResultError
                                 (
-                                    "There was an error in authentication process that prevented the user from registration. {Error}",
-                                    authResult.Error.Message
+                                    authResult,
+                                    "There was an error in authentication process that prevented the user from registration."
                                 );
                                 return new RegisterCtuPayload
                                 (

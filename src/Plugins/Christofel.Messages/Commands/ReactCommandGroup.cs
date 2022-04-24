@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.Permissions;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Attributes;
@@ -79,7 +80,7 @@ namespace Christofel.Messages.Commands
             Result<IReadOnlyList<IMessage>> feedbackResult;
             if (!result.IsSuccess)
             {
-                _logger.LogError($"Could not react with emoji {emoji}: {result.Error.Message}");
+                _logger.LogResultError(result, $"Could not react with emoji {emoji}");
 
                 feedbackResult =
                     await _feedbackService.SendContextualErrorAsync

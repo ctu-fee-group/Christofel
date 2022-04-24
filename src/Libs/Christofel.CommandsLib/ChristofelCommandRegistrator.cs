@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
+using Christofel.BaseLib.Extensions;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Microsoft.Extensions.Logging;
@@ -59,11 +60,7 @@ namespace Christofel.CommandsLib
             var checkSlashSupport = _slashService.SupportsSlashCommands();
             if (!checkSlashSupport.IsSuccess)
             {
-                _logger.LogWarning
-                (
-                    "The registered commands of the bot don't support slash commands: {Reason}",
-                    checkSlashSupport.Error.Message
-                );
+                _logger.LogResultError(checkSlashSupport, "The registered commands of the bot don't support slash commands");
             }
             else
             {
@@ -71,7 +68,7 @@ namespace Christofel.CommandsLib
                     (new Snowflake(_options.GuildId, Constants.DiscordEpoch), token);
                 if (!updateSlash.IsSuccess)
                 {
-                    _logger.LogWarning("Failed to update slash commands: {Reason}", updateSlash.Error.Message);
+                    _logger.LogResultError(updateSlash, "Failed to update slash commands");
                 }
             }
         }
@@ -89,21 +86,13 @@ namespace Christofel.CommandsLib
             }
 
             var checkSlashSupport = _slashService.SupportsSlashCommands();
-            if (!checkSlashSupport.IsSuccess)
-            {
-                _logger.LogWarning
-                (
-                    "The registered commands of the bot don't support slash commands: {Reason}",
-                    checkSlashSupport.Error.Message
-                );
-            }
-            else
+            if (checkSlashSupport.IsSuccess)
             {
                 var updateSlash =
                     await _slashService.DeleteSlashCommandsAsync(new Snowflake(_options.GuildId, Constants.DiscordEpoch), token);
                 if (!updateSlash.IsSuccess)
                 {
-                    _logger.LogWarning("Failed to delete slash commands: {Reason}", updateSlash.Error.Message);
+                    _logger.LogResultError(updateSlash, "Failed to delete slash commands.");
                 }
             }
         }

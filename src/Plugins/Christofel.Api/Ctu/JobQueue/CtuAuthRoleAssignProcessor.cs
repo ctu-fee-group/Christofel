@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;
@@ -114,9 +115,10 @@ namespace Christofel.Api.Ctu.JobQueue
                 if (!result.IsSuccess)
                 {
                     error = true;
-                    _logger.LogError
+                    _logger.LogResultError
                     (
-                        $"Couldn't add or remove role <@&{roleId}> from user <@{assignJob.UserId}>: {result.Error.Message}"
+                        result,
+                        $"Couldn't add or remove role <@&{roleId}> from user <@{assignJob.UserId}>"
                     );
                 }
             }

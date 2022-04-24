@@ -24,6 +24,7 @@ namespace Christofel.Remora.Responders
     public class PluginResponder : IAnyResponder
     {
         private readonly ILogger _logger;
+        private readonly IResultLoggerProvider? _resultLoggerProvider;
         private readonly IResponderTypeRepository _responderTypeRepository;
         private readonly IServiceProvider _services;
 
@@ -33,16 +34,19 @@ namespace Christofel.Remora.Responders
         /// <param name="responderTypeRepository">The repository of responder types.</param>
         /// <param name="services">The service provider for resolving event resolvers.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="resultLoggerProvider">The result logger provider.</param>
         public PluginResponder
         (
             IResponderTypeRepository responderTypeRepository,
             IServiceProvider services,
-            ILogger<PluginResponder> logger
+            ILogger<PluginResponder> logger,
+            IResultLoggerProvider? resultLoggerProvider = default
         )
         {
             _responderTypeRepository = responderTypeRepository;
             _services = services;
             _logger = logger;
+            _resultLoggerProvider = resultLoggerProvider;
         }
 
         /// <inheritdoc />
@@ -110,6 +114,12 @@ namespace Christofel.Remora.Responders
         {
             if (result.IsSuccess)
             {
+                return;
+            }
+
+            if (_resultLoggerProvider is not null)
+            {
+                _resultLoggerProvider.Log(_logger, result, "An error has occured from PluginResponder call.");
                 return;
             }
 

@@ -25,6 +25,7 @@ namespace Christofel.Application.Responders
         where TContext : IPluginContext
     {
         private readonly ILogger _logger;
+        private readonly IResultLoggerProvider? _resultLoggerProvider;
         private readonly PluginStorage _plugins;
 
         /// <summary>
@@ -32,10 +33,17 @@ namespace Christofel.Application.Responders
         /// </summary>
         /// <param name="plugins">The storage of the plugins.</param>
         /// <param name="logger">The logger to log state into.</param>
-        public ApplicationResponder(PluginStorage plugins, ILogger<ApplicationResponder<TState, TContext>> logger)
+        /// <param name="resultLoggerProvider">The result logger provider.</param>
+        public ApplicationResponder
+        (
+            PluginStorage plugins,
+            ILogger<ApplicationResponder<TState, TContext>> logger,
+            IResultLoggerProvider? resultLoggerProvider = default
+        )
         {
             _plugins = plugins;
             _logger = logger;
+            _resultLoggerProvider = resultLoggerProvider;
         }
 
         /// <inheritdoc />
@@ -88,6 +96,12 @@ namespace Christofel.Application.Responders
         {
             if (result.IsSuccess)
             {
+                return;
+            }
+
+            if (_resultLoggerProvider is not null)
+            {
+                _resultLoggerProvider.Log(_logger, result, "An error has occured from ApplicationResponder call.");
                 return;
             }
 
