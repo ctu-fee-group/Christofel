@@ -167,6 +167,8 @@ namespace Christofel.Api
                         (
                             _ => new Startup(configuration)
                         );
+
+                        webBuilder.UseUrls("http://*:5000/");
                     }
                 );
 
