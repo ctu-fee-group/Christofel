@@ -121,8 +121,8 @@ namespace Christofel.Api
             _lifetimeHandler.MoveToIfLower(LifetimeState.Initialized);
         }
 
-        private static IHostBuilder CreateHostBuilder(ICurrentPluginLifetime lifetime, IConfiguration configuration) =>
-            Host.CreateDefaultBuilder()
+        private static IHostBuilder CreateHostBuilder(ICurrentPluginLifetime lifetime, IConfiguration configuration)
+            => Host.CreateDefaultBuilder()
                 .ConfigureLogging
                 (
                     builder =>
@@ -168,7 +168,13 @@ namespace Christofel.Api
                             _ => new Startup(configuration)
                         );
 
-                        webBuilder.UseUrls("http://*:5000/");
+                        webBuilder.UseKestrel
+                        (
+                            kestrelOptions =>
+                            {
+                                kestrelOptions.ListenAnyIP(5000);
+                            }
+                        );
                     }
                 );
 

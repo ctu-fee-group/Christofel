@@ -147,7 +147,13 @@ namespace Christofel.Api
                             _ => new Startup(state.Configuration)
                         );
 
-                        webBuilder.UseUrls("http://*:5000/");
+                        webBuilder.UseKestrel
+                        (
+                            kestrelOptions =>
+                            {
+                                kestrelOptions.ListenAnyIP(5000);
+                            }
+                        );
                     }
                 );
 
