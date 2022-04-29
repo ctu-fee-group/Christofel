@@ -58,22 +58,30 @@ namespace Christofel.ConstructDatabase
         {
             Task.Run(async () =>
             {
-                await using (var context = _dbContextFactory.CreateDbContext())
+                try
                 {
-                    var rolesResult = await _guildApi.GetGuildRolesAsync(DiscordSnowflake.New(_options.GuildId), token);
-                    if (!rolesResult.IsDefined(out var roles))
+                    await using (var context = _dbContextFactory.CreateDbContext())
                     {
-                        Console.WriteLine("Could not load guild roles.");
-                        return;
+                        var rolesResult = await _guildApi.GetGuildRolesAsync
+                            (DiscordSnowflake.New(_options.GuildId), token);
+                        if (!rolesResult.IsDefined(out var roles))
+                        {
+                            Console.WriteLine("Could not load guild roles.");
+                            return;
+                        }
+
+                        AddYearRoles(context, roles);
+                        AddProgrammeRoles(context, roles);
+                        AddSpecificRoles(context, roles);
+                        AddUsermapRoles(context, roles);
+                        AddTitleRoles(context, roles);
+
+                        await context.SaveChangesAsync(token);
                     }
-
-                    AddYearRoles(context, roles);
-                    AddProgrammeRoles(context, roles);
-                    AddSpecificRoles(context, roles);
-                    AddUsermapRoles(context, roles);
-                    AddTitleRoles(context, roles);
-
-                    await context.SaveChangesAsync(token);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
                 }
 
                 _lifetime.RequestStop();
@@ -125,7 +133,7 @@ namespace Christofel.ConstructDatabase
         {
             var felAssignment = new RoleAssignment()
             {
-                RoleId = roles.First(x => x.Name == "FELál").ID,
+                RoleId = roles.First(x => x.Name == "FELák").ID,
                 RoleType = RoleType.Faculty
             };
             var nonfelAssignment = new RoleAssignment()
