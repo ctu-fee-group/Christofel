@@ -293,7 +293,7 @@ namespace Christofel.ConstructDatabase
             var teacherSpecific = new SpecificRoleAssignment()
             {
                 Name = "Teacher",
-                Assignment = authenticated,
+                Assignment = teacher,
             };
 
             context.Add(teacher);
