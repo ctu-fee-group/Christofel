@@ -158,7 +158,13 @@ namespace Christofel.ReactHandler.Commands
 
             // 1. react to the message
             var reactionResult =
-                await _channelApi.CreateReactionAsync(channelId.Value, messageId, reactEmoji, CancellationToken);
+                await _channelApi.CreateReactionAsync
+                (
+                    channelId.Value,
+                    messageId,
+                    reactEmoji.TrimStart('<').TrimEnd('>').TrimStart(':'),
+                    CancellationToken
+                );
             if (!reactionResult.IsSuccess)
             {
                 await _feedbackService.SendContextualErrorAsync
@@ -216,7 +222,8 @@ namespace Christofel.ReactHandler.Commands
         [Description("Show information about reacts of the specified message that are handled by the bot.")]
         public async Task<Result> HandleReactShow
         (
-            [Description("Message target")] Snowflake messageId,
+            [Description("Message target")]
+            Snowflake messageId,
             [Description("Filter for emoji, if empty, all will be shown")]
             string? reactEmoji = null,
             [Description("Channel that the message is in. If omitted, current channel will be used")]

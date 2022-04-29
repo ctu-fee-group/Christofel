@@ -29,7 +29,7 @@ namespace Christofel.ReactHandler.Formatters
 
             if (emoji.ID.IsDefined(out var id))
             {
-                return $"<:{id}:{value}>";
+                return $"<:{value}:{id}>";
             }
 
             return value;
