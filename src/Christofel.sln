@@ -10,6 +10,9 @@ ProjectSection(SolutionItems) = preProject
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{9D7EB95F-6F09-4F8C-BEDD-EC43794A5E34}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\Directory.Build.props = Tools\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Design", "Tools\Christofel.Design\Christofel.Design.csproj", "{39DC714E-689A-4D04-B392-A264BD21EF2C}"
 EndProject

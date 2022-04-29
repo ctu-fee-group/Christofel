@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
-using Christofel.BaseLib.Database;
 using Christofel.DatabaseMigrator.Model;
 using Christofel.ReactHandler.Database;
 using Christofel.ReactHandler.Database.Models;
 using Microsoft.Extensions.Logging;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.DatabaseMigrator.ModelMigrator
 {

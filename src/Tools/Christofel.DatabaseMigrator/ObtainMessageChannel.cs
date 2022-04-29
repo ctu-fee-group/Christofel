@@ -1,9 +1,8 @@
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.DatabaseMigrator
 {

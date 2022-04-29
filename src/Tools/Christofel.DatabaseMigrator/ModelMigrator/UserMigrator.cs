@@ -1,12 +1,9 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Database.Models;
+using Christofel.Common.Database;
+using Christofel.Common.Database.Models;
 using Christofel.DatabaseMigrator.Model;
-using Microsoft.Extensions.Options;
-using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 
 namespace Christofel.DatabaseMigrator.ModelMigrator
 {
@@ -33,7 +30,7 @@ namespace Christofel.DatabaseMigrator.ModelMigrator
                     DuplicityApproved = user.DuplicityApproved,
                     DiscordId = new Snowflake(ulong.Parse(user.DiscordId)),
                     CtuUsername = user.CtuUsername,
-                    RegistrationCode = user.AuthCode
+                    RegistrationCode = string.IsNullOrEmpty(user.AuthCode) ? null : user.AuthCode
                 };
 
                 _baseContext.Add(clonedUser);
