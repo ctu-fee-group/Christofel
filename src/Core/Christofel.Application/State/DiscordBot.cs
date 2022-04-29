@@ -12,7 +12,9 @@ using Christofel.BaseLib.Extensions;
 using Christofel.Common.Discord;
 using Christofel.Plugins.Extensions;
 using Christofel.Plugins.Lifetime;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Results;
 using Remora.Results;
@@ -25,6 +27,7 @@ namespace Christofel.Application.State
         private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
         private readonly IApplicationLifetime _lifetime;
         private readonly ILogger<DiscordBot> _logger;
+        private IDisposable _optionsMonitorToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DiscordBot"/> class.
@@ -33,12 +36,14 @@ namespace Christofel.Application.State
         /// <param name="client">The gateway client.</param>
         /// <param name="logger">The logger.</param>
         /// <param name="lifetime">The lifetime of the application.</param>
+        /// <param name="optionsMonitor">The options monitor.</param>
         public DiscordBot
         (
             IHttpClientFactory httpClientFactory,
             DiscordGatewayClient client,
             ILogger<DiscordBot> logger,
-            IApplicationLifetime lifetime
+            IApplicationLifetime lifetime,
+            IOptionsMonitor<HttpClientFactoryOptions> optionsMonitor
         )
         {
             Client = client;
@@ -46,6 +51,14 @@ namespace Christofel.Application.State
 
             _lifetime = lifetime;
             _logger = logger;
+            DiscordHttpClientOptions = optionsMonitor.CurrentValue;
+            _optionsMonitorToken = optionsMonitor.OnChange
+            (
+                o =>
+                {
+                    DiscordHttpClientOptions = o;
+                }
+            );
         }
 
         /// <inheritdoc/>
@@ -54,10 +67,14 @@ namespace Christofel.Application.State
         /// <inheritdoc/>
         public IHttpClientFactory HttpClientFactory { get; }
 
+        /// <inheritdoc />
+        public HttpClientFactoryOptions DiscordHttpClientOptions { get; private set; }
+
         /// <inheritdoc/>
         public void Dispose()
         {
             _applicationRunningToken.Dispose();
+            _optionsMonitorToken.Dispose();
         }
 
         /// <summary>

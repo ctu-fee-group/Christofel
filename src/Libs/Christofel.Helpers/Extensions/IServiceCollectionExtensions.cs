@@ -13,19 +13,23 @@ using Christofel.Helpers;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Christofel.Remora;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Extensions;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Services;
 using Remora.Discord.Rest;
 using Remora.Discord.Rest.API;
 using Remora.Discord.Rest.Extensions;
 using Remora.Rest;
+using Remora.Rest.Extensions;
 
 namespace Christofel.BaseLib.Extensions
 {
@@ -208,7 +212,57 @@ namespace Christofel.BaseLib.Extensions
                 .AddSingleton<IResultLoggerProvider, ResultLoggerProvider>()
                 .AddSingleton(state.Bot.Client)
                 .AddSingleton(state.DiscordJsonOptions)
-                .AddSingleton(state.Bot.HttpClientFactory)
+                .Configure<JsonSerializerOptions>
+                (
+                    "Discord",
+                    o =>
+                    {
+                        var baseOptions = state.DiscordJsonOptions.Get("Discord");
+                        foreach (var action in baseOptions.Converters)
+                        {
+                            o.Converters.Add(action);
+                        }
+
+                        o.Encoder = baseOptions.Encoder;
+                        o.IncludeFields = baseOptions.IncludeFields;
+                        o.MaxDepth = baseOptions.MaxDepth;
+                        o.NumberHandling = baseOptions.NumberHandling;
+                        o.ReferenceHandler = baseOptions.ReferenceHandler;
+                        o.WriteIndented = baseOptions.WriteIndented;
+                        o.AllowTrailingCommas = baseOptions.AllowTrailingCommas;
+                        o.DefaultBufferSize = baseOptions.DefaultBufferSize;
+                        o.DefaultIgnoreCondition = baseOptions.DefaultIgnoreCondition;
+                        o.DictionaryKeyPolicy = baseOptions.DictionaryKeyPolicy;
+                        o.PropertyNamingPolicy = baseOptions.PropertyNamingPolicy;
+                        o.ReadCommentHandling = baseOptions.ReadCommentHandling;
+                        o.UnknownTypeHandling = baseOptions.UnknownTypeHandling;
+                        o.IgnoreReadOnlyFields = baseOptions.IgnoreReadOnlyFields;
+                        o.IgnoreReadOnlyProperties = baseOptions.IgnoreReadOnlyProperties;
+                        o.PropertyNameCaseInsensitive = baseOptions.PropertyNameCaseInsensitive;
+                        o.IgnoreNullValues = baseOptions.IgnoreNullValues;
+                    }
+                )
+                .AddHttpClient()
+                .Configure<HttpClientFactoryOptions>
+                (
+                    "Discord",
+                    o =>
+                    {
+                        o.HandlerLifetime = state.Bot.DiscordHttpClientOptions.HandlerLifetime;
+                        o.SuppressHandlerScope = state.Bot.DiscordHttpClientOptions.SuppressHandlerScope;
+                        o.ShouldRedactHeaderValue = state.Bot.DiscordHttpClientOptions.ShouldRedactHeaderValue;
+
+                        foreach (var action in state.Bot.DiscordHttpClientOptions.HttpMessageHandlerBuilderActions)
+                        {
+                            o.HttpMessageHandlerBuilderActions.Add(action);
+                        }
+
+                        foreach (var action in state.Bot.DiscordHttpClientOptions.HttpClientActions)
+                        {
+                            o.HttpClientActions.Add(action);
+                        }
+                    }
+                )
                 .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
                 .AddSingleton(state.LoggerFactory)
                 .AddSingleton(state.Configuration)

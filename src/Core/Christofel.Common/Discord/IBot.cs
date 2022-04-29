@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Net.Http;
+using Microsoft.Extensions.Http;
 using Remora.Discord.Gateway;
 
 namespace Christofel.Common.Discord
@@ -23,5 +24,10 @@ namespace Christofel.Common.Discord
         /// Gets http client factory with Remora Discord.
         /// </summary>
         public IHttpClientFactory HttpClientFactory { get; }
+
+        /// <summary>
+        /// Gets the options for discord http client.
+        /// </summary>
+        public HttpClientFactoryOptions DiscordHttpClientOptions { get; }
     }
 }
