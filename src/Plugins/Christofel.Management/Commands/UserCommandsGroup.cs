@@ -17,6 +17,7 @@ using Christofel.Management.CtuUtils;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API;
@@ -46,7 +47,7 @@ namespace Christofel.Management.Commands
 
         private readonly CtuIdentityResolver _identityResolver;
 
-        private readonly ILogger<MessageCommandsGroup> _logger;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserCommandsGroup"/> class.
@@ -59,7 +60,7 @@ namespace Christofel.Management.Commands
         public UserCommandsGroup
         (
             FeedbackService feedbackService,
-            ILogger<MessageCommandsGroup> logger,
+            ILogger<UserCommandsGroup> logger,
             CtuIdentityResolver identityResolver,
             ChristofelBaseContext dbContext,
             ICommandContext context
@@ -246,8 +247,9 @@ namespace Christofel.Management.Commands
             private readonly ChristofelBaseContext _dbContext;
             private readonly FeedbackService _feedbackService;
             private readonly CtuIdentityResolver _identityResolver;
-            private readonly ILogger<MessageCommandsGroup> _logger;
+            private readonly ILogger _logger;
             private readonly IDiscordRestUserAPI _userApi;
+            private readonly UsersOptions _usersOptions;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="InnerDuplicate"/> class.
@@ -256,16 +258,19 @@ namespace Christofel.Management.Commands
             /// <param name="logger">The logger.</param>
             /// <param name="userApi">The user api.</param>
             /// <param name="dbContext">The christofel base database context.</param>
+            /// <param name="usersOptions">The user options.</param>
             /// <param name="identityResolver">The identity resolver.</param>
             public InnerDuplicate
             (
                 FeedbackService feedbackService,
-                ILogger<MessageCommandsGroup> logger,
+                ILogger<UserCommandsGroup> logger,
                 IDiscordRestUserAPI userApi,
                 ChristofelBaseContext dbContext,
+                IOptionsSnapshot<UsersOptions> usersOptions,
                 CtuIdentityResolver identityResolver
             )
             {
+                _usersOptions = usersOptions.Value;
                 _userApi = userApi;
                 _feedbackService = feedbackService;
                 _identityResolver = identityResolver;
@@ -305,12 +310,17 @@ namespace Christofel.Management.Commands
                     }
                     else
                     {
+                        var code = dbUser.RegistrationCode;
+                        var link = _usersOptions.AuthLink.Replace("{code}", code);
                         dbUser.DuplicityApproved = true;
 
                         await _dbContext.SaveChangesAsync(CancellationToken);
                         feedbackResult =
                             await _feedbackService.SendContextualSuccessAsync
-                                ("Duplicity approved. Link for authentication is: **LINK**", ct: CancellationToken);
+                            (
+                                $"Duplicity approved. Link for authentication is: {link}",
+                                ct: CancellationToken
+                            );
                     }
                 }
                 catch (Exception e)

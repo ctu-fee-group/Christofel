@@ -112,6 +112,7 @@ namespace Christofel.Management
 
                 // Configurations
                 .Configure<ResendRuleOptions>(State.Configuration.GetSection("Management:Resend"))
+                .Configure<UsersOptions>(State.Configuration.GetSection("Management:Users"))
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
         }
 
