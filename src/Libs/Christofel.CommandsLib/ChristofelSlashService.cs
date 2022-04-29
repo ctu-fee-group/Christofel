@@ -106,15 +106,6 @@ namespace Christofel.CommandsLib
             {
                 return Result.FromError(createCommands.Error);
             }
-
-            var guildCommandPermissions =
-                await _applicationAPI.GetGuildApplicationCommandPermissionsAsync(application.ID, guildID, ct);
-
-            if (!guildCommandPermissions.IsSuccess)
-            {
-                return Result.FromError(guildCommandPermissions.Error);
-            }
-
             foreach (var command in mappedCommands)
             {
                 var result = await CreateOrModifyCommandAsync
@@ -123,7 +114,6 @@ namespace Christofel.CommandsLib
                     guildID,
                     command,
                     createdCommands.Entity,
-                    guildCommandPermissions.Entity,
                     ct
                 );
 
@@ -200,7 +190,6 @@ namespace Christofel.CommandsLib
             Snowflake guildID,
             CommandInfo command,
             IReadOnlyList<IApplicationCommand> createdCommands,
-            IReadOnlyList<IGuildApplicationCommandPermissions> guildCommandPermissions,
             CancellationToken ct = default
         )
         {
@@ -225,8 +214,6 @@ namespace Christofel.CommandsLib
                 {
                     return Result.FromError(result.Error);
                 }
-
-                registeredCommand = result.Entity;
             }
             else if (!registeredCommand.MatchesBulkCommand(command.DefaultPermission, command.Data))
             {
@@ -251,32 +238,6 @@ namespace Christofel.CommandsLib
                 if (!result.IsSuccess)
                 {
                     return Result.FromError(result.Error);
-                }
-
-                registeredCommand = result.Entity;
-            }
-
-            var commandPermissions = guildCommandPermissions.FirstOrDefault(x => x.ID == registeredCommand.ID);
-
-            if (commandPermissions is null || !command.Permissions.OrderBy(x => x.ID).ToList()
-                .CollectionMatches
-                (
-                    commandPermissions.Permissions.OrderBy(x => x.ID).ToList(),
-                    ApplicationCommandPermissionsExtensions.PermissionMatches
-                ))
-            {
-                var permissionsResult = await _applicationAPI.EditApplicationCommandPermissionsAsync
-                (
-                    applicationID,
-                    guildID,
-                    registeredCommand.ID,
-                    command.Permissions,
-                    ct
-                );
-
-                if (!permissionsResult.IsSuccess)
-                {
-                    return Result.FromError(permissionsResult.Error);
                 }
             }
 
