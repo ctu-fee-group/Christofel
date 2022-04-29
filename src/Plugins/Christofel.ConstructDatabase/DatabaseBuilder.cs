@@ -1,49 +1,71 @@
+//
+//  DatabaseBuilder.cs
+//
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Configuration;
-using Christofel.BaseLib.Database;
-using Christofel.BaseLib.Database.Models;
-using Christofel.BaseLib.Database.Models.Enums;
-using Christofel.BaseLib.Lifetime;
-using Christofel.BaseLib.Plugins;
-using Discord;
-using Discord.Rest;
-using Discord.WebSocket;
+using Christofel.Common.Database;
+using Christofel.Common.Database.Models;
+using Christofel.Common.Database.Models.Enums;
+using Christofel.Plugins.Lifetime;
+using Christofel.Plugins.Runtime;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Remora.Discord.API;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
 
 namespace Christofel.ConstructDatabase
 {
+    /// <summary>
+    /// The databse builder.
+    /// </summary>
     public class DatabaseBuilder : IStartable
     {
         private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
+        private readonly IDiscordRestGuildAPI _guildApi;
         private readonly BotOptions _options;
-        private readonly DiscordRestClient _client;
         private readonly ICurrentPluginLifetime _lifetime;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DatabaseBuilder"/> class.
+        /// </summary>
+        /// <param name="dbContextFactory">The context factory.</param>
+        /// <param name="botOptions">The bot options.</param>
+        /// <param name="guildApi">The guild api.</param>
+        /// <param name="lifetime">The lifetime.</param>
         public DatabaseBuilder(
             IDbContextFactory<ChristofelBaseContext> dbContextFactory,
             IOptions<BotOptions> botOptions,
-            DiscordRestClient client,
+            IDiscordRestGuildAPI guildApi,
             ICurrentPluginLifetime lifetime
         )
         {
             _lifetime = lifetime;
             _options = botOptions.Value;
-            _client = client;
             _dbContextFactory = dbContextFactory;
+            _guildApi = guildApi;
         }
 
-        public Task StartAsync(CancellationToken token = new CancellationToken())
+        /// <inheritdoc />
+        public Task StartAsync(CancellationToken token = default)
         {
             Task.Run(async () =>
             {
-                using (ChristofelBaseContext context = _dbContextFactory.CreateDbContext())
+                await using (var context = _dbContextFactory.CreateDbContext())
                 {
-                    RestGuild guild = await _client.GetGuildAsync(_options.GuildId);
-                    IReadOnlyCollection<IRole> roles = guild.Roles;
+                    var rolesResult = await _guildApi.GetGuildRolesAsync(DiscordSnowflake.New(_options.GuildId), token);
+                    if (!rolesResult.IsDefined(out var roles))
+                    {
+                        Console.WriteLine("Could not load guild roles.");
+                        return;
+                    }
 
                     AddYearRoles(context, roles);
                     AddProgrammeRoles(context, roles);
@@ -51,7 +73,7 @@ namespace Christofel.ConstructDatabase
                     AddUsermapRoles(context, roles);
                     AddTitleRoles(context, roles);
 
-                    await context.SaveChangesAsync();
+                    await context.SaveChangesAsync(token);
                 }
 
                 _lifetime.RequestStop();
@@ -60,7 +82,7 @@ namespace Christofel.ConstructDatabase
             return Task.CompletedTask;
         }
 
-        private void AddTitleRoles(ChristofelBaseContext context, IReadOnlyCollection<IRole> roles)
+        private void AddTitleRoles(ChristofelBaseContext context, IReadOnlyList<IRole> roles)
         {
             var assignments = new Dictionary<string, TitleRoleAssignment>();
             assignments.Add("Magistr", new TitleRoleAssignment()
@@ -70,19 +92,26 @@ namespace Christofel.ConstructDatabase
                 Post = false,
                 Priority = 20
             });
-            assignments.Add("Bakalar", new TitleRoleAssignment()
+            assignments.Add("Bakalář", new TitleRoleAssignment()
             {
                 Title = "Bc.",
                 Pre = true,
                 Post = false,
                 Priority = 10
             });
+            assignments.Add("Inženýr", new TitleRoleAssignment()
+            {
+                Title = "Ing.",
+                Pre = true,
+                Post = false,
+                Priority = 20
+            });
 
             foreach (var assignment in assignments)
             {
                 var roleAssignment = new RoleAssignment()
                 {
-                    RoleId = roles.First(x => x.Name == assignment.Key).Id
+                    RoleId = roles.First(x => x.Name == assignment.Key).ID
                 };
 
                 assignment.Value.Assignment = roleAssignment;
@@ -92,27 +121,32 @@ namespace Christofel.ConstructDatabase
             }
         }
 
-        private void AddUsermapRoles(ChristofelBaseContext context, IReadOnlyCollection<IRole> roles)
+        private void AddUsermapRoles(ChristofelBaseContext context, IReadOnlyList<IRole> roles)
         {
             var felAssignment = new RoleAssignment()
             {
-                RoleId = roles.First(x => x.Name == "FEL student").Id,
+                RoleId = roles.First(x => x.Name == "FELál").ID,
                 RoleType = RoleType.Faculty
             };
             var nonfelAssignment = new RoleAssignment()
             {
-                RoleId = roles.First(x => x.Name == "NONFEL student").Id,
+                RoleId = roles.First(x => x.Name == "ČVUT impostor").ID,
                 RoleType = RoleType.Faculty
             };
 
             var bakalantAssignment = new RoleAssignment()
             {
-                RoleId = roles.First(x => x.Name == "Bakalant").Id,
+                RoleId = roles.First(x => x.Name == "Bakalant").ID,
                 RoleType = RoleType.CurrentStudies
             };
             var diplomantAssignment = new RoleAssignment()
             {
-                RoleId = roles.First(x => x.Name == "Diplomant").Id,
+                RoleId = roles.First(x => x.Name == "Diplomant").ID,
+                RoleType = RoleType.CurrentStudies
+            };
+            var doktorandAssignment = new RoleAssignment()
+            {
+                RoleId = roles.First(x => x.Name == "Doktorand").ID,
                 RoleType = RoleType.CurrentStudies
             };
 
@@ -121,6 +155,13 @@ namespace Christofel.ConstructDatabase
                 Assignment = bakalantAssignment,
                 RegexMatch = false,
                 UsermapRole = "B-00000-SUMA-STUDENT-BAKALAR"
+            };
+
+            var doktorandUsermapAssignment = new UsermapRoleAssignment()
+            {
+                Assignment = doktorandAssignment,
+                RegexMatch = false,
+                UsermapRole = "B-00000-SUMA-STUDENT-DOKTORAND"
             };
 
             var diplomantUsermapAssignment = new UsermapRoleAssignment()
@@ -155,11 +196,12 @@ namespace Christofel.ConstructDatabase
 
             context.Add(bakalantUsermapAssignment);
             context.Add(diplomantUsermapAssignment);
+            context.Add(doktorandUsermapAssignment);
         }
 
-        private void AddYearRoles(ChristofelBaseContext context, IReadOnlyCollection<IRole> roles)
+        private void AddYearRoles(ChristofelBaseContext context, IReadOnlyList<IRole> roles)
         {
-            string prefix = "Year ";
+            string prefix = "Ročník ";
 
             foreach (IRole role in roles.Where(x => x.Name.StartsWith(prefix)))
             {
@@ -168,7 +210,7 @@ namespace Christofel.ConstructDatabase
 
                 var roleAssignment = new RoleAssignment()
                 {
-                    RoleId = role.Id,
+                    RoleId = role.ID,
                     RoleType = RoleType.Year
                 };
 
@@ -183,11 +225,17 @@ namespace Christofel.ConstructDatabase
             }
         }
 
-        private void AddProgrammeRoles(ChristofelBaseContext context, IReadOnlyCollection<IRole> roles)
+        private void AddProgrammeRoles(ChristofelBaseContext context, IReadOnlyList<IRole> roles)
         {
             var programmes = new Dictionary<string, string>();
             programmes.Add("OES", "Otevřené elektronické systémy");
-            programmes.Add("KyR", "Kybernetika a robotika");
+            programmes.Add("KYR", "Kybernetika a robotika");
+            programmes.Add("OI", "Otevřená informatika");
+            programmes.Add("EK", "Elektronika a komunikace");
+            programmes.Add("EEK", "Elektrotechnika, elektronika a komunikační technika");
+            programmes.Add("SIT", "Softwarové inženýrství a technologie");
+            programmes.Add("EEM", "Elektrotechnika, energetika a management");
+            programmes.Add("LEB", "Lékařská elektronika a bioinformatika");
 
             foreach (var programme in programmes)
             {
@@ -199,7 +247,7 @@ namespace Christofel.ConstructDatabase
 
                 var roleAssignment = new RoleAssignment()
                 {
-                    RoleId = role.Id,
+                    RoleId = role.ID,
                     RoleType = RoleType.Programme
                 };
 
@@ -214,23 +262,23 @@ namespace Christofel.ConstructDatabase
             }
         }
 
-        private void AddSpecificRoles(ChristofelBaseContext context, IReadOnlyCollection<IRole> roles)
+        private void AddSpecificRoles(ChristofelBaseContext context, IReadOnlyList<IRole> roles)
         {
             var authenticated = new RoleAssignment()
             {
-                RoleId = roles.First(x => x.Name == "Authenticated").Id,
+                RoleId = roles.First(x => x.Name == "Ověřený").ID,
                 RoleType = RoleType.General
             };
 
             var authenticatedSpecific = new SpecificRoleAssignment()
             {
-                Name = "Authentication",
+                Name = "Authenticated",
                 Assignment = authenticated,
             };
 
             var teacher = new RoleAssignment()
             {
-                RoleId = roles.First(x => x.Name == "Teacher").Id,
+                RoleId = roles.First(x => x.Name == "Vyučující").ID,
                 RoleType = RoleType.General
             };
 
