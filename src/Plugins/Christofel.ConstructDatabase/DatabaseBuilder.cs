@@ -280,7 +280,7 @@ namespace Christofel.ConstructDatabase
 
             var authenticatedSpecific = new SpecificRoleAssignment()
             {
-                Name = "Authenticated",
+                Name = "Authentication",
                 Assignment = authenticated,
             };
 
