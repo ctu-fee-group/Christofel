@@ -57,6 +57,7 @@ namespace Christofel.ConstructDatabase
         protected override IServiceCollection ConfigureServices
             (IServiceCollection serviceCollection) => serviceCollection
             .AddDiscordState(State)
+            .AddChristofelDatabase(State)
             .AddSingleton<PluginResponder>()
             .AddStateful<DatabaseBuilder>()
             .AddSingleton(_lifetimeHandler.LifetimeSpecific)
