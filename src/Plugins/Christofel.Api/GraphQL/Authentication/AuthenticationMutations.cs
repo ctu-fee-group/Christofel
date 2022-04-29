@@ -26,7 +26,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Abstractions.Results;
+using Remora.Discord.API.Objects;
 using Remora.Rest.Core;
+using Remora.Rest.Results;
 using Remora.Results;
 
 namespace Christofel.Api.GraphQL.Authentication
@@ -111,7 +114,8 @@ namespace Christofel.Api.GraphQL.Authentication
             );
             if (!memberResult.IsSuccess)
             {
-                if (memberResult.Error is NotFoundError)
+                if (memberResult.Error is NotFoundError
+                    || (memberResult.Error as RestResultError<RestError>)?.Error.Code == DiscordError.UnknownMember)
                 {
                     _logger.LogWarning
                     (
@@ -297,7 +301,8 @@ namespace Christofel.Api.GraphQL.Authentication
 
             if (!memberResult.IsSuccess)
             {
-                if (memberResult.Error is NotFoundError)
+                if (memberResult.Error is NotFoundError
+                    || (memberResult.Error as RestResultError<RestError>)?.Error.Code == DiscordError.UnknownMember)
                 {
                     _logger.LogWarning
                     (
