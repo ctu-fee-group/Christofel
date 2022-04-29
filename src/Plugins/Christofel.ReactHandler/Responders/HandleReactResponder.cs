@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -85,6 +86,11 @@ namespace Christofel.ReactHandler.Responders
             List<IResult> errors = new List<IResult>();
             foreach (var matchingHandler in matchingHandlers)
             {
+                if (matchingHandler.Emoji != emoji)
+                {
+                    continue;
+                }
+
                 Result result;
 
                 switch (matchingHandler.Type)
@@ -154,8 +160,8 @@ namespace Christofel.ReactHandler.Responders
                 .Where
                 (
                     x => x.ChannelId == gatewayEvent.ChannelID &&
-                         x.MessageId == gatewayEvent.MessageID &&
-                         x.Emoji == emoji
+                        x.MessageId == gatewayEvent.MessageID &&
+                        x.Emoji == emoji
                 )
                 .ToListAsync(ct);
 
@@ -163,6 +169,11 @@ namespace Christofel.ReactHandler.Responders
             foreach (var matchingHandler in matchingHandlers)
             {
                 Result result;
+
+                if (matchingHandler.Emoji != emoji)
+                {
+                    continue;
+                }
 
                 switch (matchingHandler.Type)
                 {
