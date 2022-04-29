@@ -25,22 +25,22 @@ namespace Christofel.DatabaseMigrator.ModelMigrator
 
         public async Task MigrateModel()
         {
-            await foreach (var messageChannel in _oldContext.MessageChannels)
+            await foreach (var messageRole in _oldContext.MessageRoles)
             {
-                var channel = await _obtainMessageChannel.GetChannelAsync(ulong.Parse(messageChannel.MessageId));
+                var channel = await _obtainMessageChannel.GetChannelAsync(ulong.Parse(messageRole.MessageId));
                 if (channel is null)
                 {
-                    _logger.LogWarning("Could not find channel for message {MessageId}", messageChannel.MessageId);
+                    _logger.LogWarning("Could not find channel for message {MessageId}", messageRole.MessageId);
                     continue;
                 }
 
                 var clonedEntity = new HandleReact()
                 {
                     ChannelId = channel.Value,
-                    MessageId = new Snowflake(ulong.Parse(messageChannel.MessageId)),
-                    Emoji = EmojiMigrator.ConvertEmoji(messageChannel.EmojiId),
-                    Type = HandleReactType.Channel,
-                    EntityId = new Snowflake(ulong.Parse(messageChannel.ChannelId)),
+                    MessageId = new Snowflake(ulong.Parse(messageRole.MessageId)),
+                    Emoji = EmojiMigrator.ConvertEmoji(messageRole.EmojiId),
+                    Type = HandleReactType.Role,
+                    EntityId = new Snowflake(ulong.Parse(messageRole.RoleId)),
                 };
 
                 _reactHandlerContext.Add(clonedEntity);
