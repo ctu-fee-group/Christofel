@@ -64,6 +64,7 @@ namespace Christofel.Messages.Commands
         /// <returns>A result that may not have succeeded.</returns>
         [Command("react")]
         [RequirePermission("messages.react")]
+        [Ephemeral]
         public async Task<Result> HandleReactAsync
         (
             [DiscordTypeHint(TypeHint.String)] [Description("Id of the message to react to")]
@@ -73,6 +74,7 @@ namespace Christofel.Messages.Commands
             Snowflake? channel = null
         )
         {
+            emoji = emoji.TrimStart('<').TrimEnd('>').TrimStart(':');
             var channelId = channel ?? _context.ChannelID;
             var result =
                 await _channelApi.CreateReactionAsync(channelId, messageId, emoji, CancellationToken);
