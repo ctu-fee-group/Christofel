@@ -73,13 +73,18 @@ namespace Christofel.ReactHandler.Responders
                 return Result.FromSuccess();
             }
 
+            if (IsBot(gatewayEvent.Member))
+            {
+                return Result.FromSuccess();
+            }
+
             string emoji = EmojiFormatter.GetEmojiString(gatewayEvent.Emoji);
             var matchingHandlers = await _dbContext.Set<HandleReact>()
                 .Where
                 (
                     x => x.ChannelId == gatewayEvent.ChannelID &&
-                         x.MessageId == gatewayEvent.MessageID &&
-                         x.Emoji == emoji
+                        x.MessageId == gatewayEvent.MessageID &&
+                        x.Emoji == emoji
                 )
                 .ToListAsync(ct);
 
@@ -265,5 +270,21 @@ namespace Christofel.ReactHandler.Responders
                 reason: "Reaction handler",
                 ct: ct
             );
+
+        private bool IsBot(Optional<IGuildMember> optMember)
+        {
+            if (optMember.IsDefined(out var member))
+            {
+                if (member.User.IsDefined(out var user))
+                {
+                    if (user.IsBot.IsDefined(out var bot))
+                    {
+                        return bot;
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }
