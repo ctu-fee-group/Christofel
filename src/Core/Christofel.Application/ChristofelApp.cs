@@ -183,7 +183,10 @@ namespace Christofel.Application
                 .Configure<DiscordGatewayClientOptions>
                 (
                     o =>
-                        o.Intents |= GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessages
+                        o.Intents |=
+                        GatewayIntents.GuildMessageReactions |
+                        GatewayIntents.DirectMessages |
+                        GatewayIntents.MessageContents
                 )
 
                 // events
