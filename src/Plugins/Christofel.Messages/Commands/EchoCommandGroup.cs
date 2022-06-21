@@ -70,7 +70,7 @@ namespace Christofel.Messages.Commands
         public async Task<Result> HandleEcho
         (
             [Description("Text of the message to send"), Greedy]
-            string text,
+            string text = "No text",
             [Description("Where to send the message. Default is current channel")]
             [DiscordTypeHint(TypeHint.Channel)]
             [Option('c', "channel")]
@@ -116,7 +116,7 @@ namespace Christofel.Messages.Commands
             [Description("What message to edit")] [DiscordTypeHint(TypeHint.String)]
             Snowflake messageId,
             [Description("New text of the message"), Greedy]
-            string text,
+            string text = "No text",
             [Description("Where to send the message. Default is current channel")]
             [DiscordTypeHint(TypeHint.Channel)]
             [Option('c', "channel")]
