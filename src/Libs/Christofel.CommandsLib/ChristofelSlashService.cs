@@ -108,6 +108,11 @@ namespace Christofel.CommandsLib
             }
             foreach (var command in mappedCommands)
             {
+                if (command is null)
+                {
+                    continue;
+                }
+
                 var result = await CreateOrModifyCommandAsync
                 (
                     application.ID,
@@ -189,12 +194,12 @@ namespace Christofel.CommandsLib
             Snowflake applicationID,
             Snowflake guildID,
             CommandInfo command,
-            IReadOnlyList<IApplicationCommand> createdCommands,
+            IReadOnlyList<IApplicationCommand>? createdCommands,
             CancellationToken ct = default
         )
         {
             // TODO: split to more methods
-            var registeredCommand = createdCommands.FirstOrDefault(x => x.Name == command.Data.Name);
+            var registeredCommand = createdCommands?.FirstOrDefault(x => x.Name == command?.Data.Name);
 
             if (registeredCommand is null)
             {
