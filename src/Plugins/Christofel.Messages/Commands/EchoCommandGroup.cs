@@ -62,7 +62,6 @@ namespace Christofel.Messages.Commands
         /// Sends given message to the given channel.
         /// </remarks>
         /// <param name="text">The message to be sent.</param>
-        /// <param name="channel">The channel to send the message into. If omitted, the channel from the context will be used.</param>
         /// <returns>A result of the command that may not have succeeded.</returns>
         [Command("send")]
         [Description("Send a message")]
@@ -70,14 +69,10 @@ namespace Christofel.Messages.Commands
         public async Task<Result> HandleEcho
         (
             [Description("Text of the message to send"), Greedy]
-            string text = "No text",
-            [Description("Where to send the message. Default is current channel")]
-            [DiscordTypeHint(TypeHint.Channel)]
-            [Option('c', "channel")]
-            Snowflake? channel = null
+            string text
         )
         {
-            var channelId = channel ?? _context.ChannelID;
+            var channelId = _context.ChannelID;
             var messageResult = await _channelApi.CreateMessageAsync
                 (channelId, text, allowedMentions: AllowedMentionsHelper.None, ct: CancellationToken);
             if (!messageResult.IsSuccess)
@@ -106,7 +101,6 @@ namespace Christofel.Messages.Commands
         /// </remarks>
         /// <param name="messageId">The id of the message to edit.</param>
         /// <param name="text">The text to edit the content with.</param>
-        /// <param name="channel">The channel where the message is located.</param>
         /// <returns>A result of the command that may not have succeeded.</returns>
         [Command("edit")]
         [Description("Edit a message sent by the bot")]
@@ -116,14 +110,10 @@ namespace Christofel.Messages.Commands
             [Description("What message to edit")] [DiscordTypeHint(TypeHint.String)]
             Snowflake messageId,
             [Description("New text of the message"), Greedy]
-            string text = "No text",
-            [Description("Where to send the message. Default is current channel")]
-            [DiscordTypeHint(TypeHint.Channel)]
-            [Option('c', "channel")]
-            Snowflake? channel = null
+            string text
         )
         {
-            var channelId = channel ?? _context.ChannelID;
+            var channelId = _context.ChannelID;
             var messageResult =
                 await _channelApi.GetChannelMessageAsync(channelId, messageId, CancellationToken);
             if (!messageResult.IsSuccess)
