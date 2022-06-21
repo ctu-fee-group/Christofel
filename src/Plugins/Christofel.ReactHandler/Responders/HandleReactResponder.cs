@@ -124,7 +124,11 @@ namespace Christofel.ReactHandler.Responders
 
                 if (!result.IsSuccess)
                 {
-                    _logger.LogResultError(result, $"Could not assign channel or role ({matchingHandler.EntityId}) to user.");
+                    _logger.LogResultError
+                    (
+                        result,
+                        $"Could not assign channel or role ({matchingHandler.EntityId}) to user ({gatewayEvent.UserID})."
+                    );
                     errors.Add(result);
                 }
                 else
@@ -230,8 +234,20 @@ namespace Christofel.ReactHandler.Responders
         }
 
         private Task<Result> AssignRole
-            (Snowflake guildId, Snowflake userId, Snowflake roleId, CancellationToken ct)
-            => _guildApi.AddGuildMemberRoleAsync(guildId, userId, roleId, "Reaction handler", ct);
+        (
+            Snowflake guildId,
+            Snowflake userId,
+            Snowflake roleId,
+            CancellationToken ct
+        )
+            => _guildApi.AddGuildMemberRoleAsync
+            (
+                guildId,
+                userId,
+                roleId,
+                "Reaction handler",
+                ct
+            );
 
         private Task<Result> AssignChannel
         (
@@ -251,8 +267,20 @@ namespace Christofel.ReactHandler.Responders
             );
 
         private Task<Result> DeassignRole
-            (Snowflake guildId, Snowflake userId, Snowflake roleId, CancellationToken ct)
-            => _guildApi.RemoveGuildMemberRoleAsync(guildId, userId, roleId, "Reaction handler", ct);
+        (
+            Snowflake guildId,
+            Snowflake userId,
+            Snowflake roleId,
+            CancellationToken ct
+        )
+            => _guildApi.RemoveGuildMemberRoleAsync
+            (
+                guildId,
+                userId,
+                roleId,
+                "Reaction handler",
+                ct
+            );
 
         private Task<Result> DeassignChannel
         (
