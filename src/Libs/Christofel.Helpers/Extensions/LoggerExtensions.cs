@@ -8,6 +8,9 @@ using System;
 using System.CodeDom.Compiler;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Objects;
+using Remora.Rest.Results;
 using Remora.Results;
 
 namespace Christofel.BaseLib.Extensions;
@@ -90,8 +93,15 @@ public static class LoggerExtensions
         }
 
         AppendErrorMessage(logTextWriter, result.Error);
+
         IResultError? lastError = result.Error;
         logTextWriter.Indent++;
+
+        if (result.Error is RestResultError<RestError> restError)
+        {
+            AppendRestError(logTextWriter, restError.Error);
+        }
+
         while ((result = result?.Inner) is not null && result.Error is not null)
         {
             // ReSharper disable once PossibleUnintendedReferenceComparison
@@ -105,6 +115,64 @@ public static class LoggerExtensions
             logTextWriter.Write("---> ");
             AppendErrorMessage(logTextWriter, result.Error);
         }
+    }
+
+    private static void AppendRestError(IndentedTextWriter indentedTextWriter, RestError restError)
+    {
+        indentedTextWriter.Write("---> ");
+        indentedTextWriter.WriteLine(restError.Code + " " + restError.Message);
+
+        if (!restError.Errors.IsDefined(out var errors))
+        {
+            return;
+        }
+
+        foreach (var error in errors)
+        {
+            indentedTextWriter.WriteLine($"Property {error.Key}");
+            indentedTextWriter.Indent++;
+
+            if (error.Value.TryPickT0(out var details, out var list))
+            {
+                AppendPropertyErrorDetails(indentedTextWriter, null, details);
+            }
+            else
+            {
+                foreach (var entry in list)
+                {
+                    indentedTextWriter.WriteLine($"{entry.Code} {entry.Message}");
+                }
+            }
+            indentedTextWriter.Indent--;
+        }
+    }
+
+    private static void AppendPropertyErrorDetails
+        (IndentedTextWriter indentedTextWriter, string? name, IPropertyErrorDetails details)
+    {
+        if (name is not null)
+        {
+            indentedTextWriter.WriteLine($"Property {name}");
+            indentedTextWriter.Indent++;
+        }
+
+        if (details.Errors is not null)
+        {
+            foreach (var entry in details.Errors)
+            {
+                indentedTextWriter.WriteLine($"{entry.Code} {entry.Message}");
+            }
+        }
+
+        if (details.MemberErrors is not null)
+        {
+            foreach (var memberError in details.MemberErrors)
+            {
+                AppendPropertyErrorDetails(indentedTextWriter, memberError.Key, memberError.Value);
+            }
+        }
+
+        indentedTextWriter.Indent--;
     }
 
     private static void AppendErrorMessage(IndentedTextWriter indentedTextWriter, IResultError error)
