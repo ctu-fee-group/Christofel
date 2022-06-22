@@ -63,6 +63,9 @@ public class EnhancementsPlugin : ChristofelDIPlugin
             .AddCommandTree()
             .WithCommandGroup<TeleportCommandGroup>();
 
+        // Custom voice setup
+        serviceCollection
+            .AddSingleton<IThreadSafeStorage<CustomVoiceChannel>, ThreadSafeListStorage<CustomVoiceChannel>>()
         // Auto pin setup
         serviceCollection
             .Configure<AutoPinOptions>(State.Configuration.GetSection("Enhancements:AutoPin"))
