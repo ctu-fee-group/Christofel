@@ -6,7 +6,7 @@
 
 using Remora.Discord.API.Abstractions.Objects;
 
-namespace Christofel.ReactHandler.Formatters
+namespace Christofel.Helpers.Helpers
 {
     /// <summary>
     /// Formatter for <see cref="IPartialEmoji"/>.
