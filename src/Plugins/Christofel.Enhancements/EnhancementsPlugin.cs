@@ -66,6 +66,8 @@ public class EnhancementsPlugin : ChristofelDIPlugin
         // Custom voice setup
         serviceCollection
             .AddSingleton<IThreadSafeStorage<CustomVoiceChannel>, ThreadSafeListStorage<CustomVoiceChannel>>()
+            .Configure<CustomVoiceOptions>(State.Configuration.GetSection("Enhancements:CustomVoice"))
+            .AddResponder<CustomVoiceResponder>()
         // Auto pin setup
         serviceCollection
             .Configure<AutoPinOptions>(State.Configuration.GetSection("Enhancements:AutoPin"))
