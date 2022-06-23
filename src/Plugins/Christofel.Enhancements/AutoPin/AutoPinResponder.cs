@@ -84,6 +84,11 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
                 return Result.FromError(neededEmojisResult);
             }
 
+            if (neededEmojis == 0)
+            {
+                return Result.FromSuccess();
+            }
+
             var emojisCountResult = GetEmojisCount(message);
             if (!emojisCountResult.IsDefined(out var emojisCount))
             {
