@@ -60,6 +60,17 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
 
         var userTarget = new DiscordTarget(gatewayEvent.UserID, TargetType.User);
 
+        var messageResult = await _channelApi.GetChannelMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
+        if (!messageResult.IsDefined(out var message))
+        {
+            return Result.FromError(messageResult);
+        }
+
+        if (message.IsPinned)
+        {
+            return Result.FromSuccess();
+        }
+
         bool pin = false;
         if (await _permissionsResolver.HasPermissionAsync("enhancements.autopin.override", userTarget, ct))
         {
@@ -73,7 +84,12 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
                 return Result.FromError(neededEmojisResult);
             }
 
-            var emojisCountResult = await GetEmojisCountAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
+            if (neededEmojis == 0)
+            {
+                return Result.FromSuccess();
+            }
+
+            var emojisCountResult = GetEmojisCount(message);
             if (!emojisCountResult.IsDefined(out var emojisCount))
             {
                 return Result.FromError(emojisCountResult);
@@ -131,14 +147,8 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
     private bool IsPinEmoji(IPartialEmoji emoji)
         => _options.AutoPinEmojis.Contains(EmojiFormatter.GetEmojiString(emoji));
 
-    private async Task<Result<int>> GetEmojisCountAsync(Snowflake channelId, Snowflake messageId, CancellationToken ct)
+    private Result<int> GetEmojisCount(IMessage message)
     {
-        var messageResult = await _channelApi.GetChannelMessageAsync(channelId, messageId, ct);
-        if (!messageResult.IsDefined(out var message))
-        {
-            return Result<int>.FromError(messageResult);
-        }
-
         if (!message.Reactions.IsDefined(out var reactions))
         {
             return Result<int>.FromSuccess(0);

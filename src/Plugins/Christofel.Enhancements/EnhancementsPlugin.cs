@@ -11,6 +11,7 @@ using Christofel.CommandsLib.Extensions;
 using Christofel.Enhancements.AutoPin;
 using Christofel.Enhancements.CustomVoice;
 using Christofel.Enhancements.Teleport;
+using Christofel.Helpers.Permissions;
 using Christofel.Helpers.Storages;
 using Christofel.Plugins.Lifetime;
 using Christofel.Remora.Responders;
@@ -62,6 +63,16 @@ public class EnhancementsPlugin : ChristofelDIPlugin
             .Configure<TeleportOptions>(State.Configuration.GetSection("Enhancements:Teleport"))
             .AddCommandTree()
             .WithCommandGroup<TeleportCommandGroup>();
+
+        // Custom voice setup
+        serviceCollection
+            .AddSingleton<IThreadSafeStorage<CustomVoiceChannel>, ThreadSafeListStorage<CustomVoiceChannel>>()
+            .Configure<CustomVoiceOptions>(State.Configuration.GetSection("Enhancements:CustomVoice"))
+            .AddResponder<CustomVoiceResponder>()
+            .AddScoped<CustomVoiceService>()
+            .AddScoped<MemberPermissionResolver>()
+            .AddCommandTree()
+            .WithCommandGroup<CustomVoiceCommandGroup>();
 
         // Auto pin setup
         serviceCollection
