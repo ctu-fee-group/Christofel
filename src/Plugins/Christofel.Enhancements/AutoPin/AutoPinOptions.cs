@@ -24,7 +24,7 @@ public class AutoPinOptions
     /// <remarks>
     /// Use zero to disable.
     /// </remarks>
-    public short MinimumCount { get; set; } = 5;
+    public short MinimumCount { get; set; } = 3;
 
     /// <summary>
     /// Gets or sets the minimum count of emojis to pin the message.
