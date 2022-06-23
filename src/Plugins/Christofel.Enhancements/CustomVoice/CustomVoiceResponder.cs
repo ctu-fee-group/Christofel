@@ -330,7 +330,11 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             return Result<IChannel>.FromError(createdChannelResult);
         }
 
-        _customVoiceService.AddVoice(createdChannel, userId);
+        var addResult = _customVoiceService.AddVoice(createdChannel, userId);
+        if (!addResult.IsSuccess)
+        {
+            return Result<IChannel>.FromError(addResult);
+        }
 
         var permissionsEditResult = await _channelApi.EditChannelPermissionsAsync
         (
