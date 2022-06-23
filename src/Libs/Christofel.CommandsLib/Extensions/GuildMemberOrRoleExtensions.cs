@@ -24,10 +24,12 @@ namespace Christofel.CommandsLib.Extensions
         /// Creates <see cref="DiscordTarget"/> out of <see name="memberOrRole"/>.
         /// </summary>
         /// <param name="memberOrRole">The member or role to be converted.</param>
+        /// <param name="treatEveryoneAsRole">Whether to return everyone as a role instead of TargetType Everyone.</param>
         /// <returns>The target representing <paramref name="memberOrRole"/>.</returns>
         /// <exception cref="ArgumentException">Thrown if the user does not have a value.</exception>
         /// <exception cref="InvalidOperationException">Thrown if nor user, nor role is set.</exception>
-        public static DiscordTarget ToDiscordTarget(this OneOf<IPartialGuildMember, IRole> memberOrRole)
+        public static DiscordTarget ToDiscordTarget
+            (this OneOf<IPartialGuildMember, IRole> memberOrRole, bool treatEveryoneAsRole = false)
         {
             if (memberOrRole.IsT0)
             {
@@ -46,7 +48,7 @@ namespace Christofel.CommandsLib.Extensions
             {
                 var role = memberOrRole.AsT1;
 
-                if (role.Name == "@everyone")
+                if (role.Name == "@everyone" && !treatEveryoneAsRole)
                 {
                     return DiscordTarget.Everyone;
                 }

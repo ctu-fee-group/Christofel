@@ -4,7 +4,6 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Runtime.InteropServices.ComTypes;
 using Christofel.Common.Database.Models;
 using Christofel.Common.Database.Models.Enums;
 using Christofel.Common.Permissions;
@@ -16,7 +15,6 @@ using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.API.Abstractions.VoiceGateway.Events;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Gateway.Responders;
 using Remora.Rest.Core;
@@ -33,7 +31,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     private static SemaphoreSlim _lock = new SemaphoreSlim(1);
 
     private readonly IPermissionsResolver _permissionsResolver;
-    private readonly IThreadSafeStorage<CustomVoiceChannel> _customChannelsStorage;
+    private readonly CustomVoiceService _customVoiceService;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly ILogger<CustomVoiceResponder> _logger;
@@ -46,7 +44,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     /// </summary>
     /// <param name="options">The options.</param>
     /// <param name="permissionsResolver">The permissions resolver.</param>
-    /// <param name="customChannelsStorage">The cdustom channels storage.</param>
+    /// <param name="customVoiceService">The custom voice service.</param>
     /// <param name="channelApi">The channel api.</param>
     /// <param name="guildApi">The guild api.</param>
     /// <param name="logger">The logger.</param>
@@ -55,7 +53,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     (
         IOptionsSnapshot<CustomVoiceOptions> options,
         IPermissionsResolver permissionsResolver,
-        IThreadSafeStorage<CustomVoiceChannel> customChannelsStorage,
+        CustomVoiceService customVoiceService,
         IDiscordRestChannelAPI channelApi,
         IDiscordRestGuildAPI guildApi,
         ILogger<CustomVoiceResponder> logger,
@@ -63,7 +61,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     )
     {
         _permissionsResolver = permissionsResolver;
-        _customChannelsStorage = customChannelsStorage;
+        _customVoiceService = customVoiceService;
         _channelApi = channelApi;
         _guildApi = guildApi;
         _logger = logger;
@@ -75,12 +73,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     /// <inheritdoc />
     public async Task<Result> RespondAsync(IVoiceStateUpdate gatewayEvent, CancellationToken ct = default)
     {
-        var membersStatusResult = UpdateChannelMembers(gatewayEvent.UserID, gatewayEvent.ChannelID);
-        if (!membersStatusResult.IsDefined(out var scheduleDeletion))
-        {
-            return Result.FromError(membersStatusResult);
-        }
-
+        var scheduleDeletion = _customVoiceService.UpdateMembers(gatewayEvent.UserID, gatewayEvent.ChannelID);
         if (scheduleDeletion)
         {
             var deleteResult = await ScheduleDeleteAsync(ct);
@@ -128,7 +121,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
         if (channelId.Value == _options.CreateStageChannelId || channelId.Value == _options.CreateVoiceChannelId)
         {
             // Already has a channel.
-            var usersChannel = _customChannelsStorage.Data.FirstOrDefault(x => x.OwnerId == userId);
+            var usersChannel = _customVoiceService.GetChannelUserIsConnectedTo(userId);
             if (usersChannel is not null)
             {
                 _lock.Release();
@@ -180,34 +173,6 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     }
 
     /// <summary>
-    /// Updates the members in stored custom voice channels when someone joins or leaves a voice.
-    /// </summary>
-    /// <param name="userId">The user id who changed state.</param>
-    /// <param name="channelId">The channel id the user joined. Null if the user left.</param>
-    /// <returns>Whether there is a channel with zero members and deletion should be scheduled.</returns>
-    private Result<bool> UpdateChannelMembers(Snowflake userId, Snowflake? channelId)
-    {
-        bool scheduleDelete = false;
-        foreach (var channel in _customChannelsStorage.Data)
-        {
-            if (channel.ChannelId == channelId)
-            {
-                if (!channel.Members.Data.Contains(userId))
-                {
-                    channel.Members.Add(userId);
-                }
-            }
-            else
-            {
-                channel.Members.Remove(userId);
-                scheduleDelete = true;
-            }
-        }
-
-        return scheduleDelete;
-    }
-
-    /// <summary>
     /// Delete channels with no members.
     /// </summary>
     /// <remarks>
@@ -215,29 +180,26 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     /// </remarks>
     private async Task<Result> ScheduleDeleteAsync(CancellationToken ct)
     {
-        foreach (var channelData in _customChannelsStorage.Data)
+        foreach (var channelData in _customVoiceService.GetEmptyChannels())
         {
-            if (channelData.Members.Data.Count == 0)
+            if (_options.RemoveAfterSecondsInactivity == 0)
             {
-                if (_options.RemoveAfterSecondsInactivity == 0)
-                {
-                    return await RemoveEmptyChannelAsync(channelData, ct);
-                }
+                return await RemoveEmptyChannelAsync(channelData, ct);
+            }
 
 #pragma warning disable CS4014
-                Task.Run
-                (
-                    async () =>
+            Task.Run
+            (
+                async () =>
+                {
+                    await Task.Delay(_options.RemoveAfterSecondsInactivity * 1000, _lifetime.Stopping);
+                    if (channelData.Members.Data.Count == 0)
                     {
-                        await Task.Delay(_options.RemoveAfterSecondsInactivity * 1000, _lifetime.Stopping);
-                        if (channelData.Members.Data.Count == 0)
-                        {
-                            await RemoveEmptyChannelAsync(channelData, _lifetime.Stopping);
-                        }
+                        await RemoveEmptyChannelAsync(channelData, _lifetime.Stopping);
                     }
-                );
+                }
+            );
 #pragma warning restore CS4014
-            }
         }
 
         return Result.FromSuccess();
@@ -253,7 +215,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     {
         var deleteResult = await _channelApi.DeleteChannelAsync
             (channelData.ChannelId, "Deleting empty Custom voice.", ct);
-        _customChannelsStorage.Remove(channelData);
+        _customVoiceService.RemoveVoice(channelData);
 
         if (deleteResult.IsSuccess)
         {
@@ -368,17 +330,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             return Result<IChannel>.FromError(createdChannelResult);
         }
 
-        _customChannelsStorage.Add
-        (
-            new CustomVoiceChannel
-            (
-                guildId,
-                createdChannel.ID,
-                userId,
-                DateTime.Now,
-                new ThreadSafeListStorage<Snowflake>()
-            )
-        );
+        _customVoiceService.AddVoice(createdChannel, userId);
 
         var permissionsEditResult = await _channelApi.EditChannelPermissionsAsync
         (
@@ -388,7 +340,8 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             (
                 DiscordPermission.MoveMembers,
                 DiscordPermission.MuteMembers,
-                DiscordPermission.DeafenMembers
+                DiscordPermission.DeafenMembers,
+                DiscordPermission.ManageChannels
             ),
             DiscordPermissionSet.Empty,
             PermissionOverwriteType.Member,

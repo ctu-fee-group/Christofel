@@ -12,14 +12,11 @@ namespace Christofel.Enhancements.CustomVoice;
 /// <summary>
 /// Information about temporary created custom voice channel.
 /// </summary>
-/// <param name="GuildId"></param>
-/// <param name="ChannelId"></param>
-/// <param name="OwnerId"></param>
 public record CustomVoiceChannel
 (
     Snowflake GuildId,
     Snowflake ChannelId,
     Snowflake OwnerId,
-    DateTime CreationTime,
-    IThreadSafeStorage<Snowflake> Members
+    IThreadSafeStorage<Snowflake> Members,
+    DateTime CreationTime
 );
