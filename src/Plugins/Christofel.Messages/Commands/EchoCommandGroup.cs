@@ -124,7 +124,13 @@ namespace Christofel.Messages.Commands
             }
 
             var editResult = await _channelApi.EditMessageAsync
-                (channelId, messageId, text, allowedMentions: AllowedMentionsHelper.None, ct: CancellationToken);
+            (
+                channelId,
+                messageId,
+                text,
+                allowedMentions: AllowedMentionsHelper.None,
+                ct: CancellationToken
+            );
             if (!editResult.IsSuccess)
             {
                 // Ignore as message not modified is more critical
@@ -138,6 +144,49 @@ namespace Christofel.Messages.Commands
             return feedbackResult.IsSuccess
                 ? Result.FromSuccess()
                 : Result.FromError(feedbackResult);
+        }
+
+        /// <summary>
+        /// Handles /echo source.
+        /// </summary>
+        /// <remarks>
+        /// Gets the source of the message.
+        /// </remarks>
+        /// <param name="message">The id of the message to get source of.</param>
+        /// <param name="channel">The id of the channel the message is in.</param>
+        /// <returns>A result that may have failed.</returns>
+        [Command("source")]
+        [Description("Get the source of the given message.")]
+        [RequirePermission("messages.echo.source")]
+        public async Task<Result> HandleSource
+        (
+            [Description("The id of the message to get source to.")]
+            [DiscordTypeHint(TypeHint.String)]
+            Snowflake message,
+            [Description("The channel the message is in.")]
+            [DiscordTypeHint(TypeHint.Channel)]
+            Snowflake? channel = default
+        )
+        {
+            var channelId = channel ?? _context.ChannelID;
+            var messageResult = await _channelApi.GetChannelMessageAsync(channelId, message, CancellationToken);
+            if (!messageResult.IsDefined(out var fetchedMessage))
+            {
+                return Result.FromError(messageResult);
+            }
+
+            var createdMessageResult = await _channelApi.CreateMessageAsync
+            (
+                _context.ChannelID,
+                "```\n" + fetchedMessage.Content.Replace("```", "\\`\\`\\`") + "\n```",
+                ct: CancellationToken
+            );
+
+            await _feedbackService.SendContextualSuccessAsync("Source is below.");
+
+            return createdMessageResult.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(createdMessageResult);
         }
     }
 }
