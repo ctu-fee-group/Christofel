@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Christofel.BaseLib.Extensions;
 using Christofel.Common.Database.Models;
 using Christofel.Common.Database.Models.Enums;
 using Christofel.Common.Permissions;
@@ -100,7 +101,14 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
         {
             // Lock to prevent generating multiple voice channels if the user is hopping between voice channels quickly.
             await _lock.WaitAsync(ct);
-            return await HandlePossibleVoiceCreate(guildId, channelId, gatewayEvent.UserID, gatewayEvent.Member, ct);
+            return await HandlePossibleVoiceCreate
+            (
+                guildId,
+                channelId,
+                gatewayEvent.UserID,
+                gatewayEvent.Member,
+                ct
+            );
         }
         finally
         {
@@ -249,13 +257,11 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
         }
         else
         {
-            _logger.LogError
+            _logger.LogResultError
             (
-                "Could not delete an empty voice channel <#{Channel}> created by <@{Owner}>",
-                channelData.ChannelId,
-                channelData.OwnerId
+                deleteResult,
+                $"Could not delete an empty voice channel <#{channelData.ChannelId}> created by <@{channelData.OwnerId}>"
             );
-
         }
 
         return deleteResult;
