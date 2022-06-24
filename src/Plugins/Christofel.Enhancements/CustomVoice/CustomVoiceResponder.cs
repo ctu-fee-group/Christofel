@@ -318,7 +318,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
         }
 
         // Move the user to the voice
-        return await MoveMemberAsync
+        var moveResult = await MoveMemberAsync
         (
             guildId,
             userId,
@@ -326,6 +326,13 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             nickname,
             ct
         );
+
+        if (!moveResult.IsSuccess)
+        {
+            await ScheduleDeleteAsync(ct);
+        }
+
+        return moveResult;
     }
 
     /// <summary>
