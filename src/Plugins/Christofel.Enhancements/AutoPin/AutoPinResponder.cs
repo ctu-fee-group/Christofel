@@ -8,6 +8,7 @@ using Christofel.Common.Database.Models;
 using Christofel.Common.Database.Models.Enums;
 using Christofel.Common.Permissions;
 using Christofel.Helpers.Helpers;
+using Christofel.Helpers.Permissions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
@@ -25,7 +26,7 @@ namespace Christofel.Enhancements.AutoPin;
 public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMessageUpdate>
 {
     private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IPermissionsResolver _permissionsResolver;
+    private readonly MemberPermissionResolver _permissionsResolver;
     private readonly ILogger<AutoPinResponder> _logger;
     private readonly AutoPinOptions _options;
 
@@ -40,7 +41,7 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
     (
         IOptionsSnapshot<AutoPinOptions> options,
         IDiscordRestChannelAPI channelApi,
-        IPermissionsResolver permissionsResolver,
+        MemberPermissionResolver permissionsResolver,
         ILogger<AutoPinResponder> logger
     )
     {
@@ -58,9 +59,8 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
             return Result.FromSuccess();
         }
 
-        var userTarget = new DiscordTarget(gatewayEvent.UserID, TargetType.User);
-
-        var messageResult = await _channelApi.GetChannelMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
+        var messageResult = await _channelApi.GetChannelMessageAsync
+            (gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
         if (!messageResult.IsDefined(out var message))
         {
             return Result.FromError(messageResult);
@@ -71,12 +71,20 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
             return Result.FromSuccess();
         }
 
-        bool pin = false;
-        if (await _permissionsResolver.HasPermissionAsync("enhancements.autopin.override", userTarget, ct))
+        var overridePermissionResult = await _permissionsResolver.HasPermissionAsync
+        (
+            "enhancements.autopin.override",
+            gatewayEvent.UserID,
+            gatewayEvent.GuildID,
+            gatewayEvent.Member,
+            ct
+        );
+        if (!overridePermissionResult.IsDefined(out var pin))
         {
-            pin = true;
+            return Result.FromError(overridePermissionResult);
         }
-        else
+
+        if (!pin)
         {
             var neededEmojisResult = await GetNeededEmojisCountAsync(gatewayEvent.ChannelID, ct);
             if (!neededEmojisResult.IsDefined(out var neededEmojis))

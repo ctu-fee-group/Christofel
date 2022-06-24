@@ -8,6 +8,7 @@ using Christofel.Common.Database.Models;
 using Christofel.Common.Database.Models.Enums;
 using Christofel.Common.Permissions;
 using Christofel.Enhancements.Extensions;
+using Christofel.Helpers.Permissions;
 using Christofel.Helpers.Storages;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
@@ -30,7 +31,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     // TODO log every failure
     private static SemaphoreSlim _lock = new SemaphoreSlim(1);
 
-    private readonly IPermissionsResolver _permissionsResolver;
+    private readonly MemberPermissionResolver _permissionsResolver;
     private readonly CustomVoiceService _customVoiceService;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IDiscordRestGuildAPI _guildApi;
@@ -52,7 +53,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     public CustomVoiceResponder
     (
         IOptionsSnapshot<CustomVoiceOptions> options,
-        IPermissionsResolver permissionsResolver,
+        MemberPermissionResolver permissionsResolver,
         CustomVoiceService customVoiceService,
         IDiscordRestChannelAPI channelApi,
         IDiscordRestGuildAPI guildApi,
@@ -99,7 +100,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
         {
             // Lock to prevent generating multiple voice channels if the user is hopping between voice channels quickly.
             await _lock.WaitAsync(ct);
-            return await HandlePossibleVoiceCreate(guildId, channelId, gatewayEvent.UserID, ct);
+            return await HandlePossibleVoiceCreate(guildId, channelId, gatewayEvent.UserID, gatewayEvent.Member, ct);
         }
         finally
         {
@@ -114,9 +115,17 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
     /// <param name="guildId">The guild id.</param>
     /// <param name="channelId">The channel  id.</param>
     /// <param name="userId">The user id.</param>
+    /// <param name="guildMember">The guild member.</param>
     /// <param name="ct">The cancellation token.</param>
     /// <returns>A result that may fail.</returns>
-    private async Task<Result> HandlePossibleVoiceCreate(Snowflake guildId, Snowflake channelId, Snowflake userId, CancellationToken ct)
+    private async Task<Result> HandlePossibleVoiceCreate
+    (
+        Snowflake guildId,
+        Snowflake channelId,
+        Snowflake userId,
+        Optional<IGuildMember> guildMember,
+        CancellationToken ct
+    )
     {
         if (channelId.Value == _options.CreateStageChannelId || channelId.Value == _options.CreateVoiceChannelId)
         {
@@ -124,7 +133,6 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             var usersChannel = _customVoiceService.GetChannelUserIsConnectedTo(userId);
             if (usersChannel is not null)
             {
-                _lock.Release();
                 return await MoveMemberAsync
                 (
                     guildId,
@@ -136,10 +144,20 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             }
 
             // Cannot create custom channel.
-            if (!await _permissionsResolver.HasPermissionAsync
-                ("enhancements.customvoice.create", new DiscordTarget(userId, TargetType.User), ct))
+            var permissionResult = await _permissionsResolver.HasPermissionAsync
+            (
+                "enhancements.customvoice.create",
+                userId,
+                guildId,
+                guildMember,
+                ct
+            );
+            if (!permissionResult.IsDefined(out var permission))
             {
-                _lock.Release();
+                return Result.FromError(permissionResult);
+            }
+            if (!permission)
+            {
                 return Result.FromSuccess();
             }
         }

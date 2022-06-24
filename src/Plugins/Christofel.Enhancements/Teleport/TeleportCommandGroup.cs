@@ -10,6 +10,7 @@ using Christofel.Common.Database.Models;
 using Christofel.Common.Database.Models.Enums;
 using Christofel.Common.Permissions;
 using Christofel.Helpers.Helpers;
+using Christofel.Helpers.Permissions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OneOf.Types;
@@ -37,7 +38,7 @@ public class TeleportCommandGroup : CommandGroup
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly ICommandContext _commandContext;
-    private readonly IPermissionsResolver _permissionsResolver;
+    private readonly MemberPermissionResolver _permissionsResolver;
     private readonly FeedbackService _feedbackService;
     private readonly ILogger<TeleportCommandGroup> _logger;
 
@@ -57,7 +58,7 @@ public class TeleportCommandGroup : CommandGroup
         IDiscordRestGuildAPI guildApi,
         IDiscordRestChannelAPI channelApi,
         ICommandContext commandContext,
-        IPermissionsResolver permissionsResolver,
+        MemberPermissionResolver permissionsResolver,
         FeedbackService feedbackService,
         ILogger<TeleportCommandGroup> logger
     )
@@ -251,8 +252,14 @@ public class TeleportCommandGroup : CommandGroup
 
     private async Task<Result> CheckPermissionsAsync(Snowflake channelId, CancellationToken ct)
     {
-        if (await _permissionsResolver.HasPermissionAsync
-            ("enhancements.teleport.override", new DiscordTarget(_commandContext.User.ID, TargetType.User), ct))
+        var overridePermissionResult = await _permissionsResolver.HasPermissionAsync
+            ("enhancements.teleport.override", _commandContext.User.ID, _commandContext.GuildID, ct: ct);
+        if (!overridePermissionResult.IsDefined(out var overridePermission))
+        {
+            return Result.FromError(overridePermissionResult);
+        }
+
+        if (overridePermission)
         {
             return Result.FromSuccess();
         }
