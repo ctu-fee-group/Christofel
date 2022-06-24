@@ -14,6 +14,11 @@ namespace Christofel.Enhancements.CustomVoice;
 public class CustomVoiceOptions
 {
     /// <summary>
+    /// Gets or sets the maximal number of channels that can be created.
+    /// </summary>
+    public ushort MaxChannels { get; set; } = 10;
+
+    /// <summary>
     /// Gets or sets the id of the channel to create stage channel with.
     /// </summary>
     public ulong? CreateStageChannelId { get; set; }

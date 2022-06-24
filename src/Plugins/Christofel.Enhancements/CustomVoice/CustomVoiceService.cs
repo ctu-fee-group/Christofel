@@ -58,6 +58,11 @@ public class CustomVoiceService
     }
 
     /// <summary>
+    /// Gets the count of the voices.
+    /// </summary>
+    public int VoicesCount => _customVoicesStorage.Data.Count;
+
+    /// <summary>
     /// Removes the given voice from the storage.
     /// </summary>
     /// <param name="customVoiceChannel">The custom voice to remove.</param>

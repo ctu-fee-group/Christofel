@@ -160,6 +160,13 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             {
                 return Result.FromSuccess();
             }
+
+            if (_customVoiceService.VoicesCount >= _options.MaxChannels)
+            {
+                _logger.LogWarning
+                    ($"Could not create voice channel for <@{userId}>, max voice channels count reached.");
+                return Result.FromSuccess();
+            }
         }
 
         if (channelId.Value == _options.CreateStageChannelId)
