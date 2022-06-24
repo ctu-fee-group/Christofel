@@ -32,5 +32,5 @@ public class AutoPinOptions
     /// <remarks>
     /// Use zero to disable in the given channel/category.
     /// </remarks>
-    public Dictionary<Snowflake, short>? MinimumCountOverrides { get; set; } = null;
+    public Dictionary<string, short>? MinimumCountOverrides { get; set; } = null;
 }

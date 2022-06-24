@@ -188,14 +188,14 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
         }
 
         if (channel.ParentID.IsDefined(out var parentId) &&
-            _options.MinimumCountOverrides.ContainsKey(parentId.Value))
+            _options.MinimumCountOverrides.ContainsKey(parentId.Value.Value.ToString()))
         {
-            neededEmojis = _options.MinimumCountOverrides[parentId.Value];
+            neededEmojis = _options.MinimumCountOverrides[parentId.Value.Value.ToString()];
         }
 
-        if (_options.MinimumCountOverrides.ContainsKey(channelId))
+        if (_options.MinimumCountOverrides.ContainsKey(channelId.Value.ToString()))
         {
-            neededEmojis = _options.MinimumCountOverrides[channelId];
+            neededEmojis = _options.MinimumCountOverrides[channelId.Value.ToString()];
         }
 
         return neededEmojis;
