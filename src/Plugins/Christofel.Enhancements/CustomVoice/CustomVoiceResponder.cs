@@ -380,6 +380,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
 
         if (!permissionsEditResult.IsSuccess)
         {
+            await ScheduleDeleteAsync(ct);
             return Result<IChannel>.FromError(permissionsEditResult);
         }
 
