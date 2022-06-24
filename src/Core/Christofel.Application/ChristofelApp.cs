@@ -123,8 +123,8 @@ namespace Christofel.Application
             string environment = Environment.GetEnvironmentVariable("ENV") ?? "production";
 
             return new ConfigurationBuilder()
-                .AddJsonFile("config.json", false, true)
-                .AddJsonFile($@"config.{environment}.json", true, true)
+                .AddJsonFile(Environment.GetEnvironmentVariable("CHRISTOFEL_CONFIG_PATH") ?? "config.json", false, true)
+                .AddJsonFile(Environment.GetEnvironmentVariable("CHRISTOFEL_ENVIRONMENT_CONFIG_PATH") ?? $@"config.{environment}.json", true, true)
                 .AddEnvironmentVariables()
                 .AddCommandLine(commandArgs)
                 .Build();
