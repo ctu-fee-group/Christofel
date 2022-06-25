@@ -34,7 +34,6 @@ namespace Christofel.ReactHandler.Commands
     [Group("handlereact")]
     [RequirePermission("reacthandler.handlereact")]
     [Description("Mark messages so that the bot handles reacts on them")]
-    [DiscordDefaultPermission(false)]
     [Ephemeral]
     public class HandleReactCommands : CommandGroup
     {

@@ -31,7 +31,6 @@ namespace Christofel.Messages.Commands
     [Description("Manage embeds")]
     [RequirePermission("messages.embed")]
     [Ephemeral]
-    [DiscordDefaultPermission(false)]
     public class EmbedCommandGroup : CommandGroup
     {
         private static async Task<Result> HandleEditEmbed

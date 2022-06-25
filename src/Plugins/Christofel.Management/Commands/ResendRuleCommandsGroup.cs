@@ -27,7 +27,6 @@ namespace Christofel.Management.Commands
     [Description("Resend messages from one channel to another")]
     [Ephemeral]
     [RequirePermission("management.resendrule")]
-    [DiscordDefaultPermission(false)]
     public class ResendRuleCommandsGroup : CommandGroup
     {
         private readonly ManagementContext _dbContext;

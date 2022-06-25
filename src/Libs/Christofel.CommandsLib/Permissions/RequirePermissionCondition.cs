@@ -9,8 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Helpers.Permissions;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Conditions;
+using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -24,6 +26,7 @@ namespace Christofel.CommandsLib.Permissions
     public class RequirePermissionCondition : ICondition<RequirePermissionAttribute>
     {
         private readonly ICommandContext _context;
+        private readonly IDiscordRestGuildAPI _guildApi;
         private readonly ILogger _logger;
         private readonly ChristofelCommandPermissionResolver _permissionResolver;
 
@@ -32,16 +35,19 @@ namespace Christofel.CommandsLib.Permissions
         /// </summary>
         /// <param name="permissionResolver">The permission resolver.</param>
         /// <param name="context">The context of the current command.</param>
+        /// <param name="guildApi">The guild api.</param>
         /// <param name="logger">The logger.</param>
         public RequirePermissionCondition
         (
             ChristofelCommandPermissionResolver permissionResolver,
             ICommandContext context,
+            IDiscordRestGuildAPI guildApi,
             ILogger<RequirePermissionCondition> logger
         )
         {
             _logger = logger;
             _context = context;
+            _guildApi = guildApi;
             _permissionResolver = permissionResolver;
         }
 
@@ -53,7 +59,11 @@ namespace Christofel.CommandsLib.Permissions
         )
         {
             var result = false;
-            var roles = GetRoles();
+            var rolesResult = await GetRolesAsync(ct);
+            if (!rolesResult.IsDefined(out var roles))
+            {
+                return Result.FromError(rolesResult);
+            }
 
             if (roles.HasValue)
             {
@@ -90,9 +100,11 @@ namespace Christofel.CommandsLib.Permissions
 
         private string GetCommandName()
         {
-            if (_context is InteractionContext interactionContext && interactionContext.Data.Name.HasValue)
+            if (_context is InteractionContext interactionContext &&
+                interactionContext.Data.TryPickT0(out var data, out _) &&
+                !string.IsNullOrEmpty(data.Name))
             {
-                return interactionContext.Data.Name.Value;
+                return data.Name;
             }
 
             if (_context is MessageContext messageContext && messageContext.Message.Content.HasValue)
@@ -104,7 +116,7 @@ namespace Christofel.CommandsLib.Permissions
             return "(Unknown name)";
         }
 
-        private Optional<IReadOnlyList<Snowflake>> GetRoles()
+        private async Task<Result<Optional<IReadOnlyList<Snowflake>>>> GetRolesAsync(CancellationToken ct)
         {
             if (_context is InteractionContext interactionContext)
             {
@@ -113,12 +125,14 @@ namespace Christofel.CommandsLib.Permissions
                     : default;
             }
 
-            if (_context is MessageContext messageContext)
+            if (_context is MessageContext && _context.GuildID.IsDefined(out var guildId))
             {
-                var partialMember = messageContext.Message.Member;
-                return partialMember.HasValue
-                    ? partialMember.Value.Roles
-                    : default;
+                var memberResult = await _guildApi.GetGuildMemberAsync(guildId, _context.User.ID, ct);
+                if (!memberResult.IsDefined(out var member))
+                {
+                    return Result<Optional<IReadOnlyList<Snowflake>>>.FromError(memberResult);
+                }
+                return new Optional<IReadOnlyList<Snowflake>>(member.Roles);
             }
 
             return default;

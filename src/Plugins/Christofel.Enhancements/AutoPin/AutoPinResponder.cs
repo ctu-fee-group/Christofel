@@ -120,7 +120,19 @@ public class AutoPinResponder : IResponder<IMessageReactionAdd>, IResponder<IMes
             // Not checking the result, does not matter so much.
             await _channelApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, emojiString, ct);
 
-            return await _channelApi.PinMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, "Auto pin", ct);
+            var pinnedResult = await _channelApi.PinMessageAsync
+                (gatewayEvent.ChannelID, gatewayEvent.MessageID, "Auto pin", ct);
+            if (!pinnedResult.IsSuccess)
+            {
+                _logger.LogError
+                (
+                    "Could not pin message {Message} in Channel <#{Channel}>",
+                    gatewayEvent.MessageID,
+                    gatewayEvent.ChannelID
+                );
+            }
+
+            return pinnedResult;
         }
 
         return Result.FromSuccess();

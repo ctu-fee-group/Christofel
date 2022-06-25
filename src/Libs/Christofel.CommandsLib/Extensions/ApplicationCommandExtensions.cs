@@ -18,21 +18,16 @@ namespace Christofel.CommandsLib.Extensions
         /// Checks if the <paramref name="command"/> matches <paramref name="commandData"/>.
         /// </summary>
         /// <param name="command">The command to match against <paramref name="commandData"/>.</param>
-        /// <param name="defaultPermission">The value of default permission of <paramref name="commandData"/>.</param>
         /// <param name="commandData">The bulk data to match against <paramref name="command"/>.</param>
         /// <returns>Whether <paramref name="command"/> matches <paramref name="commandData"/>.</returns>
         public static bool MatchesBulkCommand
         (
             this IApplicationCommand command,
-            bool defaultPermission,
             IBulkApplicationCommandData commandData
         )
         {
             if (command.Name != commandData.Name ||
                 (command.Description != commandData.Description && command.Type != commandData.Type) ||
-                (command.DefaultPermission.HasValue
-                    ? command.DefaultPermission
-                    : false) != defaultPermission ||
                 !commandData.Options.HasSameLength(command.Options))
             {
                 return false;

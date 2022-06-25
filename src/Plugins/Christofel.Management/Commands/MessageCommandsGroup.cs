@@ -32,7 +32,6 @@ namespace Christofel.Management.Commands
     [Group("slowmode")]
     [RequirePermission("management.slowmode")]
     [Description("Manage slowmode in a channel")]
-    [DiscordDefaultPermission(false)]
     [Ephemeral]
     public class MessageCommandsGroup : CommandGroup
     {
