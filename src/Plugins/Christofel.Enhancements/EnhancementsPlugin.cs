@@ -9,6 +9,7 @@ using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib.Extensions;
 using Christofel.Enhancements.AutoPin;
+using Christofel.Enhancements.AutoThreads;
 using Christofel.Enhancements.CustomVoice;
 using Christofel.Enhancements.Teleport;
 using Christofel.Helpers.Permissions;
@@ -49,7 +50,7 @@ public class EnhancementsPlugin : ChristofelDIPlugin
     public override string Description => "Plugin for user experience enhancements.";
 
     /// <inheritdoc />
-    public override string Version => "v1.0.0";
+    public override string Version => "v1.1.0";
 
     /// <inheritdoc />
     protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
@@ -58,6 +59,11 @@ public class EnhancementsPlugin : ChristofelDIPlugin
     protected override IServiceCollection ConfigureServices
         (IServiceCollection serviceCollection)
     {
+        // Auto thread setup
+        serviceCollection
+            .Configure<AutoThreadsOptions>(State.Configuration.GetSection("Enhancements:AutoThreads"))
+            .AddResponder<AutoThreadsResponder>();
+
         // Teleport setup
         serviceCollection
             .Configure<TeleportOptions>(State.Configuration.GetSection("Enhancements:Teleport"))
