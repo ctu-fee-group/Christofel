@@ -100,7 +100,7 @@ namespace Christofel.CommandsLib
 
             var mappedCommands = await MapCommandsAsync(guildID, createCommands.Entity, ct);
 
-            var createdCommands = await _applicationAPI.GetGuildApplicationCommandsAsync(application.ID, guildID, ct);
+            var createdCommands = await _applicationAPI.GetGuildApplicationCommandsAsync(application.ID, guildID, ct: ct);
 
             if (!createCommands.IsSuccess)
             {
@@ -156,7 +156,7 @@ namespace Christofel.CommandsLib
                 return Result.FromError(deleteCommands);
             }
 
-            var loadedCommands = await _applicationAPI.GetGuildApplicationCommandsAsync(application.ID, guildID, ct);
+            var loadedCommands = await _applicationAPI.GetGuildApplicationCommandsAsync(application.ID, guildID, ct: ct);
 
             if (!loadedCommands.IsSuccess)
             {
@@ -210,9 +210,8 @@ namespace Christofel.CommandsLib
                     command.Data.Name,
                     command.Data.Description.HasValue ? command.Data.Description.Value : string.Empty,
                     command.Data.Options,
-                    command.DefaultPermission,
                     command.Data.Type,
-                    ct
+                    ct: ct
                 );
 
                 if (!result.IsSuccess)
@@ -220,7 +219,7 @@ namespace Christofel.CommandsLib
                     return Result.FromError(result.Error);
                 }
             }
-            else if (!registeredCommand.MatchesBulkCommand(command.DefaultPermission, command.Data))
+            else if (!registeredCommand.MatchesBulkCommand(command.Data))
             {
                 Optional<IReadOnlyList<IApplicationCommandOption>?> options = default;
                 if (command.Data.Options.HasValue)
@@ -236,8 +235,7 @@ namespace Christofel.CommandsLib
                     command.Data.Name,
                     command.Data.Description.HasValue ? command.Data.Description.Value : string.Empty,
                     options,
-                    command.DefaultPermission,
-                    ct
+                    ct: ct
                 );
 
                 if (!result.IsSuccess)
@@ -286,7 +284,6 @@ namespace Christofel.CommandsLib
                     commandData.Name,
                     commandData.Description.HasValue ? commandData.Description : string.Empty,
                     commandData.Options,
-                    commandData.DefaultPermission.HasValue ? commandData.DefaultPermission : false,
                     commandData.Type
                 );
                 returnData.Add(new CommandInfo(commandData, defaultPermission, permissions.ToList()));

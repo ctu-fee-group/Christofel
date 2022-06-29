@@ -296,12 +296,6 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             return Result.FromError(creationChannelResult);
         }
 
-        Optional<Snowflake> parentId = default;
-        if (creationChannel.ParentID.HasValue)
-        {
-            parentId = creationChannel.ParentID.Value ?? default;
-        }
-
         // Shorten the name so the channel has maximum of 100 characters in the name
         var nickname = member.Nickname.HasValue ? member.Nickname.Value ?? user.Username : user.Username;
         var name = _options.DefaultVoiceName
@@ -315,7 +309,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
             userId,
             name,
             type,
-            parentId,
+            creationChannel.ParentID,
             ct
         );
         if (!createdChannelResult.IsDefined(out var createdChannel))
@@ -350,7 +344,7 @@ public class CustomVoiceResponder : IResponder<IVoiceStateUpdate>
         Snowflake userId,
         string name,
         ChannelType type,
-        Optional<Snowflake> parentId,
+        Optional<Snowflake?> parentId,
         CancellationToken ct
     )
     {

@@ -24,6 +24,7 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Extensions;
 using Remora.Discord.API.Objects;
+using Remora.Discord.Caching.Abstractions.Services;
 using Remora.Discord.Gateway.Services;
 using Remora.Discord.Rest;
 using Remora.Discord.Rest.API;
@@ -66,7 +67,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestAuditLogAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -75,7 +77,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestChannelAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -84,7 +87,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestEmojiAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -93,7 +97,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestGatewayAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -102,7 +107,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestGuildAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -111,7 +117,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestGuildScheduledEventAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -120,7 +127,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestInviteAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -129,7 +137,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestUserAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -138,7 +147,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestVoiceAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -147,7 +157,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestWebhookAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -156,7 +167,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestTemplateAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -165,7 +177,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestInteractionAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -174,7 +187,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestApplicationAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -183,7 +197,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestOAuth2API
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -192,7 +207,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestStageInstanceAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -201,7 +217,8 @@ namespace Christofel.BaseLib.Extensions
                 s => new DiscordRestStickerAPI
                 (
                     s.GetRequiredService<IRestHttpClient>(),
-                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord")
+                    s.GetRequiredService<IOptionsMonitor<JsonSerializerOptions>>().Get("Discord"),
+                    s.GetRequiredService<ICacheProvider>()
                 )
             );
 
@@ -264,6 +281,7 @@ namespace Christofel.BaseLib.Extensions
                     }
                 )
                 .AddSingleton(typeof(ILogger<>), typeof(Logger<>))
+                .AddSingleton(state.CacheProvider)
                 .AddSingleton(state.LoggerFactory)
                 .AddSingleton(state.Configuration)
                 .AddSingleton(state)

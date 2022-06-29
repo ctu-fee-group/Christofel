@@ -34,7 +34,6 @@ namespace Christofel.Management.Commands
     [Description("Manage user and role permissions")]
     [Ephemeral]
     [RequirePermission("management.permissions")]
-    [DiscordDefaultPermission(false)]
     public class PermissionCommandsGroup : CommandGroup
     {
         private readonly ChristofelBaseContext _dbContext;

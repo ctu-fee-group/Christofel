@@ -152,7 +152,7 @@ namespace Christofel.Logger
                     break;
                 }
 
-                message = new MessageReference(result.Entity.ID, result.Entity.ChannelID, result.Entity.GuildID);
+                message = new MessageReference(result.Entity.ID, result.Entity.ChannelID);
             }
 
             return success;

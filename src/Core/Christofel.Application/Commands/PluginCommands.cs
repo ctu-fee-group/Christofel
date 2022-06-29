@@ -26,7 +26,6 @@ namespace Christofel.Application.Commands
     /// Handles /plugins attach, detach, reattach, list, check commands.
     /// </summary>
     [Group("plugins")]
-    [DiscordDefaultPermission(false)]
     [RequirePermission("application.plugins")]
     [Ephemeral]
     public class PluginCommands : CommandGroup

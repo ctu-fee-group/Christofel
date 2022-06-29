@@ -105,7 +105,7 @@ namespace Christofel.Plugins.Runtime
             {
                 if (_context is null)
                 {
-                    throw new InvalidOperationException("Context is null");
+                    _context = InitializeContext();
                 }
 
                 return _context;
@@ -205,11 +205,6 @@ namespace Christofel.Plugins.Runtime
         /// <returns>Context of the plugin.</returns>
         protected virtual async Task<TContext> InitAsync(CancellationToken token = default)
         {
-            if (_context is null)
-            {
-                _context = InitializeContext();
-            }
-
             if (!LifetimeHandler.MoveToIfPrevious(LifetimeState.Initializing))
             {
                 return Context;

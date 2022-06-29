@@ -53,7 +53,8 @@ namespace Christofel.CommandsLib.ContextedParsers
         {
             if (_commandContext is InteractionContext interactionContext &&
                 Snowflake.TryParse(value.Unmention(), out var channelID) &&
-                interactionContext.Data.Resolved.IsDefined(out var resolved) &&
+                interactionContext.Data.TryPickT0(out var data, out _) &&
+                data.Resolved.IsDefined(out var resolved) &&
                 resolved.Channels.IsDefined(out var channels) &&
                 channels.TryGetValue(channelID.Value, out var channel))
             {

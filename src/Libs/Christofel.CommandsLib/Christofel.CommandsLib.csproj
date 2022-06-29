@@ -9,9 +9,9 @@
 
         <LangVersion>10</LangVersion>
 
-        <AssemblyVersion>1.0.2</AssemblyVersion>
+        <AssemblyVersion>1.0.3</AssemblyVersion>
 
-        <FileVersion>1.0.2</FileVersion>
+        <FileVersion>1.0.3</FileVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,9 +20,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentValidation" Version="10.3.6" />
-        <PackageReference Include="Remora.Discord.API.Abstractions" Version="55.0.0" />
-        <PackageReference Include="Remora.Discord.Commands" Version="20.0.1" />
+        <PackageReference Include="FluentValidation" Version="11.1.0" />
+        <PackageReference Include="Remora.Discord.API.Abstractions" Version="66.0.1" />
+        <PackageReference Include="Remora.Discord.Commands" Version="25.0.3" />
     </ItemGroup>
 
 </Project>

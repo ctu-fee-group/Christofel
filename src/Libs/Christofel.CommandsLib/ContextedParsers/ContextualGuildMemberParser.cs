@@ -61,7 +61,8 @@ namespace Christofel.CommandsLib.ContextedParsers
 
             if (_commandContext is InteractionContext interactionContext &&
                 Snowflake.TryParse(value.Unmention(), out var guildMemberID) &&
-                interactionContext.Data.Resolved.IsDefined(out var resolved))
+                interactionContext.Data.TryPickT0(out var data, out _) &&
+                data.Resolved.IsDefined(out var resolved))
             {
                 if (resolved.Members.IsDefined(out var members) &&
                     members.TryGetValue(guildMemberID.Value, out var member))

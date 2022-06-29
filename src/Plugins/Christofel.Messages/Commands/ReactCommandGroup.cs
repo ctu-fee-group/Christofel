@@ -26,7 +26,6 @@ namespace Christofel.Messages.Commands
     /// Handles /react command.
     /// </summary>
     [Ephemeral]
-    [DiscordDefaultPermission(false)]
     public class ReactCommandGroup : CommandGroup
     {
         private readonly IDiscordRestChannelAPI _channelApi;
