@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Remora.Discord.Gateway" Version="10.1.1" />
+        <PackageReference Include="Remora.Discord.Gateway" Version="10.1.2" />
     </ItemGroup>
 
     <ItemGroup>
