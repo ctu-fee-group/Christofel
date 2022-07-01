@@ -54,11 +54,15 @@ public class WelcomePlugin : ChristofelDIPlugin
     protected override IServiceCollection ConfigureServices
         (IServiceCollection serviceCollection)
     {
+        serviceCollection
+            .AddCommandTree()
+            .WithCommandGroup<WelcomeCommands>();
 
         return serviceCollection
             .AddDiscordState(State)
             .AddSingleton<PluginResponder>()
             .AddSingleton(_lifetimeHandler.LifetimeSpecific)
+            .Configure<WelcomeOptions>(State.Configuration.GetSection("Enhancements:Welcome"))
             .Configure<UsersOptions>(State.Configuration.GetSection("Management:Users"))
             .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
     }
