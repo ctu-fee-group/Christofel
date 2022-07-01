@@ -52,6 +52,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Helpers", "Libs\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Enhancements", "Plugins\Christofel.Enhancements\Christofel.Enhancements.csproj", "{2B602F62-C881-4B23-BE97-ACB4B089656B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Welcome", "Plugins\Christofel.Welcome\Christofel.Welcome.csproj", "{EF4718DB-59DF-41F1-8446-32323C3F57FC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +74,7 @@ Global
 		{8329B543-5FBC-4C0B-8326-C4B382138D56} = {EA0A70F1-E1C9-4D5D-950F-CB2FD26888CB}
 		{7B48205B-361A-40F1-B449-53E63CAD549F} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
 		{2B602F62-C881-4B23-BE97-ACB4B089656B} = {674A0FCA-7522-495B-8C94-7270FD8CBA65}
+		{EF4718DB-59DF-41F1-8446-32323C3F57FC} = {674A0FCA-7522-495B-8C94-7270FD8CBA65}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B8630DDB-0533-4BDE-84DA-3BF5D18968B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -146,5 +149,9 @@ Global
 		{2B602F62-C881-4B23-BE97-ACB4B089656B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B602F62-C881-4B23-BE97-ACB4B089656B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B602F62-C881-4B23-BE97-ACB4B089656B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF4718DB-59DF-41F1-8446-32323C3F57FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF4718DB-59DF-41F1-8446-32323C3F57FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF4718DB-59DF-41F1-8446-32323C3F57FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF4718DB-59DF-41F1-8446-32323C3F57FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
