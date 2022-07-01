@@ -58,6 +58,10 @@ public class WelcomePlugin : ChristofelDIPlugin
             .AddCommandTree()
             .WithCommandGroup<WelcomeCommands>();
 
+        serviceCollection
+            .AddInteractivity()
+            .AddInteractionGroup<WelcomeInteractions>();
+
         return serviceCollection
             .AddDiscordState(State)
             .AddSingleton<PluginResponder>()
