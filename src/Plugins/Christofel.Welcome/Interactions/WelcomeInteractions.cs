@@ -4,14 +4,17 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Interactivity;
@@ -62,46 +65,80 @@ public class WelcomeInteractions : InteractionGroup
         _logger = logger;
         _jsonOptions = jsonOptions.Get("Discord");
         _options = options.Value;
-
     }
 
     /// <summary>
     /// Send message with authentication link.
     /// </summary>
+    /// <param name="language">The language to send the auth in.</param>
     /// <returns>A result that may have failed.</returns>
     [Button("auth")]
-    public async Task<Result> HandleAuthButtonAsync()
+    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1118:Parameter should not span multiple lines", Justification = "Condition")]
+    public async Task<Result> HandleAuthButtonAsync(string language)
     {
-        // 1. Create user database entry with specified Discord account
-        var dbUser = new DbUser
-        {
-            DiscordId = _context.User.ID,
-            RegistrationCode = Guid.NewGuid().ToString()
-        };
-
-        _dbContext.Add(dbUser);
-        try
-        {
-            await _dbContext.SaveChangesAsync(CancellationToken);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError
+        var dbUser = await _dbContext
+            .Users
+            .FirstOrDefaultAsync
             (
-                e,
-                $"Database context save changes has thrown an exception while saving user data (<@{_context.User.ID}>)"
+                x => x.AuthenticatedAt == null && x.DiscordId == _context.User.ID && x.RegistrationCode != null,
+                CancellationToken
             );
-            return e;
+        if (dbUser is null)
+        {
+            dbUser = new DbUser
+            {
+                DiscordId = _context.User.ID,
+                RegistrationCode = Guid.NewGuid().ToString()
+            };
+
+            _dbContext.Add(dbUser);
+            try
+            {
+                await _dbContext.SaveChangesAsync(CancellationToken);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError
+                (
+                    e,
+                    $"Database context save changes has thrown an exception while saving user data (<@{_context.User.ID}>)"
+                );
+                return e;
+            }
         }
 
         // 2. Send message to the user with auth code.
         var link = _userOptions.AuthLink.Replace("{code}", dbUser.RegistrationCode);
 
+        var components = new IMessageComponent[]
+        {
+            new ActionRowComponent
+            (
+                new[]
+                {
+                    new ButtonComponent
+                    (
+                        ButtonComponentStyle.Link,
+                        _options.Translations[language].AuthButtonLabel,
+                        new PartialEmoji(Name: _options.AuthButtonEmoji),
+                        URL: link
+                    )
+                }
+            )
+        };
+
+        if (!Uri.TryCreate(link, UriKind.Absolute, out _))
+        {
+            components = new IMessageComponent[] { };
+        }
+
         var messageResult = await _interactionApi.CreateFollowupMessageAsync
         (
             _context.ApplicationID,
             _context.Token,
-            _options.AuthMessage.Replace("{Link}", link),
+            _options.Translations[language].AuthMessage.Replace("{Link}", link),
+            flags: MessageFlags.Ephemeral,
+            components: components,
             ct: CancellationToken
         );
 
@@ -113,17 +150,23 @@ public class WelcomeInteractions : InteractionGroup
     /// <summary>
     /// Sends english welcome message.
     /// </summary>
+    /// <param name="language">The language to show.</param>
     /// <returns>A result that may have failed.</returns>
-    [Button("english")]
-    public async Task<Result> HandleEnglishButtonAsync()
+    public async Task<Result> HandleShowAsync(string language)
     {
-        if (!File.Exists(_options.EnglishWelcomeEmbedFile))
+        if (!_options.Translations.ContainsKey(language))
+        {
+            return new NotFoundError($"Could not find {language} translation for welcome message.");
+        }
+
+        var translation = _options.Translations[language];
+        if (!File.Exists(translation.EmbedFilePath))
         {
             return new NotFoundError("Could not find english welcome embed file.");
         }
 
         var embed = JsonSerializer.Deserialize<IEmbed>
-            (await File.ReadAllTextAsync(_options.EnglishWelcomeEmbedFile, CancellationToken), _jsonOptions);
+            (await File.ReadAllTextAsync(translation.EmbedFilePath, CancellationToken), _jsonOptions);
         if (embed is null)
         {
             // error
@@ -135,7 +178,8 @@ public class WelcomeInteractions : InteractionGroup
             _context.ApplicationID,
             _context.Token,
             embeds: new[] { embed },
-            components: WelcomeMessageHelper.CreateWelcomeComponents(_options),
+            components: WelcomeMessageHelper.CreateWelcomeComponents(_options, language),
+            flags: MessageFlags.Ephemeral,
             ct: CancellationToken
         );
 

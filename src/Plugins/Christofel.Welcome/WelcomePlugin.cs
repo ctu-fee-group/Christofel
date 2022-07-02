@@ -7,6 +7,7 @@
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
+using Christofel.CommandsLib.Extensions;
 using Christofel.Plugins.Lifetime;
 using Christofel.Remora.Responders;
 using Christofel.Welcome.Commands;
@@ -14,6 +15,7 @@ using Christofel.Welcome.Interactions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
+using Remora.Discord.Gateway.Extensions;
 using Remora.Discord.Interactivity.Extensions;
 
 namespace Christofel.Welcome;
@@ -59,14 +61,16 @@ public class WelcomePlugin : ChristofelDIPlugin
             .WithCommandGroup<WelcomeCommands>();
 
         serviceCollection
-            .AddInteractivity()
+            .AddResponder<InteractionResponder>()
             .AddInteractionGroup<WelcomeInteractions>();
 
         return serviceCollection
             .AddDiscordState(State)
             .AddSingleton<PluginResponder>()
+            .AddChristofelCommands()
+            .AddChristofelDatabase(State)
             .AddSingleton(_lifetimeHandler.LifetimeSpecific)
-            .Configure<WelcomeOptions>(State.Configuration.GetSection("Enhancements:Welcome"))
+            .Configure<WelcomeOptions>(State.Configuration.GetSection("Welcome"))
             .Configure<UsersOptions>(State.Configuration.GetSection("Management:Users"))
             .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
     }
