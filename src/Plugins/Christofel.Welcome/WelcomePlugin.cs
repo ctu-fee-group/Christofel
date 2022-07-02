@@ -16,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
 using Remora.Discord.Gateway.Extensions;
-using Remora.Discord.Interactivity.Extensions;
 
 namespace Christofel.Welcome;
 
@@ -62,7 +61,7 @@ public class WelcomePlugin : ChristofelDIPlugin
 
         serviceCollection
             .AddResponder<InteractionResponder>()
-            .AddInteractionGroup<WelcomeInteractions>();
+            .AddScoped<WelcomeInteractions>();
 
         return serviceCollection
             .AddDiscordState(State)

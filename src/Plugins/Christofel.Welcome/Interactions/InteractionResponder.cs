@@ -121,7 +121,7 @@ public class InteractionResponder : IResponder<IInteractionCreate>
                     lang = path[2];
                 }
 
-                return await interactions.HandleShowAsync(lang);
+                return await interactions.HandleShowAsync(lang, ct);
             case "auth":
                 if (path.Length < 3)
                 {
@@ -129,7 +129,7 @@ public class InteractionResponder : IResponder<IInteractionCreate>
                 }
 
                 lang = path[2];
-                return await interactions.HandleAuthButtonAsync(lang);
+                return await interactions.HandleAuthButtonAsync(lang, ct);
         }
 
         return Result.FromSuccess();

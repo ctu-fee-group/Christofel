@@ -11,13 +11,10 @@ using Christofel.Common.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Remora.Commands.Attributes;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
-using Remora.Discord.Interactivity;
 using Remora.Results;
 
 namespace Christofel.Welcome.Interactions;
@@ -25,9 +22,7 @@ namespace Christofel.Welcome.Interactions;
 /// <summary>
 /// Interaction handler for welcome buttons.
 /// </summary>
-[Ephemeral]
-[Group("welcome")]
-public class WelcomeInteractions : InteractionGroup
+public class WelcomeInteractions
 {
     private readonly IDiscordRestInteractionAPI _interactionApi;
     private readonly InteractionContext _context;
@@ -71,17 +66,16 @@ public class WelcomeInteractions : InteractionGroup
     /// Send message with authentication link.
     /// </summary>
     /// <param name="language">The language to send the auth in.</param>
+    /// <param name="ct">The cancellation token.</param>
     /// <returns>A result that may have failed.</returns>
-    [Button("auth")]
-    [SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1118:Parameter should not span multiple lines", Justification = "Condition")]
-    public async Task<Result> HandleAuthButtonAsync(string language)
+    public async Task<Result> HandleAuthButtonAsync(string language, CancellationToken ct)
     {
         var dbUser = await _dbContext
             .Users
             .FirstOrDefaultAsync
             (
                 x => x.AuthenticatedAt == null && x.DiscordId == _context.User.ID && x.RegistrationCode != null,
-                CancellationToken
+                ct
             );
         if (dbUser is null)
         {
@@ -94,7 +88,7 @@ public class WelcomeInteractions : InteractionGroup
             _dbContext.Add(dbUser);
             try
             {
-                await _dbContext.SaveChangesAsync(CancellationToken);
+                await _dbContext.SaveChangesAsync(ct);
             }
             catch (Exception e)
             {
@@ -139,7 +133,7 @@ public class WelcomeInteractions : InteractionGroup
             _options.Translations[language].AuthMessage.Replace("{Link}", link),
             flags: MessageFlags.Ephemeral,
             components: components,
-            ct: CancellationToken
+            ct: ct
         );
 
         return messageResult.IsSuccess
@@ -151,8 +145,9 @@ public class WelcomeInteractions : InteractionGroup
     /// Sends english welcome message.
     /// </summary>
     /// <param name="language">The language to show.</param>
+    /// <param name="ct">The cancellation token.</param>
     /// <returns>A result that may have failed.</returns>
-    public async Task<Result> HandleShowAsync(string language)
+    public async Task<Result> HandleShowAsync(string language, CancellationToken ct)
     {
         if (!_options.Translations.ContainsKey(language))
         {
@@ -166,7 +161,7 @@ public class WelcomeInteractions : InteractionGroup
         }
 
         var embed = JsonSerializer.Deserialize<IEmbed>
-            (await File.ReadAllTextAsync(translation.EmbedFilePath, CancellationToken), _jsonOptions);
+            (await File.ReadAllTextAsync(translation.EmbedFilePath, ct), _jsonOptions);
         if (embed is null)
         {
             // error
@@ -180,7 +175,7 @@ public class WelcomeInteractions : InteractionGroup
             embeds: new[] { embed },
             components: WelcomeMessageHelper.CreateWelcomeComponents(_options, language),
             flags: MessageFlags.Ephemeral,
-            ct: CancellationToken
+            ct: ct
         );
 
         return messageResult.IsSuccess
