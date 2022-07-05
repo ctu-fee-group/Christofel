@@ -33,7 +33,7 @@ namespace Christofel.Messages.Services
         public EmbedsProvider(IOptionsMonitor<EmbedsOptions> options, IOptions<JsonSerializerOptions> jsonOptions)
         {
             _embedsOptionsUpdateToken = options.OnChange(c => _embedsOptions = c);
-            _embedsOptions = options.CurrentValue;
+            _embedsOptions = options.Get("Discord");
             _jsonOptions = jsonOptions.Value;
         }
 
