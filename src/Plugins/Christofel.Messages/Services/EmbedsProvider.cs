@@ -30,11 +30,11 @@ namespace Christofel.Messages.Services
         /// </summary>
         /// <param name="options">The options.</param>
         /// <param name="jsonOptions">The serializer options.</param>
-        public EmbedsProvider(IOptionsMonitor<EmbedsOptions> options, IOptions<JsonSerializerOptions> jsonOptions)
+        public EmbedsProvider(IOptionsMonitor<EmbedsOptions> options, IOptionsSnapshot<JsonSerializerOptions> jsonOptions)
         {
             _embedsOptionsUpdateToken = options.OnChange(c => _embedsOptions = c);
-            _embedsOptions = options.Get("Discord");
-            _jsonOptions = jsonOptions.Value;
+            _embedsOptions = options.CurrentValue;
+            _jsonOptions = jsonOptions.Get("Discord");
         }
 
         /// <summary>
