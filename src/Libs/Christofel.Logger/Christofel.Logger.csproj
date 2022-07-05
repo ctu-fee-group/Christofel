@@ -10,7 +10,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="6.0.0" />
-        <PackageReference Include="Remora.Discord.API" Version="62.0.1" />
+        <PackageReference Include="Remora.Discord.API" Version="64.0.0" />
     </ItemGroup>
 
 </Project>
