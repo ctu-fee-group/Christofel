@@ -84,14 +84,10 @@ namespace Christofel.ReactHandler.Commands
             string reactEmoji,
             [Description("Channel that the message is in. If omitted, current channel will be used")]
             [DiscordTypeHint(TypeHint.Channel)]
-            IPartialChannel? channel = default
+            Snowflake? channel = default
         )
         {
-            var channelId = channel?.ID ?? _commandContext.ChannelID;
-            if (!channelId.HasValue)
-            {
-                return new InvalidOperationError("Channel id must not be empty");
-            }
+            var channelId = channel ?? _commandContext.ChannelID;
 
             List<HandleReact> matchingHandlers;
             try
@@ -146,20 +142,16 @@ namespace Christofel.ReactHandler.Commands
             OneOf<IRole, IPartialChannel> entity,
             [Description("Channel that the message is in. If omitted, current channel will be used")]
             [DiscordTypeHint(TypeHint.Channel)]
-            IPartialChannel? channel = default
+            Snowflake? channel = default
         )
         {
-            var channelId = channel?.ID ?? _commandContext.ChannelID;
-            if (!channelId.HasValue)
-            {
-                return new InvalidOperationError("Channel id must not be empty");
-            }
+            var channelId = channel ?? _commandContext.ChannelID;
 
             // 1. react to the message
             var reactionResult =
                 await _channelApi.CreateReactionAsync
                 (
-                    channelId.Value,
+                    channelId,
                     messageId,
                     reactEmoji.TrimStart('<').TrimEnd('>').TrimStart(':'),
                     CancellationToken
@@ -179,7 +171,7 @@ namespace Christofel.ReactHandler.Commands
             {
                 var handleReact = new HandleReact
                 {
-                    ChannelId = channelId.Value,
+                    ChannelId = channelId,
                     Emoji = reactEmoji,
                     EntityId = entity.IsT0
                         ? entity.AsT0.ID
@@ -227,20 +219,16 @@ namespace Christofel.ReactHandler.Commands
             string? reactEmoji = null,
             [Description("Channel that the message is in. If omitted, current channel will be used")]
             [DiscordTypeHint(TypeHint.Channel)]
-            IPartialChannel? channel = default
+            Snowflake? channel = default
         )
         {
-            var channelId = channel?.ID ?? _commandContext.ChannelID;
-            if (!channelId.HasValue)
-            {
-                return new InvalidOperationError("Channel id must not be empty");
-            }
+            var channelId = channel ?? _commandContext.ChannelID;
 
             List<HandleReact> matchingHandlers;
             try
             {
                 var matchingHandlersQuery = _dbContext.HandleReacts
-                    .Where(x => x.ChannelId == channelId.Value && x.MessageId == messageId);
+                    .Where(x => x.ChannelId == channelId && x.MessageId == messageId);
 
                 if (reactEmoji is not null)
                 {
