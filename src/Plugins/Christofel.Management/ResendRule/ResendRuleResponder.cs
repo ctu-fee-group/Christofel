@@ -88,7 +88,7 @@ namespace Christofel.Management.ResendRule
                 return Result.FromError(channelResult);
             }
 
-            if (channelResult.Entity.Type == ChannelType.GuildNews)
+            if (channelResult.Entity.Type == ChannelType.AnnouncementThread)
             {
                 var crosspostResponse = await _channelApi.CrosspostMessageAsync
                     (gatewayEvent.ChannelID, gatewayEvent.ID, ct);

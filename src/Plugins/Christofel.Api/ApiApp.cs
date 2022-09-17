@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Remora.Discord.Rest;
 using Remora.Discord.Rest.Extensions;
 using IApplicationLifetime = Christofel.Plugins.Lifetime.IApplicationLifetime;
 
@@ -144,7 +145,7 @@ namespace Christofel.Api
                             .AddSingleton<IApplicationLifetime>(new ApplicationLifetimeWrapper(lifetime));
 
                         services
-                            .AddDiscordRest(_ => configuration.GetValue<string>("Bot:Token"));
+                            .AddDiscordRest(_ => (configuration.GetValue<string>("Bot:Token"), DiscordTokenType.Bot));
 
                         services
                             .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>();

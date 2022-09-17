@@ -208,7 +208,7 @@ namespace Christofel.CommandsLib
                     applicationID,
                     guildID,
                     command.Data.Name,
-                    command.Data.Description.HasValue ? command.Data.Description.Value : string.Empty,
+                    command.Data.Description,
                     command.Data.Options,
                     command.Data.Type,
                     ct: ct
@@ -233,7 +233,7 @@ namespace Christofel.CommandsLib
                     guildID,
                     registeredCommand.ID,
                     command.Data.Name,
-                    command.Data.Description.HasValue ? command.Data.Description.Value : string.Empty,
+                    command.Data.Description,
                     options,
                     ct: ct
                 );
@@ -282,9 +282,9 @@ namespace Christofel.CommandsLib
                 commandData = new BulkApplicationCommandData
                 (
                     commandData.Name,
-                    commandData.Description.HasValue ? commandData.Description : string.Empty,
-                    commandData.Options,
-                    commandData.Type
+                    commandData.Description,
+                    Options: commandData.Options,
+                    Type: commandData.Type
                 );
                 returnData.Add(new CommandInfo(commandData, defaultPermission, permissions.ToList()));
             }
