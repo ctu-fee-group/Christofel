@@ -4,18 +4,12 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Christofel.Api.Extensions;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
 using RestSharp.Serializers.NewtonsoftJson;
 
-namespace Christofel.Api.OAuth
+namespace Christofel.OAuth
 {
     /// <summary>
     /// Handler of post oauth access token retrieval.
@@ -52,14 +46,17 @@ namespace Christofel.Api.OAuth
         protected TOptions Options { get; }
 
         /// <summary>
-        /// Obtain access token or error.
+        /// Grant user authorization code.
         /// </summary>
-        /// <param name="code">The code from the oauth.</param>
+        /// <remarks>
+        /// Used for authorizing a user directly.
+        /// </remarks>
+        /// <param name="code">The code from the user's oauth.</param>
         /// <param name="redirectUri">The specified redirect uri.</param>
         /// <param name="token">The cancellation token for the operation..</param>
         /// <returns>Response from the oauth, may not be successful.</returns>
         /// <exception cref="InvalidOperationException">Thrown if options token endpoint is missing.</exception>
-        public virtual async Task<OauthResponse> ExchangeCodeAsync
+        public async Task<OauthResponse> GrantAuthorizationCodeAsync
         (
             string code,
             string redirectUri,
@@ -74,11 +71,35 @@ namespace Christofel.Api.OAuth
                 { "scope", string.Join(' ', Options.Scopes ?? Enumerable.Empty<string>()) },
             };
 
+            return await ExchangeTokenAsync(tokenRequestParameters, token);
+        }
+
+        /// <summary>
+        /// Grant client credentials for service.
+        /// </summary>
+        /// <remarks>
+        /// Used for getting an access token for the service application without a user.
+        /// </remarks>
+        /// <param name="token">The cancellation token for the operation..</param>
+        /// <returns>Response from the oauth, may not be successful.</returns>
+        public async Task<OauthResponse> GrantClientCredentialsAsync(CancellationToken token = default)
+        {
+            var tokenRequestParameters = new Dictionary<string, string>
+            {
+                { "grant_type", "client_credentials" },
+                { "scope", string.Join(' ', Options.Scopes ?? Enumerable.Empty<string>()) },
+            };
+
+            return await ExchangeTokenAsync(tokenRequestParameters, token);
+        }
+
+        private async Task<OauthResponse> ExchangeTokenAsync(Dictionary<string, string> parameters, CancellationToken token)
+        {
             var request = new RestRequest
                 (Options.TokenEndpoint ?? throw new InvalidOperationException("TokenEndpoint is null"), Method.Post);
             request.AddOrUpdateParameters
             (
-                tokenRequestParameters
+                parameters
                     .Select(x => Parameter.CreateParameter(x.Key, x.Value, ParameterType.GetOrPost))
             );
 
@@ -91,7 +112,7 @@ namespace Christofel.Api.OAuth
         /// </summary>
         /// <param name="response">The response to process.</param>
         /// <returns>Response of the oauth.</returns>
-        protected virtual OauthResponse ProcessTokenResponse(RestResponse response)
+        private OauthResponse ProcessTokenResponse(RestResponse response)
         {
             OauthSuccessResponse? successResponse = null;
             OauthErrorResponse? errorResponse = null;

@@ -6,7 +6,7 @@
 
 using Newtonsoft.Json;
 
-namespace Christofel.Api.OAuth
+namespace Christofel.OAuth
 {
     /// <summary>
     /// Response from oauth handler token retrieval.

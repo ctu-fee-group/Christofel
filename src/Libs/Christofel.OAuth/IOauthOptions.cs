@@ -4,9 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Collections.Generic;
-
-namespace Christofel.Api.OAuth
+namespace Christofel.OAuth
 {
     /// <summary>
     /// Options for oauth handlers with needed data.
