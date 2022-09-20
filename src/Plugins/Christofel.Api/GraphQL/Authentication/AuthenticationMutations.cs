@@ -5,7 +5,6 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,11 +13,11 @@ using Christofel.Api.Ctu.Auth;
 using Christofel.Api.Discord;
 using Christofel.Api.GraphQL.Attributes;
 using Christofel.Api.GraphQL.Common;
-using Christofel.Api.OAuth;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
+using Christofel.OAuth;
 using HotChocolate;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -83,7 +82,7 @@ namespace Christofel.Api.GraphQL.Authentication
         )
         {
             OauthResponse response =
-                await discordOauthHandler.ExchangeCodeAsync(input.OauthCode, input.RedirectUri, cancellationToken);
+                await discordOauthHandler.GrantAuthorizationCodeAsync(input.OauthCode, input.RedirectUri, cancellationToken);
 
             if (response.IsError)
             {
@@ -175,7 +174,7 @@ namespace Christofel.Api.GraphQL.Authentication
             }
 
             OauthResponse response =
-                await ctuOauthHandler.ExchangeCodeAsync(input.OauthCode, input.RedirectUri, cancellationToken);
+                await ctuOauthHandler.GrantAuthorizationCodeAsync(input.OauthCode, input.RedirectUri, cancellationToken);
 
             if (response.IsError)
             {

@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu;
 using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.OAuth;
+using Christofel.OAuth;
 using Christofel.Api.Tests.Data.Ctu.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
