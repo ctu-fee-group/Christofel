@@ -6,7 +6,7 @@
 
 using Microsoft.Extensions.Options;
 
-namespace Christofel.Api.OAuth
+namespace Christofel.OAuth
 {
     /// <summary>
     /// Handler of discord oauth code exchange.

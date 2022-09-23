@@ -4,16 +4,13 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Christofel.Common.User;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace Christofel.Api.OAuth
+namespace Christofel.OAuth
 {
     /// <summary>
     /// Handler of ctu oauth code exchange and token check.

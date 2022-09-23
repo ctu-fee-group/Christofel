@@ -5,3 +5,4 @@ dotnet ef database --startup-project=./Tools/Christofel.Design/ update --context
 dotnet ef database --startup-project=./Tools/Christofel.Design/ update --context ManagementContext -p ./Plugins/Christofel.Management
 dotnet ef database --startup-project=./Tools/Christofel.Design/ update --context ReactHandlerContext -p ./Plugins/Christofel.ReactHandler
 dotnet ef database --startup-project=./Tools/Christofel.Design/ update --context ApiCacheContext -p ./Plugins/Christofel.Api
+dotnet ef database --startup-project=./Tools/Christofel.Design/ update --context CoursesContext -p ./Libs/Christofel.CoursesLib

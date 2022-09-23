@@ -5,8 +5,8 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Threading;
-using Christofel.Api.OAuth;
 using Christofel.Common.Database.Models;
+using Christofel.OAuth;
 using Moq;
 
 namespace Christofel.Api.Tests.Data.Ctu.Auth

@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Libs\Christofel.CoursesLib\Christofel.CoursesLib.csproj" />
         <ProjectReference Include="..\..\Plugins\Christofel.Api\Christofel.Api.csproj" />
         <ProjectReference Include="..\..\Core\Christofel.Application\Christofel.Application.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.Helpers\Christofel.Helpers.csproj" />
