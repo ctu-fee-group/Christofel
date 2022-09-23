@@ -65,7 +65,7 @@ public class CoursesCommands : CommandGroup
     /// <returns>A result that may or may not be successful.</returns>
     [Command("join")]
     [Description("Join channels matching the given courses.")]
-    [RequirePermission("courses.join")]
+    [RequirePermission("courses.courses.join")]
     public async Task<IResult> JoinAsync([Description("Courses to join separated by space")] string courses)
     {
         var discordUser = new DiscordUser(_commandContext.User.ID);
@@ -90,7 +90,7 @@ public class CoursesCommands : CommandGroup
     /// <returns>A result that may or may not be successful.</returns>
     [Command("leave")]
     [Description("Leave channels matching the given courses.")]
-    [RequirePermission("courses.leave")]
+    [RequirePermission("courses.courses.leave")]
     public async Task<IResult> HandleLeaveAsync([Description("Courses to leave separated by space")] string courses)
     {
         var discordUser = new DiscordUser(_commandContext.User.ID);
@@ -119,7 +119,7 @@ public class CoursesCommands : CommandGroup
     /// <returns>A result that may or may not be successful.</returns>
     [Command("toggle")]
     [Description("Toggle (join if not present, leave if present) channels matching the given courses.")]
-    [RequirePermission("courses.toggle")]
+    [RequirePermission("courses.courses.toggle")]
     public async Task<IResult> HandleToggleAsync([Description("Courses to toggle separated by space")] string courses)
     {
         var discordUser = new DiscordUser(_commandContext.User.ID);
