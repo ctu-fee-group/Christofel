@@ -148,6 +148,12 @@ public class CoursesCommands : CommandGroup
     {
         var errors = coursesAssignmentResult.ErrorfulResults.Values.ToList();
 
+        if (coursesAssignmentResult.MissingCourses.Count == 0 && coursesAssignmentResult.ErrorfulResults.Count == 0
+            && coursesAssignmentResult.SuccessCourses.Count == 0)
+        {
+            await feedbackService.SendContextualWarningAsync("Could not find any courses in the given period.", ct: ct);
+        }
+
         if (coursesAssignmentResult.SuccessCourses.Count > 0)
         {
             var feedbackResult = await feedbackService.SendContextualSuccessAsync
