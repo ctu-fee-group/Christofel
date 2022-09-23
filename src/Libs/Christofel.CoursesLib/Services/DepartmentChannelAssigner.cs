@@ -18,17 +18,17 @@ namespace Christofel.CoursesLib.Services;
 public class DepartmentChannelAssigner
 {
     private readonly CoursesContext _coursesContext;
-    private readonly IKosBranchesApi _branchesApi;
+    private readonly IKosDivisionsApi _divisionsApi;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DepartmentChannelAssigner"/> class.
     /// </summary>
     /// <param name="coursesContext">The courses database context.</param>
-    /// <param name="branchesApi">The kos branches api.</param>
-    public DepartmentChannelAssigner(CoursesContext coursesContext, IKosBranchesApi branchesApi)
+    /// <param name="divisionsApi">The kos divisions api.</param>
+    public DepartmentChannelAssigner(CoursesContext coursesContext, IKosDivisionsApi divisionsApi)
     {
         _coursesContext = coursesContext;
-        _branchesApi = branchesApi;
+        _divisionsApi = divisionsApi;
     }
 
     /// <summary>
@@ -41,11 +41,11 @@ public class DepartmentChannelAssigner
     public async Task<Result> AssignDepartmentCategory
         (string departmentKey, Snowflake categoryId, CancellationToken ct = default)
     {
-        var branch = await _branchesApi.GetBranch(departmentKey, token: ct);
+        var division = await _divisionsApi.GetDivision(departmentKey, token: ct);
 
-        if (branch is null)
+        if (division is null)
         {
-            return new NotFoundError($"Could not find the given branch {departmentKey}.");
+            return new NotFoundError($"Could not find the given division {departmentKey}.");
         }
 
         try
@@ -55,7 +55,7 @@ public class DepartmentChannelAssigner
                 new DepartmentAssignment
                 {
                     DepartmentKey = departmentKey,
-                    DepartmentName = branch.Name ?? departmentKey,
+                    DepartmentName = division.Name ?? departmentKey,
                     CategoryId = categoryId
                 }
             );
@@ -79,11 +79,15 @@ public class DepartmentChannelAssigner
     {
         try
         {
-            var departmentAssignment = _coursesContext.DepartmentAssignments.LastOrDefaultAsync
-                (x => x.DepartmentKey == departmentKey, ct);
+            var departmentAssignment = await _coursesContext.DepartmentAssignments
+                .OrderBy(x => x.Id)
+                .LastOrDefaultAsync(x => x.DepartmentKey == departmentKey, ct);
 
-            _coursesContext.Remove(departmentAssignment);
-            await _coursesContext.SaveChangesAsync(ct);
+            if (departmentAssignment is not null)
+            {
+                _coursesContext.Remove(departmentAssignment);
+                await _coursesContext.SaveChangesAsync(ct);
+            }
         }
         catch (Exception e)
         {

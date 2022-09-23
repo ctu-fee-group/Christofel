@@ -55,7 +55,7 @@ public class CoursesChannelAssigner
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
     public async Task<CoursesAssignmentResult> AssignCourses
-        (ILinkUser user, IEnumerable<string> courseKeys, CancellationToken ct = default)
+        (IDiscordUser user, IEnumerable<string> courseKeys, CancellationToken ct = default)
         => await DoCoursesOperationAsync
         (
             courseKeys,
@@ -82,7 +82,7 @@ public class CoursesChannelAssigner
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
     public async Task<Result<CoursesAssignmentResult>> DeassignCourses
-        (ILinkUser user, IEnumerable<string> courseKeys, CancellationToken ct = default)
+        (IDiscordUser user, IEnumerable<string> courseKeys, CancellationToken ct = default)
         => await DoCoursesOperationAsync
         (
             courseKeys,
@@ -108,8 +108,8 @@ public class CoursesChannelAssigner
     /// <param name="courseKeys">The keys of the courses to assign.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
-    public async Task<Result<CoursesAssignmentResult>> ToggleCourses
-        (ILinkUser user, IEnumerable<string> courseKeys, CancellationToken ct = default)
+    public async Task<CoursesAssignmentResult> ToggleCourses
+        (IDiscordUser user, IEnumerable<string> courseKeys, CancellationToken ct = default)
         => await DoCoursesOperationAsync
         (
             courseKeys,
@@ -230,7 +230,7 @@ public class CoursesChannelAssigner
 
             if (!courseResult.IsDefined(out var course))
             {
-                if (courseResult.IsSuccess)
+                if (!courseResult.IsSuccess)
                 {
                     errors.Add(courseKey, Result.FromError(courseResult));
                 }

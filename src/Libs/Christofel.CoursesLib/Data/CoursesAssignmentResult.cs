@@ -19,5 +19,5 @@ public record CoursesAssignmentResult
 (
     IList<CourseAssignment> SuccessCourses,
     IList<string> MissingCourses,
-    IReadOnlyDictionary<string, Result>? ErrorfulResults = default
+    IReadOnlyDictionary<string, Result> ErrorfulResults
 );

@@ -21,5 +21,5 @@ public static class AtomLoadableExtensions
     /// <returns>The key part of the loadable entity.</returns>
     public static string GetKey<T>(this AtomLoadableEntity<T> loadableEntity)
         where T : new()
-        => loadableEntity.Href.Split('/', StringSplitOptions.RemoveEmptyEntries)[~1];
+        => loadableEntity.Href.Split('/', StringSplitOptions.RemoveEmptyEntries)[^1];
 }

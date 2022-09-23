@@ -8,6 +8,7 @@ using Christofel.BaseLib.Configuration;
 using Christofel.Common.Database;
 using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Extensions;
+using Kos.Abstractions;
 using Kos.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -26,7 +27,7 @@ public class CoursesChannelCreator
 {
     private readonly CoursesContext _coursesContext;
     private readonly IDiscordRestGuildAPI _guildApi;
-    private readonly KosCoursesApi _coursesApi;
+    private readonly IKosCoursesApi _coursesApi;
     private readonly BotOptions _options;
 
     /// <summary>
@@ -40,7 +41,7 @@ public class CoursesChannelCreator
     (
         CoursesContext coursesContext,
         IDiscordRestGuildAPI guildApi,
-        KosCoursesApi coursesApi,
+        IKosCoursesApi coursesApi,
         IOptions<BotOptions> options
     )
     {
@@ -77,13 +78,14 @@ public class CoursesChannelCreator
         if (channelName is null)
         {
             var digits = new[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-            var courseKeyTrimmed = courseKey.Trim(digits);
+            var courseKeyTrimmed = courseKey.TrimEnd(digits);
 
-            channelName = courseKeyTrimmed[(courseKeyTrimmed.LastIndexOfAny(digits) + 1)..];
+            channelName = courseKey[(courseKeyTrimmed.LastIndexOfAny(digits) + 1)..].ToLower();
         }
 
-        var departmentAssignment = await _coursesContext.DepartmentAssignments.LastOrDefaultAsync
-            (x => x.DepartmentKey == departmentKey, ct);
+        var departmentAssignment = await _coursesContext.DepartmentAssignments
+            .OrderBy(x => x.Id)
+            .LastOrDefaultAsync(x => x.DepartmentKey == departmentKey, ct);
 
         if (departmentAssignment is null)
         {

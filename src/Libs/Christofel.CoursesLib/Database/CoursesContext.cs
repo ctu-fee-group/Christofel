@@ -15,12 +15,17 @@ namespace Christofel.CoursesLib.Database;
 public class CoursesContext : ChristofelContext, IReadableDbContext<CoursesContext>
 {
     /// <summary>
+    /// The name of the schema that this context's entities lie in.
+    /// </summary>
+    public const string SchemaName = "Courses";
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="CoursesContext"/> class.
     /// </summary>
     /// <param name="schema">The schema managed by the context.</param>
     /// <param name="contextOptions">The context options.</param>
-    public CoursesContext(string schema, DbContextOptions contextOptions)
-        : base(schema, contextOptions)
+    public CoursesContext(DbContextOptions contextOptions)
+        : base(SchemaName, contextOptions)
     {
     }
 

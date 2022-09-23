@@ -7,6 +7,7 @@
 using Christofel.BaseLib.Extensions;
 using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Services;
+using Christofel.Helpers.ReadOnlyDatabase;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddCourses(this IServiceCollection serviceCollection, IConfiguration configuration)
         => serviceCollection
             .AddChristofelDbContextFactory<CoursesContext>(configuration)
+            .AddReadOnlyDbContext<CoursesContext>()
             .AddTransient<CoursesChannelAssigner>()
             .AddTransient<CoursesChannelCreator>()
             .AddTransient<DepartmentChannelAssigner>()
