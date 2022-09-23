@@ -26,9 +26,11 @@ public static class ServiceCollectionExtensions
     /// <returns>The service collection returned.</returns>
     public static IServiceCollection AddCourses(this IServiceCollection serviceCollection, IConfiguration configuration)
         => serviceCollection
+            .AddMemoryCache()
             .AddChristofelDbContextFactory<CoursesContext>(configuration)
             .AddReadOnlyDbContext<CoursesContext>()
             .AddTransient<CoursesChannelAssigner>()
+            .AddTransient<CurrentSemesterCache>()
             .AddTransient<CoursesChannelCreator>()
             .AddTransient<DepartmentChannelAssigner>()
             .AddTransient<CoursesInfo>();
