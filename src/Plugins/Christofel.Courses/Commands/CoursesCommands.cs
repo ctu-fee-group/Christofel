@@ -213,6 +213,7 @@ public class CoursesCommands : CommandGroup
         private readonly ICommandContext _commandContext;
         private readonly CoursesInfo _coursesInfo;
         private readonly CoursesChannelAssigner _channelAssigner;
+        private readonly CurrentSemesterCache _currentSemesterCache;
         private readonly IReadableDbContext<ChristofelBaseContext> _baseContext;
 
         /// <summary>
@@ -222,6 +223,7 @@ public class CoursesCommands : CommandGroup
         /// <param name="commandContext">The command context.</param>
         /// <param name="coursesInfo">The courses info.</param>
         /// <param name="channelAssigner">The courses channel assigner.</param>
+        /// <param name="currentSemesterCache">The current semester cache.</param>
         /// <param name="baseContext">The readable christofel base database context.</param>
         public SemesterCommands
         (
@@ -229,6 +231,7 @@ public class CoursesCommands : CommandGroup
             ICommandContext commandContext,
             CoursesInfo coursesInfo,
             CoursesChannelAssigner channelAssigner,
+            CurrentSemesterCache currentSemesterCache,
             IReadableDbContext<ChristofelBaseContext> baseContext
         )
         {
@@ -236,6 +239,7 @@ public class CoursesCommands : CommandGroup
             _commandContext = commandContext;
             _coursesInfo = coursesInfo;
             _channelAssigner = channelAssigner;
+            _currentSemesterCache = currentSemesterCache;
             _baseContext = baseContext;
         }
 
@@ -263,7 +267,7 @@ public class CoursesCommands : CommandGroup
             }
 
             var coursesAssignmentResultResult = await _channelAssigner.AssignSemesterCourses
-                (new LinkUser(dbUser), semester.ToString().ToLower(), CancellationToken);
+                (new LinkUser(dbUser), await GetSemester(semester), CancellationToken);
 
             if (!coursesAssignmentResultResult.IsDefined(out var coursesAssignmentResult))
             {
@@ -305,7 +309,7 @@ public class CoursesCommands : CommandGroup
             }
 
             var coursesAssignmentResultResult = await _channelAssigner.DeassignSemesterCourses
-                (new LinkUser(dbUser), semester.ToString().ToLower(), CancellationToken);
+                (new LinkUser(dbUser), await GetSemester(semester), CancellationToken);
 
             if (!coursesAssignmentResultResult.IsDefined(out var coursesAssignmentResult))
             {
@@ -326,12 +330,12 @@ public class CoursesCommands : CommandGroup
         /// <summary>
         /// Show all your cuorses in the given semester.
         /// </summary>
-        /// <param name="selector">The semester selector to show courses for.</param>
+        /// <param name="semester">The semester selector to show courses for.</param>
         /// <returns>A result that may or may not have succeeded.</returns>
         [Command("show")]
         [Description("Show all your courses in the given semester.")]
         [RequirePermission("courses.courses.semester.show")]
-        public async Task<IResult> HandleShowAsync(SemesterSelector selector)
+        public async Task<IResult> HandleShowAsync(SemesterSelector semester)
         {
             var dbUser = await _baseContext.Set<DbUser>()
                 .Authenticated()
@@ -347,7 +351,7 @@ public class CoursesCommands : CommandGroup
             }
 
             var coursesResult = await _coursesInfo.GetSemesterCourses
-                (new LinkUser(dbUser), selector.ToString().ToLower(), CancellationToken);
+                (new LinkUser(dbUser), await GetSemester(semester), CancellationToken);
             if (!coursesResult.IsDefined(out var courses))
             {
                 await _feedbackService.SendContextualErrorAsync("There was an error, contact administrators.");
@@ -368,6 +372,19 @@ public class CoursesCommands : CommandGroup
                     courses.Select(x => $"  **<#{x.ChannelId}>** - {x.CourseName} ({x.CourseKey})")
                 )
             );
+        }
+
+        private async Task<string> GetSemester(SemesterSelector semesterSelector)
+        {
+            var currentSemester = await _currentSemesterCache.GetCurrentSemester();
+
+            return semesterSelector switch
+            {
+                SemesterSelector.Previous => currentSemester.GetPreviousSemester().ToString(),
+                SemesterSelector.Current => currentSemester.ToString(),
+                SemesterSelector.Next => currentSemester.GetNextSemester().ToString(),
+                _ => throw new Exception()
+            };
         }
     }
 }
