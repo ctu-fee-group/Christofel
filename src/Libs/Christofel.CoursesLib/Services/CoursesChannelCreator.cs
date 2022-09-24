@@ -61,6 +61,12 @@ public class CoursesChannelCreator
     public async Task<Result> CreateCourseChannel
         (string courseKey, string? channelName = default, CancellationToken ct = default)
     {
+        if (await _coursesContext.Set<CourseAssignment>()
+            .AnyAsync(x => x.CourseKey == courseKey, ct))
+        {
+            return new InvalidOperationError("The given course is already linked to a channel.");
+        }
+
         var course = await _coursesApi.GetCourse(courseKey, token: ct);
 
         if (course is null)
@@ -131,6 +137,12 @@ public class CoursesChannelCreator
     public async Task<Result> CreateCourseLink
         (string courseKey, Snowflake courseChannelId, CancellationToken ct = default)
     {
+        if (await _coursesContext.Set<CourseAssignment>()
+            .AnyAsync(x => x.CourseKey == courseKey, ct))
+        {
+            return new InvalidOperationError("The given course is already linked to a channel.");
+        }
+
         var course = await _coursesApi.GetCourse(courseKey, token: ct);
 
         if (course is null)
