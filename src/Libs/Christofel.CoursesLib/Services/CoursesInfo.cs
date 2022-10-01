@@ -9,6 +9,7 @@ using Christofel.Common.User;
 using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Extensions;
 using Kos.Abstractions;
+using Kos.Data;
 using Microsoft.EntityFrameworkCore;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -130,7 +131,11 @@ public class CoursesInfo
     {
         var enrolledCourses = await _studentsApi.GetStudentEnrolledCourses
             (ctuUser.CtuUsername, semesterSelector, limit: 100, token: ct);
-        var courseKeys = enrolledCourses.Select(x => x.Course.GetKey()).ToArray();
+        var courseKeys = enrolledCourses
+            .OfType<InternalCourseEnrollment>()
+            .Where(x => x.Course is not null)
+            .Select(x => x.Course!.GetKey())
+            .ToArray();
 
         return await _coursesContext.Set<CourseAssignment>()
             .Where(x => courseKeys.Contains(x.CourseKey))

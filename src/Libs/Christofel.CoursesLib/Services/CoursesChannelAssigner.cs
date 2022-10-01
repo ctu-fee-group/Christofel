@@ -192,7 +192,10 @@ public class CoursesChannelAssigner
         {
             var enrolledCourses = await _studentsApi.GetStudentEnrolledCourses
                 (user.CtuUsername, semesterSelector, limit: 100, token: ct);
-            return Result<IEnumerable<string>>.FromSuccess(enrolledCourses.Select(x => x.Course.GetKey()));
+            return Result<IEnumerable<string>>.FromSuccess(enrolledCourses
+                .OfType<InternalCourseEnrollment>()
+                .Where(x => x.Course is not null)
+                .Select(x => x.Course!.GetKey()));
         }
         catch (Exception e)
         {
