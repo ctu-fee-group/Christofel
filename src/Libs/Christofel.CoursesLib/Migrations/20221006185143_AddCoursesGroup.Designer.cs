@@ -2,6 +2,7 @@
 using Christofel.CoursesLib.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Christofel.CoursesLib.Migrations
 {
     [DbContext(typeof(CoursesContext))]
-    partial class CoursesContextModelSnapshot : ModelSnapshot
+    [Migration("20221006185143_AddCoursesGroup")]
+    partial class AddCoursesGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,6 +67,7 @@ namespace Christofel.CoursesLib.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("Id");
@@ -72,7 +75,7 @@ namespace Christofel.CoursesLib.Migrations
                     b.HasIndex("ChannelId")
                         .IsUnique();
 
-                    b.ToTable("CourseGroupAssignments", "Courses");
+                    b.ToTable("CourseGroupAssignment", "Courses");
                 });
 
             modelBuilder.Entity("Christofel.CoursesLib.Database.DepartmentAssignment", b =>
@@ -97,7 +100,7 @@ namespace Christofel.CoursesLib.Migrations
                     b.HasIndex("DepartmentKey")
                         .IsUnique();
 
-                    b.ToTable("DepartmentAssignments", "Courses");
+                    b.ToTable("DepartmentAssignment", "Courses");
                 });
 
             modelBuilder.Entity("Christofel.CoursesLib.Database.CourseAssignment", b =>

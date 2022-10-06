@@ -1,8 +1,8 @@
 //
-//   CoursesChannelAssigner.cs
+//  CoursesChannelUserAssigner.cs
 //
-//   Copyright (c) Christofel authors. All rights reserved.
-//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Christofel.Common.Database;
 using Christofel.Common.User;
@@ -23,19 +23,19 @@ namespace Christofel.CoursesLib.Services;
 /// <summary>
 /// Assigns or deassigns course channels from Discord users.
 /// </summary>
-public class CoursesChannelAssigner
+public class CoursesChannelUserAssigner
 {
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IKosStudentsApi _studentsApi;
     private readonly IReadableDbContext<CoursesContext> _coursesContext;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CoursesChannelAssigner"/> class.
+    /// Initializes a new instance of the <see cref="CoursesChannelUserAssigner"/> class.
     /// </summary>
     /// <param name="channelApi">The channel rest api.</param>
     /// <param name="studentsApi">The kos students api.</param>
     /// <param name="coursesContext">The courses database context.</param>
-    public CoursesChannelAssigner
+    public CoursesChannelUserAssigner
     (
         IDiscordRestChannelAPI channelApi,
         IKosStudentsApi studentsApi,

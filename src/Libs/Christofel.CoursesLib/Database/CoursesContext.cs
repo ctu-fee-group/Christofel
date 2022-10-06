@@ -22,7 +22,6 @@ public class CoursesContext : ChristofelContext, IReadableDbContext<CoursesConte
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesContext"/> class.
     /// </summary>
-    /// <param name="schema">The schema managed by the context.</param>
     /// <param name="contextOptions">The context options.</param>
     public CoursesContext(DbContextOptions contextOptions)
         : base(SchemaName, contextOptions)
@@ -39,7 +38,45 @@ public class CoursesContext : ChristofelContext, IReadableDbContext<CoursesConte
     /// </summary>
     public DbSet<DepartmentAssignment> DepartmentAssignments => Set<DepartmentAssignment>();
 
+    /// <summary>
+    /// Gets courses group assignment set.
+    /// </summary>
+    public DbSet<CourseGroupAssignment> CourseGroupAssignments => Set<CourseGroupAssignment>();
+
     /// <inheritdoc/>
     IQueryable<TEntity> IReadableDbContext.Set<TEntity>()
-        where TEntity : class => Set<TEntity>().AsNoTracking();
+        where TEntity : class
+        => Set<TEntity>().AsNoTracking();
+
+    /// <inheritdoc />
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CourseAssignment>()
+            .HasOne(x => x.Department)
+            .WithMany(x => x.Courses)
+            .HasPrincipalKey(x => x.DepartmentKey)
+            .HasForeignKey(x => x.DepartmentKey)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CourseAssignment>()
+            .HasOne(x => x.GroupAssignment)
+            .WithMany(x => x.Courses)
+            .HasPrincipalKey(x => x.ChannelId)
+            .HasForeignKey(x => x.ChannelId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CourseAssignment>()
+            .HasIndex(x => x.CourseKey)
+            .IsUnique();
+
+        modelBuilder.Entity<DepartmentAssignment>()
+            .HasIndex(x => x.DepartmentKey)
+            .IsUnique();
+
+        modelBuilder.Entity<CourseGroupAssignment>()
+            .HasIndex(x => x.ChannelId)
+            .IsUnique();
+
+        base.OnModelCreating(modelBuilder);
+    }
 }

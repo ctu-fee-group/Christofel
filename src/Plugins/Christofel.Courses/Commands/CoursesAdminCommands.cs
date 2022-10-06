@@ -67,24 +67,24 @@ public class CoursesAdminCommands : CommandGroup
     [Group("department")]
     public class DepartmentCommands : CommandGroup
     {
-        private readonly DepartmentChannelAssigner _channelAssigner;
+        private readonly CoursesChannelCreator _channelCreator;
         private readonly FeedbackService _feedbackService;
         private readonly IDiscordRestChannelAPI _channelApi;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DepartmentCommands"/> class.
         /// </summary>
-        /// <param name="channelAssigner">The department channel assigner.</param>
+        /// <param name="channelCreator">The department channel assigner.</param>
         /// <param name="feedbackService">The feedback service.</param>
         /// <param name="channelApi">The discord rest channel api.</param>
         public DepartmentCommands
         (
-            DepartmentChannelAssigner channelAssigner,
+            CoursesChannelCreator channelCreator,
             FeedbackService feedbackService,
             IDiscordRestChannelAPI channelApi
         )
         {
-            _channelAssigner = channelAssigner;
+            _channelCreator = channelCreator;
             _feedbackService = feedbackService;
             _channelApi = channelApi;
         }
@@ -112,7 +112,7 @@ public class CoursesAdminCommands : CommandGroup
                 return await _feedbackService.SendContextualErrorAsync("The given category is not a category channel.");
             }
 
-            var assignmentResult = await _channelAssigner.AssignDepartmentCategory
+            var assignmentResult = await _channelCreator.AssignDepartmentCategory
                 (departmentKey, categoryId, CancellationToken);
 
             if (assignmentResult.IsSuccess)
@@ -133,7 +133,7 @@ public class CoursesAdminCommands : CommandGroup
         [Command("deassign")]
         public async Task<IResult> HandleDeassignAsync(string departmentKey)
         {
-            var assignmentResult = await _channelAssigner.DeassignDepartmentCategory
+            var assignmentResult = await _channelCreator.DeassignDepartmentCategory
                 (departmentKey, CancellationToken);
 
             if (assignmentResult.IsSuccess)
@@ -154,20 +154,20 @@ public class CoursesAdminCommands : CommandGroup
     public class LinkCommands : CommandGroup
     {
         private readonly CoursesChannelCreator _coursesChannelCreator;
-        private readonly CoursesInfo _coursesInfo;
+        private readonly CoursesRepository _coursesRepository;
         private readonly FeedbackService _feedbackService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LinkCommands"/> class.
         /// </summary>
         /// <param name="coursesChannelCreator">The courses channel creator.</param>
-        /// <param name="coursesInfo">The courses info.</param>
+        /// <param name="coursesRepository">The courses info.</param>
         /// <param name="feedbackService">The feedback service.</param>
         public LinkCommands
-            (CoursesChannelCreator coursesChannelCreator, CoursesInfo coursesInfo, FeedbackService feedbackService)
+            (CoursesChannelCreator coursesChannelCreator, CoursesRepository coursesRepository, FeedbackService feedbackService)
         {
             _coursesChannelCreator = coursesChannelCreator;
-            _coursesInfo = coursesInfo;
+            _coursesRepository = coursesRepository;
             _feedbackService = feedbackService;
         }
 
@@ -279,7 +279,7 @@ public class CoursesAdminCommands : CommandGroup
         [Command("list")]
         public async Task<IResult> HandleListAsync([DiscordTypeHint(TypeHint.Channel)] Snowflake channelId)
         {
-            var coursesResult = await _coursesInfo.GetCoursesByChannel(channelId);
+            var coursesResult = await _coursesRepository.GetCoursesByChannel(channelId);
 
             if (!coursesResult.IsDefined(out var courses))
             {

@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Remora.Rest.Core;
 
 namespace Christofel.CoursesLib.Database;
@@ -12,6 +13,7 @@ namespace Christofel.CoursesLib.Database;
 /// <summary>
 /// Database table that holds department to channel assignments.
 /// </summary>
+[Table("DepartmentAssignments")]
 public class DepartmentAssignment
 {
     /// <summary>
@@ -34,4 +36,9 @@ public class DepartmentAssignment
     /// Gets or sets the id of the assigned category.
     /// </summary>
     public Snowflake CategoryId { get; set; } = default;
+
+    /// <summary>
+    /// Gets or sets the courses for this department.
+    /// </summary>
+    public List<CourseAssignment>? Courses { get; set; } = default!;
 }

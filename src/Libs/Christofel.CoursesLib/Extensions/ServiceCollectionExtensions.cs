@@ -29,9 +29,8 @@ public static class ServiceCollectionExtensions
             .AddMemoryCache()
             .AddChristofelDbContextFactory<CoursesContext>(configuration)
             .AddReadOnlyDbContext<CoursesContext>()
-            .AddTransient<CoursesChannelAssigner>()
+            .AddTransient<CoursesChannelUserAssigner>()
             .AddTransient<CurrentSemesterCache>()
             .AddTransient<CoursesChannelCreator>()
-            .AddTransient<DepartmentChannelAssigner>()
-            .AddTransient<CoursesInfo>();
+            .AddTransient<CoursesRepository>();
 }

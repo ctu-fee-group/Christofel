@@ -5,7 +5,6 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel;
-using System.Linq;
 using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.Permissions;
 using Christofel.Common.Database;
@@ -16,7 +15,6 @@ using Christofel.CoursesLib.Services;
 using Microsoft.EntityFrameworkCore;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
-using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
@@ -34,7 +32,8 @@ public class CoursesCommands : CommandGroup
 {
     private readonly FeedbackService _feedbackService;
     private readonly ICommandContext _commandContext;
-    private readonly CoursesChannelAssigner _channelAssigner;
+    private readonly CoursesChannelUserAssigner _channelUserAssigner;
+    private readonly CoursesRepository _coursesRepository;
     private readonly IReadableDbContext<ChristofelBaseContext> _baseContext;
 
     /// <summary>
@@ -42,19 +41,22 @@ public class CoursesCommands : CommandGroup
     /// </summary>
     /// <param name="feedbackService">The feedback service.</param>
     /// <param name="commandContext">The command context.</param>
-    /// <param name="channelAssigner">The courses channel assigner.</param>
+    /// <param name="channelUserAssigner">The courses channel assigner.</param>
+    /// <param name="coursesRepository">The courses respository.</param>
     /// <param name="baseContext">The readable christofel base database context.</param>
     public CoursesCommands
     (
         FeedbackService feedbackService,
         ICommandContext commandContext,
-        CoursesChannelAssigner channelAssigner,
+        CoursesChannelUserAssigner channelUserAssigner,
+        CoursesRepository coursesRepository,
         IReadableDbContext<ChristofelBaseContext> baseContext
     )
     {
         _feedbackService = feedbackService;
         _commandContext = commandContext;
-        _channelAssigner = channelAssigner;
+        _channelUserAssigner = channelUserAssigner;
+        _coursesRepository = coursesRepository;
         _baseContext = baseContext;
     }
 
@@ -70,7 +72,7 @@ public class CoursesCommands : CommandGroup
     {
         var discordUser = new DiscordUser(_commandContext.User.ID);
 
-        var coursesAssignmentResult = await _channelAssigner.AssignCourses
+        var coursesAssignmentResult = await _channelUserAssigner.AssignCourses
             (discordUser, courses.Split(' '), CancellationToken);
 
         return await SendFeedback
@@ -95,7 +97,7 @@ public class CoursesCommands : CommandGroup
     {
         var discordUser = new DiscordUser(_commandContext.User.ID);
 
-        var coursesAssignmentResultResult = await _channelAssigner.DeassignCourses
+        var coursesAssignmentResultResult = await _channelUserAssigner.DeassignCourses
             (discordUser, courses.Split(' '), CancellationToken);
         if (!coursesAssignmentResultResult.IsDefined(out var coursesAssignmentResult))
         {
@@ -124,7 +126,7 @@ public class CoursesCommands : CommandGroup
     {
         var discordUser = new DiscordUser(_commandContext.User.ID);
 
-        var coursesAssignmentResult = await _channelAssigner.ToggleCourses
+        var coursesAssignmentResult = await _channelUserAssigner.ToggleCourses
             (discordUser, courses.Split(' '), CancellationToken);
 
         return await SendFeedback
@@ -135,6 +137,40 @@ public class CoursesCommands : CommandGroup
             false,
             CancellationToken
         );
+    }
+
+    /// <summary>
+    /// Search the given courses.
+    /// </summary>
+    /// <param name="courses">The courses to toggle separated by space.</param>
+    /// <returns>A result that may or may not be successful.</returns>
+    [Command("search")]
+    [Description("Fuzzy search given courses.")]
+    [RequirePermission("courses.courses.search")]
+    public async Task<IResult> HandleSearchAsync
+        ([Description("Parts of names or keys of the courses to search for separated by space.")] string courses)
+    {
+        var coursesAssignmentResult = await _coursesRepository
+            .SearchCourseAssignments
+            (
+                CancellationToken,
+                courses
+                    .Split(' ', ',', StringSplitOptions.TrimEntries)
+            );
+
+        if (!coursesAssignmentResult.IsDefined(out var coursesAssignments))
+        {
+            await _feedbackService.SendContextualErrorAsync("There was an error, contact administrators.");
+            return coursesAssignmentResult;
+        }
+
+        if (coursesAssignments.Count == 0)
+        {
+            return await _feedbackService.SendContextualInfoAsync("Could not find any courses with the given criteria.");
+        }
+
+        return await _feedbackService.SendContextualSuccessAsync
+            ("Found these courses: \n" + CoursesFormatter.FormatCoursesMessage(coursesAssignments));
     }
 
     private static async Task<IResult> SendFeedback
@@ -158,12 +194,7 @@ public class CoursesCommands : CommandGroup
         {
             var feedbackResult = await feedbackService.SendContextualSuccessAsync
             (
-                $"{successPrefix}: \n" + string.Join
-                (
-                    '\n',
-                    coursesAssignmentResult.SuccessCourses.Select
-                        (x => $"  **<#{x.ChannelId}>** - {x.CourseName} ({x.CourseKey})")
-                ),
+                $"{successPrefix}: \n" + CoursesFormatter.FormatCoursesMessage(coursesAssignmentResult.SuccessCourses),
                 ct: ct
             );
 
@@ -217,8 +248,8 @@ public class CoursesCommands : CommandGroup
     {
         private readonly FeedbackService _feedbackService;
         private readonly ICommandContext _commandContext;
-        private readonly CoursesInfo _coursesInfo;
-        private readonly CoursesChannelAssigner _channelAssigner;
+        private readonly CoursesRepository _coursesRepository;
+        private readonly CoursesChannelUserAssigner _channelUserAssigner;
         private readonly CurrentSemesterCache _currentSemesterCache;
         private readonly IReadableDbContext<ChristofelBaseContext> _baseContext;
 
@@ -227,24 +258,24 @@ public class CoursesCommands : CommandGroup
         /// </summary>
         /// <param name="feedbackService">The feedback service.</param>
         /// <param name="commandContext">The command context.</param>
-        /// <param name="coursesInfo">The courses info.</param>
-        /// <param name="channelAssigner">The courses channel assigner.</param>
+        /// <param name="coursesRepository">The courses info.</param>
+        /// <param name="channelUserAssigner">The courses channel assigner.</param>
         /// <param name="currentSemesterCache">The current semester cache.</param>
         /// <param name="baseContext">The readable christofel base database context.</param>
         public SemesterCommands
         (
             FeedbackService feedbackService,
             ICommandContext commandContext,
-            CoursesInfo coursesInfo,
-            CoursesChannelAssigner channelAssigner,
+            CoursesRepository coursesRepository,
+            CoursesChannelUserAssigner channelUserAssigner,
             CurrentSemesterCache currentSemesterCache,
             IReadableDbContext<ChristofelBaseContext> baseContext
         )
         {
             _feedbackService = feedbackService;
             _commandContext = commandContext;
-            _coursesInfo = coursesInfo;
-            _channelAssigner = channelAssigner;
+            _coursesRepository = coursesRepository;
+            _channelUserAssigner = channelUserAssigner;
             _currentSemesterCache = currentSemesterCache;
             _baseContext = baseContext;
         }
@@ -272,7 +303,7 @@ public class CoursesCommands : CommandGroup
                     (new InvalidOperationError("User not authenticated, but tried to assign semester courses."));
             }
 
-            var coursesAssignmentResultResult = await _channelAssigner.AssignSemesterCourses
+            var coursesAssignmentResultResult = await _channelUserAssigner.AssignSemesterCourses
                 (new LinkUser(dbUser), await GetSemester(semester), CancellationToken);
 
             if (!coursesAssignmentResultResult.IsDefined(out var coursesAssignmentResult))
@@ -314,7 +345,7 @@ public class CoursesCommands : CommandGroup
                     (new InvalidOperationError("User not authenticated, but tried to assign semester courses."));
             }
 
-            var coursesAssignmentResultResult = await _channelAssigner.DeassignSemesterCourses
+            var coursesAssignmentResultResult = await _channelUserAssigner.DeassignSemesterCourses
                 (new LinkUser(dbUser), await GetSemester(semester), CancellationToken);
 
             if (!coursesAssignmentResultResult.IsDefined(out var coursesAssignmentResult))
@@ -356,7 +387,7 @@ public class CoursesCommands : CommandGroup
                     (new InvalidOperationError("User not authenticated, but tried to assign semester courses."));
             }
 
-            var coursesResult = await _coursesInfo.GetSemesterCourses
+            var coursesResult = await _coursesRepository.GetSemesterCourses
                 (new LinkUser(dbUser), await GetSemester(semester), CancellationToken);
             if (!coursesResult.IsDefined(out var courses))
             {

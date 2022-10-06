@@ -1,9 +1,10 @@
 //
-//   CoursesInfo.cs
+//  CoursesRepository.cs
 //
-//   Copyright (c) Christofel authors. All rights reserved.
-//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Linq.Expressions;
 using Christofel.Common.Database;
 using Christofel.Common.User;
 using Christofel.CoursesLib.Database;
@@ -19,17 +20,17 @@ namespace Christofel.CoursesLib.Services;
 /// <summary>
 /// A class for obtaining information about departments and courses.
 /// </summary>
-public class CoursesInfo
+public class CoursesRepository
 {
     private readonly IReadableDbContext<CoursesContext> _coursesContext;
     private readonly IKosStudentsApi _studentsApi;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CoursesInfo"/> class.
+    /// Initializes a new instance of the <see cref="CoursesRepository"/> class.
     /// </summary>
     /// <param name="coursesContext">The courses database context.</param>
     /// <param name="studentsApi">The students api.</param>
-    public CoursesInfo(IReadableDbContext<CoursesContext> coursesContext, IKosStudentsApi studentsApi)
+    public CoursesRepository(IReadableDbContext<CoursesContext> coursesContext, IKosStudentsApi studentsApi)
     {
         _coursesContext = coursesContext;
         _studentsApi = studentsApi;
@@ -38,14 +39,45 @@ public class CoursesInfo
     /// <summary>
     /// Gets a list of all of the departments.
     /// </summary>
+    /// <param name="includeCourses">Whether to include list courses.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>All of the departments or an error.</returns>
-    public async Task<Result<IList<DepartmentAssignment>>> GetDepartments(CancellationToken ct = default)
+    public async Task<Result<IList<DepartmentAssignment>>> GetDepartments
+        (bool includeCourses, CancellationToken ct = default)
     {
         try
         {
-            return await _coursesContext.Set<DepartmentAssignment>()
-                .DistinctBy(x => x.DepartmentKey)
+            var set = _coursesContext.Set<DepartmentAssignment>()
+                .DistinctBy(x => x.DepartmentKey);
+
+            if (includeCourses)
+            {
+                set = set.Include(x => x.Courses);
+            }
+
+            return await set.ToListAsync(ct);
+        }
+        catch (Exception e)
+        {
+            return e;
+        }
+    }
+
+    /// <summary>
+    /// Gets multiple courses by the given keys.
+    /// </summary>
+    /// <param name="ct">The cancellation token to cancel the operation.</param>
+    /// <param name="courseKeys">The keys of courses to find.</param>
+    /// <returns>A course with the given key or an error.</returns>
+    public async Task<Result<List<CourseAssignment>>> GetCourseAssignments
+        (CancellationToken ct = default, params string[] courseKeys)
+    {
+        try
+        {
+            return await _coursesContext.Set<CourseAssignment>()
+                .Include(x => x.Department)
+                .Include(x => x.GroupAssignment)
+                .Where(x => courseKeys.Contains(x.CourseKey))
                 .ToListAsync(ct);
         }
         catch (Exception e)
@@ -55,23 +87,30 @@ public class CoursesInfo
     }
 
     /// <summary>
-    /// Gets a course by the given key.
+    /// Gets multiple courses by the given search keys such as part of name or key.
     /// </summary>
-    /// <param name="courseKey">The key of the course.</param>
+    /// <param name="ct">The cancellation token to cancel the operation.</param>
+    /// <param name="searchKeys">Parts of key or name of the course to search..</param>
     /// <returns>A course with the given key or an error.</returns>
-    public async Task<Result<CourseAssignment>> GetCourseAssignment(string courseKey)
+    public async Task<Result<List<CourseAssignment>>> SearchCourseAssignments
+        (CancellationToken ct = default, params string[] searchKeys)
     {
+        searchKeys = searchKeys.Select(x => x.ToLower()).ToArray();
+
         try
         {
-            var courseAssignment = await _coursesContext.Set<CourseAssignment>()
-                .FirstOrDefaultAsync(x => x.CourseKey == courseKey);
+            var predicates = searchKeys.Select
+            (
+                k => (Expression<Func<CourseAssignment, bool>>)(x
+                    => x.CourseKey.Contains(k) || x.CourseName.Contains(k) || (x.ChannelName != null && x.ChannelName.Contains(k)))
+            );
 
-            if (courseAssignment is null)
-            {
-                return new NotFoundError("Could not find the given course.");
-            }
+            var courseAssignments = await _coursesContext.Set<CourseAssignment>()
+                .Include(x => x.Department)
+                .WhereAny(predicates.ToArray())
+                .ToListAsync(ct);
 
-            return courseAssignment;
+            return courseAssignments;
         }
         catch (Exception e)
         {
@@ -85,7 +124,8 @@ public class CoursesInfo
     /// <param name="departmentKey">The key of the department.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>All of the courses belonging to the department or an error.</returns>
-    public async Task<Result<IList<CourseAssignment>>> GetCoursesByDepartment(string departmentKey, CancellationToken ct = default)
+    public async Task<Result<IList<CourseAssignment>>> GetCoursesByDepartment
+        (string departmentKey, CancellationToken ct = default)
     {
         try
         {
@@ -127,7 +167,8 @@ public class CoursesInfo
     /// <param name="semesterSelector">The semester selector.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>All of the courses the user is enrolled to.</returns>
-    public async Task<Result<IList<CourseAssignment>>> GetSemesterCourses(ICtuUser ctuUser, string semesterSelector, CancellationToken ct = default)
+    public async Task<Result<IList<CourseAssignment>>> GetSemesterCourses
+        (ICtuUser ctuUser, string semesterSelector, CancellationToken ct = default)
     {
         var enrolledCourses = await _studentsApi.GetStudentEnrolledCourses
             (ctuUser.CtuUsername, semesterSelector, limit: 100, token: ct);
