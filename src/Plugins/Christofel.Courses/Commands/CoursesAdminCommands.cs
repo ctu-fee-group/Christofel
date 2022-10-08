@@ -6,13 +6,20 @@
 
 using System.ComponentModel;
 using Christofel.CommandsLib.Permissions;
+using Christofel.Courses.Interactivity;
+using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Services;
+using Christofel.Helpers.Localization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -27,18 +34,46 @@ namespace Christofel.Courses.Commands;
 [Ephemeral]
 public class CoursesAdminCommands : CommandGroup
 {
+    private readonly ICommandContext _commandContext;
+    private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
     private readonly CoursesChannelCreator _channelCreator;
     private readonly FeedbackService _feedbackService;
+    private readonly IDbContextFactory<CoursesContext> _coursesContext;
+    private readonly ILogger<CoursesAdminCommands> _logger;
+    private readonly LocalizationOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesAdminCommands"/> class.
     /// </summary>
+    /// <param name="commandContext">The command context.</param>
+    /// <param name="channelApi">The discord rest channel api.</param>
+    /// <param name="coursesInteractivityFormatter">The courses interactivity responder.</param>
     /// <param name="channelCreator">The courses channel creator.</param>
     /// <param name="feedbackService">The feedback service.</param>
-    public CoursesAdminCommands(CoursesChannelCreator channelCreator, FeedbackService feedbackService)
+    /// <param name="options">The options.</param>
+    /// <param name="coursesContext">The courses context factory.</param>
+    /// <param name="logger">The logger.</param>
+    public CoursesAdminCommands
+    (
+        ICommandContext commandContext,
+        IDiscordRestChannelAPI channelApi,
+        CoursesInteractivityFormatter coursesInteractivityFormatter,
+        CoursesChannelCreator channelCreator,
+        FeedbackService feedbackService,
+        IOptionsSnapshot<LocalizationOptions> options,
+        IDbContextFactory<CoursesContext> coursesContext,
+        ILogger<CoursesAdminCommands> logger
+    )
     {
+        _commandContext = commandContext;
+        _channelApi = channelApi;
+        _coursesInteractivityFormatter = coursesInteractivityFormatter;
         _channelCreator = channelCreator;
         _feedbackService = feedbackService;
+        _coursesContext = coursesContext;
+        _logger = logger;
+        _options = options.Value;
     }
 
     /// <summary>
@@ -62,29 +97,135 @@ public class CoursesAdminCommands : CommandGroup
     }
 
     /// <summary>
+    /// Send the main interactivity message.
+    /// </summary>
+    /// <param name="language">The language of the message.</param>
+    /// <param name="channel">The channel to send the message to.</param>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    [Command("interactivity")]
+    [Description("Send the interactivity main message.")]
+    public async Task<IResult> HandleSendInteractivityAsync
+    (
+        [Description("The language of the main message.")]
+        string language,
+        [Description("The channel to send the message to. (default current channel)")]
+        Snowflake? channel = default
+    )
+    {
+        var channelId = channel ?? _commandContext.ChannelID;
+        var mainMessage = _coursesInteractivityFormatter.FormatMainMessage
+            (string.Empty, language, _options.SupportedLanguages);
+        var messageResult = await _channelApi.CreateMessageAsync
+        (
+            channelId,
+            mainMessage.Content,
+            components: new Optional<IReadOnlyList<IMessageComponent>>(mainMessage.Components),
+            ct: CancellationToken
+        );
+
+        if (!messageResult.IsSuccess)
+        {
+            await _feedbackService.SendContextualErrorAsync
+                ($"Could not send the message. {messageResult.Error.Message}");
+            return messageResult;
+        }
+
+        return await _feedbackService.SendContextualSuccessAsync("The message was sent.");
+    }
+
+    /// <summary>
+    /// Tries to solve inconsistencies in the database, just a temporary command.
+    /// </summary>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    [Command("inconsistencies")]
+    [Obsolete]
+    public async Task<IResult> HandleInconsistenciesAsync()
+    {
+        await _feedbackService.SendContextualInfoAsync("Okay.");
+        await using (var context = await _coursesContext.CreateDbContextAsync())
+        {
+            foreach (var courseAssignment in await context.CourseAssignments.ToListAsync(CancellationToken))
+            {
+                try
+                {
+                    var groupAssignment = await context.CourseGroupAssignments
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.ChannelId == courseAssignment.ChannelId);
+
+                    if (groupAssignment is null)
+                    {
+                        groupAssignment = new CourseGroupAssignment()
+                        {
+                            ChannelId = courseAssignment.ChannelId
+                        };
+
+                        context.Add(groupAssignment);
+                    }
+
+                    if (string.IsNullOrWhiteSpace(courseAssignment.ChannelName))
+                    {
+                        var channelResult = await _channelApi.GetChannelAsync
+                            (courseAssignment.ChannelId, CancellationToken);
+                        if (!channelResult.IsDefined(out var channel))
+                        {
+                            await _feedbackService.SendContextualWarningAsync
+                            (
+                                $"Could not find channel {courseAssignment.ChannelId} for course {courseAssignment.CourseKey}."
+                            );
+                            continue;
+                        }
+
+                        courseAssignment.ChannelName = channel.Name.HasValue ? channel.Name.Value : null;
+                    }
+                }
+                catch (Exception e)
+                {
+                    await _feedbackService.SendContextualErrorAsync
+                        ($"There was an error when processing {courseAssignment.CourseKey}: " + e.Message);
+                    _logger.LogError(e, $"There was an error when processing {courseAssignment.CourseKey}");
+                }
+            }
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                await _feedbackService.SendContextualErrorAsync
+                    ($"There was an error while saving: " + e.Message);
+                _logger.LogError(e, $"There was an error while saving resolved inconsistencies");
+            }
+        }
+
+        await _feedbackService.SendContextualInfoAsync("Done.");
+        return Result.FromSuccess();
+    }
+
+    /// <summary>
     /// A command group for /coursesadmin department subcommands.
     /// </summary>
     [Group("department")]
     public class DepartmentCommands : CommandGroup
     {
-        private readonly DepartmentChannelAssigner _channelAssigner;
+        private readonly CoursesChannelCreator _channelCreator;
         private readonly FeedbackService _feedbackService;
         private readonly IDiscordRestChannelAPI _channelApi;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DepartmentCommands"/> class.
         /// </summary>
-        /// <param name="channelAssigner">The department channel assigner.</param>
+        /// <param name="channelCreator">The department channel assigner.</param>
         /// <param name="feedbackService">The feedback service.</param>
         /// <param name="channelApi">The discord rest channel api.</param>
         public DepartmentCommands
         (
-            DepartmentChannelAssigner channelAssigner,
+            CoursesChannelCreator channelCreator,
             FeedbackService feedbackService,
             IDiscordRestChannelAPI channelApi
         )
         {
-            _channelAssigner = channelAssigner;
+            _channelCreator = channelCreator;
             _feedbackService = feedbackService;
             _channelApi = channelApi;
         }
@@ -112,7 +253,7 @@ public class CoursesAdminCommands : CommandGroup
                 return await _feedbackService.SendContextualErrorAsync("The given category is not a category channel.");
             }
 
-            var assignmentResult = await _channelAssigner.AssignDepartmentCategory
+            var assignmentResult = await _channelCreator.AssignDepartmentCategory
                 (departmentKey, categoryId, CancellationToken);
 
             if (assignmentResult.IsSuccess)
@@ -133,7 +274,7 @@ public class CoursesAdminCommands : CommandGroup
         [Command("deassign")]
         public async Task<IResult> HandleDeassignAsync(string departmentKey)
         {
-            var assignmentResult = await _channelAssigner.DeassignDepartmentCategory
+            var assignmentResult = await _channelCreator.DeassignDepartmentCategory
                 (departmentKey, CancellationToken);
 
             if (assignmentResult.IsSuccess)
@@ -154,20 +295,24 @@ public class CoursesAdminCommands : CommandGroup
     public class LinkCommands : CommandGroup
     {
         private readonly CoursesChannelCreator _coursesChannelCreator;
-        private readonly CoursesInfo _coursesInfo;
+        private readonly CoursesRepository _coursesRepository;
         private readonly FeedbackService _feedbackService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LinkCommands"/> class.
         /// </summary>
         /// <param name="coursesChannelCreator">The courses channel creator.</param>
-        /// <param name="coursesInfo">The courses info.</param>
+        /// <param name="coursesRepository">The courses info.</param>
         /// <param name="feedbackService">The feedback service.</param>
         public LinkCommands
-            (CoursesChannelCreator coursesChannelCreator, CoursesInfo coursesInfo, FeedbackService feedbackService)
+        (
+            CoursesChannelCreator coursesChannelCreator,
+            CoursesRepository coursesRepository,
+            FeedbackService feedbackService
+        )
         {
             _coursesChannelCreator = coursesChannelCreator;
-            _coursesInfo = coursesInfo;
+            _coursesRepository = coursesRepository;
             _feedbackService = feedbackService;
         }
 
@@ -279,7 +424,7 @@ public class CoursesAdminCommands : CommandGroup
         [Command("list")]
         public async Task<IResult> HandleListAsync([DiscordTypeHint(TypeHint.Channel)] Snowflake channelId)
         {
-            var coursesResult = await _coursesInfo.GetCoursesByChannel(channelId);
+            var coursesResult = await _coursesRepository.GetCoursesByChannel(channelId);
 
             if (!coursesResult.IsDefined(out var courses))
             {

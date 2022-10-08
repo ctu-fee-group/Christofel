@@ -4,27 +4,27 @@
 //  Copyright (c) Christofel authors. All rights reserved.
 //  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Globalization;
+using System.Reflection;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.Courses.Commands;
+using Christofel.Courses.Interactivity;
 using Christofel.CoursesLib.Extensions;
+using Christofel.Helpers.Localization;
+using Christofel.LGPLicensed.Interactivity;
 using Christofel.OAuth;
 using Christofel.Plugins.Lifetime;
-using Christofel.Plugins.Runtime;
 using Christofel.Remora.Responders;
 using Kos;
 using Kos.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
-using Remora.Extensions.Options.Immutable;
+using Remora.Discord.Gateway.Extensions;
 
 namespace Christofel.Courses
 {
@@ -63,13 +63,30 @@ namespace Christofel.Courses
         /// <inheritdoc />
         protected override IServiceCollection ConfigureServices
             (IServiceCollection serviceCollection)
-            => serviceCollection
+        {
+            serviceCollection
                 .AddDiscordState(State)
-                .AddChristofelDatabase(State)
+                .AddChristofelDatabase(State);
+
+            serviceCollection
+                .AddResponder<InteractivityResponder>()
+                .AddChristofelCommands();
+
+            serviceCollection
+                .AddCommandTree()
+                .WithCommandGroup<CoursesAdminCommands>()
+                .WithCommandGroup<CoursesCommands>();
+
+            serviceCollection
+                .AddCommandTree(Constants.InteractivityPrefix)
+                .WithCommandGroup<CoursesInteractionsResponder>();
+
+            serviceCollection
+                .AddSingleton<CoursesInteractivityFormatter>();
+
+            return serviceCollection
+                .AddJsonLocalization()
                 .AddSingleton<PluginResponder>()
-                .AddChristofelCommands()
-                .AddCommandGroup<CoursesAdminCommands>()
-                .AddCommandGroup<CoursesCommands>()
                 .AddSingleton<CtuOauthHandler>()
                 .Configure<CtuOauthOptions>("Ctu", State.Configuration.GetSection("Oauth:CtuClient"))
                 .AddSingleton<ClientCredentialsToken>()
@@ -92,8 +109,10 @@ namespace Christofel.Courses
                 )
                 .AddCourses(State.Configuration)
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)
+                .Configure<LocalizationOptions>(State.Configuration.GetSection("Localization"))
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"))
                 .Configure<KosApiOptions>(State.Configuration.GetSection("Apis:Kos"));
+        }
 
         /// <inheritdoc />
         protected override Task InitializeServices

@@ -1,8 +1,8 @@
 //
-//   CoursesChannelAssigner.cs
+//  CoursesChannelUserAssigner.cs
 //
-//   Copyright (c) Christofel authors. All rights reserved.
-//   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//  Copyright (c) Christofel authors. All rights reserved.
+//  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using Christofel.Common.Database;
 using Christofel.Common.User;
@@ -23,25 +23,29 @@ namespace Christofel.CoursesLib.Services;
 /// <summary>
 /// Assigns or deassigns course channels from Discord users.
 /// </summary>
-public class CoursesChannelAssigner
+public class CoursesChannelUserAssigner
 {
+    private readonly CoursesRepository _coursesRepository;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IKosStudentsApi _studentsApi;
     private readonly IReadableDbContext<CoursesContext> _coursesContext;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CoursesChannelAssigner"/> class.
+    /// Initializes a new instance of the <see cref="CoursesChannelUserAssigner"/> class.
     /// </summary>
+    /// <param name="coursesRepository">The courses repository.</param>
     /// <param name="channelApi">The channel rest api.</param>
     /// <param name="studentsApi">The kos students api.</param>
     /// <param name="coursesContext">The courses database context.</param>
-    public CoursesChannelAssigner
+    public CoursesChannelUserAssigner
     (
+        CoursesRepository coursesRepository,
         IDiscordRestChannelAPI channelApi,
         IKosStudentsApi studentsApi,
         IReadableDbContext<CoursesContext> coursesContext
     )
     {
+        _coursesRepository = coursesRepository;
         _channelApi = channelApi;
         _studentsApi = studentsApi;
         _coursesContext = coursesContext;
@@ -81,7 +85,7 @@ public class CoursesChannelAssigner
     /// <param name="courseKeys">The keys of the courses to assign.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
-    public async Task<Result<CoursesAssignmentResult>> DeassignCourses
+    public async Task<CoursesAssignmentResult> DeassignCourses
         (IDiscordUser user, IEnumerable<string> courseKeys, CancellationToken ct = default)
         => await DoCoursesOperationAsync
         (
@@ -157,7 +161,7 @@ public class CoursesChannelAssigner
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
     public async Task<Result<CoursesAssignmentResult>> AssignSemesterCourses(ILinkUser user, string semesterSelector, CancellationToken ct = default)
     {
-        var semesterCoursesResult = await GetSemesterCourses(user, semesterSelector, ct);
+        var semesterCoursesResult = await _coursesRepository.GetSemesterCoursesKeys(user, semesterSelector, ct);
 
         if (!semesterCoursesResult.IsDefined(out var semesterCourses))
         {
@@ -176,7 +180,7 @@ public class CoursesChannelAssigner
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
     public async Task<Result<CoursesAssignmentResult>> DeassignSemesterCourses(ILinkUser user, string semesterSelector, CancellationToken ct = default)
     {
-        var semesterCoursesResult = await GetSemesterCourses(user, semesterSelector, ct);
+        var semesterCoursesResult = await _coursesRepository.GetSemesterCoursesKeys(user, semesterSelector, ct);
 
         if (!semesterCoursesResult.IsDefined(out var semesterCourses))
         {
@@ -184,23 +188,6 @@ public class CoursesChannelAssigner
         }
 
         return await DeassignCourses(user, semesterCourses, ct);
-    }
-
-    private async Task<Result<IEnumerable<string>>> GetSemesterCourses(ILinkUser user, string semesterSelector, CancellationToken ct)
-    {
-        try
-        {
-            var enrolledCourses = await _studentsApi.GetStudentEnrolledCourses
-                (user.CtuUsername, semesterSelector, limit: 100, token: ct);
-            return Result<IEnumerable<string>>.FromSuccess(enrolledCourses
-                .OfType<InternalCourseEnrollment>()
-                .Where(x => x.Course is not null)
-                .Select(x => x.Course!.GetKey()));
-        }
-        catch (Exception e)
-        {
-            return e;
-        }
     }
 
     private async Task<Result<CourseAssignment?>> GetCourseAssignment(string courseKey)
@@ -245,7 +232,11 @@ public class CoursesChannelAssigner
                 continue;
             }
 
-            var operationResult = await operation(course, ct);
+            Result operationResult = Result.FromSuccess();
+            if (successful.All(x => x.ChannelId != course.ChannelId))
+            {
+                operationResult = await operation(course, ct);
+            }
 
             if (operationResult.IsSuccess)
             {

@@ -65,7 +65,7 @@ namespace Christofel.CommandsLib
             else
             {
                 var updateSlash = await _slashService.UpdateSlashCommandsAsync
-                    (new Snowflake(_options.GuildId, Constants.DiscordEpoch), token);
+                    (DiscordSnowflake.New(_options.GuildId), token);
                 if (!updateSlash.IsSuccess)
                 {
                     _logger.LogResultError(updateSlash, "Failed to update slash commands");
@@ -89,7 +89,7 @@ namespace Christofel.CommandsLib
             if (checkSlashSupport.IsSuccess)
             {
                 var updateSlash =
-                    await _slashService.DeleteSlashCommandsAsync(new Snowflake(_options.GuildId, Constants.DiscordEpoch), token);
+                    await _slashService.DeleteSlashCommandsAsync(DiscordSnowflake.New(_options.GuildId), token);
                 if (!updateSlash.IsSuccess)
                 {
                     _logger.LogResultError(updateSlash, "Failed to delete slash commands.");
