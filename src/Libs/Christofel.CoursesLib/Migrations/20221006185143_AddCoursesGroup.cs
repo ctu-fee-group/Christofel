@@ -64,20 +64,20 @@ namespace Christofel.CoursesLib.Migrations
                 column: "DepartmentKey");
 
             migrationBuilder.CreateTable(
-                name: "CourseGroupAssignment",
+                name: "CourseGroupAssignments",
                 schema: "Courses",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     ChannelId = table.Column<long>(type: "bigint", nullable: false),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CourseGroupAssignment", x => x.Id);
-                    table.UniqueConstraint("AK_CourseGroupAssignment_ChannelId", x => x.ChannelId);
+                    table.PrimaryKey("PK_CourseGroupAssignments", x => x.Id);
+                    table.UniqueConstraint("AK_CourseGroupAssignments_ChannelId", x => x.ChannelId);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -108,21 +108,11 @@ namespace Christofel.CoursesLib.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_CourseGroupAssignment_ChannelId",
+                name: "IX_CourseGroupAssignments_ChannelId",
                 schema: "Courses",
-                table: "CourseGroupAssignment",
+                table: "CourseGroupAssignments",
                 column: "ChannelId",
                 unique: true);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CourseAssignments_CourseGroupAssignment_ChannelId",
-                schema: "Courses",
-                table: "CourseAssignments",
-                column: "ChannelId",
-                principalSchema: "Courses",
-                principalTable: "CourseGroupAssignment",
-                principalColumn: "ChannelId",
-                onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_CourseAssignments_DepartmentAssignment_DepartmentKey",
@@ -139,17 +129,12 @@ namespace Christofel.CoursesLib.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_CourseAssignments_CourseGroupAssignment_ChannelId",
-                schema: "Courses",
-                table: "CourseAssignments");
-
-            migrationBuilder.DropForeignKey(
                 name: "FK_CourseAssignments_DepartmentAssignment_DepartmentKey",
                 schema: "Courses",
                 table: "CourseAssignments");
 
             migrationBuilder.DropTable(
-                name: "CourseGroupAssignment",
+                name: "CourseGroupAssignments",
                 schema: "Courses");
 
             migrationBuilder.DropIndex(

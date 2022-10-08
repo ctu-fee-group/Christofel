@@ -15,21 +15,10 @@ namespace Christofel.CoursesLib.Migrations
         /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_CourseAssignments_CourseGroupAssignment_ChannelId",
-                schema: "Courses",
-                table: "CourseAssignments");
-
             migrationBuilder.DropUniqueConstraint(
                 name: "AK_CourseGroupAssignment_ChannelId",
                 schema: "Courses",
-                table: "CourseGroupAssignment");
-
-            migrationBuilder.RenameTable(
-                name: "CourseGroupAssignment",
-                schema: "Courses",
-                newName: "CourseGroupAssignments",
-                newSchema: "Courses");
+                table: "CourseGroupAssignments");
 
             migrationBuilder.RenameIndex(
                 name: "IX_CourseGroupAssignment_ChannelId",
@@ -68,31 +57,20 @@ namespace Christofel.CoursesLib.Migrations
         /// <inheritdoc/>
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_CourseAssignments_CourseGroupAssignments_ChannelId",
-                schema: "Courses",
-                table: "CourseAssignments");
-
             migrationBuilder.DropUniqueConstraint(
                 name: "AK_CourseGroupAssignments_ChannelId",
                 schema: "Courses",
                 table: "CourseGroupAssignments");
 
-            migrationBuilder.RenameTable(
-                name: "CourseGroupAssignments",
-                schema: "Courses",
-                newName: "CourseGroupAssignment",
-                newSchema: "Courses");
-
             migrationBuilder.RenameIndex(
                 name: "IX_CourseGroupAssignments_ChannelId",
                 schema: "Courses",
-                table: "CourseGroupAssignment",
+                table: "CourseGroupAssignments",
                 newName: "IX_CourseGroupAssignment_ChannelId");
 
             migrationBuilder.UpdateData(
                 schema: "Courses",
-                table: "CourseGroupAssignment",
+                table: "CourseGroupAssignments",
                 keyColumn: "Name",
                 keyValue: null,
                 column: "Name",
@@ -101,7 +79,7 @@ namespace Christofel.CoursesLib.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
                 schema: "Courses",
-                table: "CourseGroupAssignment",
+                table: "CourseGroupAssignments",
                 type: "longtext",
                 nullable: false,
                 oldClrType: typeof(string),
@@ -113,18 +91,8 @@ namespace Christofel.CoursesLib.Migrations
             migrationBuilder.AddUniqueConstraint(
                 name: "AK_CourseGroupAssignment_ChannelId",
                 schema: "Courses",
-                table: "CourseGroupAssignment",
+                table: "CourseGroupAssignments",
                 column: "ChannelId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CourseAssignments_CourseGroupAssignment_ChannelId",
-                schema: "Courses",
-                table: "CourseAssignments",
-                column: "ChannelId",
-                principalSchema: "Courses",
-                principalTable: "CourseGroupAssignment",
-                principalColumn: "ChannelId",
-                onDelete: ReferentialAction.Restrict);
         }
     }
 }
