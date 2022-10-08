@@ -7,8 +7,11 @@
 using System.ComponentModel;
 using Christofel.CommandsLib.Permissions;
 using Christofel.Courses.Interactivity;
+using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Services;
 using Christofel.Helpers.Localization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -36,6 +39,8 @@ public class CoursesAdminCommands : CommandGroup
     private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
     private readonly CoursesChannelCreator _channelCreator;
     private readonly FeedbackService _feedbackService;
+    private readonly IDbContextFactory<CoursesContext> _coursesContext;
+    private readonly ILogger<CoursesAdminCommands> _logger;
     private readonly LocalizeOptions _options;
 
     /// <summary>
@@ -47,6 +52,8 @@ public class CoursesAdminCommands : CommandGroup
     /// <param name="channelCreator">The courses channel creator.</param>
     /// <param name="feedbackService">The feedback service.</param>
     /// <param name="options">The options.</param>
+    /// <param name="coursesContext">The courses context factory.</param>
+    /// <param name="logger">The logger.</param>
     public CoursesAdminCommands
     (
         ICommandContext commandContext,
@@ -54,7 +61,9 @@ public class CoursesAdminCommands : CommandGroup
         CoursesInteractivityFormatter coursesInteractivityFormatter,
         CoursesChannelCreator channelCreator,
         FeedbackService feedbackService,
-        IOptionsSnapshot<LocalizeOptions> options
+        IOptionsSnapshot<LocalizeOptions> options,
+        IDbContextFactory<CoursesContext> coursesContext,
+        ILogger<CoursesAdminCommands> logger
     )
     {
         _commandContext = commandContext;
@@ -62,6 +71,8 @@ public class CoursesAdminCommands : CommandGroup
         _coursesInteractivityFormatter = coursesInteractivityFormatter;
         _channelCreator = channelCreator;
         _feedbackService = feedbackService;
+        _coursesContext = coursesContext;
+        _logger = logger;
         _options = options.Value;
     }
 
@@ -121,6 +132,77 @@ public class CoursesAdminCommands : CommandGroup
 
         return await _feedbackService.SendContextualSuccessAsync("The message was sent.");
     }
+
+    /// <summary>
+    /// Tries to solve inconsistencies in the database, just a temporary command.
+    /// </summary>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    [Command("inconsistencies")]
+    [Obsolete]
+    public async Task<IResult> HandleInconsistenciesAsync()
+    {
+        await _feedbackService.SendContextualInfoAsync("Okay.");
+        await using (var context = await _coursesContext.CreateDbContextAsync())
+        {
+            foreach (var courseAssignment in await context.CourseAssignments.ToListAsync(CancellationToken))
+            {
+                try
+                {
+                    var groupAssignment = await context.CourseGroupAssignments
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(x => x.ChannelId == courseAssignment.ChannelId);
+
+                    if (groupAssignment is null)
+                    {
+                        groupAssignment = new CourseGroupAssignment()
+                        {
+                            ChannelId = courseAssignment.ChannelId
+                        };
+
+                        context.Add(groupAssignment);
+                    }
+
+                    if (string.IsNullOrWhiteSpace(courseAssignment.ChannelName))
+                    {
+                        var channelResult = await _channelApi.GetChannelAsync
+                            (courseAssignment.ChannelId, CancellationToken);
+                        if (!channelResult.IsDefined(out var channel))
+                        {
+                            await _feedbackService.SendContextualWarningAsync
+                            (
+                                $"Could not find channel {courseAssignment.ChannelId} for course {courseAssignment.CourseKey}."
+                            );
+                            continue;
+                        }
+
+                        courseAssignment.ChannelName = channel.Name.HasValue ? channel.Name.Value : null;
+                    }
+                }
+                catch (Exception e)
+                {
+                    await _feedbackService.SendContextualErrorAsync
+                        ($"There was an error when processing {courseAssignment.CourseKey}: " + e.Message);
+                    _logger.LogError(e, $"There was an error when processing {courseAssignment.CourseKey}");
+                }
+            }
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                await _feedbackService.SendContextualErrorAsync
+                    ($"There was an error while saving: " + e.Message);
+                _logger.LogError(e, $"There was an error while saving resolved inconsistencies");
+            }
+        }
+
+        await _feedbackService.SendContextualInfoAsync("Done.");
+        return Result.FromSuccess();
+    }
+
+    /// <summary>
     /// A command group for /coursesadmin department subcommands.
     /// </summary>
     [Group("department")]
