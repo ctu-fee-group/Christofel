@@ -1,0 +1,186 @@
+[
+  {
+    "Name": "CHOOSE_COURSE_Join",
+    "Value": "To join any course, click on the button below."
+  },
+  {
+    "Name": "CHOOSE_COURSE_Leave",
+    "Value": "To leave any course, click on the button below."
+  },
+  {
+    "Name": "CHOOSE_COURSE_Toggle",
+    "Value": "To toggle any course, click on the button below."
+  },
+  {
+    "Name": "CHOOSE_DEPARTMENT_Join",
+    "Value": "Choose a department that the course you are looking for is under."
+  },
+  {
+    "Name": "CHOOSE_DEPARTMENT_Leave",
+    "Value": "Choose a de\rpartment that the course you are looking for is under."
+  },
+  {
+    "Name": "CHOOSE_DEPARTMENT_Toggle",
+    "Value": "Choose a department that the course you are looking for is under."
+  },
+  {
+    "Name": "CHOOSE_SEMESTER_Join",
+    "Value": "Choose a semester to join enrolled courses from."
+  },
+  {
+    "Name": "CHOOSE_SEMESTER_Leave",
+    "Value": "Choose a semester to leave enrolled courses from."
+  },
+  {
+    "Name": "CHOOSE_SEMESTER_Toggle",
+    "Value": "Choose a semester to toggle enrolled courses from."
+  },
+  {
+    "Name": "COURSES_MISSING",
+    "Value": "These courses were found for the given criteria, but are not on the server: {0}. If you want these to be added, contact administrators."
+  },
+  {
+    "Name": "COURSES_NOT_FOUND",
+    "Value": "Could not find any course for the given criteria."
+  },
+  {
+    "Name": "COURSES_SUCCESSFULLY_Join_PREFIX",
+    "Value": "Successfully assigned you to these courses"
+  },
+  {
+    "Name": "COURSES_SUCCESSFULLY_Leave_PREFIX",
+    "Value": "Successfully deassigned you from these courses"
+  },
+  {
+    "Name": "COURSES_SUCCESSFULLY_Toggle_PREFIX",
+    "Value": "Successfully toggled these courses"
+  },
+  {
+    "Name": "COURSE_BY_CHANNEL_NOT_FOUND",
+    "Value": "Could not find any course for the given channel."
+  },
+  {
+    "Name": "COURSE_BY_DEPARTMENT_JOIN_BUTTON",
+    "Value": "Join course by department"
+  },
+  {
+    "Name": "COURSE_BY_DEPARTMENT_LEAVE_BUTTON",
+    "Value": "Leave course by department"
+  },
+  {
+    "Name": "COURSE_BY_KEYS_JOIN_BUTTON",
+    "Value": "Join course by code"
+  },
+  {
+    "Name": "COURSE_BY_KEYS_LEAVE_BUTTON",
+    "Value": "Leave course by code"
+  },
+  {
+    "Name": "COURSE_BY_SEMESTER_CHOOSE",
+    "Value": "Found these enrolled courses in the chosen semester."
+  },
+  {
+    "Name": "COURSE_BY_SEMESTER_JOIN_BUTTON",
+    "Value": "Join enrolled courses by semester"
+  },
+  {
+    "Name": "COURSE_BY_SEMESTER_LEAVE_BUTTON",
+    "Value": "Leave enrolled courses by semester"
+  },
+  {
+    "Name": "COURSE_BY_SEMESTER_NOT_FOUND",
+    "Value": "You do not have any enrolled courses in the chosen semester."
+  },
+  {
+    "Name": "COURSE_MODAL_TEXTINPUT_Toggle",
+    "Value": "Course codes<"
+  },
+  {
+    "Name": "COURSE_MODAL_TEXTINPUT_Leave",
+    "Value": "Course codes<"
+  },
+  {
+    "Name": "COURSE_MODAL_TEXTINPUT_Join",
+    "Value": "Course codes"
+  },
+  {
+    "Name": "COURSE_MODAL_PLACEHOLDER_Toggle",
+    "Value": "Course codes separated by space"
+  },
+  {
+    "Name": "COURSE_MODAL_PLACEHOLDER_Leave",
+    "Value": "Course codes separated by space"
+  },
+  {
+    "Name": "COURSE_MODAL_PLACEHOLDER_Join",
+    "Value": "Course codes separated by space"
+  },
+  {
+    "Name": "COURSE_MODAL_TITLE_Join",
+    "Value": "Join courses by codes"
+  },
+  {
+    "Name": "COURSE_MODAL_TITLE_Leave",
+    "Value": "Leave courses by codes"
+  },
+  {
+    "Name": "COURSE_MODAL_TITLE_Toggle",
+    "Value": "Toggle courses by codes"
+  },
+  {
+    "Name": "DEPARTMENTS_COURSES",
+    "Value": "Found these courses for the chosen department."
+  },
+  {
+    "Name": "ERROR",
+    "Value": ""
+  },
+  {
+    "Name": "NOT_AUTHENTICATED",
+    "Value": "You are not authenticated. This feature can be used only by authenticated users."
+  },
+  {
+    "Name": "SEARCH_COURSES_BUTTON",
+    "Value": "Search courses"
+  },
+  {
+    "Name": "SEARCH_COURSES_BY_SEMESTER_BUTTON",
+    "Value": "Search for enrolled courses"
+  },
+  {
+    "Name": "SEARCH_COURSE_SUCCESS",
+    "Value": "Found these courses in the given criteria."
+  },
+  {
+    "Name": "SEARCH_MODAL_PLACEHOLDER",
+    "Value": "Search criteria separated by space"
+  },
+  {
+    "Name": "SEARCH_MODAL_TEXTINPUT",
+    "Value": "Course codes, names"
+  },
+  {
+    "Name": "SEARCH_MODAL_TITLE",
+    "Value": "Search courses"
+  },
+  {
+    "Name": "SEMESTER_CURRENT",
+    "Value": "Current semester"
+  },
+  {
+    "Name": "SEMESTER_NEXT",
+    "Value": "Next semester"
+  },
+  {
+    "Name": "SEMESTER_PREVIOUS",
+    "Value": "Previous semester"
+  },
+  {
+    "Name": "SHOW_LANGUAGE",
+    "Value": "Show in english"
+  },
+  {
+    "Name": "MAIN_MESSAGE_CONTENT",
+    "Value": ":information_source: (BETA) **Interactive course channels assignment**\nEnglish version is currently only partially supported. Courses and departments will be in the Czech language. If you are unsure how to find course you are looking for, contact others in &lt;#1020326829623607356&gt;.\n\nHello, here you can interactively choose what course channels you want to see here. What buttons do should be obvious from the labels, but below you can find the full instructions. This is currently a beta, if you find an error, report it to &lt;#753695738671792211&gt;.\n\nButtons **join/leave course by code** will open a modal with a text input. You can put **whole codes** of courses into the input separated by space. When you confirm the modal, the bot will assign you to/remove you from these courses. If you know only a part of a code or a name, try the button search courses.\n\nButtons **join/leave course by department** will send you a message to choose a department (unfortunately the names will be in Czech). When you choose a department, the bot will send you a message with courses that belong to the given department. You can click on the course you want to be added to/removed from to.\n\nButtons **join/leave course by semester** will send you a message to select a semester (previous, current, next). After you choose a semester, the bot will add/remove the courses you are enrolled in for the given semester.\n\nButton **search courses** will open a modal with a text input. You can put parts of codes or parts of names (_some may work in english_) to search for.\n\nButton **search courses by semester** will send you a message to select a semester. After you select a semester, the bot will send you a message to choose what courses you want to add or remove.\n\nGood luck!"
+  }
+]
