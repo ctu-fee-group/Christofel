@@ -4,6 +4,8 @@
 //  Copyright (c) Christofel authors. All rights reserved.
 //  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Globalization;
+using System.Reflection;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
@@ -19,7 +21,6 @@ using Christofel.Plugins.Lifetime;
 using Christofel.Remora.Responders;
 using Kos;
 using Kos.Extensions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
@@ -84,7 +85,7 @@ namespace Christofel.Courses
                 .AddSingleton<CoursesInteractivityFormatter>();
 
             return serviceCollection
-                .AddLocalization(o => o.ResourcesPath = "Resources")
+                .AddJsonLocalization()
                 .AddSingleton<PluginResponder>()
                 .AddSingleton<CtuOauthHandler>()
                 .Configure<CtuOauthOptions>("Ctu", State.Configuration.GetSection("Oauth:CtuClient"))
@@ -108,7 +109,7 @@ namespace Christofel.Courses
                 )
                 .AddCourses(State.Configuration)
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)
-                .Configure<LocalizeOptions>(State.Configuration.GetSection("Localization"))
+                .Configure<LocalizationOptions>(State.Configuration.GetSection("Localization"))
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"))
                 .Configure<KosApiOptions>(State.Configuration.GetSection("Apis:Kos"));
         }

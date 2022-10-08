@@ -7,12 +7,11 @@
 using Christofel.Courses.Data;
 using Christofel.Courses.Extensions;
 using Christofel.CoursesLib.Database;
+using Christofel.Helpers.Localization;
 using Christofel.LGPLicensed.Interactivity;
-using Kos.Data;
-using Microsoft.Extensions.Localization;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
-using Remora.Discord.Commands.Feedback.Messages;
+using InflectorExtensions = Humanizer.InflectorExtensions;
 
 namespace Christofel.Courses.Interactivity;
 
@@ -109,7 +108,9 @@ public class CoursesInteractivityFormatter
                 (null, new ButtonComponent
                 (
                     ButtonComponentStyle.Primary,
-                    department.DepartmentName.Truncate(MaxButtonLabelLength),
+                    InflectorExtensions
+                        .Titleize(department.DepartmentName)
+                        .Truncate(MaxButtonLabelLength),
                     CustomID:
                     CustomIDHelpers.CreateButtonID
                     (
@@ -323,7 +324,7 @@ public class CoursesInteractivityFormatter
                         ),
                         new ButtonComponent
                         (
-                            ButtonComponentStyle.Danger,
+                            ButtonComponentStyle.Secondary,
                             _localizer.Translate("SEARCH_COURSES_BY_SEMESTER_BUTTON", language),
                             CustomID: CustomIDHelpers.CreateButtonID
                             (

@@ -41,7 +41,7 @@ public class CoursesAdminCommands : CommandGroup
     private readonly FeedbackService _feedbackService;
     private readonly IDbContextFactory<CoursesContext> _coursesContext;
     private readonly ILogger<CoursesAdminCommands> _logger;
-    private readonly LocalizeOptions _options;
+    private readonly LocalizationOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesAdminCommands"/> class.
@@ -61,7 +61,7 @@ public class CoursesAdminCommands : CommandGroup
         CoursesInteractivityFormatter coursesInteractivityFormatter,
         CoursesChannelCreator channelCreator,
         FeedbackService feedbackService,
-        IOptionsSnapshot<LocalizeOptions> options,
+        IOptionsSnapshot<LocalizationOptions> options,
         IDbContextFactory<CoursesContext> coursesContext,
         ILogger<CoursesAdminCommands> logger
     )

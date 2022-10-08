@@ -13,8 +13,8 @@ using Christofel.Courses.Data;
 using Christofel.Courses.Extensions;
 using Christofel.CoursesLib.Data;
 using Christofel.CoursesLib.Services;
+using Christofel.Helpers.Localization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 using OneOf;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -198,7 +198,10 @@ public class CoursesInteractionsResponder : CommandGroup
         if (coursesByChannel.Count == 0)
         {
             await _feedbackService.SendContextualWarningAsync
-                (_localizer.Translate("COURSE_BY_CHANNEL_NOT_FOUND", language, channelId), ct: CancellationToken);
+            (
+                _localizer.Translate("COURSE_BY_CHANNEL_NOT_FOUND", language, channelId.ToString()),
+                ct: CancellationToken
+            );
             return (Result)new InvalidOperationError($"Could not find any courses for channel <#{channelId}>");
         }
 
