@@ -149,6 +149,15 @@ public class CoursesInteractionsResponder : CommandGroup
             return courseAssignmentsResult;
         }
 
+        if (courseAssignments.Count == 0)
+        {
+            return await _feedbackService.SendContextualInfoAsync
+            (
+                _localizer.Translate("COURSES_MISSING", language, string.Join(", ", courses)),
+                ct: CancellationToken
+            );
+        }
+
         var formattedMessages = _coursesInteractivityFormatter.FormatCoursesMessage
             (language, _localizer.Translate("COURSE_BY_SEMESTER_CHOOSE", language), courseAssignments, commandType);
         return await _feedbackService.SendContextualMessageDataAsync(formattedMessages, CancellationToken);
@@ -388,7 +397,7 @@ public class CoursesInteractionsResponder : CommandGroup
                     (
                         new InteractionModalCallbackData
                         (
-                            CustomIDHelpers.CreateButtonID("course", "coursesint", language, commandType.ToString()),
+                            CustomIDHelpers.CreateButtonID("courses", "coursesint", language, commandType.ToString()),
                             _localizer.Translate($"COURSE_MODAL_TITLE_{commandType}", language),
                             new[]
                             {
