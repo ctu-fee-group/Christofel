@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <data name="ERROR" xml:space="preserve">
+        <value>There was an error, contact administrators.</value>
+    </data>
+    <data name="NOT_AUTHENTICATED" xml:space="preserve">
+        <value>You are not authenticated. This feature can be used only by authenticated users.</value>
+    </data>
+    <data name="COURSE_BY_CHANNEL_NOT_FOUND" xml:space="preserve">
+        <value>Could not find any course for the given channel.</value>
+    </data>
+    <data name="COURSES_NOT_FOUND" xml:space="preserve">
+        <value>Could not find any course for the given criteria.</value>
+    </data>
+    <data name="COURSES_MISSING" xml:space="preserve">
+        <value>These courses were found for the given criteria, but are not on the server: {0}. If you want these to be added, contact administrators.</value>
+    </data>
+    <data name="CHOOSE_DEPARTMENT_Join" xml:space="preserve">
+        <value>Choose a department that the course you are looking for is under.</value>
+    </data>
+    <data name="CHOOSE_DEPARTMENT_Leave" xml:space="preserve">
+        <value>Choose a department that the course you are looking for is under.</value>
+    </data>
+    <data name="CHOOSE_DEPARTMENT_Toggle" xml:space="preserve">
+        <value>Choose a department that the course you are looking for is under.</value>
+    </data>
+    <data name="CHOOSE_SEMESTER_Join" xml:space="preserve">
+        <value>Choose a semester to join enrolled courses from.</value>
+    </data>
+    <data name="CHOOSE_SEMESTER_Leave" xml:space="preserve">
+        <value>Choose a semester to leave enrolled courses from.</value>
+    </data>
+    <data name="CHOOSE_SEMESTER_Toggle" xml:space="preserve">
+        <value>Choose a semester to toggle enrolled courses from.</value>
+    </data>
+    <data name="SEMESTER_PREVIOUS" xml:space="preserve">
+        <value>Previous semester</value>
+    </data>
+    <data name="SEMESTER_CURRENT" xml:space="preserve">
+        <value>Current semester</value>
+    </data>
+    <data name="SEMESTER_NEXT" xml:space="preserve">
+        <value>Next semester</value>
+    </data>
+    <data name="SHOW_LANGUAGE" xml:space="preserve">
+        <value>Show in english</value>
+    </data>
+    <data name="MAIN_MESSAGE_CONTENT" xml:space="preserve">
+        <value>:information_source: (BETA) **Interactive course channels assignment**
+English version is currently only partially supported. Courses and departments will be in the Czech language. If you are unsure how to find course you are looking for, contact others in &lt;#1020326829623607356&gt;.
+
+Hello, here you can interactively choose what course channels you want to see here. What buttons do should be obvious from the labels, but below you can find the full instructions. This is currently a beta, if you find an error, report it to &lt;#753695738671792211&gt;.
+
+Buttons **join/leave course by code** will open a modal with a text input. You can put **whole codes** of courses into the input separated by space. When you confirm the modal, the bot will assign you to/remove you from these courses. If you know only a part of a code or a name, try the button search courses.
+
+Buttons **join/leave course by department** will send you a message to choose a department (unfortunately the names will be in Czech). When you choose a department, the bot will send you a message with courses that belong to the given department. You can click on the course you want to be added to/removed from to.
+
+Buttons **join/leave course by semester** will send you a message to select a semester (previous, current, next). After you choose a semester, the bot will add/remove the courses you are enrolled in for the given semester.
+
+Button **search courses** will open a modal with a text input. You can put parts of codes or parts of names (_some may work in english_) to search for.
+
+Button **search courses by semester** will send you a message to select a semester. After you select a semester, the bot will send you a message to choose what courses you want to add or remove.
+
+Good luck!</value>
+    </data>
+    <data name="COURSE_BY_KEYS_JOIN_BUTTON" xml:space="preserve">
+        <value>Join course by code</value>
+    </data>
+    <data name="COURSE_BY_DEPARTMENT_JOIN_BUTTON" xml:space="preserve">
+        <value>Join course by department</value>
+    </data>
+    <data name="COURSE_BY_SEMESTER_JOIN_BUTTON" xml:space="preserve">
+        <value>Join enrolled courses by semester</value>
+    </data>
+    <data name="COURSE_BY_KEYS_LEAVE_BUTTON" xml:space="preserve">
+        <value>Leave course by code</value>
+    </data>
+    <data name="COURSE_BY_DEPARTMENT_LEAVE_BUTTON" xml:space="preserve">
+        <value>Leave course by department</value>
+    </data>
+    <data name="COURSE_BY_SEMESTER_LEAVE_BUTTON" xml:space="preserve">
+        <value>Leave enrolled courses by semester</value>
+    </data>
+    <data name="SEARCH_COURSES_BY_SEMESTER_BUTTON" xml:space="preserve">
+        <value>Search for enrolled courses</value>
+    </data>
+    <data name="COURSE_BY_SEMESTER_NOT_FOUND" xml:space="preserve">
+        <value>You do not have any enrolled courses in the chosen semester.</value>
+    </data>
+    <data name="COURSE_BY_SEMESTER_CHOOSE" xml:space="preserve">
+        <value>Found these enrolled courses in the chosen semester.</value>
+    </data>
+    <data name="DEPARTMENTS_COURSES" xml:space="preserve">
+        <value>Found these courses for the chosen department.</value>
+    </data>
+    <data name="COURSE_MODAL_TITLE_Join" xml:space="preserve">
+        <value>Join courses by codes</value>
+    </data>
+    <data name="COURSE_MODAL_TITLE_Leave" xml:space="preserve">
+        <value>Leave courses by codes</value>
+    </data>
+    <data name="COURSE_MODAL_TITLE_Toggle" xml:space="preserve">
+        <value>Toggle courses by codes</value>
+    </data>
+    <data name="COURSE_MODAL_TEXTINPUT_Join" xml:space="preserve">
+        <value>Course codes</value>
+    </data>
+    <data name="COURSE_MODAL_TEXTINPUT_Leave" xml:space="preserve">
+        <value>Course codes</value>
+    </data>
+    <data name="COURSE_MODAL_TEXTINPUT_Toggle" xml:space="preserve">
+        <value>Course codes</value>
+    </data>
+    <data name="COURSE_MODAL_PLACEHOLDER_Join" xml:space="preserve">
+        <value>Course codes separated by space</value>
+    </data>
+    <data name="COURSE_MODAL_PLACEHOLDER_Leave" xml:space="preserve">
+        <value>Course codes separated by space</value>
+    </data>
+    <data name="COURSE_MODAL_PLACEHOLDER_Toggle" xml:space="preserve">
+        <value>Course codes separated by space</value>
+    </data>
+    <data name="SEARCH_MODAL_TITLE" xml:space="preserve">
+        <value>Search courses</value>
+    </data>
+    <data name="SEARCH_MODAL_TEXTINPUT" xml:space="preserve">
+        <value>Course codes, names</value>
+    </data>
+    <data name="SEARCH_MODAL_PLACEHOLDER" xml:space="preserve">
+        <value>Search criteria separated by space</value>
+    </data>
+    <data name="SEARCH_COURSES_BUTTON" xml:space="preserve">
+        <value>Search courses</value>
+    </data>
+    <data name="COURSES_SUCCESSFULLY_Join_PREFIX" xml:space="preserve">
+        <value>Successfully assigned you to these courses</value>
+    </data>
+    <data name="COURSES_SUCCESSFULLY_Leave_PREFIX" xml:space="preserve">
+        <value>Successfully deassigned you from these courses</value>
+    </data>
+    <data name="COURSES_SUCCESSFULLY_Toggle_PREFIX" xml:space="preserve">
+        <value>Successfully toggled these courses</value>
+    </data>
+    <data name="CHOOSE_COURSE_Join" xml:space="preserve">
+        <value>To join any course, click on the button below.</value>
+    </data>
+    <data name="CHOOSE_COURSE_Leave" xml:space="preserve">
+        <value>To leave any course, click on the button below.</value>
+    </data>
+    <data name="CHOOSE_COURSE_Toggle" xml:space="preserve">
+        <value>To toggle any course, click on the button below.</value>
+    </data>
+    <data name="SEARCH_COURSE_SUCCESS" xml:space="preserve">
+        <value>Found these courses in the given criteria.</value>
+    </data>
+</root>

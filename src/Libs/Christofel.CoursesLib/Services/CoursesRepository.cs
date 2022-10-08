@@ -42,13 +42,12 @@ public class CoursesRepository
     /// <param name="includeCourses">Whether to include list courses.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>All of the departments or an error.</returns>
-    public async Task<Result<IList<DepartmentAssignment>>> GetDepartments
+    public async Task<Result<IReadOnlyList<DepartmentAssignment>>> GetDepartments
         (bool includeCourses, CancellationToken ct = default)
     {
         try
         {
-            var set = _coursesContext.Set<DepartmentAssignment>()
-                .DistinctBy(x => x.DepartmentKey);
+            var set = _coursesContext.Set<DepartmentAssignment>();
 
             if (includeCourses)
             {
@@ -69,7 +68,7 @@ public class CoursesRepository
     /// <param name="ct">The cancellation token to cancel the operation.</param>
     /// <param name="courseKeys">The keys of courses to find.</param>
     /// <returns>A course with the given key or an error.</returns>
-    public async Task<Result<List<CourseAssignment>>> GetCourseAssignments
+    public async Task<Result<IReadOnlyList<CourseAssignment>>> GetCourseAssignments
         (CancellationToken ct = default, params string[] courseKeys)
     {
         try
@@ -92,7 +91,7 @@ public class CoursesRepository
     /// <param name="ct">The cancellation token to cancel the operation.</param>
     /// <param name="searchKeys">Parts of key or name of the course to search..</param>
     /// <returns>A course with the given key or an error.</returns>
-    public async Task<Result<List<CourseAssignment>>> SearchCourseAssignments
+    public async Task<Result<IReadOnlyList<CourseAssignment>>> SearchCourseAssignments
         (CancellationToken ct = default, params string[] searchKeys)
     {
         searchKeys = searchKeys.Select(x => x.ToLower()).ToArray();
@@ -124,7 +123,7 @@ public class CoursesRepository
     /// <param name="departmentKey">The key of the department.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>All of the courses belonging to the department or an error.</returns>
-    public async Task<Result<IList<CourseAssignment>>> GetCoursesByDepartment
+    public async Task<Result<IReadOnlyList<CourseAssignment>>> GetCoursesByDepartment
         (string departmentKey, CancellationToken ct = default)
     {
         try
@@ -145,7 +144,7 @@ public class CoursesRepository
     /// <param name="channelId">The course channel.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>All of the courses linked to the given channel or an error.</returns>
-    public async Task<Result<IList<CourseAssignment>>> GetCoursesByChannel
+    public async Task<Result<IReadOnlyList<CourseAssignment>>> GetCoursesByChannel
         (Snowflake channelId, CancellationToken ct = default)
     {
         try
@@ -167,7 +166,7 @@ public class CoursesRepository
     /// <param name="semesterSelector">The semester selector.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>All of the courses the user is enrolled to.</returns>
-    public async Task<Result<IList<CourseAssignment>>> GetSemesterCourses
+    public async Task<Result<IReadOnlyList<CourseAssignment>>> GetSemesterCourses
         (ICtuUser ctuUser, string semesterSelector, CancellationToken ct = default)
     {
         var enrolledCourses = await _studentsApi.GetStudentEnrolledCourses
@@ -181,5 +180,25 @@ public class CoursesRepository
         return await _coursesContext.Set<CourseAssignment>()
             .Where(x => courseKeys.Contains(x.CourseKey))
             .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// Gets a list of all course keys the user is enrolled in for the given semester.
+    /// </summary>
+    /// <param name="ctuUser">The ctu user.</param>
+    /// <param name="semesterSelector">The semester selector.</param>
+    /// <param name="ct">The cancellation token used for cancelling the operation.</param>
+    /// <returns>All of the courses the user is enrolled to.</returns>
+    public async Task<Result<IReadOnlyList<string>>> GetSemesterCoursesKeys
+        (ICtuUser ctuUser, string semesterSelector, CancellationToken ct = default)
+    {
+        var enrolledCourses = await _studentsApi.GetStudentEnrolledCourses
+            (ctuUser.CtuUsername, semesterSelector, limit: 100, token: ct);
+
+        return enrolledCourses
+            .OfType<InternalCourseEnrollment>()
+            .Where(x => x.Course is not null)
+            .Select(x => x.Course!.GetKey())
+            .ToArray();
     }
 }

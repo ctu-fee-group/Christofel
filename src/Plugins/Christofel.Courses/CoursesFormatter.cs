@@ -25,7 +25,7 @@ public static class CoursesFormatter
             '\n',
             courses
                 .GroupBy(x => x.ChannelId)
-                .Select(FormatCourse)
+                .Select(x => FormatCourse(x).Formatted)
         );
 
     /// <summary>
@@ -33,7 +33,8 @@ public static class CoursesFormatter
     /// </summary>
     /// <param name="courses">The courses to format.</param>
     /// <returns>The dictionary with the formatted courses grouped by channel id.</returns>
-    public static IDictionary<Snowflake, string> FormatCourses(IEnumerable<CourseAssignment> courses)
+    public static IDictionary<Snowflake, (string Name, string Formatted)> FormatCourses
+        (IEnumerable<CourseAssignment> courses)
         => courses
             .GroupBy(x => x.ChannelId)
             .ToDictionary(x => x.Key, FormatCourse);
@@ -43,7 +44,8 @@ public static class CoursesFormatter
     /// </summary>
     /// <param name="courseAssignmentGrouping">The courses grouped by the channel id snowflake.</param>
     /// <returns>The formatted course string.</returns>
-    public static string FormatCourse(IGrouping<Snowflake, CourseAssignment> courseAssignmentGrouping)
+    public static (string Name, string Formatted) FormatCourse
+        (IGrouping<Snowflake, CourseAssignment> courseAssignmentGrouping)
     {
         var keys = string.Join(", ", courseAssignmentGrouping.Take(5).Select(x => x.CourseKey));
         if (courseAssignmentGrouping.Count() > 5)
@@ -54,7 +56,7 @@ public static class CoursesFormatter
         var first = courseAssignmentGrouping.First();
         var courseName = first.GroupAssignment?.Name ?? first.CourseName;
 
-        return $"  **<#{courseAssignmentGrouping.Key}>** - {courseName} ({keys})";
+        return (courseName, $"  **<#{courseAssignmentGrouping.Key}>** - {courseName} ({keys})");
     }
 
     /// <summary>
@@ -62,9 +64,9 @@ public static class CoursesFormatter
     /// </summary>
     /// <param name="courseAssignment">The course to format.</param>
     /// <returns>The formatted course string.</returns>
-    public static string FormatCourse(CourseAssignment courseAssignment)
+    public static (string Name, string Formatted) FormatCourse(CourseAssignment courseAssignment)
     {
         var courseName = courseAssignment.GroupAssignment?.Name ?? courseAssignment.CourseName;
-        return $"  **<#{courseAssignment.ChannelId}>** - {courseName} ({courseAssignment.CourseKey})";
+        return (courseName, $"  **<#{courseAssignment.ChannelId}>** - {courseName} ({courseAssignment.CourseKey})");
     }
 }

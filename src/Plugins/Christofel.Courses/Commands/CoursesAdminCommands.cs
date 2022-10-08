@@ -6,13 +6,17 @@
 
 using System.ComponentModel;
 using Christofel.CommandsLib.Permissions;
+using Christofel.Courses.Interactivity;
 using Christofel.CoursesLib.Services;
+using Christofel.Helpers.Localization;
+using Microsoft.Extensions.Options;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
+using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -27,18 +31,38 @@ namespace Christofel.Courses.Commands;
 [Ephemeral]
 public class CoursesAdminCommands : CommandGroup
 {
+    private readonly ICommandContext _commandContext;
+    private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
     private readonly CoursesChannelCreator _channelCreator;
     private readonly FeedbackService _feedbackService;
+    private readonly LocalizeOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesAdminCommands"/> class.
     /// </summary>
+    /// <param name="commandContext">The command context.</param>
+    /// <param name="channelApi">The discord rest channel api.</param>
+    /// <param name="coursesInteractivityFormatter">The courses interactivity responder.</param>
     /// <param name="channelCreator">The courses channel creator.</param>
     /// <param name="feedbackService">The feedback service.</param>
-    public CoursesAdminCommands(CoursesChannelCreator channelCreator, FeedbackService feedbackService)
+    /// <param name="options">The options.</param>
+    public CoursesAdminCommands
+    (
+        ICommandContext commandContext,
+        IDiscordRestChannelAPI channelApi,
+        CoursesInteractivityFormatter coursesInteractivityFormatter,
+        CoursesChannelCreator channelCreator,
+        FeedbackService feedbackService,
+        IOptionsSnapshot<LocalizeOptions> options
+    )
     {
+        _commandContext = commandContext;
+        _channelApi = channelApi;
+        _coursesInteractivityFormatter = coursesInteractivityFormatter;
         _channelCreator = channelCreator;
         _feedbackService = feedbackService;
+        _options = options.Value;
     }
 
     /// <summary>
@@ -62,6 +86,41 @@ public class CoursesAdminCommands : CommandGroup
     }
 
     /// <summary>
+    /// Send the main interactivity message.
+    /// </summary>
+    /// <param name="language">The language of the message.</param>
+    /// <param name="channel">The channel to send the message to.</param>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    [Command("interactivity")]
+    [Description("Send the interactivity main message.")]
+    public async Task<IResult> HandleSendInteractivityAsync
+    (
+        [Description("The language of the main message.")]
+        string language,
+        [Description("The channel to send the message to. (default current channel)")]
+        Snowflake? channel = default
+    )
+    {
+        var channelId = channel ?? _commandContext.ChannelID;
+        var mainMessage = _coursesInteractivityFormatter.FormatMainMessage
+            (string.Empty, language, _options.SupportedLanguages);
+        var messageResult = await _channelApi.CreateMessageAsync
+        (
+            channelId,
+            mainMessage.Content,
+            components: new Optional<IReadOnlyList<IMessageComponent>>(mainMessage.Components),
+            ct: CancellationToken
+        );
+
+        if (!messageResult.IsSuccess)
+        {
+            await _feedbackService.SendContextualErrorAsync
+                ($"Could not send the message. {messageResult.Error.Message}");
+            return messageResult;
+        }
+
+        return await _feedbackService.SendContextualSuccessAsync("The message was sent.");
+    }
     /// A command group for /coursesadmin department subcommands.
     /// </summary>
     [Group("department")]
@@ -164,7 +223,11 @@ public class CoursesAdminCommands : CommandGroup
         /// <param name="coursesRepository">The courses info.</param>
         /// <param name="feedbackService">The feedback service.</param>
         public LinkCommands
-            (CoursesChannelCreator coursesChannelCreator, CoursesRepository coursesRepository, FeedbackService feedbackService)
+        (
+            CoursesChannelCreator coursesChannelCreator,
+            CoursesRepository coursesRepository,
+            FeedbackService feedbackService
+        )
         {
             _coursesChannelCreator = coursesChannelCreator;
             _coursesRepository = coursesRepository;

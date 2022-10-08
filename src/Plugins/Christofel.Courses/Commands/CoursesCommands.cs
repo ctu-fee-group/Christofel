@@ -5,18 +5,24 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel;
+using System.Globalization;
 using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.Permissions;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
 using Christofel.Courses.Data;
+using Christofel.Courses.Extensions;
+using Christofel.Courses.Interactivity;
 using Christofel.CoursesLib.Data;
 using Christofel.CoursesLib.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
@@ -34,7 +40,9 @@ public class CoursesCommands : CommandGroup
     private readonly ICommandContext _commandContext;
     private readonly CoursesChannelUserAssigner _channelUserAssigner;
     private readonly CoursesRepository _coursesRepository;
+    private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
     private readonly IReadableDbContext<ChristofelBaseContext> _baseContext;
+    private readonly IStringLocalizer<CoursesPlugin> _localizer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesCommands"/> class.
@@ -43,21 +51,27 @@ public class CoursesCommands : CommandGroup
     /// <param name="commandContext">The command context.</param>
     /// <param name="channelUserAssigner">The courses channel assigner.</param>
     /// <param name="coursesRepository">The courses respository.</param>
+    /// <param name="coursesInteractivityFormatter">The courses interactivity formatter.</param>
     /// <param name="baseContext">The readable christofel base database context.</param>
+    /// <param name="localizer">The string localizer.</param>
     public CoursesCommands
     (
         FeedbackService feedbackService,
         ICommandContext commandContext,
         CoursesChannelUserAssigner channelUserAssigner,
         CoursesRepository coursesRepository,
-        IReadableDbContext<ChristofelBaseContext> baseContext
+        CoursesInteractivityFormatter coursesInteractivityFormatter,
+        IReadableDbContext<ChristofelBaseContext> baseContext,
+        IStringLocalizer<CoursesPlugin> localizer
     )
     {
         _feedbackService = feedbackService;
         _commandContext = commandContext;
         _channelUserAssigner = channelUserAssigner;
         _coursesRepository = coursesRepository;
+        _coursesInteractivityFormatter = coursesInteractivityFormatter;
         _baseContext = baseContext;
+        _localizer = localizer;
     }
 
     /// <summary>
@@ -77,6 +91,8 @@ public class CoursesCommands : CommandGroup
 
         return await SendFeedback
         (
+            _localizer,
+            "en_US",
             coursesAssignmentResult,
             _feedbackService,
             "Successfully assigned these courses to you",
@@ -97,15 +113,13 @@ public class CoursesCommands : CommandGroup
     {
         var discordUser = new DiscordUser(_commandContext.User.ID);
 
-        var coursesAssignmentResultResult = await _channelUserAssigner.DeassignCourses
+        var coursesAssignmentResult = await _channelUserAssigner.DeassignCourses
             (discordUser, courses.Split(' '), CancellationToken);
-        if (!coursesAssignmentResultResult.IsDefined(out var coursesAssignmentResult))
-        {
-            return coursesAssignmentResultResult;
-        }
 
         return await SendFeedback
         (
+            _localizer,
+            "en_US",
             coursesAssignmentResult,
             _feedbackService,
             "Successfully deassigned you from these courses",
@@ -131,6 +145,8 @@ public class CoursesCommands : CommandGroup
 
         return await SendFeedback
         (
+            _localizer,
+            "en_US",
             coursesAssignmentResult,
             _feedbackService,
             "Successfully toggled these courses",
@@ -166,15 +182,38 @@ public class CoursesCommands : CommandGroup
 
         if (coursesAssignments.Count == 0)
         {
-            return await _feedbackService.SendContextualInfoAsync("Could not find any courses with the given criteria.");
+            return await _feedbackService.SendContextualInfoAsync
+                ("Could not find any courses with the given criteria.");
         }
 
-        return await _feedbackService.SendContextualSuccessAsync
-            ("Found these courses: \n" + CoursesFormatter.FormatCoursesMessage(coursesAssignments));
+        return await _feedbackService.SendContextualMessageDataAsync
+        (
+            _coursesInteractivityFormatter.FormatCoursesMessage
+            (
+                CultureInfo.CurrentCulture.Name,
+                "Found these courses.",
+                coursesAssignments,
+                InteractivityCommandType.Toggle
+            ),
+            CancellationToken
+        );
     }
 
-    private static async Task<IResult> SendFeedback
+    /// <summary>
+    /// Send feedback messages to the user containing information about assigned courses.
+    /// </summary>
+    /// <param name="localizer">The string localizer.</param>
+    /// <param name="language">The language of the messages.</param>
+    /// <param name="coursesAssignmentResult">The courses results.</param>
+    /// <param name="feedbackService">The feedback service.</param>
+    /// <param name="successPrefix">The success prefix.</param>
+    /// <param name="featureMissing">Whether to send missing message.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    public static async Task<IResult> SendFeedback
     (
+        IStringLocalizer<CoursesPlugin> localizer,
+        string language,
         CoursesAssignmentResult coursesAssignmentResult,
         FeedbackService feedbackService,
         string successPrefix,
@@ -187,7 +226,8 @@ public class CoursesCommands : CommandGroup
         if (coursesAssignmentResult.MissingCourses.Count == 0 && coursesAssignmentResult.ErrorfulResults.Count == 0
             && coursesAssignmentResult.SuccessCourses.Count == 0)
         {
-            await feedbackService.SendContextualWarningAsync("Could not find any courses in the given period.", ct: ct);
+            await feedbackService.SendContextualWarningAsync
+                (localizer.Translate("COURSES_NOT_FOUND", language), ct: ct);
         }
 
         if (coursesAssignmentResult.SuccessCourses.Count > 0)
@@ -195,6 +235,7 @@ public class CoursesCommands : CommandGroup
             var feedbackResult = await feedbackService.SendContextualSuccessAsync
             (
                 $"{successPrefix}: \n" + CoursesFormatter.FormatCoursesMessage(coursesAssignmentResult.SuccessCourses),
+                options: new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral),
                 ct: ct
             );
 
@@ -208,9 +249,14 @@ public class CoursesCommands : CommandGroup
         {
             var feedbackResult = await feedbackService.SendContextualWarningAsync
             (
-                "Could not find these courses, there aren't channels for them: " + string.Join
-                    (", ", coursesAssignmentResult.MissingCourses)
-                + ". If you want these courses to be added, contact administrators.",
+                localizer.Translate
+                (
+                    "COURSES_MISSING",
+                    language,
+                    string.Join
+                        (", ", coursesAssignmentResult.MissingCourses)
+                ),
+                options: new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral),
                 ct: ct
             );
 
@@ -223,7 +269,11 @@ public class CoursesCommands : CommandGroup
         if (coursesAssignmentResult.ErrorfulResults.Count > 0)
         {
             var feedbackResult = await feedbackService.SendContextualErrorAsync
-                ("There were some errors, contact administrators.", ct: ct);
+            (
+                localizer.Translate("ERROR", language),
+                options: new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral),
+                ct: ct
+            );
 
             if (!feedbackResult.IsSuccess)
             {
@@ -251,7 +301,9 @@ public class CoursesCommands : CommandGroup
         private readonly CoursesRepository _coursesRepository;
         private readonly CoursesChannelUserAssigner _channelUserAssigner;
         private readonly CurrentSemesterCache _currentSemesterCache;
+        private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
         private readonly IReadableDbContext<ChristofelBaseContext> _baseContext;
+        private readonly IStringLocalizer<CoursesPlugin> _localizer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SemesterCommands"/> class.
@@ -261,7 +313,9 @@ public class CoursesCommands : CommandGroup
         /// <param name="coursesRepository">The courses info.</param>
         /// <param name="channelUserAssigner">The courses channel assigner.</param>
         /// <param name="currentSemesterCache">The current semester cache.</param>
+        /// <param name="coursesInteractivityFormatter">The courses interactivity formatter.</param>
         /// <param name="baseContext">The readable christofel base database context.</param>
+        /// <param name="localizer">The string localizer.</param>
         public SemesterCommands
         (
             FeedbackService feedbackService,
@@ -269,7 +323,9 @@ public class CoursesCommands : CommandGroup
             CoursesRepository coursesRepository,
             CoursesChannelUserAssigner channelUserAssigner,
             CurrentSemesterCache currentSemesterCache,
-            IReadableDbContext<ChristofelBaseContext> baseContext
+            CoursesInteractivityFormatter coursesInteractivityFormatter,
+            IReadableDbContext<ChristofelBaseContext> baseContext,
+            IStringLocalizer<CoursesPlugin> localizer
         )
         {
             _feedbackService = feedbackService;
@@ -277,7 +333,9 @@ public class CoursesCommands : CommandGroup
             _coursesRepository = coursesRepository;
             _channelUserAssigner = channelUserAssigner;
             _currentSemesterCache = currentSemesterCache;
+            _coursesInteractivityFormatter = coursesInteractivityFormatter;
             _baseContext = baseContext;
+            _localizer = localizer;
         }
 
         /// <summary>
@@ -314,6 +372,8 @@ public class CoursesCommands : CommandGroup
 
             return await SendFeedback
             (
+                _localizer,
+                "en_US",
                 coursesAssignmentResult,
                 _feedbackService,
                 "Successfully assigned these courses to you",
@@ -356,6 +416,8 @@ public class CoursesCommands : CommandGroup
 
             return await SendFeedback
             (
+                _localizer,
+                "en_US",
                 coursesAssignmentResult,
                 _feedbackService,
                 "Successfully deassigned you from these courses",
@@ -401,13 +463,16 @@ public class CoursesCommands : CommandGroup
                     ("Could not find any courses you are enrolled in for the given semester.");
             }
 
-            return await _feedbackService.SendContextualSuccessAsync
+            return await _feedbackService.SendContextualMessageDataAsync
             (
-                "These are the courses you are enrolled in and are available on the server:\n" + string.Join
+                _coursesInteractivityFormatter.FormatCoursesMessage
                 (
-                    '\n',
-                    courses.Select(x => $"  **<#{x.ChannelId}>** - {x.CourseName} ({x.CourseKey})")
-                )
+                    CultureInfo.CurrentCulture.Name,
+                    "Found these courses you are enrolled in and are added on the server.",
+                    courses,
+                    InteractivityCommandType.Toggle
+                ),
+                CancellationToken
             );
         }
 

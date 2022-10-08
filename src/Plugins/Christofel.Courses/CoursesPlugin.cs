@@ -7,15 +7,19 @@
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
+using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
-using Christofel.CommandsLib.Interactivity;
 using Christofel.Courses.Commands;
+using Christofel.Courses.Interactivity;
 using Christofel.CoursesLib.Extensions;
+using Christofel.Helpers.Localization;
+using Christofel.LGPLicensed.Interactivity;
 using Christofel.OAuth;
 using Christofel.Plugins.Lifetime;
 using Christofel.Remora.Responders;
 using Kos;
 using Kos.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
@@ -72,11 +76,15 @@ namespace Christofel.Courses
                 .WithCommandGroup<CoursesAdminCommands>()
                 .WithCommandGroup<CoursesCommands>();
 
-            /*serviceCollection
+            serviceCollection
                 .AddCommandTree(Constants.InteractivityPrefix)
-                .WithCommandGroup<>();*/
+                .WithCommandGroup<CoursesInteractionsResponder>();
+
+            serviceCollection
+                .AddSingleton<CoursesInteractivityFormatter>();
 
             return serviceCollection
+                .AddLocalization(o => o.ResourcesPath = "Resources")
                 .AddSingleton<PluginResponder>()
                 .AddSingleton<CtuOauthHandler>()
                 .Configure<CtuOauthOptions>("Ctu", State.Configuration.GetSection("Oauth:CtuClient"))
@@ -100,6 +108,7 @@ namespace Christofel.Courses
                 )
                 .AddCourses(State.Configuration)
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)
+                .Configure<LocalizeOptions>(State.Configuration.GetSection("Localization"))
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"))
                 .Configure<KosApiOptions>(State.Configuration.GetSection("Apis:Kos"));
         }
