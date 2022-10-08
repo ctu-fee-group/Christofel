@@ -144,22 +144,28 @@ public class CoursesAdminCommands : CommandGroup
         await _feedbackService.SendContextualInfoAsync("Okay.");
         await using (var context = await _coursesContext.CreateDbContextAsync())
         {
+            var groupAssignments = new HashSet<ulong>();
+
             foreach (var courseAssignment in await context.CourseAssignments.ToListAsync(CancellationToken))
             {
                 try
                 {
-                    var groupAssignment = await context.CourseGroupAssignments
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(x => x.ChannelId == courseAssignment.ChannelId);
-
-                    if (groupAssignment is null)
+                    if (!groupAssignments.Contains(courseAssignment.ChannelId.Value))
                     {
-                        groupAssignment = new CourseGroupAssignment()
-                        {
-                            ChannelId = courseAssignment.ChannelId
-                        };
+                        var groupAssignment = await context.CourseGroupAssignments
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(x => x.ChannelId == courseAssignment.ChannelId);
 
-                        context.Add(groupAssignment);
+                        if (groupAssignment is null)
+                        {
+                            groupAssignment = new CourseGroupAssignment()
+                            {
+                                ChannelId = courseAssignment.ChannelId
+                            };
+
+                            context.Add(groupAssignment);
+                        }
+                        groupAssignments.Add(groupAssignment.ChannelId.Value);
                     }
 
                     if (string.IsNullOrWhiteSpace(courseAssignment.ChannelName))
