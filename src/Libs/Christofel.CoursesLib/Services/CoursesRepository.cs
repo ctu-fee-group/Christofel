@@ -106,6 +106,7 @@ public class CoursesRepository
 
             var courseAssignments = await _coursesContext.Set<CourseAssignment>()
                 .Include(x => x.Department)
+                .Include(x => x.GroupAssignment)
                 .WhereAny(predicates.ToArray())
                 .ToListAsync(ct);
 
@@ -129,6 +130,7 @@ public class CoursesRepository
         try
         {
             return await _coursesContext.Set<CourseAssignment>()
+                .Include(x => x.GroupAssignment)
                 .Where(x => x.DepartmentKey == departmentKey)
                 .ToListAsync(ct);
         }
@@ -150,6 +152,7 @@ public class CoursesRepository
         try
         {
             return await _coursesContext.Set<CourseAssignment>()
+                .Include(x => x.GroupAssignment)
                 .Where(x => x.ChannelId == channelId)
                 .ToListAsync(ct);
         }

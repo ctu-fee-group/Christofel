@@ -195,6 +195,7 @@ public class CoursesChannelUserAssigner
         try
         {
             return await _coursesContext.Set<CourseAssignment>()
+                .Include(x => x.GroupAssignment)
                 .FirstOrDefaultAsync(x => x.CourseKey == courseKey);
         }
         catch (Exception e)
