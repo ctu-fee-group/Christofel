@@ -37,7 +37,7 @@
   },
   {
     "Name": "COURSES_MISSING",
-    "Value": "Našel jsem předměty, které vyhovují kritériúm, ale nejsou na dostupné serveru: {0}. Pokud chceš, aby byly předměty přidány, kontaktuj administrátory."
+    "Value": "Našel jsem předměty, které vyhovují kritériům, ale nejsou na dostupné serveru: {0}. Pokud chceš, aby byly předměty přidány, kontaktuj administrátory."
   },
   {
     "Name": "COURSES_NOT_FOUND",
