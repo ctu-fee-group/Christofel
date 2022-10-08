@@ -54,7 +54,7 @@ public class JsonResourceManager
 
         for (int i = 0; i < parameters.Length; i++)
         {
-            rawTranslation = rawTranslation.Replace($"{i}", parameters[i]);
+            rawTranslation = rawTranslation.Replace("{" + i + "}", parameters[i]);
         }
 
         return rawTranslation;
@@ -80,7 +80,7 @@ public class JsonResourceManager
 
         foreach (var parameter in parameters)
         {
-            rawTranslation = rawTranslation.Replace($"{parameter.Key}", parameter.Value);
+            rawTranslation = rawTranslation.Replace("{" + parameter.Key + "}", parameter.Value);
         }
 
         return rawTranslation;
