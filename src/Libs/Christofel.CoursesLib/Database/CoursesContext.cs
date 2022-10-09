@@ -43,6 +43,11 @@ public class CoursesContext : ChristofelContext, IReadableDbContext<CoursesConte
     /// </summary>
     public DbSet<CourseGroupAssignment> CourseGroupAssignments => Set<CourseGroupAssignment>();
 
+    /// <summary>
+    /// Gets course user link set.
+    /// </summary>
+    public DbSet<CourseUser> CourseUsers => Set<CourseUser>();
+
     /// <inheritdoc/>
     IQueryable<TEntity> IReadableDbContext.Set<TEntity>()
         where TEntity : class
@@ -64,6 +69,13 @@ public class CoursesContext : ChristofelContext, IReadableDbContext<CoursesConte
             .HasPrincipalKey(x => x.ChannelId)
             .HasForeignKey(x => x.ChannelId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CourseUser>()
+            .HasOne(x => x.Course)
+            .WithMany()
+            .HasPrincipalKey(x => x.CourseKey)
+            .HasForeignKey(x => x.CourseKey)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<CourseAssignment>()
             .HasIndex(x => x.CourseKey)
