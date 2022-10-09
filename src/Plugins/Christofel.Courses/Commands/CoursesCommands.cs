@@ -95,7 +95,6 @@ public class CoursesCommands : CommandGroup
             "en_US",
             coursesAssignmentResult,
             _feedbackService,
-            "Successfully assigned these courses to you",
             true,
             CancellationToken
         );
@@ -122,7 +121,6 @@ public class CoursesCommands : CommandGroup
             "en_US",
             coursesAssignmentResult,
             _feedbackService,
-            "Successfully deassigned you from these courses",
             false,
             CancellationToken
         );
@@ -149,7 +147,6 @@ public class CoursesCommands : CommandGroup
             "en_US",
             coursesAssignmentResult,
             _feedbackService,
-            "Successfully toggled these courses",
             false,
             CancellationToken
         );
@@ -186,14 +183,21 @@ public class CoursesCommands : CommandGroup
                 ("Could not find any courses with the given criteria.");
         }
 
+        var joinedCoursesResult = await _coursesRepository.JoinWithUserData
+            (coursesAssignments, _commandContext.User.ID, CancellationToken);
+
+        if (!joinedCoursesResult.IsDefined(out var joinedCourses))
+        {
+            return joinedCoursesResult;
+        }
+
         return await _feedbackService.SendContextualMessageDataAsync
         (
             _coursesInteractivityFormatter.FormatCoursesMessage
             (
                 CultureInfo.CurrentCulture.Name,
                 "Found these courses.",
-                coursesAssignments,
-                InteractivityCommandType.Toggle
+                joinedCourses
             ),
             CancellationToken
         );
@@ -206,7 +210,6 @@ public class CoursesCommands : CommandGroup
     /// <param name="language">The language of the messages.</param>
     /// <param name="coursesAssignmentResult">The courses results.</param>
     /// <param name="feedbackService">The feedback service.</param>
-    /// <param name="successPrefix">The success prefix.</param>
     /// <param name="featureMissing">Whether to send missing message.</param>
     /// <param name="ct">The cancellation token.</param>
     /// <returns>A result that may or may not have succeeded.</returns>
@@ -216,7 +219,6 @@ public class CoursesCommands : CommandGroup
         string language,
         CoursesAssignmentResult coursesAssignmentResult,
         FeedbackService feedbackService,
-        string successPrefix,
         bool featureMissing,
         CancellationToken ct
     )
@@ -224,17 +226,35 @@ public class CoursesCommands : CommandGroup
         var errors = coursesAssignmentResult.ErrorfulResults.Values.ToList();
 
         if (coursesAssignmentResult.MissingCourses.Count == 0 && coursesAssignmentResult.ErrorfulResults.Count == 0
-            && coursesAssignmentResult.SuccessCourses.Count == 0)
+            && coursesAssignmentResult.AssignedCourses.Count == 0
+            && coursesAssignmentResult.DeassignedCourses.Count == 0)
         {
             await feedbackService.SendContextualWarningAsync
                 (localizer.Translate("COURSES_NOT_FOUND", language), ct: ct);
         }
 
-        if (coursesAssignmentResult.SuccessCourses.Count > 0)
+        if (coursesAssignmentResult.AssignedCourses.Count > 0)
         {
             var feedbackResult = await feedbackService.SendContextualSuccessAsync
             (
-                $"{successPrefix}: \n" + CoursesFormatter.FormatCoursesMessage(coursesAssignmentResult.SuccessCourses),
+                $"{localizer.Translate($"COURSES_SUCCESSFULLY_ASSIGNED", language)}: \n"
+                + CoursesFormatter.FormatCoursesMessage(coursesAssignmentResult.AssignedCourses),
+                options: new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral),
+                ct: ct
+            );
+
+            if (!feedbackResult.IsSuccess)
+            {
+                errors.Add(Result.FromError(feedbackResult));
+            }
+        }
+
+        if (coursesAssignmentResult.DeassignedCourses.Count > 0)
+        {
+            var feedbackResult = await feedbackService.SendContextualSuccessAsync
+            (
+                $"{localizer.Translate($"COURSES_SUCCESSFULLY_DEASSIGNED", language)}: \n"
+                + CoursesFormatter.FormatCoursesMessage(coursesAssignmentResult.DeassignedCourses),
                 options: new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral),
                 ct: ct
             );
@@ -376,7 +396,6 @@ public class CoursesCommands : CommandGroup
                 "en_US",
                 coursesAssignmentResult,
                 _feedbackService,
-                "Successfully assigned these courses to you",
                 true,
                 CancellationToken
             );
@@ -420,7 +439,6 @@ public class CoursesCommands : CommandGroup
                 "en_US",
                 coursesAssignmentResult,
                 _feedbackService,
-                "Successfully deassigned you from these courses",
                 true,
                 CancellationToken
             );
@@ -449,18 +467,26 @@ public class CoursesCommands : CommandGroup
                     (new InvalidOperationError("User not authenticated, but tried to assign semester courses."));
             }
 
-            var coursesResult = await _coursesRepository.GetSemesterCourses
+            var courseAssignmentsResult = await _coursesRepository.GetSemesterCourses
                 (new LinkUser(dbUser), await GetSemester(semester), CancellationToken);
-            if (!coursesResult.IsDefined(out var courses))
+            if (!courseAssignmentsResult.IsDefined(out var courseAssignments))
             {
                 await _feedbackService.SendContextualErrorAsync("There was an error, contact administrators.");
-                return coursesResult;
+                return courseAssignmentsResult;
             }
 
-            if (courses.Count == 0)
+            if (courseAssignments.Count == 0)
             {
                 return await _feedbackService.SendContextualInfoAsync
                     ("Could not find any courses you are enrolled in for the given semester.");
+            }
+
+            var joinedCoursesResult = await _coursesRepository.JoinWithUserData
+                (courseAssignments, _commandContext.User.ID, CancellationToken);
+
+            if (!joinedCoursesResult.IsDefined(out var joinedCourses))
+            {
+                return joinedCoursesResult;
             }
 
             return await _feedbackService.SendContextualMessageDataAsync
@@ -469,8 +495,7 @@ public class CoursesCommands : CommandGroup
                 (
                     CultureInfo.CurrentCulture.Name,
                     "Found these courses you are enrolled in and are added on the server.",
-                    courses,
-                    InteractivityCommandType.Toggle
+                    joinedCourses
                 ),
                 CancellationToken
             );
