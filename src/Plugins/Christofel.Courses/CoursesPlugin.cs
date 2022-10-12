@@ -89,9 +89,10 @@ namespace Christofel.Courses
             serviceCollection
                 .AddScoped<CourseMessageInteractivity>()
                 .AddScoped<InteractivityCultureProvider>()
-                .AddScoped<ICultureProvider, InteractivityCultureProvider>(p => p.GetRequiredService<InteractivityCultureProvider>())
-                .AddSingleton(InMemoryDataService<Snowflake, CoursesAssignMessage>.Instance)
-                .AddSingleton<CoursesInteractivityFormatter>();
+                .AddScoped<CoursesInteractivityFormatter>()
+                .AddScoped<ICultureProvider, InteractivityCultureProvider>
+                    (p => p.GetRequiredService<InteractivityCultureProvider>())
+                .AddSingleton(InMemoryDataService<Snowflake, CoursesAssignMessage>.Instance);
 
             return serviceCollection
                 .AddJsonLocalization()

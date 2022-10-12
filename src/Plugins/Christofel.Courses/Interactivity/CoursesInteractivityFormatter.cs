@@ -221,7 +221,7 @@ public class CoursesInteractivityFormatter
                 new ButtonComponent
                 (
                     ButtonComponentStyle.Secondary,
-                    _localizer.Translate("SHOW_LANGUAGE"),
+                    _localizer.Delocalized.Translate("SHOW_LANGUAGE", supportedLanguage),
                     CustomID: CustomIDHelpers.CreateButtonID("translate", "coursesint main", supportedLanguage)
                 )
             );

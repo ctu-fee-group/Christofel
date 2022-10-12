@@ -28,6 +28,11 @@ public class LocalizedStringLocalizer
     }
 
     /// <summary>
+    /// Gets the delocalized localizer.
+    /// </summary>
+    public IStringLocalizer Delocalized => _localizer;
+
+    /// <summary>
     /// Gets the culture of this provider.
     /// </summary>
     public string Culture => _cultureProvider.CurrentCulture;
