@@ -4,14 +4,12 @@
 //  Copyright (c) Christofel authors. All rights reserved.
 //  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Globalization;
 using Christofel.BaseLib.Extensions;
+using Christofel.CommandsLib.Attributes;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
-using Christofel.Courses.Commands;
 using Christofel.Courses.Data;
 using Christofel.Courses.Extensions;
-using Christofel.CoursesLib.Data;
 using Christofel.CoursesLib.Services;
 using Christofel.Helpers.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +28,7 @@ using Remora.Rest.Core;
 using Remora.Results;
 using CustomIDHelpers = Christofel.LGPLicensed.Interactivity.CustomIDHelpers;
 
-namespace Christofel.Courses.Interactivity;
+namespace Christofel.Courses.Interactivity.Commands;
 
 /// <summary>
 /// Handles courses interactivity commands.
@@ -39,36 +37,45 @@ namespace Christofel.Courses.Interactivity;
 [Ephemeral]
 public class CoursesInteractionsResponder : CommandGroup
 {
-    private readonly ICommandContext _commandContext;
+    private readonly InteractionContext _commandContext;
     private readonly FeedbackService _feedbackService;
     private readonly CoursesRepository _coursesRepository;
     private readonly CoursesChannelUserAssigner _channelUserAssigner;
     private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
-    private readonly IStringLocalizer<CoursesPlugin> _localizer;
+    private readonly CourseMessageInteractivity _courseMessageInteractivity;
+    private readonly LocalizedStringLocalizer<CoursesPlugin> _localizer;
     private readonly ChristofelBaseContext _baseContext;
     private readonly CurrentSemesterCache _currentSemesterCache;
+    private readonly InteractivityCultureProvider _cultureProvider;
+    private readonly FeedbackData _feedbackData;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesInteractionsResponder"/> class.
     /// </summary>
     /// <param name="commandContext">The command context.</param>
+    /// <param name="interactionApi">The interaction api.</param>
     /// <param name="feedbackService">The feedback service.</param>
     /// <param name="coursesRepository">The courses repository.</param>
     /// <param name="channelUserAssigner">The courses channel user assigner.</param>
     /// <param name="coursesInteractivityFormatter">The courses interactivity formatter.</param>
+    /// <param name="courseMessageInteractivity">The course message interactivity.</param>
     /// <param name="localizer">The localizer.</param>
     /// <param name="baseContext">The christofel base context.</param>
     /// <param name="currentSemesterCache">The current semester cache.</param>
+    /// <param name="cultureProvider">The culture provider.</param>
     public CoursesInteractionsResponder
     (
-        ICommandContext commandContext,
+        InteractionContext commandContext,
+        IDiscordRestInteractionAPI interactionApi,
         FeedbackService feedbackService,
         CoursesRepository coursesRepository,
         CoursesChannelUserAssigner channelUserAssigner,
         CoursesInteractivityFormatter coursesInteractivityFormatter,
-        IStringLocalizer<CoursesPlugin> localizer,
+        CourseMessageInteractivity courseMessageInteractivity,
+        LocalizedStringLocalizer<CoursesPlugin> localizer,
         ChristofelBaseContext baseContext,
-        CurrentSemesterCache currentSemesterCache
+        CurrentSemesterCache currentSemesterCache,
+        InteractivityCultureProvider cultureProvider
     )
     {
         _commandContext = commandContext;
@@ -76,9 +83,12 @@ public class CoursesInteractionsResponder : CommandGroup
         _coursesRepository = coursesRepository;
         _channelUserAssigner = channelUserAssigner;
         _coursesInteractivityFormatter = coursesInteractivityFormatter;
+        _courseMessageInteractivity = courseMessageInteractivity;
         _localizer = localizer;
         _baseContext = baseContext;
         _currentSemesterCache = currentSemesterCache;
+        _cultureProvider = cultureProvider;
+        _feedbackData = new FeedbackData(commandContext, interactionApi, feedbackService);
     }
 
     /// <summary>
@@ -90,6 +100,7 @@ public class CoursesInteractionsResponder : CommandGroup
     /// <param name="semesterSelector">The semester selector.</param>
     /// <returns>A result that may or may not have succeeded.</returns>
     [Button("semester")]
+    [InteractionCallbackType(InteractionCallbackType.DeferredUpdateMessage)]
     public async Task<IResult> HandleSemesterButtonAsync
     (
         string language,
@@ -98,6 +109,7 @@ public class CoursesInteractionsResponder : CommandGroup
         SemesterSelector semesterSelector
     )
     {
+        _cultureProvider.CurrentCulture = language;
         var dbUser = await _baseContext.Set<DbUser>()
             .Authenticated()
             .Where(x => x.DiscordId == _commandContext.User.ID)
@@ -133,13 +145,15 @@ public class CoursesInteractionsResponder : CommandGroup
             return await _feedbackService.SendContextualInfoAsync
             (
                 _localizer.Translate("COURSE_BY_SEMESTER_NOT_FOUND", language),
+                options: new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral),
                 ct: CancellationToken
             );
         }
 
         if (proceedImmediately)
         {
-            return await HandleCoursesCommandAsync(language, commandType, courses);
+            return await _courseMessageInteractivity.HandleCourseCommand
+                (commandType, courses, CancellationToken);
         }
 
         var courseAssignmentsResult = await _coursesRepository.GetCourseAssignments
@@ -154,49 +168,50 @@ public class CoursesInteractionsResponder : CommandGroup
             return await _feedbackService.SendContextualInfoAsync
             (
                 _localizer.Translate("COURSES_MISSING", language, string.Join(", ", courses)),
+                options: new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral),
                 ct: CancellationToken
             );
         }
 
-        var formattedMessages = _coursesInteractivityFormatter.FormatCoursesMessage
-            (language, _localizer.Translate("COURSE_BY_SEMESTER_CHOOSE", language), courseAssignments, commandType);
-        return await _feedbackService.SendContextualMessageDataAsync(formattedMessages, CancellationToken);
+        return await _courseMessageInteractivity.SendCoursesMessagesAsync
+            (_localizer.Translate("COURSE_BY_SEMESTER_CHOOSE"), courseAssignments, CancellationToken);
     }
 
     /// <summary>
     /// Send courses based on given department.
     /// </summary>
     /// <param name="language">The language of the response.</param>
-    /// <param name="commandType">The type of the command to execute.</param>
     /// <param name="department">The key of the department.</param>
     /// <returns>A result that may or may not have succeeded.</returns>
     [Button("department")]
+    [InteractionCallbackType(InteractionCallbackType.DeferredUpdateMessage)]
     public async Task<IResult> HandleDepartmentButtonAsync
-        (string language, InteractivityCommandType commandType, string department)
+        (string language, string department)
     {
-        var coursesResult = await _coursesRepository.GetCoursesByDepartment(department, CancellationToken);
-        if (!coursesResult.IsDefined(out var courses))
+        _cultureProvider.CurrentCulture = language;
+        var courseAssignmentsResult = await _coursesRepository.GetCoursesByDepartment(department, CancellationToken);
+        if (!courseAssignmentsResult.IsDefined(out var courseAssignments))
         {
             await _feedbackService.SendContextualErrorAsync(_localizer.Translate("ERROR", language));
-            return coursesResult;
+            return courseAssignmentsResult;
         }
 
-        var formattedMessages = _coursesInteractivityFormatter.FormatCoursesMessage
-            (language, _localizer.Translate("DEPARTMENTS_COURSES", language), courses, commandType);
-        return await _feedbackService.SendContextualMessageDataAsync(formattedMessages, CancellationToken);
+        return await _courseMessageInteractivity.SendCoursesMessagesAsync
+            (_localizer.Translate("DEPARTMENTS_COURSES"), courseAssignments, CancellationToken);
     }
 
     /// <summary>
     /// Execute the given command (join/leave/toggle the given course) by channel id.
     /// </summary>
     /// <param name="language">The language of the response.</param>
-    /// <param name="commandType">The type of the command to execute.</param>
     /// <param name="channelId">The channel id of the course.</param>
     /// <returns>A result that may or may not have succeeded.</returns>
     [Button("course")]
+    [InteractionCallbackType(InteractionCallbackType.DeferredUpdateMessage)]
     public async Task<IResult> HandleCourseAsync
-        (string language, InteractivityCommandType commandType, Snowflake channelId)
+        (string language, Snowflake channelId)
     {
+        _cultureProvider.CurrentCulture = language;
         var coursesByChannelResult = await _coursesRepository.GetCoursesByChannel(channelId, CancellationToken);
 
         if (!coursesByChannelResult.IsDefined(out var coursesByChannel))
@@ -217,7 +232,8 @@ public class CoursesInteractionsResponder : CommandGroup
         // TODO: make methods accepting CourseAssignment to avoid calling the database twice.
         var courseKeys = coursesByChannel.Select(x => x.CourseKey);
 
-        return await HandleCoursesCommandAsync(language, commandType, courseKeys);
+        return await _courseMessageInteractivity.HandleCourseCommand
+            (InteractivityCommandType.Toggle, courseKeys, CancellationToken);
     }
 
     /// <summary>
@@ -227,10 +243,14 @@ public class CoursesInteractionsResponder : CommandGroup
     /// <param name="commandType">The type of the command to execute.</param>
     /// <param name="courses">The keys of the courses to join.</param>
     /// <returns>A result that may or may not have succeeded.</returns>
-    [Button("courses")]
+    [Modal("courses")]
     public async Task<IResult> HandleCourseAsync
         (string language, InteractivityCommandType commandType, [Greedy] string courses)
-        => await HandleCoursesCommandAsync(language, commandType, courses.Split(' '));
+    {
+        _cultureProvider.CurrentCulture = language;
+        return await _courseMessageInteractivity.HandleCourseCommand
+            (commandType, courses.Split(' '), CancellationToken);
+    }
 
     /// <summary>
     /// Search for courses separated by space.
@@ -238,10 +258,11 @@ public class CoursesInteractionsResponder : CommandGroup
     /// <param name="language">The language of the response.</param>
     /// <param name="courses">The keys/names/ of the courses to search for.</param>
     /// <returns>A result that may or may not have succeeded.</returns>
-    [Button("search")]
+    [Modal("search")]
     public async Task<IResult> HandleSearchAsync
         (string language, [Greedy] string courses)
     {
+        _cultureProvider.CurrentCulture = language;
         var coursesAssignmentResult = await _coursesRepository
             .SearchCourseAssignments
             (
@@ -250,7 +271,7 @@ public class CoursesInteractionsResponder : CommandGroup
                     .Split(' ', ',', StringSplitOptions.TrimEntries)
             );
 
-        if (!coursesAssignmentResult.IsDefined(out var coursesAssignments))
+        if (!coursesAssignmentResult.IsDefined(out var courseAssignments))
         {
             await _feedbackService.SendContextualErrorAsync
             (
@@ -261,7 +282,7 @@ public class CoursesInteractionsResponder : CommandGroup
             return coursesAssignmentResult;
         }
 
-        if (coursesAssignments.Count == 0)
+        if (courseAssignments.Count == 0)
         {
             await _feedbackService.SendContextualInfoAsync
             (
@@ -271,54 +292,16 @@ public class CoursesInteractionsResponder : CommandGroup
             );
         }
 
-        return await _feedbackService.SendContextualMessageDataAsync
-        (
-            _coursesInteractivityFormatter.FormatCoursesMessage
-            (
-                language,
-                _localizer.Translate("SEARCH_COURSE_SUCCESS", language),
-                coursesAssignments,
-                InteractivityCommandType.Toggle
-            ),
-            CancellationToken
-        );
-    }
+        var joinedCoursesResult = await _coursesRepository.JoinWithUserData
+            (courseAssignments, _commandContext.User.ID, CancellationToken);
 
-    private async Task<IResult> HandleCoursesCommandAsync
-        (string language, InteractivityCommandType commandType, IEnumerable<string> courses)
-    {
-        var discordUser = new DiscordUser(_commandContext.User.ID);
-        CoursesAssignmentResult coursesAssignmentResult;
-
-        switch (commandType)
+        if (!joinedCoursesResult.IsDefined(out var joinedCourses))
         {
-            case InteractivityCommandType.Join:
-                coursesAssignmentResult = await _channelUserAssigner.AssignCourses
-                    (discordUser, courses, CancellationToken);
-                break;
-            case InteractivityCommandType.Leave:
-                coursesAssignmentResult = await _channelUserAssigner.DeassignCourses
-                    (discordUser, courses, CancellationToken);
-                break;
-            case InteractivityCommandType.Toggle:
-                coursesAssignmentResult = await _channelUserAssigner.ToggleCourses
-                    (discordUser, courses, CancellationToken);
-                break;
-            default:
-                throw new InvalidOperationException("Uh, what happened?");
+            return joinedCoursesResult;
         }
 
-        // Send results to the user.
-        return await CoursesCommands.SendFeedback
-        (
-            _localizer,
-            language,
-            coursesAssignmentResult,
-            _feedbackService,
-            _localizer.Translate($"COURSES_SUCCESSFULLY_{commandType.ToString()}_PREFIX", language),
-            true,
-            CancellationToken
-        );
+        return await _courseMessageInteractivity.SendCoursesMessagesAsync
+            (_localizer.Translate("SEARCH_COURSE_SUCCESS"), courseAssignments, CancellationToken);
     }
 
     private async Task<string> GetSemester(SemesterSelector semesterSelector)
@@ -347,6 +330,8 @@ public class CoursesInteractionsResponder : CommandGroup
         private readonly CoursesRepository _coursesRepository;
         private readonly FeedbackService _feedbackService;
         private readonly IStringLocalizer<CoursesPlugin> _localizer;
+        private readonly InteractivityCultureProvider _cultureProvider;
+        private readonly FeedbackData _feedbackData;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainMessage"/> class.
@@ -357,6 +342,7 @@ public class CoursesInteractionsResponder : CommandGroup
         /// <param name="coursesRepository">The courses repository.</param>
         /// <param name="feedbackService">The feedback service.</param>
         /// <param name="localizer">The string localizer.</param>
+        /// <param name="cultureProvider">The culture provider.</param>
         public MainMessage
         (
             InteractionContext interactionContext,
@@ -364,7 +350,8 @@ public class CoursesInteractionsResponder : CommandGroup
             CoursesInteractivityFormatter coursesInteractivityFormatter,
             CoursesRepository coursesRepository,
             FeedbackService feedbackService,
-            IStringLocalizer<CoursesPlugin> localizer
+            IStringLocalizer<CoursesPlugin> localizer,
+            InteractivityCultureProvider cultureProvider
         )
         {
             _interactionContext = interactionContext;
@@ -373,6 +360,8 @@ public class CoursesInteractionsResponder : CommandGroup
             _coursesRepository = coursesRepository;
             _feedbackService = feedbackService;
             _localizer = localizer;
+            _cultureProvider = cultureProvider;
+            _feedbackData = new FeedbackData(interactionContext, interactionApi, feedbackService);
         }
 
         /// <summary>
@@ -385,6 +374,7 @@ public class CoursesInteractionsResponder : CommandGroup
         [SuppressInteractionResponse(true)]
         public async Task<Result> HandleKeysButtonAsync(string language, InteractivityCommandType commandType)
         {
+            _cultureProvider.CurrentCulture = language;
             return await _interactionApi.CreateInteractionResponseAsync
             (
                 _interactionContext.ID,
@@ -397,7 +387,7 @@ public class CoursesInteractionsResponder : CommandGroup
                     (
                         new InteractionModalCallbackData
                         (
-                            CustomIDHelpers.CreateButtonID("courses", "coursesint", language, commandType.ToString()),
+                            CustomIDHelpers.CreateModalID("courses", "coursesint", language, commandType.ToString()),
                             _localizer.Translate($"COURSE_MODAL_TITLE_{commandType}", language),
                             new[]
                             {
@@ -436,6 +426,7 @@ public class CoursesInteractionsResponder : CommandGroup
         [SuppressInteractionResponse(true)]
         public async Task<Result> HandleSearchButtonAsync(string language)
         {
+            _cultureProvider.CurrentCulture = language;
             return await _interactionApi.CreateInteractionResponseAsync
             (
                 _interactionContext.ID,
@@ -448,7 +439,7 @@ public class CoursesInteractionsResponder : CommandGroup
                     (
                         new InteractionModalCallbackData
                         (
-                            CustomIDHelpers.CreateButtonID("search", "coursesint", language),
+                            CustomIDHelpers.CreateModalID("search", "coursesint", language),
                             _localizer.Translate("SEARCH_MODAL_TITLE", language),
                             new[]
                             {
@@ -489,21 +480,23 @@ public class CoursesInteractionsResponder : CommandGroup
         public async Task<IResult> HandleSemestersButtonAsync
             (string language, bool proceedImmediately, InteractivityCommandType commandType)
         {
+            _cultureProvider.CurrentCulture = language;
             var semesterMessage = _coursesInteractivityFormatter.FormatSemesterMessage
                 (string.Empty, language, commandType, proceedImmediately);
 
-            return await _feedbackService.SendContextualMessageDataAsync(new[] { semesterMessage }, CancellationToken);
+            return await _feedbackData.SendContextualMessageDataAsync
+                (new[] { semesterMessage }, false, CancellationToken);
         }
 
         /// <summary>
         /// Send message with all departments.
         /// </summary>
         /// <param name="language">The language of the message.</param>
-        /// <param name="commandType">The type of the command executed.</param>
         /// <returns>A result that may or may not have succeeded.</returns>
         [Button("departments")]
-        public async Task<IResult> HandleDepartmentsButtonAsync(string language, InteractivityCommandType commandType)
+        public async Task<IResult> HandleDepartmentsButtonAsync(string language)
         {
+            _cultureProvider.CurrentCulture = language;
             var departmentsResult = await _coursesRepository.GetDepartments(false, CancellationToken);
             if (!departmentsResult.IsDefined(out var departments))
             {
@@ -511,9 +504,9 @@ public class CoursesInteractionsResponder : CommandGroup
             }
 
             var departmentMessages = _coursesInteractivityFormatter.FormatDepartmentsMessage
-                (string.Empty, departments, language, commandType);
+                (string.Empty, departments);
 
-            return await _feedbackService.SendContextualMessageDataAsync(departmentMessages, CancellationToken);
+            return await _feedbackData.SendContextualMessageDataAsync(departmentMessages, false, CancellationToken);
         }
 
         /// <summary>
@@ -524,8 +517,9 @@ public class CoursesInteractionsResponder : CommandGroup
         [Button("translate")]
         public async Task<IResult> HandleTranslateButtonAsync(string language)
         {
-            var mainMessage = _coursesInteractivityFormatter.FormatMainMessage(string.Empty, language);
-            return await _feedbackService.SendContextualMessageDataAsync(new[] { mainMessage }, CancellationToken);
+            _cultureProvider.CurrentCulture = language;
+            var mainMessage = _coursesInteractivityFormatter.FormatMainMessage(string.Empty);
+            return await _feedbackData.SendContextualMessageDataAsync(new[] { mainMessage }, false, CancellationToken);
         }
     }
 }

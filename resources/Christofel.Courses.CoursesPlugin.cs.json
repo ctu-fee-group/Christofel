@@ -1,26 +1,10 @@
 [
   {
-    "Name": "CHOOSE_COURSE_Join",
-    "Value": "Pro přiřazení do předmětu klikni na příslušné tlačítko pod zprávou."
+    "Name": "CHOOSE_COURSE",
+    "Value": "Pro přiřazení nebo odebrání kanálu předmětu klikni na příslušné tlačítko pod zprávou. Zelené tlačítko předmět přidává, červené předmět odebírá."
   },
   {
-    "Name": "CHOOSE_COURSE_Leave",
-    "Value": "Pro odebrání z předmětu klikni na příslušné tlačítko pod zprávou."
-  },
-  {
-    "Name": "CHOOSE_COURSE_Toggle",
-    "Value": "Pro přepnutí předmětu klikni na příslušné tlačítko pod zprávou."
-  },
-  {
-    "Name": "CHOOSE_DEPARTMENT_Join",
-    "Value": "Zvol katedru, pod kterou je vypsaný předmět, který hledáš."
-  },
-  {
-    "Name": "CHOOSE_DEPARTMENT_Leave",
-    "Value": "Zvol katedru, pod kterou je vypsaný předmět, který hledáš."
-  },
-  {
-    "Name": "CHOOSE_DEPARTMENT_Toggle",
+    "Name": "CHOOSE_DEPARTMENT",
     "Value": "Zvol katedru, pod kterou je vypsaný předmět, který hledáš."
   },
   {
@@ -44,28 +28,20 @@
     "Value": "Nenašel jsem žádné předměty vyhovující danému kritériu."
   },
   {
-    "Name": "COURSES_SUCCESSFULLY_Join_PREFIX",
+    "Name": "COURSES_SUCCESSFULLY_ASSIGNED",
     "Value": "Přiřadil jsem tě do těchto předmětů"
   },
   {
-    "Name": "COURSES_SUCCESSFULLY_Leave_PREFIX",
+    "Name": "COURSES_SUCCESSFULLY_DEASSIGNED",
     "Value": "Odebral jsem tě z těchto předmětů"
-  },
-  {
-    "Name": "COURSES_SUCCESSFULLY_Toggle_PREFIX",
-    "Value": "Přepnul jsem ti tyto předměty"
   },
   {
     "Name": "COURSE_BY_CHANNEL_NOT_FOUND",
     "Value": "Nenašel jsem žádné předměty pro daný kanál."
   },
   {
-    "Name": "COURSE_BY_DEPARTMENT_JOIN_BUTTON",
-    "Value": "Přiřadit předměty podle katedry"
-  },
-  {
-    "Name": "COURSE_BY_DEPARTMENT_LEAVE_BUTTON",
-    "Value": "Odebrat předměty podle katedry"
+    "Name": "SEARCH_COURSES_BY_DEPARTMENT_BUTTON",
+    "Value": "Vyhledat předměty podle katedry"
   },
   {
     "Name": "COURSE_BY_KEYS_JOIN_BUTTON",
@@ -181,6 +157,6 @@
   },
   {
     "Name": "MAIN_MESSAGE_CONTENT",
-    "Value": ":information_source: (BETA) **Interaktivní navolení kanálů předmětů / Interactive course channels assignment**\nFor **english version**, click on the last button below this message.\n\nAhoj, tady si můžeš interaktivně navolit kanály předmětů pomocí tlačítek pod zprávou. Tlačítka by měla být snad jasná, ale níže jsou vysvětlivky pro každé z tlačítek. V tuto chvíli se jedná o beta verzi, pokud máš nápad na zlepšení, ozvi se v <#1019875949216542800>. Pokud jsi narazil na chybu, ozvi se v <#753695738671792211>.\n\nTlačítka **přiřadit/odebrat předměty podle kódu** otevřou modal s jedním textovým vstupem. Do vstupu je třeba zadat **celé** kódy předmětů, které si chceš přiřadit nebo odebrat. Pokud neznáš celý kód předmětu, který chceš najít, použij tlačítko vyhledat předměty.\n\nTlačítka **přiřadit/odebrat předměty podle katedry** ti odešlou zprávu, ve které si budeš moct zvolit danou katedru. Po zvolení katedry ti bot pošle všechny předměty, které pod danou katedru spadají a máme je zde na serveru. Zakliknutím konkrétního předmětu si ho můžeš přidat nebo odebrat.\n\nTlačítka **přiřadit/odebrat předměty podle semestru** ti odešlou zprávu pro zvolení semestru (minulý, tento, příští). Po zakliknutí semestru ti bot přiřadí nebo odebere předměty, které máš v daném semestru zapsané. Pokud bot nějaké na serveru nenajde, dá ti je vědět a můžeš nám poslat požadavek do návrhů na přidání kanálů těchto předmětů.\n\nTlačítko **vyhledat předměty** otevře modal s jedním textovým vstupem. Do vstupu můžeš psát části názvů nebo kódů předmětů, bot zkusí najít všechny vyhovující předměty a dá ti na výběr si je přidat nebo odebrat.\n\nTlačítko **vyhledat předměty podle semestru** ti pošle všechny předměty pro daný semestr, aby sis je mohl individuálně přidat nebo odebrat.\n\nZpráv, kterými bot odpovídá na tlačítka, jdou smazat kliknutím na tlačítko _Dismiss message_ pod zprávou. Zprávy samy nezmizí."
+    "Value": ":information_source: (BETA) **Interaktivní navolení kanálů předmětů / Interactive course channels assignment**\nFor **english version**, click on the last button below this message.\n\nAhoj, tady si můžeš interaktivně navolit kanály předmětů pomocí tlačítek pod zprávou. Tlačítka by měla být snad jasná, ale níže jsou vysvětlivky pro každé z tlačítek. V tuto chvíli se jedná o beta verzi, pokud máš nápad na zlepšení, ozvi se v <#1019875949216542800>. Pokud jsi narazil na chybu, ozvi se v <#753695738671792211>.\n\nTlačítka **přiřadit/odebrat předměty podle kódu** otevřou modal s jedním textovým vstupem. Do vstupu je třeba zadat **celé** kódy předmětů, které si chceš přiřadit nebo odebrat. Pokud neznáš celý kód předmětu, který chceš najít, použij tlačítko vyhledat předměty.\n\nTlačítka **přiřadit/odebrat předměty podle semestru** ti odešlou zprávu pro zvolení semestru (minulý, tento, příští). Po zakliknutí semestru ti bot přiřadí nebo odebere předměty, které máš v daném semestru zapsané. Pokud bot nějaké na serveru nenajde, dá ti je vědět a můžeš nám poslat požadavek do návrhů na přidání kanálů těchto předmětů.\n\nTlačítko **vyhledat předměty** otevře modal s jedním textovým vstupem. Do vstupu můžeš psát části názvů nebo kódů předmětů, bot zkusí najít všechny vyhovující předměty a dá ti na výběr si je přidat nebo odebrat.\n\nTlačítko **vyhledat předměty podle semestru** ti pošle všechny předměty pro daný semestr, aby sis je mohl individuálně přidat nebo odebrat.\n\nZpráv, kterými bot odpovídá na tlačítka, jdou smazat kliknutím na tlačítko _Dismiss message_ pod zprávou. Zprávy samy nezmizí."
   }
 ]

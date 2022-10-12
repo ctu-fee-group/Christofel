@@ -6,6 +6,7 @@
 
 using Christofel.Courses.Data;
 using Christofel.Courses.Extensions;
+using Christofel.CoursesLib.Data;
 using Christofel.CoursesLib.Database;
 using Christofel.Helpers.Localization;
 using Christofel.LGPLicensed.Interactivity;
@@ -28,15 +29,19 @@ public class CoursesInteractivityFormatter
 
     private const int MaxButtonLabelLength = 80;
 
-    private readonly IStringLocalizer<CoursesPlugin> _localizer;
+    private readonly LocalizedStringLocalizer<CoursesPlugin> _localizer;
+    private readonly ICultureProvider _cultureProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesInteractivityFormatter"/> class.
     /// </summary>
     /// <param name="localizer">The string localizer.</param>
-    public CoursesInteractivityFormatter(IStringLocalizer<CoursesPlugin> localizer)
+    /// <param name="cultureProvider">The culture provider.</param>
+    public CoursesInteractivityFormatter
+        (LocalizedStringLocalizer<CoursesPlugin> localizer, ICultureProvider cultureProvider)
     {
         _localizer = localizer;
+        _cultureProvider = cultureProvider;
     }
 
     /// <summary>
@@ -45,40 +50,41 @@ public class CoursesInteractivityFormatter
     /// <remarks>
     /// Makes sure the messages are not more than 2000 characters in length and there are maximum of 25 buttons in one message.
     /// </remarks>
-    /// <param name="language">The language.</param>
     /// <param name="prepend">The string to prepend at the beginning of the message.</param>
     /// <param name="courses">The courses to put into the message.</param>
-    /// <param name="commandType">The type of the command (join/leave/toggle) to execute.</param>
     /// <returns>A list of messages representing the messages with course buttons chunked to meet Discord needs.</returns>
     public IReadOnlyList<MessageData> FormatCoursesMessage
     (
-        string language,
         string prepend,
-        IReadOnlyList<CourseAssignment> courses,
-        InteractivityCommandType commandType
+        IReadOnlyList<CourseUserData> courses
     )
     {
-        var initialContent = prepend + "\n" + _localizer.Translate($"CHOOSE_COURSE_{commandType}", language);
+        var initialContent = prepend + "\n" + _localizer.Translate($"CHOOSE_COURSE");
         return CreateMessages
         (
             initialContent,
-            CoursesFormatter.FormatCourses(courses),
+            CoursesFormatter.FormatCourses(courses.Select(x => x.Course))
+                .ToDictionary
+                (
+                    x => courses.First(y => y.Course.ChannelId == x.Key),
+                    x => x.Value
+                ),
             coursePair =>
             (
                 coursePair.Value.Formatted,
                 new ButtonComponent
                 (
-                    ButtonComponentStyle.Primary,
+                    coursePair.Key.IsMember ? ButtonComponentStyle.Danger : ButtonComponentStyle.Success,
                     coursePair.Value.Name.Truncate(MaxButtonLabelLength),
                     CustomID: CustomIDHelpers.CreateButtonID
                     (
                         "course",
                         "coursesint",
-                        language,
-                        commandType.ToString(),
-                        coursePair.Key.Value.ToString()
+                        _cultureProvider.CurrentCulture,
+                        coursePair.Key.Course.ChannelId.ToString()
                     )
-                )
+                ),
+                coursePair.Key.Course
             )
         );
     }
@@ -88,39 +94,35 @@ public class CoursesInteractivityFormatter
     /// </summary>
     /// <param name="prepend">The text to prepend before the message translated.</param>
     /// <param name="departments">The departments to list.</param>
-    /// <param name="language">The language of the message.</param>
-    /// <param name="commandType">The type of the command to execute.</param>
     /// <returns>A list of messages representing the messages with department buttons chunked to meet Discord needs.</returns>
     public IReadOnlyList<MessageData> FormatDepartmentsMessage
     (
         string prepend,
-        IReadOnlyList<DepartmentAssignment> departments,
-        string language,
-        InteractivityCommandType commandType
+        IReadOnlyList<DepartmentAssignment> departments
     )
     {
-        var initialContent = prepend + "\n" + _localizer.Translate($"CHOOSE_DEPARTMENT_{commandType}", language);
+        var initialContent = prepend + "\n" + _localizer.Translate($"CHOOSE_DEPARTMENT");
         return CreateMessages
         (
             initialContent,
             departments,
             department =>
                 (null, new ButtonComponent
-                (
-                    ButtonComponentStyle.Primary,
-                    InflectorExtensions
-                        .Titleize(department.DepartmentName)
-                        .Truncate(MaxButtonLabelLength),
-                    CustomID:
-                    CustomIDHelpers.CreateButtonID
                     (
-                        "department",
-                        "coursesint",
-                        language,
-                        commandType.ToString(),
-                        department.DepartmentKey
-                    )
-                ))
+                        ButtonComponentStyle.Primary,
+                        InflectorExtensions
+                            .Titleize(department.DepartmentName)
+                            .Truncate(MaxButtonLabelLength),
+                        CustomID:
+                        CustomIDHelpers.CreateButtonID
+                        (
+                            "department",
+                            "coursesint",
+                            _cultureProvider.CurrentCulture,
+                            department.DepartmentKey
+                        )
+                    ),
+                    null)
         );
     }
 
@@ -142,7 +144,7 @@ public class CoursesInteractivityFormatter
     {
         return new MessageData
         (
-            (prepend + "\n" + _localizer.Translate($"CHOOSE_SEMESTER_{commandType}", language)).Trim(),
+            (prepend + "\n" + _localizer.Translate($"CHOOSE_SEMESTER_{commandType}")).Trim(),
             new[]
             {
                 new ActionRowComponent
@@ -152,7 +154,7 @@ public class CoursesInteractivityFormatter
                         new ButtonComponent
                         (
                             ButtonComponentStyle.Secondary,
-                            _localizer.Translate("SEMESTER_PREVIOUS", language),
+                            _localizer.Translate("SEMESTER_PREVIOUS"),
                             CustomID: CustomIDHelpers.CreateButtonID
                             (
                                 "semester",
@@ -166,7 +168,7 @@ public class CoursesInteractivityFormatter
                         new ButtonComponent
                         (
                             ButtonComponentStyle.Primary,
-                            _localizer.Translate("SEMESTER_CURRENT", language),
+                            _localizer.Translate("SEMESTER_CURRENT"),
                             CustomID: CustomIDHelpers.CreateButtonID
                             (
                                 "semester",
@@ -180,7 +182,7 @@ public class CoursesInteractivityFormatter
                         new ButtonComponent
                         (
                             ButtonComponentStyle.Secondary,
-                            _localizer.Translate("SEMESTER_NEXT", language),
+                            _localizer.Translate("SEMESTER_NEXT"),
                             CustomID: CustomIDHelpers.CreateButtonID
                             (
                                 "semester",
@@ -201,16 +203,15 @@ public class CoursesInteractivityFormatter
     /// Format the main message of interactivity.
     /// </summary>
     /// <param name="prepend">The text to prepend before the message translated.</param>
-    /// <param name="language">The language of the message.</param>
     /// <param name="supportedLanguages">The languages that are supported.</param>
     /// <returns>The main message.</returns>
-    public MessageData FormatMainMessage(string prepend, string language, params string[] supportedLanguages)
+    public MessageData FormatMainMessage(string prepend, params string[] supportedLanguages)
     {
         var languageComponents = new List<IMessageComponent>();
         var languagesRow = new ActionRowComponent(languageComponents);
         foreach (var supportedLanguage in supportedLanguages)
         {
-            if (supportedLanguage == language)
+            if (supportedLanguage == _cultureProvider.CurrentCulture)
             {
                 continue;
             }
@@ -220,7 +221,7 @@ public class CoursesInteractivityFormatter
                 new ButtonComponent
                 (
                     ButtonComponentStyle.Secondary,
-                    _localizer.Translate("SHOW_LANGUAGE", supportedLanguage),
+                    _localizer.Delocalized.Translate("SHOW_LANGUAGE", supportedLanguage),
                     CustomID: CustomIDHelpers.CreateButtonID("translate", "coursesint main", supportedLanguage)
                 )
             );
@@ -228,117 +229,109 @@ public class CoursesInteractivityFormatter
 
         return new MessageData
         (
-            (prepend + "\n" + _localizer.Translate("MAIN_MESSAGE_CONTENT", language)).Trim(),
+            (prepend + "\n" + _localizer.Translate("MAIN_MESSAGE_CONTENT")).Trim(),
             new[]
-            {
-                new ActionRowComponent
-                (
-                    new[]
-                    {
-                        new ButtonComponent
-                        (
-                            ButtonComponentStyle.Success,
-                            _localizer.Translate("COURSE_BY_KEYS_JOIN_BUTTON", language),
-                            CustomID: CustomIDHelpers.CreateButtonID
-                                ("keys", "coursesint main", language, InteractivityCommandType.Join.ToString())
-                        ),
-                        new ButtonComponent
-                        (
-                            ButtonComponentStyle.Success,
-                            _localizer.Translate("COURSE_BY_DEPARTMENT_JOIN_BUTTON", language),
-                            CustomID: CustomIDHelpers.CreateButtonID
-                                ("departments", "coursesint main", language, InteractivityCommandType.Join.ToString())
-                        ),
-                        new ButtonComponent
-                        (
-                            ButtonComponentStyle.Success,
-                            _localizer.Translate("COURSE_BY_SEMESTER_JOIN_BUTTON", language),
-                            CustomID: CustomIDHelpers.CreateButtonID
+                {
+                    new ActionRowComponent
+                    (
+                        new[]
+                        {
+                            new ButtonComponent
                             (
-                                "semesters",
-                                "coursesint main",
-                                language,
-                                "true",
-                                InteractivityCommandType.Join.ToString()
-                            )
-                        ),
-                    }
-                ),
-                new ActionRowComponent
-                (
-                    new[]
-                    {
-                        new ButtonComponent
-                        (
-                            ButtonComponentStyle.Danger,
-                            _localizer.Translate("COURSE_BY_KEYS_LEAVE_BUTTON", language),
-                            CustomID: CustomIDHelpers.CreateButtonID
+                                ButtonComponentStyle.Success,
+                                _localizer.Translate("COURSE_BY_KEYS_JOIN_BUTTON"),
+                                CustomID: CustomIDHelpers.CreateButtonID
+                                    ("keys", "coursesint main", InteractivityCommandType.Join.ToString())
+                            ),
+                            new ButtonComponent
                             (
-                                "keys",
-                                "coursesint main",
-                                language,
-                                InteractivityCommandType.Leave.ToString()
-                            )
-                        ),
-                        new ButtonComponent
-                        (
-                            ButtonComponentStyle.Danger,
-                            _localizer.Translate("COURSE_BY_DEPARTMENT_LEAVE_BUTTON", language),
-                            CustomID: CustomIDHelpers.CreateButtonID
+                                ButtonComponentStyle.Success,
+                                _localizer.Translate("COURSE_BY_SEMESTER_JOIN_BUTTON"),
+                                CustomID: CustomIDHelpers.CreateButtonID
+                                (
+                                    "semesters",
+                                    "coursesint main",
+                                    _cultureProvider.CurrentCulture,
+                                    "true",
+                                    InteractivityCommandType.Join.ToString()
+                                )
+                            ),
+                        }
+                    ),
+                    new ActionRowComponent
+                    (
+                        new[]
+                        {
+                            new ButtonComponent
                             (
-                                "departments",
-                                "coursesint main",
-                                language,
-                                InteractivityCommandType.Leave.ToString()
-                            )
-                        ),
-                        new ButtonComponent
-                        (
-                            ButtonComponentStyle.Danger,
-                            _localizer.Translate("COURSE_BY_SEMESTER_LEAVE_BUTTON", language),
-                            CustomID: CustomIDHelpers.CreateButtonID
+                                ButtonComponentStyle.Danger,
+                                _localizer.Translate("COURSE_BY_KEYS_LEAVE_BUTTON"),
+                                CustomID: CustomIDHelpers.CreateButtonID
+                                (
+                                    "keys",
+                                    "coursesint main",
+                                    _cultureProvider.CurrentCulture,
+                                    InteractivityCommandType.Leave.ToString()
+                                )
+                            ),
+                            new ButtonComponent
                             (
-                                "semesters",
-                                "coursesint main",
-                                language,
-                                "true",
-                                InteractivityCommandType.Leave.ToString()
-                            )
-                        ),
-                    }
-                ),
-                new ActionRowComponent
-                (
-                    new[]
-                    {
-                        new ButtonComponent
-                        (
-                            ButtonComponentStyle.Secondary,
-                            _localizer.Translate("SEARCH_COURSES_BUTTON", language),
-                            CustomID: CustomIDHelpers.CreateButtonID
+                                ButtonComponentStyle.Danger,
+                                _localizer.Translate("COURSE_BY_SEMESTER_LEAVE_BUTTON"),
+                                CustomID: CustomIDHelpers.CreateButtonID
+                                (
+                                    "semesters",
+                                    "coursesint main",
+                                    _cultureProvider.CurrentCulture,
+                                    "true",
+                                    InteractivityCommandType.Leave.ToString()
+                                )
+                            ),
+                        }
+                    ),
+                    new ActionRowComponent
+                    (
+                        new[]
+                        {
+                            new ButtonComponent
                             (
-                                "search",
-                                "coursesint main",
-                                language
-                            )
-                        ),
-                        new ButtonComponent
-                        (
-                            ButtonComponentStyle.Secondary,
-                            _localizer.Translate("SEARCH_COURSES_BY_SEMESTER_BUTTON", language),
-                            CustomID: CustomIDHelpers.CreateButtonID
+                                ButtonComponentStyle.Secondary,
+                                _localizer.Translate("SEARCH_COURSES_BUTTON"),
+                                CustomID: CustomIDHelpers.CreateButtonID
+                                (
+                                    "search",
+                                    "coursesint main",
+                                    _cultureProvider.CurrentCulture
+                                )
+                            ),
+                            new ButtonComponent
                             (
-                                "semesters",
-                                "coursesint main",
-                                language,
-                                "false",
-                                InteractivityCommandType.Toggle.ToString()
-                            )
-                        ),
-                    }
-                ),
-                languagesRow
-            }
+                                ButtonComponentStyle.Secondary,
+                                _localizer.Translate("SEARCH_COURSES_BY_DEPARTMENT_BUTTON"),
+                                CustomID: CustomIDHelpers.CreateButtonID
+                                (
+                                    "departments",
+                                    "coursesint main",
+                                    _cultureProvider.CurrentCulture
+                                )
+                            ),
+                            new ButtonComponent
+                            (
+                                ButtonComponentStyle.Secondary,
+                                _localizer.Translate("SEARCH_COURSES_BY_SEMESTER_BUTTON"),
+                                CustomID: CustomIDHelpers.CreateButtonID
+                                (
+                                    "semesters",
+                                    "coursesint main",
+                                    _cultureProvider.CurrentCulture,
+                                    "false",
+                                    InteractivityCommandType.Toggle.ToString()
+                                )
+                            ),
+                        }
+                    ),
+                    languagesRow
+                }
                 .Where(x => x.Components.Count > 0)
                 .ToArray()
         );
@@ -348,12 +341,14 @@ public class CoursesInteractivityFormatter
     (
         string initialContent,
         IEnumerable<T> data,
-        Func<T, (string? AppendContent, IMessageComponent? AppendComponent)> generateAppend
+        Func<T, (string? AppendContent, IMessageComponent? AppendComponent, CourseAssignment? CourseAssignment)>
+            generateAppend
     )
     {
         var messages = new List<MessageData>();
 
         var currentContent = initialContent;
+        var currentCourseAssignments = new List<CourseAssignment>();
         var currentComponents = new List<IMessageComponent>();
         var currentRowComponents = new List<IMessageComponent>();
 
@@ -367,8 +362,9 @@ public class CoursesInteractivityFormatter
                 }
 
                 messages.Add(new MessageData(currentContent.Trim(), currentComponents));
-                currentContent = string.Empty;
+                currentContent = initialContent;
                 currentComponents = new List<IMessageComponent>();
+                currentCourseAssignments = new List<CourseAssignment>();
             }
 
             if (ShouldCreateNewRow(currentComponents))
@@ -388,11 +384,24 @@ public class CoursesInteractivityFormatter
             {
                 currentContent += "\n" + generated.AppendContent;
             }
+
+            if (generated.CourseAssignment is not null)
+            {
+                currentCourseAssignments.Add(generated.CourseAssignment);
+            }
         }
 
         if (currentComponents.Count != 0)
         {
-            messages.Add(new MessageData(currentContent, currentComponents));
+            messages.Add
+            (
+                new MessageData
+                (
+                    currentContent,
+                    currentComponents,
+                    currentCourseAssignments.Count > 0 ? currentCourseAssignments : null
+                )
+            );
         }
 
         if (currentComponents.Count != 0 && ((ActionRowComponent)currentComponents[^1]).Components.Count == 0)

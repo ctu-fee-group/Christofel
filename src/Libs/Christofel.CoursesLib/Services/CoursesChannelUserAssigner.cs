@@ -27,27 +27,23 @@ public class CoursesChannelUserAssigner
 {
     private readonly CoursesRepository _coursesRepository;
     private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IKosStudentsApi _studentsApi;
-    private readonly IReadableDbContext<CoursesContext> _coursesContext;
+    private readonly CoursesContext _coursesContext;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesChannelUserAssigner"/> class.
     /// </summary>
     /// <param name="coursesRepository">The courses repository.</param>
     /// <param name="channelApi">The channel rest api.</param>
-    /// <param name="studentsApi">The kos students api.</param>
     /// <param name="coursesContext">The courses database context.</param>
     public CoursesChannelUserAssigner
     (
         CoursesRepository coursesRepository,
         IDiscordRestChannelAPI channelApi,
-        IKosStudentsApi studentsApi,
-        IReadableDbContext<CoursesContext> coursesContext
+        CoursesContext coursesContext
     )
     {
         _coursesRepository = coursesRepository;
         _channelApi = channelApi;
-        _studentsApi = studentsApi;
         _coursesContext = coursesContext;
     }
 
@@ -65,7 +61,9 @@ public class CoursesChannelUserAssigner
             courseKeys,
             async (course, ct) =>
             {
-                return await _channelApi.EditChannelPermissionsAsync
+                await AddCourseUsers(user, course, ct);
+
+                var permissionsResult = await _channelApi.EditChannelPermissionsAsync
                 (
                     course.ChannelId,
                     user.DiscordId,
@@ -74,6 +72,13 @@ public class CoursesChannelUserAssigner
                     reason: "Course assignment",
                     ct: ct
                 );
+
+                if (!permissionsResult.IsSuccess)
+                {
+                    return Result<bool>.FromError(permissionsResult);
+                }
+
+                return true;
             },
             ct
         );
@@ -92,7 +97,9 @@ public class CoursesChannelUserAssigner
             courseKeys,
             async (course, ct) =>
             {
-                return await _channelApi.EditChannelPermissionsAsync
+                await RemoveCourseUsers(user, course, ct);
+
+                var permissionsResult = await _channelApi.EditChannelPermissionsAsync
                 (
                     course.ChannelId,
                     user.DiscordId,
@@ -101,6 +108,13 @@ public class CoursesChannelUserAssigner
                     reason: "Course assignment",
                     ct: ct
                 );
+
+                if (!permissionsResult.IsSuccess)
+                {
+                    return Result<bool>.FromError(permissionsResult);
+                }
+
+                return false;
             },
             ct
         );
@@ -123,7 +137,7 @@ public class CoursesChannelUserAssigner
 
                 if (!channelResult.IsDefined(out var channel))
                 {
-                    return Result.FromError(channelResult);
+                    return Result<bool>.FromError(channelResult);
                 }
 
                 var hasViewPermission = false;
@@ -138,7 +152,16 @@ public class CoursesChannelUserAssigner
                 var allowSet = new DiscordPermissionSet(!hasViewPermission ? DiscordPermission.ViewChannel : default);
                 var denySet = new DiscordPermissionSet(hasViewPermission ? DiscordPermission.ViewChannel : default);
 
-                return await _channelApi.EditChannelPermissionsAsync
+                if (hasViewPermission)
+                {
+                    await RemoveCourseUsers(user, course, ct);
+                }
+                else
+                {
+                    await AddCourseUsers(user, course, ct);
+                }
+
+                var permissionsResult = await _channelApi.EditChannelPermissionsAsync
                 (
                     course.ChannelId,
                     user.DiscordId,
@@ -148,6 +171,13 @@ public class CoursesChannelUserAssigner
                     reason: "Course assignment",
                     ct: ct
                 );
+
+                if (!permissionsResult.IsSuccess)
+                {
+                    return Result<bool>.FromError(permissionsResult);
+                }
+
+                return !hasViewPermission;
             },
             ct
         );
@@ -159,7 +189,8 @@ public class CoursesChannelUserAssigner
     /// <param name="semesterSelector">The selector of the semester to assign courses from.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
-    public async Task<Result<CoursesAssignmentResult>> AssignSemesterCourses(ILinkUser user, string semesterSelector, CancellationToken ct = default)
+    public async Task<Result<CoursesAssignmentResult>> AssignSemesterCourses
+        (ILinkUser user, string semesterSelector, CancellationToken ct = default)
     {
         var semesterCoursesResult = await _coursesRepository.GetSemesterCoursesKeys(user, semesterSelector, ct);
 
@@ -178,7 +209,8 @@ public class CoursesChannelUserAssigner
     /// <param name="semesterSelector">The selector of the semester to assign courses from.</param>
     /// <param name="ct">The cancellation token used for cancelling the operation.</param>
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
-    public async Task<Result<CoursesAssignmentResult>> DeassignSemesterCourses(ILinkUser user, string semesterSelector, CancellationToken ct = default)
+    public async Task<Result<CoursesAssignmentResult>> DeassignSemesterCourses
+        (ILinkUser user, string semesterSelector, CancellationToken ct = default)
     {
         var semesterCoursesResult = await _coursesRepository.GetSemesterCoursesKeys(user, semesterSelector, ct);
 
@@ -190,11 +222,38 @@ public class CoursesChannelUserAssigner
         return await DeassignCourses(user, semesterCourses, ct);
     }
 
+    private async Task AddCourseUsers(IDiscordUser user, CourseAssignment course, CancellationToken ct)
+    {
+        if (!await _coursesContext.CourseUsers.AnyAsync
+            (x => x.CourseKey == course.CourseKey && x.UserDiscordId == user.DiscordId, ct))
+        {
+            _coursesContext.Add
+            (
+                new CourseUser
+                {
+                    CourseKey = course.CourseKey,
+                    UserDiscordId = user.DiscordId
+                }
+            );
+            await _coursesContext.SaveChangesAsync(ct);
+        }
+    }
+
+    private async Task RemoveCourseUsers(IDiscordUser user, CourseAssignment course, CancellationToken ct)
+    {
+        var courseUsers = await _coursesContext.CourseUsers
+            .Where(x => x.CourseKey == course.CourseKey && x.UserDiscordId == user.DiscordId)
+            .ToListAsync(ct);
+        _coursesContext.RemoveRange(courseUsers);
+        await _coursesContext.SaveChangesAsync(ct);
+    }
+
     private async Task<Result<CourseAssignment?>> GetCourseAssignment(string courseKey)
     {
         try
         {
             return await _coursesContext.Set<CourseAssignment>()
+                .AsNoTracking()
                 .Include(x => x.GroupAssignment)
                 .FirstOrDefaultAsync(x => x.CourseKey == courseKey);
         }
@@ -207,12 +266,13 @@ public class CoursesChannelUserAssigner
     private async Task<CoursesAssignmentResult> DoCoursesOperationAsync
     (
         IEnumerable<string> courseKeys,
-        Func<CourseAssignment, CancellationToken, Task<Result>> operation,
+        Func<CourseAssignment, CancellationToken, Task<Result<bool>>> operation,
         CancellationToken ct = default
     )
     {
         var errors = new Dictionary<string, Result>();
-        var successful = new List<CourseAssignment>();
+        var assigned = new List<CourseAssignment>();
+        var deassigned = new List<CourseAssignment>();
         var missing = new List<string>();
 
         foreach (var courseKey in courseKeys)
@@ -233,22 +293,44 @@ public class CoursesChannelUserAssigner
                 continue;
             }
 
-            Result operationResult = Result.FromSuccess();
-            if (successful.All(x => x.ChannelId != course.ChannelId))
+            Result<bool> operationResult;
+            if (assigned.Any(x => x.ChannelId == course.ChannelId))
             {
-                operationResult = await operation(course, ct);
+                operationResult = true;
             }
-
-            if (operationResult.IsSuccess)
+            else if (deassigned.Any(x => x.ChannelId == course.ChannelId))
             {
-                successful.Add(course);
+                operationResult = false;
             }
             else
             {
-                errors.Add(courseKey, operationResult);
+                try
+                {
+                    operationResult = await operation(course, ct);
+                }
+                catch (Exception e)
+                {
+                    operationResult = e;
+                }
+            }
+
+            if (operationResult.IsDefined(out var operationAssigned))
+            {
+                if (operationAssigned)
+                {
+                    assigned.Add(course);
+                }
+                else
+                {
+                    deassigned.Add(course);
+                }
+            }
+            else
+            {
+                errors.Add(courseKey, Result.FromError(operationResult));
             }
         }
 
-        return new CoursesAssignmentResult(successful, missing, errors);
+        return new CoursesAssignmentResult(assigned, deassigned, missing, errors);
     }
 }

@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
         return serviceCollection
             .AddSingleton<IStringLocalizerFactory, JsonStringLocalizerFactory>()
             .AddTransient(typeof(IStringLocalizer<>), typeof(StringLocalizer<>))
+            .AddTransient(typeof(LocalizedStringLocalizer<>))
             .AddTransient(p => p.GetRequiredService<IStringLocalizerFactory>().Create("Default"));
     }
 }

@@ -7,6 +7,7 @@
 using System.Linq.Expressions;
 using Christofel.Common.Database;
 using Christofel.Common.User;
+using Christofel.CoursesLib.Data;
 using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Extensions;
 using Kos.Abstractions;
@@ -101,7 +102,8 @@ public class CoursesRepository
             var predicates = searchKeys.Select
             (
                 k => (Expression<Func<CourseAssignment, bool>>)(x
-                    => x.CourseKey.Contains(k) || x.CourseName.Contains(k) || (x.ChannelName != null && x.ChannelName.Contains(k)))
+                    => x.CourseKey.Contains(k) || x.CourseName.Contains
+                        (k) || (x.ChannelName != null && x.ChannelName.Contains(k)))
             );
 
             var courseAssignments = await _coursesContext.Set<CourseAssignment>()
@@ -203,5 +205,33 @@ public class CoursesRepository
             .Where(x => x.Course is not null)
             .Select(x => x.Course!.GetKey())
             .ToArray();
+    }
+
+    /// <summary>
+    /// Joins <see cref="CourseAssignment"/> with the given user data saying whether the user is a member of the given course.
+    /// </summary>
+    /// <param name="courses">The courses to join with the user data.</param>
+    /// <param name="userId">The id of the user.</param>
+    /// <param name="ct">The cancellation token used for cancelling the operation.</param>
+    /// <returns>The joined data.</returns>
+    public async Task<Result<IReadOnlyList<CourseUserData>>> JoinWithUserData
+        (IReadOnlyList<CourseAssignment> courses, Snowflake userId, CancellationToken ct)
+    {
+        var courseKeys = courses.Select(x => x.CourseKey).ToArray();
+        var courseUsers = new HashSet<string>
+        (
+            await _coursesContext.Set<CourseUser>()
+                .Where(x => x.UserDiscordId == userId && courseKeys.Contains(x.CourseKey))
+                .Select(x => x.CourseKey)
+                .ToListAsync(ct)
+        );
+
+        var joinedCourses = new List<CourseUserData>();
+        foreach (var course in courses)
+        {
+            joinedCourses.Add(new CourseUserData(course, courseUsers.Any(x => x == course.CourseKey)));
+        }
+
+        return joinedCourses;
     }
 }
