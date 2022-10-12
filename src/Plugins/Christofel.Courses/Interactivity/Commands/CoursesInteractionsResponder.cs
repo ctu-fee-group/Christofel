@@ -300,17 +300,8 @@ public class CoursesInteractionsResponder : CommandGroup
             return joinedCoursesResult;
         }
 
-        // TODO: save to memory service
-        return await _feedbackData.SendContextualMessageDataAsync
-        (
-            _coursesInteractivityFormatter.FormatCoursesMessage
-            (
-                _localizer.Translate("SEARCH_COURSE_SUCCESS", language),
-                joinedCourses
-            ),
-            false,
-            CancellationToken
-        );
+        return await _courseMessageInteractivity.SendCoursesMessagesAsync
+            (_localizer.Translate("SEARCH_COURSE_SUCCESS"), courseAssignments, CancellationToken);
     }
 
     private async Task<string> GetSemester(SemesterSelector semesterSelector)
