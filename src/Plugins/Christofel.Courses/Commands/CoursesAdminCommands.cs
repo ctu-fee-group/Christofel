@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel;
+using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.Permissions;
 using Christofel.Courses.Data;
 using Christofel.Courses.Interactivity;
@@ -22,6 +23,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Feedback.Services;
+using Remora.Discord.Gateway.Responders;
 using Remora.Rest.Core;
 using Remora.Results;
 
@@ -35,50 +37,22 @@ namespace Christofel.Courses.Commands;
 [Ephemeral]
 public class CoursesAdminCommands : CommandGroup
 {
-    private readonly ICommandContext _commandContext;
-    private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
     private readonly CoursesChannelCreator _channelCreator;
     private readonly FeedbackService _feedbackService;
-    private readonly IDbContextFactory<CoursesContext> _coursesContext;
-    private readonly ILogger<CoursesAdminCommands> _logger;
-    private readonly InteractivityCultureProvider _cultureProvider;
-    private readonly LocalizationOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesAdminCommands"/> class.
     /// </summary>
-    /// <param name="commandContext">The command context.</param>
-    /// <param name="channelApi">The discord rest channel api.</param>
-    /// <param name="coursesInteractivityFormatter">The courses interactivity responder.</param>
     /// <param name="channelCreator">The courses channel creator.</param>
     /// <param name="feedbackService">The feedback service.</param>
-    /// <param name="options">The options.</param>
-    /// <param name="coursesContext">The courses context factory.</param>
-    /// <param name="cultureProvider">The culture provider.</param>
-    /// <param name="logger">The logger.</param>
     public CoursesAdminCommands
     (
-        ICommandContext commandContext,
-        IDiscordRestChannelAPI channelApi,
-        CoursesInteractivityFormatter coursesInteractivityFormatter,
         CoursesChannelCreator channelCreator,
-        FeedbackService feedbackService,
-        IOptionsSnapshot<LocalizationOptions> options,
-        IDbContextFactory<CoursesContext> coursesContext,
-        InteractivityCultureProvider cultureProvider,
-        ILogger<CoursesAdminCommands> logger
+        FeedbackService feedbackService
     )
     {
-        _commandContext = commandContext;
-        _channelApi = channelApi;
-        _coursesInteractivityFormatter = coursesInteractivityFormatter;
         _channelCreator = channelCreator;
         _feedbackService = feedbackService;
-        _coursesContext = coursesContext;
-        _logger = logger;
-        _cultureProvider = cultureProvider;
-        _options = options.Value;
     }
 
     /// <summary>
@@ -102,116 +76,132 @@ public class CoursesAdminCommands : CommandGroup
     }
 
     /// <summary>
-    /// Send the main interactivity message.
+    /// A command group for /coursesadmin interactivity subcommand.
     /// </summary>
-    /// <param name="language">The language of the message.</param>
-    /// <param name="channel">The channel to send the message to.</param>
-    /// <returns>A result that may or may not have succeeded.</returns>
-    [Command("interactivity")]
-    [Description("Send the interactivity main message.")]
-    public async Task<IResult> HandleSendInteractivityAsync
-    (
-        [Description("The language of the main message.")]
-        string language,
-        [Description("The channel to send the message to. (default current channel)")]
-        Snowflake? channel = default
-    )
+    [Group("interactivity")]
+    public class Interactivity : CommandGroup
     {
-        _cultureProvider.CurrentCulture = language;
-        var channelId = channel ?? _commandContext.ChannelID;
-        var mainMessage = _coursesInteractivityFormatter.FormatMainMessage
-            (string.Empty, _options.SupportedLanguages);
-        var messageResult = await _channelApi.CreateMessageAsync
-        (
-            channelId,
-            mainMessage.Content,
-            components: new Optional<IReadOnlyList<IMessageComponent>>(mainMessage.Components),
-            ct: CancellationToken
-        );
+        private readonly ICommandContext _commandContext;
+        private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
+        private readonly FeedbackService _feedbackService;
+        private readonly IDbContextFactory<CoursesContext> _coursesContext;
+        private readonly ILogger<CoursesAdminCommands> _logger;
+        private readonly InteractivityCultureProvider _cultureProvider;
+        private readonly LocalizationOptions _options;
 
-        if (!messageResult.IsSuccess)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Interactivity"/> class.
+        /// </summary>
+        /// <param name="commandContext">The command context.</param>
+        /// <param name="channelApi">The discord rest channel api.</param>
+        /// <param name="coursesInteractivityFormatter">The courses interactivity responder.</param>
+        /// <param name="feedbackService">The feedback service.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="coursesContext">The courses context factory.</param>
+        /// <param name="cultureProvider">The culture provider.</param>
+        /// <param name="logger">The logger.</param>
+        public Interactivity
+        (
+            ICommandContext commandContext,
+            IDiscordRestChannelAPI channelApi,
+            CoursesInteractivityFormatter coursesInteractivityFormatter,
+            FeedbackService feedbackService,
+            IOptionsSnapshot<LocalizationOptions> options,
+            IDbContextFactory<CoursesContext> coursesContext,
+            InteractivityCultureProvider cultureProvider,
+            ILogger<CoursesAdminCommands> logger
+        )
         {
-            await _feedbackService.SendContextualErrorAsync
-                ($"Could not send the message. {messageResult.Error.Message}");
-            return messageResult;
+            _commandContext = commandContext;
+            _channelApi = channelApi;
+            _coursesInteractivityFormatter = coursesInteractivityFormatter;
+            _feedbackService = feedbackService;
+            _coursesContext = coursesContext;
+            _logger = logger;
+            _cultureProvider = cultureProvider;
+            _options = options.Value;
         }
 
-        return await _feedbackService.SendContextualSuccessAsync("The message was sent.");
-    }
-
-    /// <summary>
-    /// Tries to solve inconsistencies in the database, just a temporary command.
-    /// </summary>
-    /// <returns>A result that may or may not have succeeded.</returns>
-    [Command("inconsistencies")]
-    [Obsolete]
-    public async Task<IResult> HandleInconsistenciesAsync()
-    {
-        await _feedbackService.SendContextualInfoAsync("Okay.");
-        await using (var context = await _coursesContext.CreateDbContextAsync())
+        /// <summary>
+        /// Send the main interactivity message.
+        /// </summary>
+        /// <param name="language">The language of the message.</param>
+        /// <param name="channel">The channel to send the message to.</param>
+        /// <returns>A result that may or may not have succeeded.</returns>
+        [Command("send")]
+        [Description("Send the interactivity main message.")]
+        public async Task<IResult> HandleSendInteractivityAsync
+        (
+            [Description("The language of the main message.")]
+            string language,
+            [Description("The channel to send the message to. (default current channel)")]
+            Snowflake? channel = default
+        )
         {
-            var groupAssignments = new HashSet<ulong>();
+            _cultureProvider.CurrentCulture = language;
+            var channelId = channel ?? _commandContext.ChannelID;
+            var mainMessage = _coursesInteractivityFormatter.FormatMainMessage
+                (string.Empty, _options.SupportedLanguages);
+            var messageResult = await _channelApi.CreateMessageAsync
+            (
+                channelId,
+                mainMessage.Content,
+                components: new Optional<IReadOnlyList<IMessageComponent>>(mainMessage.Components),
+                ct: CancellationToken
+            );
 
-            foreach (var courseAssignment in await context.CourseAssignments.ToListAsync(CancellationToken))
-            {
-                try
-                {
-                    if (!groupAssignments.Contains(courseAssignment.ChannelId.Value))
-                    {
-                        var groupAssignment = await context.CourseGroupAssignments
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(x => x.ChannelId == courseAssignment.ChannelId);
-
-                        if (groupAssignment is null)
-                        {
-                            groupAssignment = new CourseGroupAssignment()
-                            {
-                                ChannelId = courseAssignment.ChannelId
-                            };
-
-                            context.Add(groupAssignment);
-                        }
-                        groupAssignments.Add(groupAssignment.ChannelId.Value);
-                    }
-
-                    if (string.IsNullOrWhiteSpace(courseAssignment.ChannelName))
-                    {
-                        var channelResult = await _channelApi.GetChannelAsync
-                            (courseAssignment.ChannelId, CancellationToken);
-                        if (!channelResult.IsDefined(out var channel))
-                        {
-                            await _feedbackService.SendContextualWarningAsync
-                            (
-                                $"Could not find channel {courseAssignment.ChannelId} for course {courseAssignment.CourseKey}."
-                            );
-                            continue;
-                        }
-
-                        courseAssignment.ChannelName = channel.Name.HasValue ? channel.Name.Value : null;
-                    }
-                }
-                catch (Exception e)
-                {
-                    await _feedbackService.SendContextualErrorAsync
-                        ($"There was an error when processing {courseAssignment.CourseKey}: " + e.Message);
-                    _logger.LogError(e, $"There was an error when processing {courseAssignment.CourseKey}");
-                }
-            }
-
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (Exception e)
+            if (!messageResult.IsSuccess)
             {
                 await _feedbackService.SendContextualErrorAsync
-                    ($"There was an error while saving: " + e.Message);
-                _logger.LogError(e, $"There was an error while saving resolved inconsistencies");
+                    ($"Could not send the message. {messageResult.Error.Message}");
+                return messageResult;
             }
+
+            return await _feedbackService.SendContextualSuccessAsync("The message was sent.");
         }
 
-        await _feedbackService.SendContextualInfoAsync("Done.");
-        return Result.FromSuccess();
+        /// <summary>
+        /// Send the main interactivity message.
+        /// </summary>
+        /// <param name="messageId">The id of the message.</param>
+        /// <param name="language">The language of the message.</param>
+        /// <param name="channel">The channel to send the message to.</param>
+        /// <returns>A result that may or may not have succeeded.</returns>
+        [Command("edit")]
+        [Description("Send the interactivity main message.")]
+        public async Task<IResult> HandleEditInteractivityAsync
+        (
+            [Description("The id of the message to edit.")]
+            Snowflake messageId,
+            [Description("The language of the main message.")]
+            string language,
+            [Description("The channel the message is in. (default this channel)")]
+            Snowflake? channel = default
+        )
+        {
+            _cultureProvider.CurrentCulture = language;
+            var channelId = channel ?? _commandContext.ChannelID;
+            var mainMessage = _coursesInteractivityFormatter.FormatMainMessage
+                (string.Empty, _options.SupportedLanguages);
+            var messageResult = await _channelApi.EditMessageAsync
+            (
+                channelId,
+                messageId,
+                mainMessage.Content,
+                components: new Optional<IReadOnlyList<IMessageComponent>?>(mainMessage.Components),
+                ct: CancellationToken
+            );
+
+            if (!messageResult.IsSuccess)
+            {
+                await _feedbackService.SendContextualErrorAsync
+                    ($"Could not send the message. {messageResult.Error.Message}");
+                return messageResult;
+            }
+
+            return await _feedbackService.SendContextualSuccessAsync("The message was edited.");
+        }
     }
 
     /// <summary>
