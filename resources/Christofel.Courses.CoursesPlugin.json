@@ -1,26 +1,10 @@
 [
   {
-    "Name": "CHOOSE_COURSE_Join",
-    "Value": "To join any course, click on the button below."
-  },
-  {
-    "Name": "CHOOSE_COURSE_Leave",
-    "Value": "To leave any course, click on the button below."
-  },
-  {
-    "Name": "CHOOSE_COURSE_Toggle",
-    "Value": "To toggle any course, click on the button below."
+    "Name": "CHOOSE_COURSE",
+    "Value": "To get a course channel added or removed, click on the associated button below this message. Green button adds the course channel. Red button removes the course channel."
   },
   {
     "Name": "CHOOSE_DEPARTMENT_Join",
-    "Value": "Choose a department that the course you are looking for is under."
-  },
-  {
-    "Name": "CHOOSE_DEPARTMENT_Leave",
-    "Value": "Choose a de\rpartment that the course you are looking for is under."
-  },
-  {
-    "Name": "CHOOSE_DEPARTMENT_Toggle",
     "Value": "Choose a department that the course you are looking for is under."
   },
   {
@@ -44,28 +28,16 @@
     "Value": "Could not find any course for the given criteria."
   },
   {
-    "Name": "COURSES_SUCCESSFULLY_Join_PREFIX",
+    "Name": "COURSES_SUCCESSFULLY_ASSIGNED",
     "Value": "Successfully assigned you to these courses"
   },
   {
-    "Name": "COURSES_SUCCESSFULLY_Leave_PREFIX",
+    "Name": "COURSES_SUCCESSFULLY_DEASSIGNED",
     "Value": "Successfully deassigned you from these courses"
-  },
-  {
-    "Name": "COURSES_SUCCESSFULLY_Toggle_PREFIX",
-    "Value": "Successfully toggled these courses"
   },
   {
     "Name": "COURSE_BY_CHANNEL_NOT_FOUND",
     "Value": "Could not find any course for the given channel."
-  },
-  {
-    "Name": "COURSE_BY_DEPARTMENT_JOIN_BUTTON",
-    "Value": "Join course by department"
-  },
-  {
-    "Name": "COURSE_BY_DEPARTMENT_LEAVE_BUTTON",
-    "Value": "Leave course by department"
   },
   {
     "Name": "COURSE_BY_KEYS_JOIN_BUTTON",
@@ -141,7 +113,11 @@
   },
   {
     "Name": "SEARCH_COURSES_BUTTON",
-    "Value": "Search courses"
+    "Value": "Search for courses"
+  },
+  {
+    "Name": "SEARCH_COURSES_BY_DEPARTMENT_BUTTON",
+    "Value": "Search for courses by department"
   },
   {
     "Name": "SEARCH_COURSES_BY_SEMESTER_BUTTON",

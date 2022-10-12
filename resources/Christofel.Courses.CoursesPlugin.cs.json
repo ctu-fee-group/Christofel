@@ -1,26 +1,10 @@
 [
   {
-    "Name": "CHOOSE_COURSE_Join",
-    "Value": "Pro přiřazení do předmětu klikni na příslušné tlačítko pod zprávou."
+    "Name": "CHOOSE_COURSE",
+    "Value": "Pro přiřazení nebo odebrání kanálu předmětu klikni na příslušné tlačítko pod zprávou. Zelené tlačítko předmět přidává, červené předmět odebírá."
   },
   {
-    "Name": "CHOOSE_COURSE_Leave",
-    "Value": "Pro odebrání z předmětu klikni na příslušné tlačítko pod zprávou."
-  },
-  {
-    "Name": "CHOOSE_COURSE_Toggle",
-    "Value": "Pro přepnutí předmětu klikni na příslušné tlačítko pod zprávou."
-  },
-  {
-    "Name": "CHOOSE_DEPARTMENT_Join",
-    "Value": "Zvol katedru, pod kterou je vypsaný předmět, který hledáš."
-  },
-  {
-    "Name": "CHOOSE_DEPARTMENT_Leave",
-    "Value": "Zvol katedru, pod kterou je vypsaný předmět, který hledáš."
-  },
-  {
-    "Name": "CHOOSE_DEPARTMENT_Toggle",
+    "Name": "CHOOSE_DEPARTMENT",
     "Value": "Zvol katedru, pod kterou je vypsaný předmět, který hledáš."
   },
   {
@@ -44,28 +28,20 @@
     "Value": "Nenašel jsem žádné předměty vyhovující danému kritériu."
   },
   {
-    "Name": "COURSES_SUCCESSFULLY_Join_PREFIX",
+    "Name": "COURSES_SUCCESSFULLY_ASSIGNED",
     "Value": "Přiřadil jsem tě do těchto předmětů"
   },
   {
-    "Name": "COURSES_SUCCESSFULLY_Leave_PREFIX",
+    "Name": "COURSES_SUCCESSFULLY_DEASSIGNED",
     "Value": "Odebral jsem tě z těchto předmětů"
-  },
-  {
-    "Name": "COURSES_SUCCESSFULLY_Toggle_PREFIX",
-    "Value": "Přepnul jsem ti tyto předměty"
   },
   {
     "Name": "COURSE_BY_CHANNEL_NOT_FOUND",
     "Value": "Nenašel jsem žádné předměty pro daný kanál."
   },
   {
-    "Name": "COURSE_BY_DEPARTMENT_JOIN_BUTTON",
-    "Value": "Přiřadit předměty podle katedry"
-  },
-  {
-    "Name": "COURSE_BY_DEPARTMENT_LEAVE_BUTTON",
-    "Value": "Odebrat předměty podle katedry"
+    "Name": "SEARCH_COURSES_BY_DEPARTMENT_BUTTON",
+    "Value": "Vyhledat předměty podle katedry"
   },
   {
     "Name": "COURSE_BY_KEYS_JOIN_BUTTON",
