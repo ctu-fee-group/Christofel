@@ -12,7 +12,9 @@ using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.Courses.Commands;
+using Christofel.Courses.Data;
 using Christofel.Courses.Interactivity;
+using Christofel.Courses.Interactivity.Commands;
 using Christofel.CoursesLib.Extensions;
 using Christofel.Helpers.Localization;
 using Christofel.LGPLicensed.Interactivity;
@@ -24,7 +26,10 @@ using Kos.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
+using Remora.Discord.API.Gateway.Events;
 using Remora.Discord.Gateway.Extensions;
+using Remora.Discord.Interactivity.Services;
+using Remora.Rest.Core;
 
 namespace Christofel.Courses
 {
@@ -82,6 +87,10 @@ namespace Christofel.Courses
                 .WithCommandGroup<CoursesInteractionsResponder>();
 
             serviceCollection
+                .AddScoped<CourseMessageInteractivity>()
+                .AddScoped<InteractivityCultureProvider>()
+                .AddScoped<ICultureProvider, InteractivityCultureProvider>(p => p.GetRequiredService<InteractivityCultureProvider>())
+                .AddSingleton(InMemoryDataService<Snowflake, CoursesAssignMessage>.Instance)
                 .AddSingleton<CoursesInteractivityFormatter>();
 
             return serviceCollection

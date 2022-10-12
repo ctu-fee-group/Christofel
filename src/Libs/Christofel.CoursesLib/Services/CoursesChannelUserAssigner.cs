@@ -224,7 +224,7 @@ public class CoursesChannelUserAssigner
 
     private async Task AddCourseUsers(IDiscordUser user, CourseAssignment course, CancellationToken ct)
     {
-        if (await _coursesContext.CourseUsers.AllAsync
+        if (!await _coursesContext.CourseUsers.AnyAsync
             (x => x.CourseKey == course.CourseKey && x.UserDiscordId == user.DiscordId, ct))
         {
             _coursesContext.Add
@@ -235,7 +235,7 @@ public class CoursesChannelUserAssigner
                     UserDiscordId = user.DiscordId
                 }
             );
-            await _coursesContext.SaveChangesAsync();
+            await _coursesContext.SaveChangesAsync(ct);
         }
     }
 
@@ -245,7 +245,7 @@ public class CoursesChannelUserAssigner
             .Where(x => x.CourseKey == course.CourseKey && x.UserDiscordId == user.DiscordId)
             .ToListAsync(ct);
         _coursesContext.RemoveRange(courseUsers);
-        await _coursesContext.SaveChangesAsync();
+        await _coursesContext.SaveChangesAsync(ct);
     }
 
     private async Task<Result<CourseAssignment?>> GetCourseAssignment(string courseKey)

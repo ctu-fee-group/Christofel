@@ -6,6 +6,7 @@
 
 using System.ComponentModel;
 using Christofel.CommandsLib.Permissions;
+using Christofel.Courses.Data;
 using Christofel.Courses.Interactivity;
 using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Services;
@@ -41,6 +42,7 @@ public class CoursesAdminCommands : CommandGroup
     private readonly FeedbackService _feedbackService;
     private readonly IDbContextFactory<CoursesContext> _coursesContext;
     private readonly ILogger<CoursesAdminCommands> _logger;
+    private readonly InteractivityCultureProvider _cultureProvider;
     private readonly LocalizationOptions _options;
 
     /// <summary>
@@ -53,6 +55,7 @@ public class CoursesAdminCommands : CommandGroup
     /// <param name="feedbackService">The feedback service.</param>
     /// <param name="options">The options.</param>
     /// <param name="coursesContext">The courses context factory.</param>
+    /// <param name="cultureProvider">The culture provider.</param>
     /// <param name="logger">The logger.</param>
     public CoursesAdminCommands
     (
@@ -63,6 +66,7 @@ public class CoursesAdminCommands : CommandGroup
         FeedbackService feedbackService,
         IOptionsSnapshot<LocalizationOptions> options,
         IDbContextFactory<CoursesContext> coursesContext,
+        InteractivityCultureProvider cultureProvider,
         ILogger<CoursesAdminCommands> logger
     )
     {
@@ -73,6 +77,7 @@ public class CoursesAdminCommands : CommandGroup
         _feedbackService = feedbackService;
         _coursesContext = coursesContext;
         _logger = logger;
+        _cultureProvider = cultureProvider;
         _options = options.Value;
     }
 
@@ -112,9 +117,10 @@ public class CoursesAdminCommands : CommandGroup
         Snowflake? channel = default
     )
     {
+        _cultureProvider.CurrentCulture = language;
         var channelId = channel ?? _commandContext.ChannelID;
         var mainMessage = _coursesInteractivityFormatter.FormatMainMessage
-            (string.Empty, language, _options.SupportedLanguages);
+            (string.Empty, _options.SupportedLanguages);
         var messageResult = await _channelApi.CreateMessageAsync
         (
             channelId,
