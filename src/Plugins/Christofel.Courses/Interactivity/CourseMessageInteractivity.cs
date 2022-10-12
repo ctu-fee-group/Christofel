@@ -10,6 +10,7 @@ using Christofel.CoursesLib.Data;
 using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Services;
 using Christofel.Helpers.Localization;
+using Christofel.Plugins.Lifetime;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
@@ -26,12 +27,18 @@ namespace Christofel.Courses.Interactivity;
 /// </summary>
 public class CourseMessageInteractivity
 {
+    /// <summary>
+    /// The time to keep the information about courses message in memory service in seconds.
+    /// </summary>
+    private const int KEEP_MEMORY_COURSES_TIME = 20 * 60 * 1000;
+
     private readonly InteractionContext _commandContext;
     private readonly CoursesChannelUserAssigner _channelUserAssigner;
     private readonly CoursesRepository _coursesRepository;
     private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
     private readonly InMemoryDataService<Snowflake, CoursesAssignMessage> _memoryDataService;
     private readonly LocalizedStringLocalizer<CoursesPlugin> _localizer;
+    private readonly ICurrentPluginLifetime _lifetime;
     private readonly FeedbackData _feedbackData;
 
     /// <summary>
@@ -45,6 +52,7 @@ public class CourseMessageInteractivity
     /// <param name="coursesInteractivityFormatter">The courses interactivity formatter.</param>
     /// <param name="memoryDataService">The memory data service.</param>
     /// <param name="localizer">The localizer.</param>
+    /// <param name="lifetime">The plugin lifetime.</param>
     public CourseMessageInteractivity
     (
         FeedbackService feedbackService,
@@ -54,7 +62,8 @@ public class CourseMessageInteractivity
         CoursesRepository coursesRepository,
         CoursesInteractivityFormatter coursesInteractivityFormatter,
         InMemoryDataService<Snowflake, CoursesAssignMessage> memoryDataService,
-        LocalizedStringLocalizer<CoursesPlugin> localizer
+        LocalizedStringLocalizer<CoursesPlugin> localizer,
+        ICurrentPluginLifetime lifetime
     )
     {
         _commandContext = commandContext;
@@ -63,6 +72,7 @@ public class CourseMessageInteractivity
         _coursesInteractivityFormatter = coursesInteractivityFormatter;
         _memoryDataService = memoryDataService;
         _localizer = localizer;
+        _lifetime = lifetime;
         _feedbackData = new FeedbackData(commandContext, interactionApi, feedbackService);
     }
 
@@ -124,6 +134,15 @@ public class CourseMessageInteractivity
                 return Result.FromError
                     (new InvalidOperationError("Could not add course message data to the memory service."));
             }
+
+            Task.Run
+            (
+                async () =>
+                {
+                    await Task.Delay(KEEP_MEMORY_COURSES_TIME, _lifetime.Stopping);
+                    await _memoryDataService.TryRemoveDataAsync(sentMessage.ID);
+                }
+            );
         }
 
         return Result.FromSuccess();
