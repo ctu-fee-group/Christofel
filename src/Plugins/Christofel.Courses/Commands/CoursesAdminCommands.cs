@@ -202,6 +202,78 @@ public class CoursesAdminCommands : CommandGroup
 
             return await _feedbackService.SendContextualSuccessAsync("The message was edited.");
         }
+
+        /// <summary>
+        /// Tries to sync users courses in the database, just a temporary command.
+        /// </summary>
+        /// <returns>A result that may or may not have succeeded.</returns>
+        [Command("syncassignments")]
+        [Obsolete]
+        public async Task<IResult> HandleSyncChannelAssignments()
+        {
+            await _feedbackService.SendContextualInfoAsync("Okay.");
+            await using (var context = await _coursesContext.CreateDbContextAsync())
+            {
+                foreach (var courseAssignment in await context.CourseAssignments.ToListAsync(CancellationToken))
+                {
+                    try
+                    {
+                        var channelResult = await _channelApi.GetChannelAsync
+                            (courseAssignment.ChannelId, CancellationToken);
+
+                        if (!channelResult.IsDefined(out var channel))
+                        {
+                            _logger.LogResultError(channelResult);
+                            continue;
+                        }
+
+                        if (!channel.PermissionOverwrites.IsDefined(out var permissions))
+                        {
+                            continue;
+                        }
+
+                        foreach (var permissionOverwrite in permissions)
+                        {
+                            var hasViewPermission = permissionOverwrite.Allow.HasPermission
+                                    (DiscordPermission.ViewChannel)
+                                && permissionOverwrite.Type == PermissionOverwriteType.Member;
+
+                            if (hasViewPermission)
+                            {
+                                context.Add
+                                (
+                                    new CourseUser
+                                    {
+                                        CourseKey = courseAssignment.CourseKey,
+                                        UserDiscordId = permissionOverwrite.ID
+                                    }
+                                );
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        await _feedbackService.SendContextualErrorAsync
+                            ($"There was an error when processing {courseAssignment.CourseKey}: " + e.Message);
+                        _logger.LogError(e, $"There was an error when processing {courseAssignment.CourseKey}");
+                    }
+                }
+
+                try
+                {
+                    await context.SaveChangesAsync();
+                }
+                catch (Exception e)
+                {
+                    await _feedbackService.SendContextualErrorAsync
+                        ($"There was an error while saving: " + e.Message);
+                    _logger.LogError(e, $"There was an error while saving resolved inconsistencies");
+                }
+            }
+
+            await _feedbackService.SendContextualInfoAsync("Done.");
+            return Result.FromSuccess();
+        }
     }
 
     /// <summary>
