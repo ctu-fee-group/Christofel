@@ -359,7 +359,9 @@ public class CoursesInteractivityFormatter
 
         foreach (var currentData in data)
         {
-            if (ShouldChunk(currentContent, string.Empty, currentComponents))
+            var generated = generateAppend(currentData);
+
+            if (ShouldChunk(currentContent, generated.AppendContent ?? string.Empty, currentComponents))
             {
                 if (currentComponents.Count != 0 && ((ActionRowComponent)currentComponents[^1]).Components.Count == 0)
                 {
@@ -377,8 +379,6 @@ public class CoursesInteractivityFormatter
                 currentRowComponents = new List<IMessageComponent>();
                 currentComponents.Add(new ActionRowComponent(currentRowComponents));
             }
-
-            var generated = generateAppend(currentData);
 
             if (generated.AppendComponent is not null)
             {
