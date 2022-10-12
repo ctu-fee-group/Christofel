@@ -241,7 +241,12 @@ public class CoursesInteractivityFormatter
                                 ButtonComponentStyle.Success,
                                 _localizer.Translate("COURSE_BY_KEYS_JOIN_BUTTON"),
                                 CustomID: CustomIDHelpers.CreateButtonID
-                                    ("keys", "coursesint main", InteractivityCommandType.Join.ToString())
+                                (
+                                    "keys",
+                                    "coursesint main",
+                                    _cultureProvider.CurrentCulture,
+                                    InteractivityCommandType.Join.ToString()
+                                )
                             ),
                             new ButtonComponent
                             (
