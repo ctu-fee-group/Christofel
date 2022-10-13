@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -116,21 +117,30 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 return null;
             }
 
-            var programme = await _kosApi.LoadEntryAsync(student.Content.Programme, token: token);
-
-            if (programme is null)
+            try
             {
-                return null;
+                var programme = await _kosApi.LoadEntryAsync(student.Content.Programme, token: token);
+
+                if (programme is null)
+                {
+                    return null;
+                }
+
+                return programme.Content.ProgrammeType switch
+                {
+                    ProgrammeType.Bachelor => "BachelorProgramme",
+                    ProgrammeType.Master => "MasterProgramme",
+                    ProgrammeType.MasterLegacy => "MasterProgramme",
+                    ProgrammeType.Doctoral => "DoctoralProgramme",
+                    _ => null,
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "There was an exception thrown whilst obtaining a programme.");
             }
 
-            return programme.Content.ProgrammeType switch
-            {
-                ProgrammeType.Bachelor => "BachelorProgramme",
-                ProgrammeType.Master => "MasterProgramme",
-                ProgrammeType.MasterLegacy => "MasterProgramme",
-                ProgrammeType.Doctoral => "DoctoralProgramme",
-                _ => null,
-            };
+            return null;
         }
 
         private async Task<bool> IsTeacherAsync(string username, CancellationToken token = default)
