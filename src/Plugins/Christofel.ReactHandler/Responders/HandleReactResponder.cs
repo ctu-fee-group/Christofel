@@ -290,12 +290,10 @@ namespace Christofel.ReactHandler.Responders
             Snowflake channelId,
             CancellationToken ct
         )
-            => _channelApi.EditChannelPermissionsAsync
+            => _channelApi.DeleteChannelPermissionAsync
             (
                 channelId,
                 userId,
-                deny: new DiscordPermissionSet(DiscordPermission.ViewChannel),
-                type: PermissionOverwriteType.Member,
                 reason: "Reaction handler",
                 ct: ct
             );
