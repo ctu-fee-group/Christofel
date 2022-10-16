@@ -104,7 +104,7 @@ public class CoursesAdminCommands : CommandGroup
         var removeOverwrites = overwrites
             .Where(x => x.Allow.Value == 0 && x.Type == PermissionOverwriteType.Member)
             .ToArray();
-        await _feedbackService.SendContextualInfoAsync($"Will remove {removeOverwrites.Length} overwrites.");
+        await _feedbackService.SendContextualInfoAsync($"There is {overwrites.Count}. Will remove {removeOverwrites.Length} overwrites.");
 
         foreach (var removeOverwrite in removeOverwrites)
         {
