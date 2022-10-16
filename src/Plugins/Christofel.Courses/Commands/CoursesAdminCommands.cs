@@ -101,24 +101,22 @@ public class CoursesAdminCommands : CommandGroup
             return (Result)new InvalidOperationError("Overwrites are empty.");
         }
 
-        var filteredOverwrites = overwrites
-            .Where(x => x.Allow.Value != 0 || x.Type == PermissionOverwriteType.Role)
+        var removeOverwrites = overwrites
+            .Where(x => x.Allow.Value == 0 && x.Type == PermissionOverwriteType.Member)
             .ToArray();
+        await _feedbackService.SendContextualInfoAsync($"Will remove {removeOverwrites.Length} overwrites.");
 
-        var modifiedResult = await _channelApi.ModifyChannelAsync
-        (
-            channelId,
-            permissionOverwrites: new Optional<IReadOnlyList<IPartialPermissionOverwrite>?>(filteredOverwrites),
-            ct: CancellationToken
-        );
-
-        if (!modifiedResult.IsSuccess)
+        foreach (var removeOverwrite in removeOverwrites)
         {
-            await _feedbackService.SendContextualErrorAsync("Could not modify.");
-            return modifiedResult;
+            var deleteResult = await _channelApi.DeleteChannelPermissionAsync(channelId, removeOverwrite.ID, "Deny overwrite is not useful.");
+            if (!deleteResult.IsSuccess)
+            {
+                await _feedbackService.SendContextualErrorAsync($"Could not modify <@{removeOverwrite.ID}>.");
+                return deleteResult;
+            }
         }
 
-        return await _feedbackService.SendContextualSuccessAsync($"Done. There was {overwrites.Count} overwrites. Currently only {filteredOverwrites.Length} remain.");
+        return await _feedbackService.SendContextualSuccessAsync($"Done. Removed {removeOverwrites.Length} overwrites.");
     }
 
     /// <summary>
