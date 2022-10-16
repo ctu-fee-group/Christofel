@@ -39,20 +39,24 @@ public class CoursesAdminCommands : CommandGroup
 {
     private readonly CoursesChannelCreator _channelCreator;
     private readonly FeedbackService _feedbackService;
+    private readonly IDiscordRestChannelAPI _channelApi;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesAdminCommands"/> class.
     /// </summary>
     /// <param name="channelCreator">The courses channel creator.</param>
     /// <param name="feedbackService">The feedback service.</param>
+    /// <param name="channelApi">The discord rest channel api.</param>
     public CoursesAdminCommands
     (
         CoursesChannelCreator channelCreator,
-        FeedbackService feedbackService
+        FeedbackService feedbackService,
+        IDiscordRestChannelAPI channelApi
     )
     {
         _channelCreator = channelCreator;
         _feedbackService = feedbackService;
+        _channelApi = channelApi;
     }
 
     /// <summary>
@@ -73,6 +77,48 @@ public class CoursesAdminCommands : CommandGroup
 
         await _feedbackService.SendContextualErrorAsync($"Could not create the channel. {result.Error.Message}");
         return result;
+    }
+
+    /// <summary>
+    /// Handles removal of permissions.
+    /// </summary>
+    /// <param name="channelId">The id of the channel to remove permissions from.</param>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    [Command("removepermissions")]
+    public async Task<IResult> HandleRemovePermissionsAsync([DiscordTypeHint(TypeHint.Channel)] Snowflake channelId)
+    {
+        var channelResult = await _channelApi.GetChannelAsync(channelId, ct: CancellationToken);
+
+        if (!channelResult.IsDefined(out var channel))
+        {
+            await _feedbackService.SendContextualErrorAsync("Could not get the channel.");
+            return channelResult;
+        }
+
+        if (!channel.PermissionOverwrites.IsDefined(out var overwrites))
+        {
+            await _feedbackService.SendContextualErrorAsync("Could not find overwrites.");
+            return (Result)new InvalidOperationError("Overwrites are empty.");
+        }
+
+        var filteredOverwrites = overwrites
+            .Where(x => x.Allow.Value != 0 || x.Type == PermissionOverwriteType.Role)
+            .ToArray();
+
+        var modifiedResult = await _channelApi.ModifyChannelAsync
+        (
+            channelId,
+            permissionOverwrites: new Optional<IReadOnlyList<IPartialPermissionOverwrite>?>(filteredOverwrites),
+            ct: CancellationToken
+        );
+
+        if (!modifiedResult.IsSuccess)
+        {
+            await _feedbackService.SendContextualErrorAsync("Could not modify.");
+            return modifiedResult;
+        }
+
+        return await _feedbackService.SendContextualSuccessAsync($"Done. There was {overwrites.Count} overwrites. Currently only {filteredOverwrites.Length} remain.");
     }
 
     /// <summary>

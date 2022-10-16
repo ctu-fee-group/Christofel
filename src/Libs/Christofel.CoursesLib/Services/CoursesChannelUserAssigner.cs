@@ -99,12 +99,10 @@ public class CoursesChannelUserAssigner
             {
                 await RemoveCourseUsers(user, course, ct);
 
-                var permissionsResult = await _channelApi.EditChannelPermissionsAsync
+                var permissionsResult = await _channelApi.DeleteChannelPermissionAsync
                 (
                     course.ChannelId,
                     user.DiscordId,
-                    deny: new DiscordPermissionSet(DiscordPermission.ViewChannel),
-                    type: PermissionOverwriteType.Member,
                     reason: "Course assignment",
                     ct: ct
                 );
@@ -149,32 +147,32 @@ public class CoursesChannelUserAssigner
                         (DiscordPermission.ViewChannel) ?? false;
                 }
 
-                var allowSet = new DiscordPermissionSet(!hasViewPermission ? DiscordPermission.ViewChannel : default);
-                var denySet = new DiscordPermissionSet(hasViewPermission ? DiscordPermission.ViewChannel : default);
-
+                IResult permissionsResult;
                 if (hasViewPermission)
                 {
                     await RemoveCourseUsers(user, course, ct);
+
+                    permissionsResult = await _channelApi.DeleteChannelPermissionAsync
+                        (channel.ID, user.DiscordId, "Course assignment", ct: ct);
                 }
                 else
                 {
+                    permissionsResult = await _channelApi.EditChannelPermissionsAsync
+                    (
+                        course.ChannelId,
+                        user.DiscordId,
+                        allow: new DiscordPermissionSet(DiscordPermission.ViewChannel),
+                        type: PermissionOverwriteType.Member,
+                        reason: "Course assignment",
+                        ct: ct
+                    );
+
                     await AddCourseUsers(user, course, ct);
                 }
 
-                var permissionsResult = await _channelApi.EditChannelPermissionsAsync
-                (
-                    course.ChannelId,
-                    user.DiscordId,
-                    allow: allowSet,
-                    deny: denySet,
-                    type: PermissionOverwriteType.Member,
-                    reason: "Course assignment",
-                    ct: ct
-                );
-
                 if (!permissionsResult.IsSuccess)
                 {
-                    return Result<bool>.FromError(permissionsResult);
+                    return Result<bool>.FromError(permissionsResult.Error);
                 }
 
                 return !hasViewPermission;
