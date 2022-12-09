@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Auth.Tasks.Options;
 using Christofel.Api.Ctu.JobQueue;
+using Christofel.Helpers.JobQueue;
 using Kos;
 using Kos.Abstractions;
 using Kos.Data;

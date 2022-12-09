@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
 
-namespace Christofel.Api.Ctu.JobQueue
+namespace Christofel.Helpers.JobQueue
 {
     /// <summary>
     /// Job queue using thread pool queue.

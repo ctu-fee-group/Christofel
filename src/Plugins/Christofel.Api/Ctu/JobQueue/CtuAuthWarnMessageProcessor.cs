@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Christofel.BaseLib.Extensions;
+using Christofel.Helpers.JobQueue;
 using Christofel.Plugins.Lifetime;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Rest;

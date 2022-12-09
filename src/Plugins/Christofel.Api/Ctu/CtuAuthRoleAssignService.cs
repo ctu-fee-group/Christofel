@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Christofel.Api.Ctu.Database;
 using Christofel.Api.Ctu.JobQueue;
 using Christofel.BaseLib.Extensions;
+using Christofel.Helpers.JobQueue;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Objects;

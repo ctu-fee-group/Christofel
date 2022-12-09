@@ -17,6 +17,7 @@ using Christofel.Api.GraphQL.Types;
 using Christofel.Api.Services;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
+using Christofel.Helpers.JobQueue;
 using Christofel.OAuth;
 using Kos;
 using Kos.Extensions;

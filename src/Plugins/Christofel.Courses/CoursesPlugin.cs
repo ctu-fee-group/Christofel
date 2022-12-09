@@ -15,7 +15,9 @@ using Christofel.Courses.Commands;
 using Christofel.Courses.Data;
 using Christofel.Courses.Interactivity;
 using Christofel.Courses.Interactivity.Commands;
+using Christofel.Courses.Jobs;
 using Christofel.CoursesLib.Extensions;
+using Christofel.Helpers.JobQueue;
 using Christofel.Helpers.Localization;
 using Christofel.LGPLicensed.Interactivity;
 using Christofel.OAuth;
@@ -93,6 +95,9 @@ namespace Christofel.Courses
                 .AddScoped<ICultureProvider, InteractivityCultureProvider>
                     (p => p.GetRequiredService<InteractivityCultureProvider>())
                 .AddSingleton(InMemoryDataService<Snowflake, CoursesAssignMessage>.Instance);
+
+            serviceCollection
+                .AddSingleton<IJobQueue<RemoveMessageProcessor.RemoveMessage>, RemoveMessageProcessor>();
 
             return serviceCollection
                 .AddJsonLocalization()

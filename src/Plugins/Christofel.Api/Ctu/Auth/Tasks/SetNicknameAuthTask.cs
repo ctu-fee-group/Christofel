@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.JobQueue;
 using Christofel.Api.Ctu.Resolvers;
+using Christofel.Helpers.JobQueue;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 

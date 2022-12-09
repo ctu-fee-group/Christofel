@@ -15,17 +15,6 @@ namespace Christofel.CoursesLib.Migrations
         /// <inheritdoc/>
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropUniqueConstraint(
-                name: "AK_CourseGroupAssignment_ChannelId",
-                schema: "Courses",
-                table: "CourseGroupAssignments");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_CourseGroupAssignment_ChannelId",
-                schema: "Courses",
-                table: "CourseGroupAssignments",
-                newName: "IX_CourseGroupAssignments_ChannelId");
-
             migrationBuilder.AlterColumn<string>(
                 name: "Name",
                 schema: "Courses",
@@ -36,12 +25,6 @@ namespace Christofel.CoursesLib.Migrations
                 oldType: "longtext")
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .OldAnnotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.AddUniqueConstraint(
-                name: "AK_CourseGroupAssignments_ChannelId",
-                schema: "Courses",
-                table: "CourseGroupAssignments",
-                column: "ChannelId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_CourseAssignments_CourseGroupAssignments_ChannelId",
@@ -62,12 +45,6 @@ namespace Christofel.CoursesLib.Migrations
                 schema: "Courses",
                 table: "CourseGroupAssignments");
 
-            migrationBuilder.RenameIndex(
-                name: "IX_CourseGroupAssignments_ChannelId",
-                schema: "Courses",
-                table: "CourseGroupAssignments",
-                newName: "IX_CourseGroupAssignment_ChannelId");
-
             migrationBuilder.UpdateData(
                 schema: "Courses",
                 table: "CourseGroupAssignments",
@@ -87,12 +64,6 @@ namespace Christofel.CoursesLib.Migrations
                 oldNullable: true)
                 .Annotation("MySql:CharSet", "utf8mb4")
                 .OldAnnotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.AddUniqueConstraint(
-                name: "AK_CourseGroupAssignment_ChannelId",
-                schema: "Courses",
-                table: "CourseGroupAssignments",
-                column: "ChannelId");
         }
     }
 }
