@@ -29,7 +29,7 @@ namespace Christofel.Plugins.Services
 
         private readonly ILogger<PluginService> _logger;
 
-        private readonly IDisposable _onOptionsChange;
+        private readonly IDisposable? _onOptionsChange;
         private readonly PluginStorage _storage;
 
         private PluginServiceOptions _options;
@@ -68,7 +68,7 @@ namespace Christofel.Plugins.Services
         /// <inheritdoc />
         public void Dispose()
         {
-            _onOptionsChange.Dispose();
+            _onOptionsChange?.Dispose();
         }
 
         /// <summary>

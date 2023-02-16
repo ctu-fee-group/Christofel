@@ -59,8 +59,8 @@ public static class FeedbackServiceExtensions
             {
                 var editResult = await feedbackData.InteractionApi.EditOriginalInteractionResponseAsync
                 (
-                    feedbackData.InteractionContext.ApplicationID,
-                    feedbackData.InteractionContext.Token,
+                    feedbackData.InteractionContext.Interaction.ApplicationID,
+                    feedbackData.InteractionContext.Interaction.Token,
                     messageData.Content,
                     components: new Optional<IReadOnlyList<IMessageComponent>?>(messageData.Components),
                     ct: ct

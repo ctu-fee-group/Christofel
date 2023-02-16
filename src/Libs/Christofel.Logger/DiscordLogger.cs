@@ -87,7 +87,9 @@ namespace Christofel.Logger
         public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None;
 
         /// <inheritdoc />
-        public IDisposable BeginScope<TState>(TState state) => ScopeProvider?.Push(state) ?? NullScope.Instance;
+        public IDisposable BeginScope<TState>(TState state)
+            where TState : notnull
+            => ScopeProvider?.Push(state) ?? NullScope.Instance;
 
         private string GetLevelText(LogLevel level) =>
             level switch

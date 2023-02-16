@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
 using Christofel.Common.Database;
@@ -26,6 +27,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -153,7 +155,7 @@ namespace Christofel.Management.Commands
             {
                 var userId = user ?? discordId ?? throw new InvalidOperationException("Validation failed");
 
-                List<string> identities =
+                var identities =
                     (await _identityResolver.GetIdentitiesCtuUsernamesList(userId))
                     .Select(x => $@"CTU username: {x}")
                     .ToList();
@@ -175,16 +177,21 @@ namespace Christofel.Management.Commands
                     return Result.FromError(feedbackResult);
                 }
 
+                if (!_context.TryGetUserID(out var executingUserId))
+                {
+                    return (Result)new GenericError("Could not get user id from context.");
+                }
+
                 if (notifyUser)
                 {
                     try
                     {
                         var commandUserIdentity =
-                            await _identityResolver.GetFirstIdentity(_context.User.ID);
+                            await _identityResolver.GetFirstIdentity(executingUserId.Value);
                         var dmFeedbackResult = await _feedbackService.SendPrivateNeutralAsync
                         (
                             userId,
-                            $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {_context.User.Username}#{_context.User.Discriminator} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu."
+                            $@"Ahoj, uživatel {commandUserIdentity?.CtuUsername ?? "(ČVUT údaje nebyly nalezeny)"} alias {_context.GetUserDiscordHandleOrDefault()} právě zjišťoval tvůj username. Pokud máš pocit, že došlo ke zneužití, kontaktuj podporu."
                         );
 
                         if (!dmFeedbackResult.IsSuccess)

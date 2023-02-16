@@ -10,6 +10,7 @@ using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
+using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway.Responders;
@@ -69,12 +70,7 @@ public class InteractionResponder : IResponder<IInteractionCreate>
             return Result.FromSuccess();
         }
 
-        var contextResult = gatewayEvent.CreateContext();
-        if (!contextResult.IsDefined(out var context))
-        {
-            return Result.FromError(contextResult);
-        }
-        _contextInjectionService.Context = context;
+        _contextInjectionService.Context = new InteractionContext(gatewayEvent);
 
         var interactions = _serviceProvider.GetRequiredService<WelcomeInteractions>();
 

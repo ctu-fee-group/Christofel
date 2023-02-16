@@ -19,6 +19,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Commands.Results;
 using Remora.Rest.Core;
@@ -70,7 +71,12 @@ public class CustomVoiceCommandGroup : CommandGroup
     [Description("Rename the custom voice channel to the given name.")]
     public async Task<Result> HandleRenameAsync(string name)
     {
-        var customVoice = _customVoiceService.GetChannelUserIsConnectedTo(_commandContext.User.ID);
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
+        var customVoice = _customVoiceService.GetChannelUserIsConnectedTo(userId.Value);
         var validationResult = new CommandValidator()
             .MakeSure("voice", customVoice is null ? string.Empty : "notempty", o => o.NotEmpty())
             .MakeSure("name", name, o => o.MaximumLength(100))
@@ -116,8 +122,13 @@ public class CustomVoiceCommandGroup : CommandGroup
         CancellationToken ct
     )
     {
+        if (!commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
         var permissionResult = await customVoiceService.IsPermittedToChangeChannel
-            (commandContext.User.ID, customVoice, ct);
+            (userId.Value, customVoice, ct);
         if (!permissionResult.IsDefined(out var permission))
         {
             return Result.FromError(permissionResult);
@@ -140,7 +151,12 @@ public class CustomVoiceCommandGroup : CommandGroup
         CancellationToken ct
     )
     {
-        var customVoice = customVoiceService.GetChannelUserIsConnectedTo(commandContext.User.ID);
+        if (!commandContext.TryGetUserID(out var userId))
+        {
+            return new GenericError("Could not get user id from context.");
+        }
+
+        var customVoice = customVoiceService.GetChannelUserIsConnectedTo(userId.Value);
         var validationResult = new CommandValidator()
             .MakeSure("voice", customVoice is null ? string.Empty : "notempty", o => o.NotEmpty())
             .Validate()
@@ -269,7 +285,12 @@ public class CustomVoiceCommandGroup : CommandGroup
         public async Task<Result> HandleRemoveAsync
             ([DiscordTypeHint(TypeHint.Mentionable)] OneOf<IPartialGuildMember, IRole> userOrRole)
         {
-            if (userOrRole.IsT0 && userOrRole.AsT0.User.IsDefined(out var user) && user.ID == _commandContext.User.ID)
+            if (!_commandContext.TryGetUserID(out var userId))
+            {
+                return (Result)new GenericError("Could not get user id from context.");
+            }
+
+            if (userOrRole.IsT0 && userOrRole.AsT0.User.IsDefined(out var user) && user.ID == userId.Value)
             {
                 return Result.FromSuccess();
             }

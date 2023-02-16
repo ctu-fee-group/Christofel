@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Services;
 using Remora.Results;
 
@@ -44,11 +45,17 @@ namespace Christofel.CommandsLib.Validator
             CancellationToken ct = default
         )
         {
+            var user = "Unknown";
+            if (context.TryGetUserID(out var userId))
+            {
+                user = $"@{userId}";
+            }
+
             if (!commandResult.IsSuccess && commandResult.Error is ValidationResultError validationResultError)
             {
                 _logger.LogWarning
                 (
-                    $"User <@{context.User.ID}> ({context.User.Username}#{context.User.Discriminator}) has put in invalid data to command, see errors:\n{validationResultError.Message}"
+                    $"User {userId} has put in invalid data to command, see errors:\n{validationResultError.Message}"
                 );
                 var feedbackResult = await _feedbackService.SendContextualValidationError
                     (validationResultError.ValidationFailures, ct);

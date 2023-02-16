@@ -14,8 +14,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.9" />
-      <PackageReference Include="Remora.Discord.Interactivity" Version="4.2.6" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3" />
+      <PackageReference Include="Remora.Discord.Interactivity" Version="4.4.5" />
     </ItemGroup>
 
     <ItemGroup>

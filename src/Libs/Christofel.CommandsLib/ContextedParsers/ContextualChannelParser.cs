@@ -35,6 +35,7 @@ namespace Christofel.CommandsLib.ContextedParsers
     public class ContextualChannelParser : AbstractTypeParser<IPartialChannel>
     {
         private readonly IDiscordRestChannelAPI _channelApi;
+        private readonly ChannelParser _channelParser;
         private readonly ICommandContext _commandContext;
 
         /// <summary>
@@ -42,18 +43,27 @@ namespace Christofel.CommandsLib.ContextedParsers
         /// </summary>
         /// <param name="commandContext">The context of the current command.</param>
         /// <param name="channelApi">The api for getting information about channels.</param>
-        public ContextualChannelParser(ICommandContext commandContext, IDiscordRestChannelAPI channelApi)
+        /// <param name="channelParser">The channel parser.</param>
+        public ContextualChannelParser
+        (
+            ICommandContext commandContext,
+            IDiscordRestChannelAPI channelApi,
+            ChannelParser channelParser
+        )
         {
             _channelApi = channelApi;
+            _channelParser = channelParser;
             _commandContext = commandContext;
         }
 
         /// <inheritdoc />
-        public override async ValueTask<Result<IPartialChannel>> TryParseAsync(string value, CancellationToken ct = default)
+        public override async ValueTask<Result<IPartialChannel>> TryParseAsync
+            (string value, CancellationToken ct = default)
         {
             if (_commandContext is InteractionContext interactionContext &&
                 Snowflake.TryParse(value.Unmention(), out var channelID) &&
-                interactionContext.Data.TryPickT0(out var data, out _) &&
+                interactionContext.Interaction.Data.TryGet(out var interactionData) &&
+                interactionData.TryPickT0(out var data, out _) &&
                 data.Resolved.IsDefined(out var resolved) &&
                 resolved.Channels.IsDefined(out var channels) &&
                 channels.TryGetValue(channelID.Value, out var channel))
@@ -66,7 +76,7 @@ namespace Christofel.CommandsLib.ContextedParsers
                 return new ParsingError<IPartialChannel>("Could not find specified channel in resolved data");
             }
 
-            var result = await new ChannelParser(_channelApi).TryParseAsync(value, ct);
+            var result = await _channelParser.TryParseAsync(value, ct);
 
             if (!result.IsSuccess)
             {

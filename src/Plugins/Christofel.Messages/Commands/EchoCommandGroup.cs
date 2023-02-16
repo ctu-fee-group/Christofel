@@ -14,6 +14,7 @@ using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -72,9 +73,13 @@ namespace Christofel.Messages.Commands
             string text
         )
         {
-            var channelId = _context.ChannelID;
+            if (!_context.TryGetChannelID(out var channelId))
+            {
+                return new GenericError("Could not find channel id in context.");
+            }
+
             var messageResult = await _channelApi.CreateMessageAsync
-                (channelId, text, allowedMentions: AllowedMentionsHelper.None, ct: CancellationToken);
+                (channelId.Value, text, allowedMentions: AllowedMentionsHelper.None, ct: CancellationToken);
             if (!messageResult.IsSuccess)
             {
                 // Ignore as message not sent is more critical
@@ -113,9 +118,13 @@ namespace Christofel.Messages.Commands
             string text
         )
         {
-            var channelId = _context.ChannelID;
+            if (!_context.TryGetChannelID(out var channelId))
+            {
+                return new GenericError("Could not find channel id in context.");
+            }
+
             var messageResult =
-                await _channelApi.GetChannelMessageAsync(channelId, messageId, CancellationToken);
+                await _channelApi.GetChannelMessageAsync(channelId.Value, messageId, CancellationToken);
             if (!messageResult.IsSuccess)
             {
                 // Ignore as message not loaded is more critical
@@ -125,7 +134,7 @@ namespace Christofel.Messages.Commands
 
             var editResult = await _channelApi.EditMessageAsync
             (
-                channelId,
+                channelId.Value,
                 messageId,
                 text,
                 allowedMentions: AllowedMentionsHelper.None,
@@ -160,16 +169,25 @@ namespace Christofel.Messages.Commands
         [RequirePermission("messages.echo.source")]
         public async Task<Result> HandleSource
         (
-            [Description("The id of the message to get source to.")]
-            [DiscordTypeHint(TypeHint.String)]
+            [Description("The id of the message to get source to.")] [DiscordTypeHint(TypeHint.String)]
             Snowflake message,
-            [Description("The channel the message is in.")]
-            [DiscordTypeHint(TypeHint.Channel)]
+            [Description("The channel the message is in.")] [DiscordTypeHint(TypeHint.Channel)]
             Snowflake? channel = default
         )
         {
-            var channelId = channel ?? _context.ChannelID;
-            var messageResult = await _channelApi.GetChannelMessageAsync(channelId, message, CancellationToken);
+            if (!_context.TryGetChannelID(out var executingChannelId))
+            {
+                return new GenericError("Could not find channel id in context.");
+            }
+
+            channel ??= executingChannelId;
+
+            if (channel is null)
+            {
+                return new GenericError("Could not find channel id in context.");
+            }
+
+            var messageResult = await _channelApi.GetChannelMessageAsync(channel.Value, message, CancellationToken);
             if (!messageResult.IsDefined(out var fetchedMessage))
             {
                 return Result.FromError(messageResult);
@@ -177,7 +195,7 @@ namespace Christofel.Messages.Commands
 
             var createdMessageResult = await _channelApi.CreateMessageAsync
             (
-                _context.ChannelID,
+                executingChannelId.Value,
                 "```\n" + fetchedMessage.Content.Replace("```", "\\`\\`\\`") + "\n```",
                 ct: CancellationToken
             );

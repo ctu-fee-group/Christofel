@@ -18,7 +18,7 @@ namespace Christofel.Logger
     public class DiscordLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         private readonly ConcurrentDictionary<string, DiscordLogger> _loggers;
-        private readonly IDisposable _onChangeToken;
+        private readonly IDisposable? _onChangeToken;
         private readonly DiscordLoggerProcessor _queueProcessor;
         private DiscordLoggerOptions _config;
 
@@ -43,7 +43,7 @@ namespace Christofel.Logger
         {
             _loggers.Clear();
             _queueProcessor.Dispose();
-            _onChangeToken.Dispose();
+            _onChangeToken?.Dispose();
         }
 
         /// <inheritdoc />

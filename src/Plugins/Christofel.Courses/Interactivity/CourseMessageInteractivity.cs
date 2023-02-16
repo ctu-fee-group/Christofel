@@ -16,6 +16,7 @@ using Christofel.Plugins.Lifetime;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Interactivity.Services;
@@ -87,8 +88,13 @@ public class CourseMessageInteractivity
     public async Task<IResult> SendCoursesMessagesAsync
         (string prefix, IReadOnlyList<CourseAssignment> courseAssignments, CancellationToken ct)
     {
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
         var joinedCoursesResult = await _coursesRepository.JoinWithUserData
-            (courseAssignments, _commandContext.User.ID, ct);
+            (courseAssignments, userId.Value, ct);
 
         if (!joinedCoursesResult.IsDefined(out var joinedCourses))
         {
@@ -157,7 +163,12 @@ public class CourseMessageInteractivity
         CancellationToken ct
     )
     {
-        var discordUser = new DiscordUser(_commandContext.User.ID);
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
+        var discordUser = new DiscordUser(userId.Value);
         CoursesAssignmentResult coursesAssignmentResult;
 
         switch (commandType)
@@ -179,7 +190,7 @@ public class CourseMessageInteractivity
         }
 
         CoursesAssignMessage? assignMessage = null;
-        if (_commandContext.Message.IsDefined(out var message))
+        if (_commandContext.Interaction.Message.IsDefined(out var message))
         {
             var leasedResult = await _memoryDataService.LeaseDataAsync(message.ID, ct);
             if (leasedResult.IsDefined(out var leased))
@@ -209,7 +220,7 @@ public class CourseMessageInteractivity
         }
 
         var joinedCoursesResult = await _coursesRepository.JoinWithUserData
-            (courseAssignments, _commandContext.User.ID, ct);
+            (courseAssignments, userId.Value, ct);
 
         if (!joinedCoursesResult.IsDefined(out var joinedCourses))
         {

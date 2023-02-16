@@ -95,6 +95,7 @@ namespace Christofel.Management
                 .AddCommandGroup<PermissionCommandsGroup>()
                 .AddCommandGroup<UserCommandsGroup>()
                 .AddCommandGroup<ResendRuleCommandsGroup>()
+                .AddCommandGroup<ChannelRoleCommandsGroup>()
 
                 // Responders
                 .AddResponder<ResendRuleResponder>()

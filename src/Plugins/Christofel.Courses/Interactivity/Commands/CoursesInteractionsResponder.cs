@@ -21,6 +21,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Interactivity;
@@ -109,10 +110,15 @@ public class CoursesInteractionsResponder : CommandGroup
         SemesterSelector semesterSelector
     )
     {
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
         _cultureProvider.CurrentCulture = language;
         var dbUser = await _baseContext.Set<DbUser>()
             .Authenticated()
-            .Where(x => x.DiscordId == _commandContext.User.ID)
+            .Where(x => x.DiscordId == userId.Value)
             .FirstOrDefaultAsync(CancellationToken);
 
         if (dbUser is null)
@@ -262,6 +268,11 @@ public class CoursesInteractionsResponder : CommandGroup
     public async Task<IResult> HandleSearchAsync
         (string language, [Greedy] string courses)
     {
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
         _cultureProvider.CurrentCulture = language;
         var coursesAssignmentResult = await _coursesRepository
             .SearchCourseAssignments
@@ -293,7 +304,7 @@ public class CoursesInteractionsResponder : CommandGroup
         }
 
         var joinedCoursesResult = await _coursesRepository.JoinWithUserData
-            (courseAssignments, _commandContext.User.ID, CancellationToken);
+            (courseAssignments, userId.Value, CancellationToken);
 
         if (!joinedCoursesResult.IsDefined(out var joinedCourses))
         {
@@ -377,8 +388,8 @@ public class CoursesInteractionsResponder : CommandGroup
             _cultureProvider.CurrentCulture = language;
             return await _interactionApi.CreateInteractionResponseAsync
             (
-                _interactionContext.ID,
-                _interactionContext.Token,
+                _interactionContext.Interaction.ID,
+                _interactionContext.Interaction.Token,
                 new InteractionResponse
                 (
                     InteractionCallbackType.Modal,
@@ -429,8 +440,8 @@ public class CoursesInteractionsResponder : CommandGroup
             _cultureProvider.CurrentCulture = language;
             return await _interactionApi.CreateInteractionResponseAsync
             (
-                _interactionContext.ID,
-                _interactionContext.Token,
+                _interactionContext.Interaction.ID,
+                _interactionContext.Interaction.Token,
                 new InteractionResponse
                 (
                     InteractionCallbackType.Modal,

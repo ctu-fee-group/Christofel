@@ -133,7 +133,7 @@ namespace Christofel.Application
         /// <inheritdoc />
         protected override IServiceCollection ConfigureServices(IServiceCollection serviceCollection)
         {
-            return serviceCollection
+            serviceCollection
                 .AddSingleton<IChristofelState, ChristofelState>()
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)
 
@@ -197,9 +197,12 @@ namespace Christofel.Application
 
                 // commands
                 .AddChristofelCommands()
-                .AddCommandGroup<ControlCommands>()
-                .AddCommandGroup<PluginCommands>()
                 .AddSingleton<RefreshChristofel>(RefreshAsync);
+
+            serviceCollection.AddCommandTree()
+                .WithCommandGroup<ControlCommands>()
+                .WithCommandGroup<PluginCommands>();
+            return serviceCollection;
         }
 
         /// <inheritdoc />

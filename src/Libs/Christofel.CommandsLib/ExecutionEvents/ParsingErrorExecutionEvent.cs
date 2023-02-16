@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using OneOf;
@@ -22,9 +23,8 @@ namespace Christofel.CommandsLib.ExecutionEvents
     /// <summary>
     /// Event catching parsing errors for notifying the user about what happened.
     /// </summary>
-    public class ParsingErrorExecutionEvent : IPostExecutionEvent
+    public class ParsingErrorExecutionEvent : IPreparationErrorEvent
     {
-        private readonly ICommandContext _commandContext;
         private readonly FeedbackService _feedbackService;
         private readonly IDiscordRestInteractionAPI _interactionApi;
 
@@ -32,43 +32,45 @@ namespace Christofel.CommandsLib.ExecutionEvents
         /// Initializes a new instance of the <see cref="ParsingErrorExecutionEvent"/> class.
         /// </summary>
         /// <param name="interactionApi">The interaction api.</param>
-        /// <param name="commandContext">The context of the current command.</param>
         /// <param name="feedbackService">The feedback service to respond with.</param>
         public ParsingErrorExecutionEvent
         (
             IDiscordRestInteractionAPI interactionApi,
-            ICommandContext commandContext,
             FeedbackService feedbackService
         )
         {
             _interactionApi = interactionApi;
             _feedbackService = feedbackService;
-            _commandContext = commandContext;
         }
 
         /// <inheritdoc />
-        public async Task<Result> AfterExecutionAsync
+        public async Task<Result> PreparationFailed
         (
-            ICommandContext context,
-            IResult commandResult,
+            IOperationContext context,
+            IResult preparationResult,
             CancellationToken ct = default
         )
         {
-            if (!commandResult.IsSuccess &&
-                commandResult.Error is ParameterParsingError parsingError)
+            if (!preparationResult.IsSuccess &&
+                preparationResult.Error is ParameterParsingError parsingError)
             {
                 var message = parsingError.Message;
-                if (commandResult.Inner?.Inner?.Inner?.Error is not null)
+                var innerError = preparationResult.Inner?.Inner?.Error;
+                if (innerError is AggregateError aggregateError)
                 {
-                    message += "\n" + commandResult.Inner.Inner.Inner.Error.Message;
+                    message += "\n" + string.Join('\n', aggregateError.Errors.Select(x => x.Error!.Message));
+                }
+                else if (innerError is not null)
+                {
+                    message += "\n" + innerError.Message;
                 }
 
-                if (_commandContext is InteractionContext interactionContext)
+                if (preparationResult is InteractionContext interactionContext)
                 {
                     var result = await _interactionApi.CreateInteractionResponseAsync
                     (
-                        interactionContext.ID,
-                        interactionContext.Token,
+                        interactionContext.Interaction.ID,
+                        interactionContext.Interaction.Token,
                         new InteractionResponse
                         (
                             InteractionCallbackType.ChannelMessageWithSource,

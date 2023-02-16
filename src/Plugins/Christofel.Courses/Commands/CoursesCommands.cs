@@ -20,6 +20,7 @@ using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Results;
 
@@ -89,7 +90,12 @@ public class CoursesCommands : CommandGroup
     [RequirePermission("courses.courses.join")]
     public async Task<IResult> JoinAsync([Description("Courses to join separated by space")] string courses)
     {
-        var discordUser = new DiscordUser(_commandContext.User.ID);
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
+        var discordUser = new DiscordUser(userId.Value);
 
         var coursesAssignmentResult = await _channelUserAssigner.AssignCourses
             (discordUser, courses.Split(' '), CancellationToken);
@@ -113,7 +119,12 @@ public class CoursesCommands : CommandGroup
     [RequirePermission("courses.courses.leave")]
     public async Task<IResult> HandleLeaveAsync([Description("Courses to leave separated by space")] string courses)
     {
-        var discordUser = new DiscordUser(_commandContext.User.ID);
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
+        var discordUser = new DiscordUser(userId.Value);
 
         var coursesAssignmentResult = await _channelUserAssigner.DeassignCourses
             (discordUser, courses.Split(' '), CancellationToken);
@@ -137,7 +148,12 @@ public class CoursesCommands : CommandGroup
     [RequirePermission("courses.courses.toggle")]
     public async Task<IResult> HandleToggleAsync([Description("Courses to toggle separated by space")] string courses)
     {
-        var discordUser = new DiscordUser(_commandContext.User.ID);
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
+        var discordUser = new DiscordUser(userId.Value);
 
         var coursesAssignmentResult = await _channelUserAssigner.ToggleCourses
             (discordUser, courses.Split(' '), CancellationToken);
@@ -245,9 +261,14 @@ public class CoursesCommands : CommandGroup
         [RequirePermission("courses.courses.semester.joinall")]
         public async Task<IResult> HandleJoinAllAsync(SemesterSelector semester)
         {
+            if (!_commandContext.TryGetUserID(out var userId))
+            {
+                return (Result)new GenericError("Could not get user id from context.");
+            }
+
             var dbUser = await _baseContext.Set<DbUser>()
                 .Authenticated()
-                .Where(x => x.DiscordId == _commandContext.User.ID)
+                .Where(x => x.DiscordId == userId.Value)
                 .FirstOrDefaultAsync(CancellationToken);
 
             if (dbUser is null)
@@ -286,9 +307,14 @@ public class CoursesCommands : CommandGroup
         [RequirePermission("courses.courses.semester.leaveall")]
         public async Task<IResult> HandleLeaveAllAsync(SemesterSelector semester)
         {
+            if (!_commandContext.TryGetUserID(out var userId))
+            {
+                return (Result)new GenericError("Could not get user id from context.");
+            }
+
             var dbUser = await _baseContext.Set<DbUser>()
                 .Authenticated()
-                .Where(x => x.DiscordId == _commandContext.User.ID)
+                .Where(x => x.DiscordId == userId.Value)
                 .FirstOrDefaultAsync(CancellationToken);
 
             if (dbUser is null)
@@ -327,9 +353,14 @@ public class CoursesCommands : CommandGroup
         [RequirePermission("courses.courses.semester.show")]
         public async Task<IResult> HandleShowAsync(SemesterSelector semester)
         {
+            if (!_commandContext.TryGetUserID(out var userId))
+            {
+                return (Result)new GenericError("Could not get user id from context.");
+            }
+
             var dbUser = await _baseContext.Set<DbUser>()
                 .Authenticated()
-                .Where(x => x.DiscordId == _commandContext.User.ID)
+                .Where(x => x.DiscordId == userId.Value)
                 .FirstOrDefaultAsync(CancellationToken);
 
             if (dbUser is null)
@@ -355,7 +386,7 @@ public class CoursesCommands : CommandGroup
             }
 
             var joinedCoursesResult = await _coursesRepository.JoinWithUserData
-                (courseAssignments, _commandContext.User.ID, CancellationToken);
+                (courseAssignments, userId.Value, CancellationToken);
 
             if (!joinedCoursesResult.IsDefined(out var joinedCourses))
             {

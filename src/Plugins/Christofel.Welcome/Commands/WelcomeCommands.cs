@@ -13,6 +13,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -90,9 +91,14 @@ public class WelcomeCommands : CommandGroup
             return new GenericError("Welcome embed string could not be deserialized into an embed.");
         }
 
+        if (!_context.TryGetChannelID(out var channelId))
+        {
+            return new GenericError("Could not find channel id in context.");
+        }
+
         var messageResult = await _channelApi.CreateMessageAsync
         (
-            channel ?? _context.ChannelID,
+            channel ?? channelId.Value,
             embeds: new[] { embed },
             components: WelcomeMessageHelper.CreateWelcomeComponents(_options, language),
             ct: CancellationToken
@@ -154,9 +160,14 @@ public class WelcomeCommands : CommandGroup
             return new GenericError("Welcome embed string could not be deserialized into an embed.");
         }
 
+        if (!_context.TryGetChannelID(out var channelId))
+        {
+            return new GenericError("Could not find channel id in context.");
+        }
+
         var messageResult = await _channelApi.EditMessageAsync
         (
-            channel ?? _context.ChannelID,
+            channel ?? channelId.Value,
             messageId,
             embeds: new[] { embed },
             components: WelcomeMessageHelper.CreateWelcomeComponents(_options, language),

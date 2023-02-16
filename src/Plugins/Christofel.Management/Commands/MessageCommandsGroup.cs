@@ -20,6 +20,7 @@ using Remora.Commands.Groups;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -106,6 +107,11 @@ namespace Christofel.Management.Commands
             Snowflake? channel = null
         )
         {
+            if (!_context.TryGetUserID(out var userId))
+            {
+                return (Result)new GenericError("Could not get user id from context.");
+            }
+
             var validationResult = new CommandValidator()
                 .MakeSure("interval", interval.TotalHours, o => o.GreaterThan(0).LessThanOrEqualTo(6))
                 .MakeSure("returnInterval", returnInterval?.TotalHours ?? 1, o => o.GreaterThan(0).LessThanOrEqualTo(6))
@@ -118,11 +124,19 @@ namespace Christofel.Management.Commands
                 return validationResult;
             }
 
-            var channelId = channel ?? _context.ChannelID;
+            if (channel is null)
+            {
+                _context.TryGetChannelID(out channel);
+            }
+
+            if (channel is null)
+            {
+                return (Result)new GenericError("Could not find channel id of the context");
+            }
 
             if (returnInterval is null)
             {
-                var channelResult = await _channelApi.GetChannelAsync(channelId, CancellationToken);
+                var channelResult = await _channelApi.GetChannelAsync(channel.Value, CancellationToken);
 
                 if (!channelResult.IsSuccess)
                 {
@@ -139,12 +153,12 @@ namespace Christofel.Management.Commands
                 }
             }
 
-            var enableResult = await _slowmodeService.EnableSlowmodeAsync(channelId, interval, CancellationToken);
+            var enableResult = await _slowmodeService.EnableSlowmodeAsync(channel.Value, interval, CancellationToken);
 
             if (!enableResult.IsSuccess)
             {
                 await _feedbackService.SendContextualErrorAsync
-                    ($"Could not enable slowmode in channel <#{channelId}>: {enableResult.Error.Message}");
+                    ($"Could not enable slowmode in channel <#{channel.Value}>: {enableResult.Error.Message}");
                 return enableResult;
             }
 
@@ -152,20 +166,20 @@ namespace Christofel.Management.Commands
             try
             {
                 temporalSlowmode = await _slowmodeService.RegisterTemporalSlowmodeAsync
-                    (channelId, _context.User.ID, interval, (TimeSpan)returnInterval, duration);
+                    (channel.Value, userId.Value, interval, (TimeSpan)returnInterval, duration);
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Could not register temporal slowmode");
                 await _feedbackService.SendContextualErrorAsync("Could not register temporal slowmode handler");
-                await _slowmodeService.DisableSlowmodeAsync(channelId, CancellationToken);
+                await _slowmodeService.DisableSlowmodeAsync(channel.Value, CancellationToken);
 
                 return new ExceptionError(e);
             }
 
             var feedbackResult = await _feedbackService.SendContextualSuccessAsync
             (
-                $"Enabled slowmode in channel <#{channelId}> for {duration} (until {temporalSlowmode.TemporalSlowmodeEntity.DeactivationDate}). The return slowmode interval will be {returnInterval}. Use this command again for changing the return interval.",
+                $"Enabled slowmode in channel <#{channel.Value}> for {duration} (until {temporalSlowmode.TemporalSlowmodeEntity.DeactivationDate}). The return slowmode interval will be {returnInterval}. Use this command again for changing the return interval.",
                 ct: CancellationToken
             );
 
@@ -221,7 +235,7 @@ namespace Christofel.Management.Commands
             TimeSpan interval,
             [Description("Channel to enable slowmode in. Current channel if omitted.")]
             [DiscordTypeHint(TypeHint.Channel)]
-            Optional<Snowflake> channel = default
+            Snowflake? channel = default
         )
         {
             var validationResult = new CommandValidator()
@@ -234,15 +248,21 @@ namespace Christofel.Management.Commands
                 return validationResult;
             }
 
-            var channelId = channel.HasValue
-                ? channel.Value
-                : _context.ChannelID;
+            if (channel is null)
+            {
+                _context.TryGetChannelID(out channel);
+            }
 
-            var result = await _slowmodeService.EnableSlowmodeAsync(channelId, interval, CancellationToken);
+            if (channel is null)
+            {
+                return (Result)new GenericError("Could not find channel id of the context");
+            }
+
+            var result = await _slowmodeService.EnableSlowmodeAsync(channel.Value, interval, CancellationToken);
 
             if (!result.IsSuccess)
             {
-                _logger.LogResultError(result, $"Could not enable slowmode in channel <#{channelId}>");
+                _logger.LogResultError(result, $"Could not enable slowmode in channel <#{channel.Value}>");
                 await _feedbackService.SendContextualErrorAsync
                 (
                     "Something has gone wrong",
@@ -272,19 +292,28 @@ namespace Christofel.Management.Commands
             Snowflake? channel = null
         )
         {
-            var channelId = channel ?? _context.ChannelID;
-            var result = await _slowmodeService.DisableSlowmodeAsync(channelId, CancellationToken);
+            if (channel is null)
+            {
+                _context.TryGetChannelID(out channel);
+            }
+
+            if (channel is null)
+            {
+                return (Result)new GenericError("Could not find channel id of the context");
+            }
+
+            var result = await _slowmodeService.DisableSlowmodeAsync(channel.Value, CancellationToken);
 
             if (!result.IsSuccess)
             {
-                _logger.LogResultError(result, $"Could not disable slowmode in channel <#{channelId}>");
+                _logger.LogResultError(result, $"Could not disable slowmode in channel <#{channel.Value}>");
                 await _feedbackService.SendContextualErrorAsync
-                    ($"Could not disable slowmode in channel <#{channelId}>: {result.Error?.Message}.");
+                    ($"Could not disable slowmode in channel <#{channel.Value}>: {result.Error?.Message}.");
                 return result;
             }
 
             return await _feedbackService.SendContextualInfoAsync
-                ($"Slowmode in channel <#{channelId}> successfully disabled.");
+                ($"Slowmode in channel <#{channel.Value}> successfully disabled.");
         }
     }
 }

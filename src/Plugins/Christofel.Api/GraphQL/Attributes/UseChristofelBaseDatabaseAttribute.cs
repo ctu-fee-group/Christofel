@@ -18,7 +18,7 @@ namespace Christofel.Api.GraphQL.Attributes
     public class UseChristofelBaseDatabaseAttribute : ObjectFieldDescriptorAttribute
     {
         /// <inheritdoc />
-        public override void OnConfigure
+        protected override void OnConfigure
             (IDescriptorContext context, IObjectFieldDescriptor descriptor, MemberInfo member)
         {
             descriptor.UseDbContext<ChristofelBaseContext>();

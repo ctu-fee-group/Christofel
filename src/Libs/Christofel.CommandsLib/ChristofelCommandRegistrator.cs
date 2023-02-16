@@ -57,19 +57,11 @@ namespace Christofel.CommandsLib
         /// <inheritdoc />
         public async Task RefreshAsync(CancellationToken token = default)
         {
-            var checkSlashSupport = _slashService.SupportsSlashCommands();
-            if (!checkSlashSupport.IsSuccess)
+            var updateSlash = await _slashService.UpdateSlashCommandsAsync
+                (DiscordSnowflake.New(_options.GuildId), token);
+            if (!updateSlash.IsSuccess)
             {
-                _logger.LogResultError(checkSlashSupport, "The registered commands of the bot don't support slash commands");
-            }
-            else
-            {
-                var updateSlash = await _slashService.UpdateSlashCommandsAsync
-                    (DiscordSnowflake.New(_options.GuildId), token);
-                if (!updateSlash.IsSuccess)
-                {
-                    _logger.LogResultError(updateSlash, "Failed to update slash commands");
-                }
+                _logger.LogResultError(updateSlash, "Failed to update slash commands");
             }
         }
 
@@ -85,15 +77,11 @@ namespace Christofel.CommandsLib
                 return;
             }
 
-            var checkSlashSupport = _slashService.SupportsSlashCommands();
-            if (checkSlashSupport.IsSuccess)
+            var updateSlash =
+                await _slashService.DeleteSlashCommandsAsync(DiscordSnowflake.New(_options.GuildId), token);
+            if (!updateSlash.IsSuccess)
             {
-                var updateSlash =
-                    await _slashService.DeleteSlashCommandsAsync(DiscordSnowflake.New(_options.GuildId), token);
-                if (!updateSlash.IsSuccess)
-                {
-                    _logger.LogResultError(updateSlash, "Failed to delete slash commands.");
-                }
+                _logger.LogResultError(updateSlash, "Failed to delete slash commands.");
             }
         }
     }

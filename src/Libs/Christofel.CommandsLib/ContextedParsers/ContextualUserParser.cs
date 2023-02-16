@@ -37,15 +37,23 @@ namespace Christofel.CommandsLib.ContextedParsers
     {
         private readonly ICommandContext? _commandContext;
         private readonly IDiscordRestUserAPI _userApi;
+        private readonly UserParser _userParser;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContextualUserParser"/> class.
         /// </summary>
         /// <param name="commandContext">The context of the command.</param>
         /// <param name="userApi">The user api.</param>
-        public ContextualUserParser(IEnumerable<ICommandContext> commandContext, IDiscordRestUserAPI userApi)
+        /// <param name="userParser">The user parser.</param>
+        public ContextualUserParser
+        (
+            IEnumerable<ICommandContext> commandContext,
+            IDiscordRestUserAPI userApi,
+            UserParser userParser
+        )
         {
             _userApi = userApi;
+            _userParser = userParser;
             _commandContext = commandContext.FirstOrDefault();
         }
 
@@ -54,7 +62,8 @@ namespace Christofel.CommandsLib.ContextedParsers
         {
             if (_commandContext is InteractionContext interactionContext &&
                 Snowflake.TryParse(value.Unmention(), out var userID) &&
-                interactionContext.Data.TryPickT0(out var data, out _) &&
+                interactionContext.Interaction.Data.TryGet(out var interactionData) &&
+                interactionData.TryPickT0(out var data, out _) &&
                 data.Resolved.IsDefined(out var resolved) &&
                 resolved.Users.IsDefined(out var users) &&
                 users.TryGetValue(userID.Value, out var user))
@@ -68,7 +77,7 @@ namespace Christofel.CommandsLib.ContextedParsers
                     (new ParsingError<IUser>("Could not find specified user in resolved data"));
             }
 
-            return new UserParser(_userApi).TryParseAsync(value, ct);
+            return _userParser.TryParseAsync(value, ct);
         }
     }
 }

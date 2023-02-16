@@ -21,7 +21,7 @@ namespace Christofel.Messages.Services
     /// </summary>
     public class EmbedsProvider : IDisposable, IAsyncDisposable
     {
-        private readonly IDisposable _embedsOptionsUpdateToken;
+        private readonly IDisposable? _embedsOptionsUpdateToken;
         private readonly JsonSerializerOptions _jsonOptions;
         private EmbedsOptions _embedsOptions;
 
@@ -45,14 +45,14 @@ namespace Christofel.Messages.Services
         /// <inheritdoc />
         public ValueTask DisposeAsync()
         {
-            _embedsOptionsUpdateToken.Dispose();
+            _embedsOptionsUpdateToken?.Dispose();
             return ValueTask.CompletedTask;
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
-            _embedsOptionsUpdateToken.Dispose();
+            _embedsOptionsUpdateToken?.Dispose();
         }
 
         /// <summary>

@@ -39,7 +39,7 @@ public class CustomIDHelpers
     /// <param name="parameters">The parameters to pass to the command.</param>
     /// <returns>The custom ID.</returns>
     public static string CreateSelectMenuID(string name, string path, params string[] parameters)
-        => CreateID(ComponentType.SelectMenu, name, path, parameters);
+        => CreateID(ComponentType.StringSelect, name, path, parameters);
 
     /// <summary>
     /// Creates an ID string that can be used with button components.

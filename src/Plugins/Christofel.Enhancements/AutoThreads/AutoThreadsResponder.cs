@@ -68,7 +68,7 @@ public class AutoThreadsResponder : IResponder<IMessageCreate>
             name = _options.DefaultName;
         }
 
-        var channelResult = await _channelApi.StartThreadWithMessageAsync
+        var channelResult = await _channelApi.StartThreadFromMessageAsync
         (
             gatewayEvent.ChannelID,
             gatewayEvent.ID,

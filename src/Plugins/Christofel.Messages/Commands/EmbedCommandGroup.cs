@@ -18,6 +18,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -171,6 +172,11 @@ namespace Christofel.Messages.Commands
                 Snowflake? channel = default
             )
             {
+                if (!_context.TryGetChannelID(out var channelId))
+                {
+                    return new GenericError("Could not find channel id in context.");
+                }
+
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
                 {
@@ -181,7 +187,7 @@ namespace Christofel.Messages.Commands
                 (
                     _feedbackService,
                     _channelApi,
-                    channel ?? _context.ChannelID,
+                    channel ?? channelId.Value,
                     messageId,
                     parseResult.Entity,
                     CancellationToken
@@ -208,6 +214,11 @@ namespace Christofel.Messages.Commands
                 Snowflake? channel = null
             )
             {
+                if (!_context.TryGetChannelID(out var channelId))
+                {
+                    return new GenericError("Could not find channel id in context.");
+                }
+
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
                 {
@@ -218,7 +229,7 @@ namespace Christofel.Messages.Commands
                 (
                     _feedbackService,
                     _channelApi,
-                    channel ?? _context.ChannelID,
+                    channel ?? channelId.Value,
                     parseResult.Entity,
                     CancellationToken
                 );
@@ -301,6 +312,11 @@ namespace Christofel.Messages.Commands
                 Snowflake? channel = null
             )
             {
+                if (!_context.TryGetChannelID(out var channelId))
+                {
+                    return new GenericError("Could not find channel id in context.");
+                }
+
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
                 {
@@ -311,7 +327,7 @@ namespace Christofel.Messages.Commands
                 (
                     _feedbackService,
                     _channelApi,
-                    channel ?? _context.ChannelID,
+                    channel ?? channelId.Value,
                     messageId,
                     parseResult.Entity,
                     CancellationToken
@@ -335,6 +351,11 @@ namespace Christofel.Messages.Commands
                 Snowflake? channel = default
             )
             {
+                if (!_context.TryGetChannelID(out var channelId))
+                {
+                    return new GenericError("Could not find channel id in context.");
+                }
+
                 var parseResult = await ParseEmbed(embed);
                 if (!parseResult.IsSuccess)
                 {
@@ -345,7 +366,7 @@ namespace Christofel.Messages.Commands
                 (
                     _feedbackService,
                     _channelApi,
-                    channel ?? _context.ChannelID,
+                    channel ?? channelId.Value,
                     parseResult.Entity,
                     CancellationToken
                 );

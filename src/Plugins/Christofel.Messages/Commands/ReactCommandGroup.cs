@@ -16,6 +16,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -73,8 +74,13 @@ namespace Christofel.Messages.Commands
             Snowflake? channel = null
         )
         {
+            if (!_context.TryGetChannelID(out var executingChannelId))
+            {
+                return new GenericError("Could not find channel id in context.");
+            }
+
             emoji = emoji.TrimStart('<').TrimEnd('>').TrimStart(':');
-            var channelId = channel ?? _context.ChannelID;
+            var channelId = channel ?? executingChannelId.Value;
             var result =
                 await _channelApi.CreateReactionAsync(channelId, messageId, emoji, CancellationToken);
 

@@ -10,6 +10,7 @@ using Christofel.BaseLib.Extensions;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Results;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Services;
 using Remora.Results;
 
@@ -39,9 +40,15 @@ namespace Christofel.CommandsLib.ExecutionEvents
             CancellationToken ct = default
         )
         {
+            var user = "Unknown";
+            if (context.TryGetUserID(out var userId))
+            {
+                user = $"<@{userId}>";
+            }
+
             if (!commandResult.IsSuccess && commandResult.Error is not null and not CommandNotFoundError)
             {
-                _logger.LogResultError(commandResult, $"Command executed by <@{context.User.ID}> returned an error");
+                _logger.LogResultError(commandResult, $"Command /{context.Command.Command.Node.Key} executed by {user} returned an error");
             }
 
             return Task.FromResult(Result.FromSuccess());

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.ExecutionEvents.Options;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Results;
@@ -29,7 +30,7 @@ namespace Christofel.CommandsLib.ExecutionEvents
     /// <summary>
     /// Event catching missing command errors and telling the user correct syntax or what commands are in the group.
     /// </summary>
-    public class WrongParametersExecutionEvent : IPostExecutionEvent
+    public class WrongParametersExecutionEvent : IPreparationErrorEvent
     {
         private readonly CommandTree _commandTree;
         private readonly FeedbackService _feedbackService;
@@ -58,14 +59,15 @@ namespace Christofel.CommandsLib.ExecutionEvents
         }
 
         /// <inheritdoc />
-        public Task<Result> AfterExecutionAsync
+        public Task<Result> PreparationFailed
         (
-            ICommandContext context,
-            IResult commandResult,
+            IOperationContext context,
+            IResult preparationResult,
             CancellationToken ct = default
         )
         {
-            if (!commandResult.IsSuccess && commandResult.Error is CommandNotFoundError commandNotFoundError)
+            // TODO: find out whether this works with newest version with Remora and could ber replaced
+            if (!preparationResult.IsSuccess && preparationResult.Error is CommandNotFoundError commandNotFoundError)
             {
                 var foundChildNode = FindCommandNode(commandNotFoundError.OriginalInput);
 
@@ -95,14 +97,14 @@ namespace Christofel.CommandsLib.ExecutionEvents
         /// <param name="message">Message to be sent.</param>
         /// <param name="ct">The cancellation token for this operation.</param>
         /// <returns>A result that may not have succeeded.</returns>
-        private async Task<Result> SendResponse(ICommandContext context, string message, CancellationToken ct)
+        private async Task<Result> SendResponse(IOperationContext context, string message, CancellationToken ct)
         {
             if (context is InteractionContext interactionContext)
             {
                 var response = await _interactionApi.CreateInteractionResponseAsync
                 (
-                    interactionContext.ID,
-                    interactionContext.Token,
+                    interactionContext.Interaction.ID,
+                    interactionContext.Interaction.Token,
                     new InteractionResponse(InteractionCallbackType.DeferredChannelMessageWithSource),
                     ct: ct
                 );

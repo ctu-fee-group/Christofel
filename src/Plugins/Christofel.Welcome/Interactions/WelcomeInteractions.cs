@@ -15,6 +15,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Results;
 
 namespace Christofel.Welcome.Interactions;
@@ -70,18 +71,23 @@ public class WelcomeInteractions
     /// <returns>A result that may have failed.</returns>
     public async Task<Result> HandleAuthButtonAsync(string language, CancellationToken ct)
     {
+        if (!_context.TryGetUserID(out var userId))
+        {
+            return new GenericError("Could not get user id from context.");
+        }
+
         var dbUser = await _dbContext
             .Users
             .FirstOrDefaultAsync
             (
-                x => x.AuthenticatedAt == null && x.DiscordId == _context.User.ID && x.RegistrationCode != null,
+                x => x.AuthenticatedAt == null && x.DiscordId == userId.Value && x.RegistrationCode != null,
                 ct
             );
         if (dbUser is null)
         {
             dbUser = new DbUser
             {
-                DiscordId = _context.User.ID,
+                DiscordId = userId.Value,
                 RegistrationCode = Guid.NewGuid().ToString()
             };
 
@@ -95,7 +101,7 @@ public class WelcomeInteractions
                 _logger.LogError
                 (
                     e,
-                    $"Database context save changes has thrown an exception while saving user data (<@{_context.User.ID}>)"
+                    $"Database context save changes has thrown an exception while saving user data (<@{userId.Value}>)"
                 );
                 return e;
             }
@@ -128,8 +134,8 @@ public class WelcomeInteractions
 
         var messageResult = await _interactionApi.CreateFollowupMessageAsync
         (
-            _context.ApplicationID,
-            _context.Token,
+            _context.Interaction.ApplicationID,
+            _context.Interaction.Token,
             _options.Translations[language].AuthMessage.Replace("{Link}", link),
             flags: MessageFlags.Ephemeral,
             components: components,
@@ -170,8 +176,8 @@ public class WelcomeInteractions
 
         var messageResult = await _interactionApi.CreateFollowupMessageAsync
         (
-            _context.ApplicationID,
-            _context.Token,
+            _context.Interaction.ApplicationID,
+            _context.Interaction.Token,
             embeds: new[] { embed },
             components: WelcomeMessageHelper.CreateWelcomeComponents(_options, language),
             flags: MessageFlags.Ephemeral,

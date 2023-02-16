@@ -82,13 +82,7 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
             return new InvalidOperationError("Component or modal interaction without data received. Bug?");
         }
 
-        var createContext = gatewayEvent.CreateContext();
-        if (!createContext.IsSuccess)
-        {
-            return (Result)createContext;
-        }
-
-        var context = createContext.Entity;
+        var context = new InteractionContext(gatewayEvent);
         _contextInjectionService.Context = context;
 
         return data.TryPickT1(out var componentData, out var remainder)
@@ -110,8 +104,14 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
             // Not a component we handle
             return Result.FromSuccess();
         }
+        
+        var isSelectMenu = data.ComponentType is ComponentType.StringSelect
+            or ComponentType.UserSelect
+            or ComponentType.RoleSelect
+            or ComponentType.MentionableSelect
+            or ComponentType.ChannelSelect;
 
-        if (data.ComponentType is ComponentType.SelectMenu)
+        if (isSelectMenu && !data.Values.HasValue)
         {
             if (!data.Values.HasValue)
             {
@@ -125,11 +125,11 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
         var buildParameters = data.ComponentType switch
         {
             ComponentType.Button => new Dictionary<string, IReadOnlyList<string>>(),
-            ComponentType.SelectMenu => Result<IReadOnlyDictionary<string, IReadOnlyList<string>>>.FromSuccess
+            ComponentType.StringSelect => Result<IReadOnlyDictionary<string, IReadOnlyList<string>>>.FromSuccess
             (
                 new Dictionary<string, IReadOnlyList<string>>
                 {
-                    { "values", data.Values.Value }
+                    { "values", data.Values.Value },
                 }
             ),
             _ => new InvalidOperationError("An unsupported component type was encountered.")
@@ -213,21 +213,10 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
                     parameters.Add(id.Replace('-', '_').Camelize(), new[] { value });
                     break;
                 }
-                case IPartialSelectMenuComponent selectMenu:
+                case StringSelectComponent selectMenu:
                 {
-                    if (!selectMenu.CustomID.IsDefined(out var id))
-                    {
-                        continue;
-                    }
-
-                    if (!selectMenu.Options.IsDefined(out var options))
-                    {
-                        continue;
-                    }
-
-                    var values = options.Where(op => op.Value.HasValue).Select(op => op.Value.Value).ToList();
-
-                    parameters.Add(id.Replace('-', '_').Camelize(), values);
+                    var values = selectMenu.Options.Select(op => op.Value).ToList();
+                    parameters.Add(selectMenu.CustomID.Replace('-', '_').Camelize(), values);
                     break;
                 }
             }
@@ -244,13 +233,6 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
         CancellationToken ct
     )
     {
-        // Run any user-provided pre-execution events
-        var preExecution = await _eventCollector.RunPreExecutionEvents(_services, context, ct);
-        if (!preExecution.IsSuccess)
-        {
-            return preExecution;
-        }
-
         string commandString = string.Join(' ', commandPath).Trim(' ') + " " + string.Join
             (' ', parameters.Select(x => $"{x.Value.FirstOrDefault()}"));
 
@@ -266,10 +248,32 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
 
         if (!prepareCommand.IsSuccess)
         {
+            var preparationError = await _eventCollector.RunPreparationErrorEvents
+            (
+                _services,
+                context,
+                prepareCommand,
+                ct
+            );
+
+            if (!preparationError.IsSuccess)
+            {
+                return preparationError;
+            }
+
             return (Result)prepareCommand;
         }
 
         var preparedCommand = prepareCommand.Entity;
+        var commandContext = new InteractionCommandContext(context.Interaction, preparedCommand);
+        _contextInjectionService.Context = commandContext;
+
+        // Run any user-provided pre-execution events
+        var preExecution = await _eventCollector.RunPreExecutionEvents(_services, commandContext, ct);
+        if (!preExecution.IsSuccess)
+        {
+            return preExecution;
+        }
 
         var suppressResponseAttribute = preparedCommand.Command.Node
             .FindCustomAttributeOnLocalTree<SuppressInteractionResponseAttribute>();
@@ -295,8 +299,8 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
             );
             var createResponse = await _interactionAPI.CreateInteractionResponseAsync
             (
-                context.ID,
-                context.Token,
+                context.Interaction.ID,
+                context.Interaction.Token,
                 response,
                 ct: ct
             );
@@ -305,6 +309,9 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
             {
                 return createResponse;
             }
+            
+            context.HasRespondedToInteraction = true;
+            commandContext.HasRespondedToInteraction = true;
         }
 
         // Run the actual command
@@ -323,7 +330,7 @@ public sealed class InteractivityResponder : IResponder<IInteractionCreate>
         return await _eventCollector.RunPostExecutionEvents
         (
             _services,
-            context,
+            commandContext,
             executeResult.IsSuccess ? executeResult.Entity : executeResult,
             ct
         );

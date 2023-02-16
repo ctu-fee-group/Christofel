@@ -21,6 +21,7 @@ using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Commands.Results;
@@ -86,14 +87,24 @@ public class TeleportCommandGroup : CommandGroup
         Snowflake channel
     )
     {
+        if (!_commandContext.TryGetChannelID(out var channelId))
+        {
+            return (Result)new GenericError("Could not get channel id from context.");
+        }
+
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
         var permissionsResult = await CheckPermissionsAsync(channel, CancellationToken);
-        if (!permissionsResult.IsSuccess || _commandContext.ChannelID == channel)
+        if (!permissionsResult.IsSuccess || channelId.Value == channel)
         {
             await _feedbackService.SendContextualErrorAsync("Sending teleport messages failed.", ct: CancellationToken);
             return permissionsResult;
         }
 
-        if (!_commandContext.GuildID.IsDefined(out var guildId))
+        if (!_commandContext.TryGetGuildID(out var guildId))
         {
             return Result.FromSuccess();
         }
@@ -104,14 +115,12 @@ public class TeleportCommandGroup : CommandGroup
         // 3. link the current channel in the message sent in (1)
         // 4. send confirmation to the user.
         // Done.
-        Snowflake userId = _commandContext.User.ID;
-        Snowflake currentChannelId = _commandContext.ChannelID;
         var messageInTargetResult = await SendMessageAsync
         (
-            guildId,
-            userId,
+            guildId.Value,
+            userId.Value,
             channel,
-            currentChannelId,
+            channelId.Value,
             null,
             _options.MessageFrom,
             CancellationToken
@@ -125,9 +134,9 @@ public class TeleportCommandGroup : CommandGroup
 
         var messageInCurrentResult = await SendMessageAsync
         (
-            guildId,
-            userId,
-            currentChannelId,
+            guildId.Value,
+            userId.Value,
+            channelId.Value,
             channel,
             messageInTarget,
             _options.MessageTo,
@@ -142,11 +151,11 @@ public class TeleportCommandGroup : CommandGroup
 
         messageInTargetResult = await EditMessageAsync
         (
-            guildId,
-            userId,
+            guildId.Value,
+            userId.Value,
             channel,
             messageInTarget,
-            currentChannelId,
+            channelId.Value,
             messageInCurrent,
             _options.MessageFrom,
             CancellationToken
@@ -164,10 +173,10 @@ public class TeleportCommandGroup : CommandGroup
         _logger.LogInformation
         (
             "Created a teleport from <#{ChannelFrom}> to <#{ChannelTo}>. See:\n{MessageFrom}\n{MessageTo}",
-            _commandContext.ChannelID,
+            channelId.Value,
             channel,
-            GetMessageUrl(guildId, _commandContext.ChannelID, messageInCurrent),
-            GetMessageUrl(guildId, channel, messageInTarget)
+            GetMessageUrl(guildId.Value, channelId.Value, messageInCurrent),
+            GetMessageUrl(guildId.Value, channel, messageInTarget)
         );
 
         return feedbackResult.IsSuccess ? Result.FromSuccess() : Result.FromError(feedbackResult);
@@ -252,8 +261,18 @@ public class TeleportCommandGroup : CommandGroup
 
     private async Task<Result> CheckPermissionsAsync(Snowflake channelId, CancellationToken ct)
     {
+        if (!_commandContext.TryGetUserID(out var userId))
+        {
+            return (Result)new GenericError("Could not get user id from context.");
+        }
+
+        if (!_commandContext.TryGetGuildID(out var guildId))
+        {
+            return new InvalidOperationException("Teleport used outside of guild.");
+        }
+
         var overridePermissionResult = await _permissionsResolver.HasPermissionAsync
-            ("enhancements.teleport.override", _commandContext.User.ID, _commandContext.GuildID, ct: ct);
+            ("enhancements.teleport.override", userId.Value, guildId.Value, ct: ct);
         if (!overridePermissionResult.IsDefined(out var overridePermission))
         {
             return Result.FromError(overridePermissionResult);
@@ -264,12 +283,7 @@ public class TeleportCommandGroup : CommandGroup
             return Result.FromSuccess();
         }
 
-        if (!_commandContext.GuildID.IsDefined(out var guildId))
-        {
-            return new InvalidOperationException("Teleport used outside of guild.");
-        }
-
-        var rolesResult = await _guildApi.GetGuildRolesAsync(guildId, ct);
+        var rolesResult = await _guildApi.GetGuildRolesAsync(guildId.Value, ct);
         if (!rolesResult.IsDefined(out var roles))
         {
             return Result.FromError(rolesResult);
@@ -281,7 +295,7 @@ public class TeleportCommandGroup : CommandGroup
             return Result.FromError(channelResult);
         }
 
-        var memberResult = await _guildApi.GetGuildMemberAsync(guildId, _commandContext.User.ID, ct);
+        var memberResult = await _guildApi.GetGuildMemberAsync(guildId.Value, userId.Value, ct);
         if (!memberResult.IsDefined(out var member))
         {
             return Result.FromError(memberResult);
@@ -292,7 +306,7 @@ public class TeleportCommandGroup : CommandGroup
         var overwrites = channel.PermissionOverwrites.HasValue ? channel.PermissionOverwrites.Value : null;
 
         var permissions = DiscordPermissionSet.ComputePermissions
-            (_commandContext.User.ID, everyoneRole, memberRoles, overwrites);
+            (userId.Value, everyoneRole, memberRoles, overwrites);
         return permissions.HasPermission(DiscordPermission.SendMessages)
             ? Result.FromSuccess()
             : new InvalidOperationError

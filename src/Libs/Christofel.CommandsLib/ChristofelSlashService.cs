@@ -61,19 +61,6 @@ namespace Christofel.CommandsLib
         }
 
         /// <summary>
-        /// Determines whether the application's commands support being bound to Discord slash commands.
-        /// </summary>
-        /// <returns>true if slash commands are supported; otherwise, false.</returns>
-        public Result SupportsSlashCommands()
-        {
-            var couldCreate = _commandTree.CreateApplicationCommands();
-
-            return couldCreate.IsSuccess
-                ? Result.FromSuccess()
-                : Result.FromError(couldCreate);
-        }
-
-        /// <summary>
         /// Updates the application's slash commands.
         /// </summary>
         /// <param name="guildID">The ID of the guild to update slash commands in, if any.</param>
@@ -93,19 +80,11 @@ namespace Christofel.CommandsLib
 
             var application = getApplication.Entity;
             var createCommands = _commandTree.CreateApplicationCommands();
-            if (!createCommands.IsSuccess)
-            {
-                return Result.FromError(createCommands);
-            }
 
-            var mappedCommands = await MapCommandsAsync(guildID, createCommands.Entity, ct);
+            var mappedCommands = await MapCommandsAsync(guildID, createCommands, ct);
 
             var createdCommands = await _applicationAPI.GetGuildApplicationCommandsAsync(application.ID, guildID, ct: ct);
 
-            if (!createCommands.IsSuccess)
-            {
-                return Result.FromError(createCommands.Error);
-            }
             foreach (var command in mappedCommands)
             {
                 if (command is null)
@@ -151,10 +130,6 @@ namespace Christofel.CommandsLib
 
             var application = getApplication.Entity;
             var deleteCommands = _commandTree.CreateApplicationCommands();
-            if (!deleteCommands.IsSuccess)
-            {
-                return Result.FromError(deleteCommands);
-            }
 
             var loadedCommands = await _applicationAPI.GetGuildApplicationCommandsAsync(application.ID, guildID, ct: ct);
 
@@ -163,7 +138,7 @@ namespace Christofel.CommandsLib
                 return Result.FromError(loadedCommands.Error);
             }
 
-            foreach (var commandInfo in deleteCommands.Entity)
+            foreach (var commandInfo in deleteCommands)
             {
                 var appCommand = loadedCommands.Entity.FirstOrDefault(x => x.Name == commandInfo.Name);
                 if (appCommand is null)

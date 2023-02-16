@@ -27,7 +27,7 @@ namespace Christofel.Application.State
         private readonly CancellationTokenSource _applicationRunningToken = new CancellationTokenSource();
         private readonly IApplicationLifetime _lifetime;
         private readonly ILogger<DiscordBot> _logger;
-        private IDisposable _optionsMonitorToken;
+        private IDisposable? _optionsMonitorToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DiscordBot"/> class.
@@ -74,7 +74,7 @@ namespace Christofel.Application.State
         public void Dispose()
         {
             _applicationRunningToken.Dispose();
-            _optionsMonitorToken.Dispose();
+            _optionsMonitorToken?.Dispose();
         }
 
         /// <summary>

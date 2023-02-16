@@ -37,7 +37,7 @@ namespace Christofel.Api.GraphQL.Types
         /// <param name="bind">The binding behavior.</param>
         public SnowflakeType
         (
-            NameString name,
+            string name,
             string? description = null,
             BindingBehavior bind = BindingBehavior.Explicit
         )

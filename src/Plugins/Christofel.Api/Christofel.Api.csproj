@@ -17,15 +17,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="HotChocolate.AspNetCore" Version="12.13.2" />
-        <PackageReference Include="HotChocolate.Types.Scalars" Version="12.13.2" />
+        <PackageReference Include="HotChocolate.AspNetCore" Version="13.0.2" />
+        <PackageReference Include="HotChocolate.Types.Scalars" Version="13.0.2" />
         <PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.3.1" />
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-        <PackageReference Include="Remora.Commands" Version="10.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+        <PackageReference Include="Remora.Commands" Version="10.0.3" />
         <PackageReference Include="KosApi" Version="1.3.1" />
-        <PackageReference Include="RestSharp" Version="108.0.1" />
-        <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="108.0.1" />
+        <PackageReference Include="RestSharp" Version="108.0.3" />
+        <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="108.0.3" />
         <PackageReference Include="UsermapApi" Version="1.0.1" />
     </ItemGroup>
 

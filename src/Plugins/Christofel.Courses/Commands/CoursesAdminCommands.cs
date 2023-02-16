@@ -22,6 +22,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Gateway.Responders;
 using Remora.Rest.Core;
@@ -184,12 +185,21 @@ public class CoursesAdminCommands : CommandGroup
         )
         {
             _cultureProvider.CurrentCulture = language;
-            var channelId = channel ?? _commandContext.ChannelID;
+            if (channel is null)
+            {
+                _commandContext.TryGetChannelID(out channel);
+            }
+
+            if (channel is null)
+            {
+                return (Result)new GenericError("Could not find channel id of the context");
+            }
+
             var mainMessage = _coursesInteractivityFormatter.FormatMainMessage
                 (string.Empty, _options.SupportedLanguages);
             var messageResult = await _channelApi.CreateMessageAsync
             (
-                channelId,
+                channel.Value,
                 mainMessage.Content,
                 components: new Optional<IReadOnlyList<IMessageComponent>>(mainMessage.Components),
                 ct: CancellationToken
@@ -225,12 +235,22 @@ public class CoursesAdminCommands : CommandGroup
         )
         {
             _cultureProvider.CurrentCulture = language;
-            var channelId = channel ?? _commandContext.ChannelID;
+            var channelId = channel ?? null;
+            if (channelId is null)
+            {
+                _commandContext.TryGetChannelID(out channelId);
+            }
+
+            if (channelId is null)
+            {
+                return (Result)new GenericError("Could not find channel id of the context");
+            }
+
             var mainMessage = _coursesInteractivityFormatter.FormatMainMessage
                 (string.Empty, _options.SupportedLanguages);
             var messageResult = await _channelApi.EditMessageAsync
             (
-                channelId,
+                channelId.Value,
                 messageId,
                 mainMessage.Content,
                 components: new Optional<IReadOnlyList<IMessageComponent>?>(mainMessage.Components),
