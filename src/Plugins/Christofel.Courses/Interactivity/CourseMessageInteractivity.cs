@@ -30,7 +30,7 @@ namespace Christofel.Courses.Interactivity;
 /// </summary>
 public class CourseMessageInteractivity
 {
-    private readonly InteractionContext _commandContext;
+    private readonly IInteractionContext _commandContext;
     private readonly CoursesChannelUserAssigner _channelUserAssigner;
     private readonly CoursesRepository _coursesRepository;
     private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
@@ -56,7 +56,7 @@ public class CourseMessageInteractivity
     public CourseMessageInteractivity
     (
         FeedbackService feedbackService,
-        InteractionContext commandContext,
+        IInteractionContext commandContext,
         IDiscordRestInteractionAPI interactionApi,
         CoursesChannelUserAssigner channelUserAssigner,
         CoursesRepository coursesRepository,

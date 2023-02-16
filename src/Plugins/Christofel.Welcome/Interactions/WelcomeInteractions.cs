@@ -26,7 +26,7 @@ namespace Christofel.Welcome.Interactions;
 public class WelcomeInteractions
 {
     private readonly IDiscordRestInteractionAPI _interactionApi;
-    private readonly InteractionContext _context;
+    private readonly IInteractionContext _context;
     private readonly ChristofelBaseContext _dbContext;
     private readonly UsersOptions _userOptions;
     private readonly ILogger<WelcomeInteractions> _logger;
@@ -46,7 +46,7 @@ public class WelcomeInteractions
     public WelcomeInteractions
     (
         IDiscordRestInteractionAPI interactionApi,
-        InteractionContext context,
+        IInteractionContext context,
         ChristofelBaseContext dbContext,
         IOptionsSnapshot<WelcomeOptions> options,
         IOptionsSnapshot<UsersOptions> userOptions,

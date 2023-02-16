@@ -12,7 +12,7 @@ namespace Christofel.Courses.Data;
 
 public record FeedbackData
 (
-    InteractionContext InteractionContext,
+    IInteractionContext InteractionContext,
     IDiscordRestInteractionAPI InteractionApi,
     FeedbackService FeedbackService
 );

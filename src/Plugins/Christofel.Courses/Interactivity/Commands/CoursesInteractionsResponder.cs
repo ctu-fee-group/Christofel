@@ -38,7 +38,7 @@ namespace Christofel.Courses.Interactivity.Commands;
 [Ephemeral]
 public class CoursesInteractionsResponder : CommandGroup
 {
-    private readonly InteractionContext _commandContext;
+    private readonly IInteractionContext _commandContext;
     private readonly FeedbackService _feedbackService;
     private readonly CoursesRepository _coursesRepository;
     private readonly CoursesChannelUserAssigner _channelUserAssigner;
@@ -66,7 +66,7 @@ public class CoursesInteractionsResponder : CommandGroup
     /// <param name="cultureProvider">The culture provider.</param>
     public CoursesInteractionsResponder
     (
-        InteractionContext commandContext,
+        IInteractionContext commandContext,
         IDiscordRestInteractionAPI interactionApi,
         FeedbackService feedbackService,
         CoursesRepository coursesRepository,
@@ -335,7 +335,7 @@ public class CoursesInteractionsResponder : CommandGroup
     [Ephemeral]
     public class MainMessage : CommandGroup
     {
-        private readonly InteractionContext _interactionContext;
+        private readonly IInteractionContext _interactionContext;
         private readonly IDiscordRestInteractionAPI _interactionApi;
         private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
         private readonly CoursesRepository _coursesRepository;
@@ -356,7 +356,7 @@ public class CoursesInteractionsResponder : CommandGroup
         /// <param name="cultureProvider">The culture provider.</param>
         public MainMessage
         (
-            InteractionContext interactionContext,
+            IInteractionContext interactionContext,
             IDiscordRestInteractionAPI interactionApi,
             CoursesInteractivityFormatter coursesInteractivityFormatter,
             CoursesRepository coursesRepository,
