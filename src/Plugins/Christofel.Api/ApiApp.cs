@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Extensions;
@@ -101,7 +102,10 @@ namespace Christofel.Api
             );
 
             _logger?.LogInformation("Hello world from ApiApp");
-            await _host.RunAsync();
+            if (_host is not null)
+            {
+                await _host.RunAsync();
+            }
         }
 
         /// <summary>
@@ -145,7 +149,13 @@ namespace Christofel.Api
                             .AddSingleton<IApplicationLifetime>(new ApplicationLifetimeWrapper(lifetime));
 
                         services
-                            .AddDiscordRest(_ => (configuration.GetValue<string>("Bot:Token"), DiscordTokenType.Bot));
+                            .AddDiscordRest
+                            (
+                                _ => (
+                                    configuration.GetValue<string>
+                                        ("Bot:Token") ?? throw new InvalidDataException("Bot Token missing"),
+                                    DiscordTokenType.Bot)
+                            );
 
                         services
                             .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>();
