@@ -43,8 +43,7 @@ namespace Christofel.Application
                 await application.InitAsync();
                 await application.RunAsync(); // blocks until Bot.QuitBot is called
 
-                await application.RunBlockAsync();
-
+                await await Task.Factory.StartNew(_ => application.RunBlockAsync(), TaskCreationOptions.LongRunning);
                 exitEvent.Set();
                 Console.WriteLine("Goodbye!");
             }
