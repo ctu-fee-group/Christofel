@@ -4,11 +4,15 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.BaseLib.Extensions;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Results;
+using Remora.Commands.Services;
+using Remora.Commands.Trees.Nodes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
 using Remora.Discord.Commands.Services;
@@ -48,10 +52,26 @@ namespace Christofel.CommandsLib.ExecutionEvents
 
             if (!commandResult.IsSuccess && commandResult.Error is not null and not CommandNotFoundError)
             {
-                _logger.LogResultError(commandResult, $"Command /{context.Command.Command.Node.Key} executed by {user} returned an error");
+                _logger.LogResultError(commandResult, $"Command \"/{GetCommandString(context.Command)}\" executed by {user} returned an error");
             }
 
             return Task.FromResult(Result.FromSuccess());
+        }
+
+        private string GetCommandString(PreparedCommand command)
+        {
+            var keys = new List<string>();
+            keys.Add(command.Command.Node.Key);
+
+            var parentNode = command.Command.Node.Parent;
+
+            while (parentNode is IChildNode childNode)
+            {
+                keys.Add(childNode.Key);
+                parentNode = childNode.Parent;
+            }
+
+            return string.Join(' ', Enumerable.Reverse(keys)) + " " + string.Join(' ', command.Parameters);
         }
     }
 }
