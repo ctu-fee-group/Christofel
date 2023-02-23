@@ -12,6 +12,7 @@ using Christofel.Plugins.Lifetime;
 using Christofel.Remora.Responders;
 using Christofel.Welcome.Commands;
 using Christofel.Welcome.Interactions;
+using Christofel.Welcome.Responders;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
@@ -61,7 +62,11 @@ public class WelcomePlugin : ChristofelDIPlugin
 
         serviceCollection
             .AddResponder<InteractionResponder>()
-            .AddScoped<WelcomeInteractions>();
+            .AddScoped<WelcomeInteractions>()
+            .AddTransient<WelcomeMessage>();
+
+        serviceCollection
+            .AddResponder<WelcomeResponder>();
 
         return serviceCollection
             .AddDiscordState(State)

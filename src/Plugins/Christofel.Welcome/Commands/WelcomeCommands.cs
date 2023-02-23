@@ -28,6 +28,7 @@ namespace Christofel.Welcome.Commands;
 [Ephemeral]
 public class WelcomeCommands : CommandGroup
 {
+    private readonly WelcomeMessage _welcomeMessage;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly FeedbackService _feedbackService;
     private readonly ICommandContext _context;
@@ -37,6 +38,7 @@ public class WelcomeCommands : CommandGroup
     /// <summary>
     /// Initializes a new instance of the <see cref="WelcomeCommands"/> class.
     /// </summary>
+    /// <param name="welcomeMessage">The welcome message service.</param>
     /// <param name="channelApi">The channel api.</param>
     /// <param name="feedbackService">The feedback service.</param>
     /// <param name="context">The context.</param>
@@ -44,6 +46,7 @@ public class WelcomeCommands : CommandGroup
     /// <param name="jsonOptions">The json options.</param>
     public WelcomeCommands
     (
+        WelcomeMessage welcomeMessage,
         IDiscordRestChannelAPI channelApi,
         FeedbackService feedbackService,
         ICommandContext context,
@@ -51,6 +54,7 @@ public class WelcomeCommands : CommandGroup
         IOptionsSnapshot<JsonSerializerOptions> jsonOptions
     )
     {
+        _welcomeMessage = welcomeMessage;
         _channelApi = channelApi;
         _feedbackService = feedbackService;
         _context = context;
@@ -68,42 +72,13 @@ public class WelcomeCommands : CommandGroup
     [Ephemeral]
     public async Task<Result> HandleSendWelcomeAsync(string? language = default, Snowflake? channel = default)
     {
-        language ??= _options.DefaultLanguage;
-
-        if (!_options.Translations.ContainsKey(language))
-        {
-            await _feedbackService.SendContextualErrorAsync
-                ("The given translation does not exist.", ct: CancellationToken);
-            return new NotFoundError($"Could not find translation of welcome to {language}");
-        }
-
-        var translation = _options.Translations[language];
-        if (!File.Exists(translation.EmbedFilePath))
-        {
-            return new NotFoundError("Could not find welcome embed file.");
-        }
-
-        var embed = JsonSerializer.Deserialize<IEmbed>
-            (await File.ReadAllTextAsync(translation.EmbedFilePath, CancellationToken), _jsonOptions);
-        if (embed is null)
-        {
-            // error
-            return new GenericError("Welcome embed string could not be deserialized into an embed.");
-        }
-
         if (!_context.TryGetChannelID(out var channelId))
         {
             return new GenericError("Could not find channel id in context.");
         }
 
-        var messageResult = await _channelApi.CreateMessageAsync
-        (
-            channel ?? channelId.Value,
-            embeds: new[] { embed },
-            components: WelcomeMessageHelper.CreateWelcomeComponents(_options, language),
-            ct: CancellationToken
-        );
-
+        var messageResult = await _welcomeMessage.SendWelcomeMessage
+            (channel ?? channelId.Value, language, CancellationToken);
         if (messageResult.IsSuccess)
         {
             var feedbackResult = await _feedbackService.SendContextualSuccessAsync
@@ -116,9 +91,7 @@ public class WelcomeCommands : CommandGroup
         await _feedbackService.SendContextualErrorAsync
             ("The welcome message could not be sent.", ct: CancellationToken);
 
-        return messageResult.IsSuccess
-            ? Result.FromSuccess()
-            : Result.FromError(messageResult);
+        return Result.FromError(messageResult);
     }
 
     /// <summary>

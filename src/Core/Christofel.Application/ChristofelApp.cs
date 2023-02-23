@@ -187,7 +187,8 @@ namespace Christofel.Application
                         GatewayIntents.GuildMessageReactions |
                         GatewayIntents.DirectMessages |
                         GatewayIntents.MessageContents |
-                        GatewayIntents.GuildVoiceStates
+                        GatewayIntents.GuildVoiceStates |
+                        GatewayIntents.GuildMembers
                 )
 
                 // events
