@@ -54,9 +54,16 @@ public static class CoursesFormatter
         }
 
         var first = courseAssignmentGrouping.First();
+        var channelName = courseAssignmentGrouping
+            .FirstOrDefault(x => x.ChannelName is not null)?.ChannelName;
         var courseName = first.GroupAssignment?.Name ?? first.CourseName;
 
-        return (courseName, $"  **<#{courseAssignmentGrouping.Key}>** - {courseName} ({keys})");
+        if (channelName is not null)
+        {
+            return (courseName, $"  **#{channelName}** (<#{courseAssignmentGrouping.Key}>) - {courseName} ({keys})");
+        }
+
+        return (courseName, $"  <#{courseAssignmentGrouping.Key}> - {courseName} ({keys})");
     }
 
     /// <summary>
@@ -67,6 +74,12 @@ public static class CoursesFormatter
     public static (string Name, string Formatted) FormatCourse(CourseAssignment courseAssignment)
     {
         var courseName = courseAssignment.GroupAssignment?.Name ?? courseAssignment.CourseName;
-        return (courseName, $"  **<#{courseAssignment.ChannelId}>** - {courseName} ({courseAssignment.CourseKey})");
+        var channelName = courseAssignment.ChannelName;
+        if (channelName is not null)
+        {
+            return (courseName, $"  **#{channelName}** (<#{courseAssignment.ChannelId}>) - {courseName} ({courseAssignment.CourseKey})");
+        }
+
+        return (courseName, $"  <#{courseAssignment.ChannelId}> - {courseName} ({courseAssignment.CourseKey})");
     }
 }
