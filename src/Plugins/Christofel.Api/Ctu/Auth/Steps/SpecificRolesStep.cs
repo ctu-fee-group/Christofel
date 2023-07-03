@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Extensions;
 using Kos;
 using Kos.Abstractions;
 using Kos.Data;
@@ -109,8 +110,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
         )
         {
             var person = await _kosPeopleApi.GetPersonAsync(username, token);
-            var student = await _kosApi
-                .LoadEntryAsync(person?.Roles?.Students?.LastOrDefault(), token: token);
+            var student = await _kosApi.GetLatestStudentRole(person?.Roles.Students, token);
 
             if (student is null)
             {
@@ -119,7 +119,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
 
             try
             {
-                var programme = await _kosApi.LoadEntryAsync(student.Content.Programme, token: token);
+                var programme = await _kosApi.LoadEntryAsync(student.Programme, token: token);
 
                 if (programme is null)
                 {

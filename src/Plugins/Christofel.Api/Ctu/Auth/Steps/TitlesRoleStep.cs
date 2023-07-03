@@ -51,7 +51,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 return Result.FromSuccess();
             }
 
-            List<CtuAuthRole> roles = await data.DbContext.TitleRoleAssignment
+            var roles = await data.DbContext.TitleRoleAssignment
                 .AsNoTracking()
                 .Where
                 (

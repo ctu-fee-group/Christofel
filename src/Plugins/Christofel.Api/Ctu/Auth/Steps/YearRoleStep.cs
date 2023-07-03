@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Extensions;
 using Kos;
 using Kos.Abstractions;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
     public class YearRoleStep : IAuthStep
     {
         private readonly IKosPeopleApi _kosPeopleApi;
-        private readonly IKosStudentsApi _kosStudentApi;
+        private readonly IKosAtomApi _kosApi;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -36,11 +37,11 @@ namespace Christofel.Api.Ctu.Auth.Steps
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="kosPeopleApi">The kos people api.</param>
-        /// <param name="kosStudentApi">The kos students api.</param>
-        public YearRoleStep(ILogger<YearRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosStudentsApi kosStudentApi)
+        /// <param name="kosApi">The kos api.</param>
+        public YearRoleStep(ILogger<YearRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
         {
             _kosPeopleApi = kosPeopleApi;
-            _kosStudentApi = kosStudentApi;
+            _kosApi = kosApi;
             _logger = logger;
         }
 
@@ -48,33 +49,27 @@ namespace Christofel.Api.Ctu.Auth.Steps
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             var kosPerson = await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, ct);
-
-            // First student is the one with lowest date (to not make so many requests, this is sufficient)
-            var studentLoadable = kosPerson?.Roles.Students.FirstOrDefault();
-            if (studentLoadable is not null)
+            var student = await _kosApi.GetOldestStudentRole(kosPerson?.Roles.Students, ct);
+            if (student is null)
             {
-                var student = await _kosStudentApi.GetStudent(studentLoadable, token: ct);
-                if (student is null)
-                {
-                    return Result.FromSuccess();
-                }
-
-                var year = student.StartDate?.Year ?? 0;
-
-                List<CtuAuthRole> roles = await data.DbContext.YearRoleAssignments
-                    .AsNoTracking()
-                    .Where(x => x.Year == year)
-                    .Include(x => x.Assignment)
-                    .Select(x => new CtuAuthRole { RoleId = x.Assignment.RoleId, Type = x.Assignment.RoleType })
-                    .ToListAsync(ct);
-
-                if (roles.Count == 0)
-                {
-                    _logger.LogWarning("Could not find mapping for year {Year}", year);
-                }
-
-                data.Roles.AddRange(roles);
+                return Result.FromSuccess();
             }
+
+            var year = student.StartDate?.Year ?? 0;
+
+            var roles = await data.DbContext.YearRoleAssignments
+                .AsNoTracking()
+                .Where(x => x.Year == year)
+                .Include(x => x.Assignment)
+                .Select(x => new CtuAuthRole { RoleId = x.Assignment.RoleId, Type = x.Assignment.RoleType })
+                .ToListAsync(ct);
+
+            if (roles.Count == 0)
+            {
+                _logger.LogWarning("Could not find mapping for year {Year}", year);
+            }
+
+            data.Roles.AddRange(roles);
 
             return Result.FromSuccess();
         }

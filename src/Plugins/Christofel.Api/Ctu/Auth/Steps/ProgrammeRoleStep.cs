@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Christofel.Api.Extensions;
 using Kos;
 using Kos.Abstractions;
 using Kos.Atom;
@@ -28,7 +29,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
     public class ProgrammeRoleStep : IAuthStep
     {
         private readonly IKosPeopleApi _kosPeopleApi;
-        private readonly IKosStudentsApi _kosStudentsApi;
+        private readonly IKosAtomApi _kosApi;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -36,12 +37,13 @@ namespace Christofel.Api.Ctu.Auth.Steps
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="kosPeopleApi">The kos people api.</param>
-        /// <param name="kosStudentsApi">The kos students api.</param>
+        /// <param name="kosApi">The kos api.</param>
         public ProgrammeRoleStep
-            (ILogger<ProgrammeRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosStudentsApi kosStudentsApi)
+            (ILogger<ProgrammeRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
         {
             _kosPeopleApi = kosPeopleApi;
-            _kosStudentsApi = kosStudentsApi;
+            _kosApi = kosApi;
+            _kosApi = kosApi;
             _logger = logger;
         }
 
@@ -51,7 +53,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
             var kosPerson =
                 await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, ct);
 
-            var student = await GetLastStudentRole(kosPerson?.Roles.Students, ct);
+            var student = await _kosApi.GetLatestStudentRole(kosPerson?.Roles.Students, ct);
 
             if (student is null)
             {
@@ -65,7 +67,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 return Result.FromSuccess();
             }
 
-            List<CtuAuthRole> roles = await data.DbContext.ProgrammeRoleAssignments
+            var roles = await data.DbContext.ProgrammeRoleAssignments
                 .AsNoTracking()
                 .Where(x => x.Programme == programmeTitle)
                 .Include(x => x.Assignment)
@@ -81,37 +83,6 @@ namespace Christofel.Api.Ctu.Auth.Steps
             data.Roles.AddRange(roles);
 
             return Result.FromSuccess();
-        }
-
-        private async Task<Student?> GetLastStudentRole
-            (List<AtomLoadableEntity<Student>>? studentRoles, CancellationToken ct)
-        {
-            Student? latestStudent = null;
-            DateTime? latestDate = null;
-
-            if (studentRoles is null)
-            {
-                return null;
-            }
-
-            foreach (var studentRole in studentRoles)
-            {
-                var currentStudent = await _kosStudentsApi.GetStudent(studentRole, token: ct);
-
-                if (currentStudent is null)
-                {
-                    continue;
-                }
-
-                var currentStudentStartDate = currentStudent.StartDate ?? DateTime.Today;
-                if (latestDate is null || currentStudentStartDate > latestDate)
-                {
-                    latestStudent = currentStudent;
-                    latestDate = currentStudentStartDate;
-                }
-            }
-
-            return latestStudent;
         }
     }
 }
