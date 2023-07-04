@@ -21,7 +21,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
         /// <inheritdoc />
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            List<CtuAuthRole> roleDiscordIds = await data.DbContext.RoleAssignments
+            var roleDiscordIds = await data.DbContext.RoleAssignments
                 .AsNoTracking()
                 .Select(x => new CtuAuthRole { RoleId = x.RoleId, Type = x.RoleType })
                 .Where(x => data.GuildUser.Roles.Contains(x.RoleId))

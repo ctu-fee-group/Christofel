@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Resolvers;
@@ -34,20 +35,31 @@ namespace Christofel.Api.Ctu.Auth.Steps
         /// <inheritdoc />
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
-            var duplicate = await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
-            if (duplicate.Type != DuplicityType.None && duplicate.User is null)
-            {
-                return new InvalidOperationError("User cannot be null for non-none duplicate");
-            }
+            var duplicates = await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
 
-            if (duplicate.Type == DuplicityType.Both)
+            if (duplicates.Both is not null)
             {
-                duplicate.User!.AuthenticatedAt = DateTime.Now;
+                var duplicateUser = duplicates.Both.Users.First();
+                var dbDuplicateUser = data.DbContext.Users.First(x => x.UserId == duplicateUser.UserId);
+                dbDuplicateUser.AuthenticatedAt = DateTime.Now;
                 data.DbContext.Remove(data.DbUser);
             }
-            else if (duplicate.Type != DuplicityType.None)
+
+            if (data.DbUser.DuplicityApproved)
             {
-                data.DbUser.DuplicitUserId = duplicate.User!.UserId;
+                return Result.FromSuccess();
+            }
+
+            var discordDuplicates = duplicates.Discord?.Users ?? Array.Empty<DuplicateUser>();
+            var ctuDuplicates = duplicates.Ctu?.Users ?? Array.Empty<DuplicateUser>();
+
+            foreach (var duplicate in discordDuplicates.Concat(ctuDuplicates))
+            {
+                var dbDuplicateUser = data.DbContext.Users.FirstOrDefault(x => x.UserId == duplicate.UserId);
+                if (dbDuplicateUser is not null)
+                {
+                    dbDuplicateUser.AuthenticatedAt = null;
+                }
             }
 
             return Result.FromSuccess();

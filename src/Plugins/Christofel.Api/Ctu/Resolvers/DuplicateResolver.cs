@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -24,7 +25,7 @@ namespace Christofel.Api.Ctu.Resolvers
     public class DuplicateResolver
     {
         private readonly ReadonlyDbContextFactory<ChristofelBaseContext> _dbContextFactory;
-        private readonly Dictionary<ILinkUser, Duplicate> _duplicates;
+        private readonly Dictionary<ILinkUser, CompositedDuplicates> _duplicates;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DuplicateResolver"/> class.
@@ -33,7 +34,7 @@ namespace Christofel.Api.Ctu.Resolvers
         public DuplicateResolver(ReadonlyDbContextFactory<ChristofelBaseContext> dbContextFactory)
         {
             _dbContextFactory = dbContextFactory;
-            _duplicates = new Dictionary<ILinkUser, Duplicate>();
+            _duplicates = new Dictionary<ILinkUser, CompositedDuplicates>();
         }
 
         /// <summary>
@@ -42,56 +43,45 @@ namespace Christofel.Api.Ctu.Resolvers
         /// <param name="user">What are the loaded information (from apis) about the user.</param>
         /// <param name="ct">The canellation token for the operation.</param>
         /// <returns>Duplicate information of the specified user.</returns>
-        public async Task<Duplicate> ResolveDuplicateAsync(ILinkUser user, CancellationToken ct = default)
+        public async Task<CompositedDuplicates> ResolveDuplicateAsync(ILinkUser user, CancellationToken ct = default)
         {
-            if (_duplicates.ContainsKey(user))
+            if (_duplicates.TryGetValue(user, out var async))
             {
-                return _duplicates[user];
+                return async;
             }
 
             await using var dbContext = _dbContextFactory.CreateDbContext();
-            Duplicate? foundDuplicate = null;
 
             var duplicateBoth = await dbContext.Set<DbUser>()
+                .AsNoTracking()
                 .AsQueryable()
                 .Authenticated()
                 .Where(x => x.CtuUsername == user.CtuUsername && x.DiscordId == user.DiscordId)
-                .FirstOrDefaultAsync(ct);
+                .Select(x => new DuplicateUser(x.UserId, x.CtuUsername!, x.DiscordId))
+                .ToListAsync(ct);
 
-            if (duplicateBoth is not null)
-            {
-                foundDuplicate = new Duplicate(DuplicityType.Both, duplicateBoth);
-            }
+            var duplicateCtu = await dbContext.Set<DbUser>()
+                .AsNoTracking()
+                .AsQueryable()
+                .Authenticated()
+                .Where(x => x.CtuUsername == user.CtuUsername && x.DiscordId != user.DiscordId)
+                .Select(x => new DuplicateUser(x.UserId, x.CtuUsername!, x.DiscordId))
+                .ToListAsync(ct);
 
-            if (foundDuplicate is null)
-            {
-                var duplicateDiscord = await dbContext.Set<DbUser>()
-                    .AsQueryable()
-                    .Authenticated()
-                    .Where(x => x.DiscordId == user.DiscordId)
-                    .FirstOrDefaultAsync(ct);
+            var duplicateDiscord = await dbContext.Set<DbUser>()
+                .AsNoTracking()
+                .AsQueryable()
+                .Authenticated()
+                .Where(x => x.DiscordId == user.DiscordId && x.CtuUsername != user.CtuUsername)
+                .Select(x => new DuplicateUser(x.UserId, x.CtuUsername!, x.DiscordId))
+                .ToListAsync(ct);
 
-                if (duplicateDiscord is not null)
-                {
-                    foundDuplicate = new Duplicate(DuplicityType.DiscordSide, duplicateDiscord);
-                }
-            }
+            var both = duplicateBoth.Count > 0 ? new Duplicate(DuplicityType.Both, duplicateBoth) : null;
+            var ctu = duplicateCtu.Count > 0 ? new Duplicate(DuplicityType.CtuSide, duplicateCtu) : null;
+            var discord = duplicateDiscord.Count > 0 ? new Duplicate(DuplicityType.DiscordSide, duplicateDiscord) : null;
 
-            if (foundDuplicate is null)
-            {
-                var duplicateCtu = await dbContext.Set<DbUser>()
-                    .AsQueryable()
-                    .Authenticated()
-                    .Where(x => x.CtuUsername == user.CtuUsername)
-                    .FirstOrDefaultAsync(ct);
-
-                if (duplicateCtu is not null)
-                {
-                    foundDuplicate = new Duplicate(DuplicityType.CtuSide, duplicateCtu);
-                }
-            }
-
-            return _duplicates[user] = foundDuplicate ?? new Duplicate(DuplicityType.None, null);
+            return _duplicates[user] = new CompositedDuplicates
+                (both is not null || ctu is not null || discord is not null, both, ctu, discord);
         }
     }
 }

@@ -4,7 +4,10 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Generic;
 using Christofel.Common.Database.Models;
+using Christofel.Common.User;
+using Remora.Rest.Core;
 
 namespace Christofel.Api.Ctu.Auth
 {
@@ -12,8 +15,25 @@ namespace Christofel.Api.Ctu.Auth
     /// Information about a duplicate user.
     /// </summary>
     /// <param name="Type">The type of the duplicate.</param>
-    /// <param name="User">The duplicate user, if any.</param>
-    public record Duplicate(DuplicityType Type, DbUser? User);
+    /// <param name="Users">The duplicate users, if any.</param>
+    public record Duplicate(DuplicityType Type, IReadOnlyList<DuplicateUser> Users);
+
+    /// <summary>
+    /// A record containing all three possible types of duplicates.
+    /// </summary>
+    /// <param name="DuplicateFound">Whether there is any duplicate.</param>
+    /// <param name="Both">The duplicates of type <see cref="DuplicityType.Both"/> are stored here. Null if none exist.</param>
+    /// <param name="Ctu">The duplicates of type <see cref="DuplicityType.CtuSide"/> are stored here. Null if none exist.</param>
+    /// <param name="Discord">The duplicates of type <see cref="DuplicityType.DiscordSide"/> are stored here. Null if none exist.</param>
+    public record CompositedDuplicates(bool DuplicateFound, Duplicate? Both, Duplicate? Ctu, Duplicate? Discord);
+
+    /// <summary>
+    /// Information about a duplicate user.
+    /// </summary>
+    /// <param name="UserId"></param>
+    /// <param name="CtuUsername"></param>
+    /// <param name="DiscordId"></param>
+    public record DuplicateUser(int UserId, string CtuUsername, Snowflake DiscordId) : ILinkUser;
 
     /// <summary>
     /// Type of the duplicate.

@@ -59,6 +59,7 @@ namespace Christofel.Api.Ctu.Extensions
                 .AddAuthTask<AssignRolesAuthTask>()
                 .AddAuthTask<SetNicknameAuthTask>()
                 .AddAuthTask<SendNoRolesMessageAuthTask>()
+                .AddAuthTask<RemoveLinkedRolesAuthTask>()
                 .AddAuthTask<EditInteractionResponseTask>();
 
             return services;

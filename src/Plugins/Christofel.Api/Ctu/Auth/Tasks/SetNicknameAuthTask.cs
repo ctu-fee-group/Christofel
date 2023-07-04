@@ -53,7 +53,7 @@ namespace Christofel.Api.Ctu.Auth.Tasks
         public async Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
         {
             var duplicate = await _duplicates.ResolveDuplicateAsync(data.LoadedUser, ct);
-            if (duplicate.Type == DuplicityType.None)
+            if (!duplicate.DuplicateFound)
             {
                 return await EnqueueChange(data, ct);
             }

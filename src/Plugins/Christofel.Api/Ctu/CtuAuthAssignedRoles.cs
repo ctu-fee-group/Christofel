@@ -69,7 +69,6 @@ namespace Christofel.Api.Ctu
             lock (_addRoles)
             {
                 _addRoles.Add(roleId);
-                _softRemoveRoles.Remove(roleId);
             }
         }
 

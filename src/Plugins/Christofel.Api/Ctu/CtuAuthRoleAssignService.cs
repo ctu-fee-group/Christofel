@@ -106,7 +106,7 @@ namespace Christofel.Api.Ctu
             CancellationToken ct = default
         )
         {
-            await using var dbContext = _dbContextFactory.CreateDbContext();
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(ct);
 
             foreach (var assignRole in assignRoles)
             {
@@ -151,7 +151,7 @@ namespace Christofel.Api.Ctu
             try
             {
                 // TODO: use batch delete
-                await using var dbContext = _dbContextFactory.CreateDbContext();
+                await using var dbContext = await _dbContextFactory.CreateDbContextAsync(ct);
                 var entries = await dbContext.AssignRoles
                     .Where(x => x.UserDiscordId == userId && x.GuildDiscordId == guildId)
                     .ToListAsync(ct);
@@ -177,7 +177,7 @@ namespace Christofel.Api.Ctu
         /// <returns>Number of users that were enqueued for role addition.</returns>
         public async Task<uint> EnqueueRemainingRoles(CancellationToken ct = default)
         {
-            await using var dbContext = _dbContextFactory.CreateDbContext();
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(ct);
             var rolesToAssign = (await dbContext.AssignRoles
                     .ToListAsync(ct))
                 .GroupBy

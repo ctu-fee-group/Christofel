@@ -133,15 +133,10 @@ namespace Christofel.Api.Ctu.JobQueue
             {
                 EnqueueJob
                 (
-                    new CtuAuthRoleAssign
-                    (
-                        assignJob.UserId,
-                        assignJob.GuildId,
-                        assignJob.AddRoles,
-                        assignJob.RemoveRoles,
-                        assignJob.DoneCallback,
-                        assignJob.RetryCount + 1
-                    )
+                    assignJob with
+                    {
+                        RetryCount = assignJob.RetryCount + 1
+                    }
                 );
 
                 EnqueueJob(assignJob with { RetryCount = assignJob.RetryCount + 1 });
@@ -158,7 +153,7 @@ namespace Christofel.Api.Ctu.JobQueue
             }
             else
             {
-                _logger.LogInformation($"Successfully added roles to <@{assignJob.UserId}>");
+                _logger.LogInformation($"Successfully changed roles of <@{assignJob.UserId}>");
                 assignJob.DoneCallback();
             }
         }

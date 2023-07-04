@@ -89,7 +89,7 @@ namespace Christofel.Api.Ctu
                 return e;
             }
 
-            CtuAuthProcessData authData = new CtuAuthProcessData
+            var authData = new CtuAuthProcessData
             (
                 accessToken,
                 new LinkUser(0, loadedUser.CtuUsername, dbUser.DiscordId),

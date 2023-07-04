@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections.Generic;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
 using Christofel.Common.User;
@@ -24,7 +25,22 @@ namespace Christofel.Api.Ctu
             IGuildMember GuildUser,
             CtuAuthAssignedRoles Roles
         )
-        : IAuthData;
+        : IAuthData
+    {
+        private readonly List<ILinkUser> _linkedAccounts = new List<ILinkUser>();
+
+        /// <inheritdoc />
+        public IReadOnlyList<ILinkUser> UnapprovedLinkedAccounts => _linkedAccounts.AsReadOnly();
+
+        /// <inheritdoc />
+        public void AddLinkedAccount(ILinkUser user)
+        {
+            if (!_linkedAccounts.Contains(user))
+            {
+                _linkedAccounts.Add(user);
+            }
+        }
+    }
 
     /// <summary>
     /// Data used in ctu authentication process.
@@ -72,5 +88,16 @@ namespace Christofel.Api.Ctu
         /// Gets roles that should be assigned and removed at the end of the process.
         /// </summary>
         CtuAuthAssignedRoles Roles { get; }
+
+        /// <summary>
+        /// Gets the accounts linked with the data that are unapproved.
+        /// </summary>
+        IReadOnlyList<ILinkUser> UnapprovedLinkedAccounts { get; }
+
+        /// <summary>
+        /// Add a new linked account.
+        /// </summary>
+        /// <param name="user">The linked account.</param>
+        void AddLinkedAccount(ILinkUser user);
     }
 }
