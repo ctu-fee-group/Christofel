@@ -88,7 +88,8 @@ public class WelcomeInteractions
             dbUser = new DbUser
             {
                 DiscordId = userId.Value,
-                RegistrationCode = Guid.NewGuid().ToString()
+                RegistrationCode = Guid.NewGuid().ToString(),
+                InteractionToken = _context.Interaction.Token,
             };
 
             _dbContext.Add(dbUser);
@@ -105,6 +106,10 @@ public class WelcomeInteractions
                 );
                 return e;
             }
+        }
+        else
+        {
+            dbUser.InteractionToken = _context.Interaction.Token;
         }
 
         // 2. Send message to the user with auth code.

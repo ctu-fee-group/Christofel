@@ -57,6 +57,12 @@ namespace Christofel.Common.Database.Models
         public string? RegistrationCode { get; set; }
 
         /// <summary>
+        /// Gets the interaction id associated with the registration.
+        /// </summary>
+        [StringLength(256)]
+        public string? InteractionToken { get; set; }
+
+        /// <summary>
         /// Gets or sets the duplicate user.
         /// </summary>
         public DbUser? DuplicitUser { get; set; }
