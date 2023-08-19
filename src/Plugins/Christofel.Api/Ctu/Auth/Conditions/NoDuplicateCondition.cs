@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Api.Ctu.Resolvers;
+using Christofel.Api.GraphQL.Common;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
 
@@ -63,7 +64,7 @@ namespace Christofel.Api.Ctu.Auth.Conditions
 
                 _logger.LogWarning
                 (
-                    "Found a {Type} duplicate of <@{DiscordUser}>, allowing, (partially) deauthenticating old account.",
+                    "Found a {Type} duplicate of <@{DiscordUser}>, disallowing.",
                     DuplicityType.DiscordSide,
                     duplicate.DiscordId
                 );
@@ -80,7 +81,9 @@ namespace Christofel.Api.Ctu.Auth.Conditions
                 );
             }
 
-            return Result.FromSuccess();
+            return duplicates.Discord?.Users.Count > 0
+                ? UserErrors.RejectedDuplicateUser
+                : Result.FromSuccess();
         }
     }
 }
