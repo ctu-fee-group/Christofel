@@ -93,23 +93,24 @@ public class WelcomeInteractions
             };
 
             _dbContext.Add(dbUser);
-            try
-            {
-                await _dbContext.SaveChangesAsync(ct);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError
-                (
-                    e,
-                    $"Database context save changes has thrown an exception while saving user data (<@{userId.Value}>)"
-                );
-                return e;
-            }
         }
         else
         {
             dbUser.InteractionToken = _context.Interaction.Token;
+        }
+
+        try
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError
+            (
+                e,
+                $"Database context save changes has thrown an exception while saving user data (<@{userId.Value}>)"
+            );
+            return e;
         }
 
         // 2. Send message to the user with auth code.
