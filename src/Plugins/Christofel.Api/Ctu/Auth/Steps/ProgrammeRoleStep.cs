@@ -53,7 +53,7 @@ namespace Christofel.Api.Ctu.Auth.Steps
             var kosPerson =
                 await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, ct);
 
-            var student = await _kosApi.GetLatestStudentRole(kosPerson?.Roles.Students, ct);
+            var student = await _kosApi.GetLatestStudentRole(kosPerson?.Roles.Students, ct: ct);
 
             if (student is null)
             {

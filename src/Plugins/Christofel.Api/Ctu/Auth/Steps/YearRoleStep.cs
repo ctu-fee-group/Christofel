@@ -12,8 +12,10 @@ using System.Threading.Tasks;
 using Christofel.Api.Extensions;
 using Kos;
 using Kos.Abstractions;
+using Kos.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.Api.Ctu.Auth.Steps
@@ -49,7 +51,13 @@ namespace Christofel.Api.Ctu.Auth.Steps
         public async Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default)
         {
             var kosPerson = await _kosPeopleApi.GetPersonAsync(data.LoadedUser.CtuUsername, ct);
-            var student = await _kosApi.GetOldestStudentRole(kosPerson?.Roles.Students, ct);
+            var student = await _kosApi.GetOldestStudentRole
+            (
+                kosPerson?.Roles.Students,
+                new Optional<Func<Student, string>>(s => s.Faculty?.Href ?? string.Empty),
+                ct
+            );
+
             if (student is null)
             {
                 return Result.FromSuccess();
