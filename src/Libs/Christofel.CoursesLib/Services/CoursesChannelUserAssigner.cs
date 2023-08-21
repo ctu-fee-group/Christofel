@@ -4,18 +4,17 @@
 //  Copyright (c) Christofel authors. All rights reserved.
 //  Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Christofel.Common.Database;
+using Christofel.BaseLib.Configuration;
 using Christofel.Common.User;
 using Christofel.CoursesLib.Data;
 using Christofel.CoursesLib.Database;
-using Christofel.CoursesLib.Extensions;
-using Kos.Abstractions;
-using Kos.Data;
+using Christofel.CoursesLib.Errors;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
-using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.CoursesLib.Services;
@@ -27,24 +26,32 @@ public class CoursesChannelUserAssigner
 {
     private readonly CoursesRepository _coursesRepository;
     private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IDiscordRestGuildAPI _guildApi;
     private readonly CoursesContext _coursesContext;
+    private readonly BotOptions _botOptions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesChannelUserAssigner"/> class.
     /// </summary>
     /// <param name="coursesRepository">The courses repository.</param>
     /// <param name="channelApi">The channel rest api.</param>
+    /// <param name="guildApi">The guild rest api.</param>
     /// <param name="coursesContext">The courses database context.</param>
+    /// <param name="botOptions">The options with guild id.</param>
     public CoursesChannelUserAssigner
     (
         CoursesRepository coursesRepository,
         IDiscordRestChannelAPI channelApi,
-        CoursesContext coursesContext
+        IDiscordRestGuildAPI guildApi,
+        CoursesContext coursesContext,
+        IOptions<BotOptions> botOptions
     )
     {
         _coursesRepository = coursesRepository;
         _channelApi = channelApi;
+        _guildApi = guildApi;
         _coursesContext = coursesContext;
+        _botOptions = botOptions.Value;
     }
 
     /// <summary>
@@ -59,27 +66,7 @@ public class CoursesChannelUserAssigner
         => await DoCoursesOperationAsync
         (
             courseKeys,
-            async (course, ct) =>
-            {
-                await AddCourseUsers(user, course, ct);
-
-                var permissionsResult = await _channelApi.EditChannelPermissionsAsync
-                (
-                    course.ChannelId,
-                    user.DiscordId,
-                    allow: new DiscordPermissionSet(DiscordPermission.ViewChannel),
-                    type: PermissionOverwriteType.Member,
-                    reason: "Course assignment",
-                    ct: ct
-                );
-
-                if (!permissionsResult.IsSuccess)
-                {
-                    return Result<bool>.FromError(permissionsResult);
-                }
-
-                return true;
-            },
+            (course, ct) => InternalAssignCourse(user, course, ct),
             ct
         );
 
@@ -95,25 +82,7 @@ public class CoursesChannelUserAssigner
         => await DoCoursesOperationAsync
         (
             courseKeys,
-            async (course, ct) =>
-            {
-                await RemoveCourseUsers(user, course, ct);
-
-                var permissionsResult = await _channelApi.DeleteChannelPermissionAsync
-                (
-                    course.ChannelId,
-                    user.DiscordId,
-                    reason: "Course assignment",
-                    ct: ct
-                );
-
-                if (!permissionsResult.IsSuccess)
-                {
-                    return Result<bool>.FromError(permissionsResult);
-                }
-
-                return false;
-            },
+            (course, ct) => InternalDeassignCourse(user, course, ct),
             ct
         );
 
@@ -147,28 +116,9 @@ public class CoursesChannelUserAssigner
                         (DiscordPermission.ViewChannel) ?? false;
                 }
 
-                IResult permissionsResult;
-                if (hasViewPermission)
-                {
-                    await RemoveCourseUsers(user, course, ct);
-
-                    permissionsResult = await _channelApi.DeleteChannelPermissionAsync
-                        (channel.ID, user.DiscordId, "Course assignment", ct: ct);
-                }
-                else
-                {
-                    permissionsResult = await _channelApi.EditChannelPermissionsAsync
-                    (
-                        course.ChannelId,
-                        user.DiscordId,
-                        allow: new DiscordPermissionSet(DiscordPermission.ViewChannel),
-                        type: PermissionOverwriteType.Member,
-                        reason: "Course assignment",
-                        ct: ct
-                    );
-
-                    await AddCourseUsers(user, course, ct);
-                }
+                IResult permissionsResult = hasViewPermission
+                    ? await InternalDeassignCourse(user, course, ct)
+                    : await InternalAssignCourse(user, course, ct);
 
                 if (!permissionsResult.IsSuccess)
                 {
@@ -325,10 +275,100 @@ public class CoursesChannelUserAssigner
             }
             else
             {
-                errors.Add(courseKey, Result.FromError(operationResult));
+                errors.Add
+                (
+                    courseKey,
+                    Result.FromError
+                    (
+                        new CourseAssignmentError($"Could not assign {courseKey} to the user."),
+                        operationResult
+                    )
+                );
             }
         }
 
         return new CoursesAssignmentResult(assigned, deassigned, missing, errors);
+    }
+
+    private async Task<Result<bool>> InternalAssignCourse
+        (IDiscordUser user, CourseAssignment course, CancellationToken ct)
+    {
+        await AddCourseUsers(user, course, ct);
+
+        if (course.RoleId is not null)
+        {
+            var assignResult = await _guildApi.AddGuildMemberRoleAsync
+            (
+                DiscordSnowflake.New(_botOptions.GuildId),
+                user.DiscordId,
+                course.RoleId.Value,
+                reason: "Course assignment",
+                ct: ct
+            );
+
+            if (!assignResult.IsSuccess)
+            {
+                return Result<bool>.FromError(assignResult);
+            }
+        }
+        else
+        {
+            var permissionsResult = await _channelApi.EditChannelPermissionsAsync
+            (
+                course.ChannelId,
+                user.DiscordId,
+                allow: new DiscordPermissionSet(DiscordPermission.ViewChannel),
+                type: PermissionOverwriteType.Member,
+                reason: "Course assignment",
+                ct: ct
+            );
+
+            if (!permissionsResult.IsSuccess)
+            {
+                return Result<bool>.FromError(permissionsResult);
+            }
+        }
+
+        return true;
+    }
+
+    private async Task<Result<bool>> InternalDeassignCourse
+        (IDiscordUser user, CourseAssignment course, CancellationToken ct)
+    {
+        await RemoveCourseUsers(user, course, ct);
+
+        if (course.RoleId is not null)
+        {
+            var deassignResult = await _guildApi.RemoveGuildMemberRoleAsync
+            (
+                DiscordSnowflake.New(_botOptions.GuildId),
+                user.DiscordId,
+                course.RoleId.Value,
+                reason: "Course assignment",
+                ct: ct
+            );
+
+            if (!deassignResult.IsSuccess)
+            {
+                return Result<bool>.FromError(deassignResult);
+            }
+        }
+        else
+        {
+            var permissionsResult = await _channelApi.DeleteChannelPermissionAsync
+            (
+                course.ChannelId,
+                user.DiscordId,
+                reason: "Course assignment",
+                ct: ct
+            );
+
+            if (!permissionsResult.IsSuccess)
+            {
+                return Result<bool>.FromError(permissionsResult);
+            }
+        }
+
+        return false;
     }
 }

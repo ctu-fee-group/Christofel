@@ -148,14 +148,59 @@ public class CoursesChannelCreator
     }
 
     /// <summary>
+    /// Updates a link of a course.
+    /// </summary>
+    /// <param name="courseKey">The key of the course.</param>
+    /// <param name="courseChannelId">The channel id to link course to.</param>
+    /// <param name="roleId">The id of the role that gives the channel.</param>
+    /// <param name="ct">The cancellation token for cancelling the operation.</param>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    public async Task<Result> UpdateCourseLink
+    (
+        string courseKey,
+        Snowflake courseChannelId,
+        Snowflake? roleId = default,
+        CancellationToken ct = default
+    )
+    {
+        var course = await _coursesContext.CourseAssignments
+            .FirstOrDefaultAsync(x => x.CourseKey == courseKey, ct);
+
+        if (course is null)
+        {
+            return new NotFoundError("The given course is not linked to a channel");
+        }
+
+        course.ChannelId = courseChannelId;
+        course.RoleId = roleId;
+
+        try
+        {
+            await _coursesContext.SaveChangesAsync(ct);
+        }
+        catch (Exception e)
+        {
+            return new ExceptionError(e);
+        }
+
+        return Result.FromSuccess();
+    }
+
+    /// <summary>
     /// Adds a link of a course to already existing channel.
     /// </summary>
     /// <param name="courseKey">The key of the course.</param>
     /// <param name="courseChannelId">The channel id to link course to.</param>
+    /// <param name="roleId">The id of the role that gives the channel.</param>
     /// <param name="ct">The cancellation token for cancelling the operation.</param>
     /// <returns>A result that may or may not have succeeded.</returns>
     public async Task<Result> CreateCourseLink
-        (string courseKey, Snowflake courseChannelId, CancellationToken ct = default)
+    (
+        string courseKey,
+        Snowflake courseChannelId,
+        Snowflake? roleId = default,
+        CancellationToken ct = default
+    )
     {
         if (await _coursesContext.Set<CourseAssignment>()
             .AnyAsync(x => x.CourseKey == courseKey, ct))
@@ -191,6 +236,7 @@ public class CoursesChannelCreator
         var courseAssignment = new CourseAssignment
         {
             ChannelId = courseChannelId,
+            RoleId = roleId,
             CourseKey = courseKey,
             CourseName = course.Name,
             ChannelName = channel.Name.HasValue ? channel.Name.Value : null,

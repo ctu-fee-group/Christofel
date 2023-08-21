@@ -47,6 +47,11 @@ public class CourseAssignment
     public Snowflake ChannelId { get; set; } = default;
 
     /// <summary>
+    /// Gets or sets the role to assign the target channel with.
+    /// </summary>
+    public Snowflake? RoleId { get; set; } = default;
+
+    /// <summary>
     /// Gets or sets the department foreign key resource.
     /// </summary>
     public DepartmentAssignment Department { get; set; } = null!;
