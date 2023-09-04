@@ -76,6 +76,7 @@ public class WelcomePlugin : ChristofelDIPlugin
             .AddSingleton(_lifetimeHandler.LifetimeSpecific)
             .Configure<WelcomeOptions>(State.Configuration.GetSection("Welcome"))
             .Configure<UsersOptions>(State.Configuration.GetSection("Management:Users"))
+            .Configure<EmailAuthOptions>(State.Configuration.GetSection("EmailAuth"))
             .Configure<BotOptions>(State.Configuration.GetSection("Bot"));
     }
 

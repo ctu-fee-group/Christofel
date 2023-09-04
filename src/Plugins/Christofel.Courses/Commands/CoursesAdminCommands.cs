@@ -11,6 +11,7 @@ using Christofel.Courses.Data;
 using Christofel.Courses.Interactivity;
 using Christofel.CoursesLib.Database;
 using Christofel.CoursesLib.Services;
+using Christofel.Helpers.Helpers;
 using Christofel.Helpers.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,9 +21,11 @@ using Remora.Commands.Groups;
 using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
+using Remora.Discord.API.Objects;
 using Remora.Discord.Commands.Attributes;
 using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Commands.Feedback.Messages;
 using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Gateway.Responders;
 using Remora.Rest.Core;
@@ -105,11 +108,13 @@ public class CoursesAdminCommands : CommandGroup
         var removeOverwrites = overwrites
             .Where(x => x.Allow.Value == 0 && x.Type == PermissionOverwriteType.Member)
             .ToArray();
-        await _feedbackService.SendContextualInfoAsync($"There is {overwrites.Count}. Will remove {removeOverwrites.Length} overwrites.");
+        await _feedbackService.SendContextualInfoAsync
+            ($"There is {overwrites.Count}. Will remove {removeOverwrites.Length} overwrites.");
 
         foreach (var removeOverwrite in removeOverwrites)
         {
-            var deleteResult = await _channelApi.DeleteChannelPermissionAsync(channelId, removeOverwrite.ID, "Deny overwrite is not useful.");
+            var deleteResult = await _channelApi.DeleteChannelPermissionAsync
+                (channelId, removeOverwrite.ID, "Deny overwrite is not useful.");
             if (!deleteResult.IsSuccess)
             {
                 await _feedbackService.SendContextualErrorAsync($"Could not modify <@{removeOverwrite.ID}>.");
@@ -117,7 +122,8 @@ public class CoursesAdminCommands : CommandGroup
             }
         }
 
-        return await _feedbackService.SendContextualSuccessAsync($"Done. Removed {removeOverwrites.Length} overwrites.");
+        return await _feedbackService.SendContextualSuccessAsync
+            ($"Done. Removed {removeOverwrites.Length} overwrites.");
     }
 
     /// <summary>
@@ -455,17 +461,56 @@ public class CoursesAdminCommands : CommandGroup
         }
 
         /// <summary>
+        /// Updates the given link of course-channel.
+        /// </summary>
+        /// <returns>A result that may or may not have succeeded.</returns>
+        /// <param name="courseKey">The key of the course to link.</param>
+        /// <param name="channelId">The id of the channel to link the course to.</param>
+        /// <param name="roleId">The id of the role that gives the channel.</param>
+        [Command("update")]
+        [Description("Updates a link for a course.")]
+        public async Task<IResult> HandleUpdateAsync
+        (
+            string courseKey,
+            [DiscordTypeHint(TypeHint.Channel)]
+            Snowflake channelId,
+            [DiscordTypeHint(TypeHint.Role)]
+            Snowflake? roleId = null
+        )
+        {
+            var additionResult = await _coursesChannelCreator.UpdateCourseLink
+                (courseKey, channelId, roleId, CancellationToken);
+
+            if (!additionResult.IsSuccess)
+            {
+                await _feedbackService.SendContextualErrorAsync
+                    ($"Could not update the given link. {additionResult.Error.Message}");
+                return additionResult;
+            }
+
+            return await _feedbackService.SendContextualSuccessAsync("Successfully updated the link.");
+        }
+
+        /// <summary>
         /// Adds the given link of course-channel.
         /// </summary>
         /// <returns>A result that may or may not have succeeded.</returns>
         /// <param name="courseKey">The key of the course to link.</param>
         /// <param name="channelId">The id of the channel to link the course to.</param>
+        /// <param name="roleId">The id of the role that gives the channel.</param>
         [Command("add")]
         [Description("Adds a link for a course to given channel.")]
         public async Task<IResult> HandleAddAsync
-            (string courseKey, [DiscordTypeHint(TypeHint.Channel)] Snowflake channelId)
+        (
+            string courseKey,
+            [DiscordTypeHint(TypeHint.Channel)]
+            Snowflake channelId,
+            [DiscordTypeHint(TypeHint.Role)]
+            Snowflake? roleId = null
+        )
         {
-            var additionResult = await _coursesChannelCreator.CreateCourseLink(courseKey, channelId, CancellationToken);
+            var additionResult = await _coursesChannelCreator.CreateCourseLink
+                (courseKey, channelId, roleId, CancellationToken);
 
             if (!additionResult.IsSuccess)
             {
@@ -475,63 +520,6 @@ public class CoursesAdminCommands : CommandGroup
             }
 
             return await _feedbackService.SendContextualSuccessAsync("Successfully created the link.");
-        }
-
-        /// <summary>
-        /// Adds the given links of course-channel.
-        /// </summary>
-        /// <returns>A result that may or may not have succeeded.</returns>
-        /// <param name="courseLinks">The links to create formatted such as #channel1:course1Key #channel2:course2Key.</param>
-        [Command("addlist")]
-        [Description("Adds multiple links in one command, for format see description of courseKeys argument.")]
-        public async Task<IResult> HandleAddListAsync
-        (
-            [Description
-                ("The courses to link in format: #channel1:course1Key #channel2:course2Key ...")]
-            string courseLinks
-        )
-        {
-            var errors = new List<IResult>();
-
-            foreach (var courseLink in courseLinks.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-            {
-                var splitted = courseLink.Split(':');
-                if (splitted.Length != 2)
-                {
-                    await _feedbackService.SendContextualWarningAsync($"Could not parse a link: {courseLink}");
-                    continue;
-                }
-
-                var channelIdString = splitted[0].Trim('<', '>').Trim('#');
-                var courseKey = splitted[1];
-
-                if (!DiscordSnowflake.TryParse(channelIdString, out var channelId))
-                {
-                    await _feedbackService.SendContextualWarningAsync
-                        ($"Could not parse the id of the channel {channelIdString}");
-                    continue;
-                }
-
-                var additionResult = await _coursesChannelCreator.CreateCourseLink
-                    (courseKey, channelId.Value, CancellationToken);
-
-                if (!additionResult.IsSuccess)
-                {
-                    errors.Add(additionResult);
-                    await _feedbackService.SendContextualErrorAsync
-                        ($"Could not create the given link {courseLink}. {additionResult.Error.Message}");
-                }
-
-                await _feedbackService.SendContextualSuccessAsync
-                    ($"Successfully created the link {courseLink}.");
-            }
-
-            return errors.Count switch
-            {
-                0 => Result.FromSuccess(),
-                1 => errors[0],
-                _ => Result.FromError(new AggregateError(errors))
-            };
         }
 
         /// <summary>
@@ -578,10 +566,24 @@ public class CoursesAdminCommands : CommandGroup
             }
 
             return await _feedbackService.SendContextualInfoAsync
-            (
-                "The following courses are linked with the given channel:\n" +
-                string.Join('\n', courses.Select(x => $"  {x.CourseName} ({x.CourseKey})"))
-            );
+                (
+                    "The following courses are linked with the given channel:\n" +
+                    string.Join
+                    (
+                        '\n',
+                        courses
+                            .Select
+                            (
+                                x =>
+                                {
+                                    var roleString = x.RoleId is not null ? $"(<@&{x.RoleId}>)" : string.Empty;
+                                    return
+                                        $"  {x.CourseName} ({x.CourseKey}) {roleString}";
+                                }
+                            )
+                    ),
+                    options: new FeedbackMessageOptions(AllowedMentions: AllowedMentionsHelper.None)
+                );
         }
     }
 }

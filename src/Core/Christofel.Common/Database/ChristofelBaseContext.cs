@@ -40,6 +40,11 @@ namespace Christofel.Common.Database
         public DbSet<DbUser> Users => Set<DbUser>();
 
         /// <summary>
+        /// Gets user email codes set.
+        /// </summary>
+        public DbSet<UserEmailCode> UserCodes => Set<UserEmailCode>();
+
+        /// <summary>
         /// Gets permissions set.
         /// </summary>
         public DbSet<PermissionAssignment> Permissions => Set<PermissionAssignment>();
@@ -86,6 +91,12 @@ namespace Christofel.Common.Database
                 .WithMany(x => x.DuplicitUsersBack!)
                 .HasForeignKey(x => x.DuplicitUserId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<UserEmailCode>()
+                .HasOne<DbUser>(x => x.User!)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ProgrammeRoleAssignment>()
                 .HasOne(x => x.Assignment)

@@ -92,6 +92,7 @@ namespace Christofel.Api
 
             // bot options containing guild id
             services
+                .Configure<EmailAuthOptions>(_configuration.GetSection("EmailAuth"))
                 .Configure<BotOptions>(_configuration.GetSection("Bot"));
 
             // Ctu handlers for exchanging access token

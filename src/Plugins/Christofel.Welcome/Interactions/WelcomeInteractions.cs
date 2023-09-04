@@ -5,6 +5,8 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
+using System.Net.Mail;
 using System.Text.Json;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
@@ -28,6 +30,7 @@ public class WelcomeInteractions
     private readonly IDiscordRestInteractionAPI _interactionApi;
     private readonly IInteractionContext _context;
     private readonly ChristofelBaseContext _dbContext;
+    private readonly EmailAuthOptions _emailOptions;
     private readonly UsersOptions _userOptions;
     private readonly ILogger<WelcomeInteractions> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
@@ -42,6 +45,7 @@ public class WelcomeInteractions
     /// <param name="options">The options.</param>
     /// <param name="userOptions">The user options.</param>
     /// <param name="jsonOptions">The json options.</param>
+    /// <param name="emailOptions">The options to send email.</param>
     /// <param name="logger">The logger.</param>
     public WelcomeInteractions
     (
@@ -51,12 +55,14 @@ public class WelcomeInteractions
         IOptionsSnapshot<WelcomeOptions> options,
         IOptionsSnapshot<UsersOptions> userOptions,
         IOptionsSnapshot<JsonSerializerOptions> jsonOptions,
+        IOptionsSnapshot<EmailAuthOptions> emailOptions,
         ILogger<WelcomeInteractions> logger
     )
     {
         _interactionApi = interactionApi;
         _context = context;
         _dbContext = dbContext;
+        _emailOptions = emailOptions.Value;
         _userOptions = userOptions.Value;
         _logger = logger;
         _jsonOptions = jsonOptions.Get("Discord");
@@ -154,6 +160,77 @@ public class WelcomeInteractions
     }
 
     /// <summary>
+    /// Send email with complete authentication link.
+    /// </summary>
+    /// <param name="email">The email to send the link to.</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>A result that may have failed.</returns>
+    public async Task<Result> HandleEmailAuthAsync(string email, CancellationToken ct)
+    {
+        if (!_context.TryGetUserID(out var userId))
+        {
+            return new GenericError("Could not get user id from context.");
+        }
+
+        var dbUser = new DbUser
+        {
+            DiscordId = userId.Value,
+            RegistrationCode = Guid.NewGuid().ToString(),
+            InteractionToken = _context.Interaction.Token,
+        };
+
+        _dbContext.Add(dbUser);
+
+        var emailCode = new UserEmailCode
+        {
+            User = dbUser,
+            Code = GenerateRandomAlphanumericString(50),
+        };
+
+        _dbContext.Add(emailCode);
+
+        try
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError
+            (
+                e,
+                $"Database context save changes has thrown an exception while saving user data (<@{userId.Value}>)"
+            );
+            return e;
+        }
+
+        var smtpClient = new SmtpClient(_emailOptions.Smtp)
+        {
+            Port = _emailOptions.SmtpPort,
+            Credentials = new NetworkCredential(_emailOptions.Username, _emailOptions.Password),
+            EnableSsl = true
+        };
+
+        try
+        {
+            smtpClient.Send
+            (
+                _emailOptions.Sender,
+                email,
+                _emailOptions.Subject,
+                _emailOptions.Content
+                    .Replace("authCode", dbUser.RegistrationCode)
+                    .Replace("emailCode", emailCode.Code)
+            );
+        }
+        catch (Exception e)
+        {
+            return e;
+        }
+
+        return Result.FromSuccess();
+    }
+
+    /// <summary>
     /// Sends english welcome message.
     /// </summary>
     /// <param name="language">The language to show.</param>
@@ -193,5 +270,18 @@ public class WelcomeInteractions
         return messageResult.IsSuccess
             ? Result.FromSuccess()
             : Result.FromError(messageResult);
+    }
+
+    private static string GenerateRandomAlphanumericString(int length)
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        var random = new Random();
+        var randomString = new string
+        (
+            Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray()
+        );
+        return randomString;
     }
 }

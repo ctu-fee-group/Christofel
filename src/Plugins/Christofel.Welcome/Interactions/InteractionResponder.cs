@@ -102,6 +102,10 @@ public class InteractionResponder : IResponder<IInteractionCreate>
         string? lang;
         switch (path[1])
         {
+            case "email":
+                messageData.Values.IsDefined(out var values)
+
+                return await interactions.HandleEmailAuthAsync(, ct);
             case "show":
                 if (path.Length < 3)
                 {

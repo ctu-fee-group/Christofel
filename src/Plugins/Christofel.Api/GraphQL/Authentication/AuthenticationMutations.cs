@@ -40,6 +40,7 @@ namespace Christofel.Api.GraphQL.Authentication
     public class AuthenticationMutations
     {
         private readonly BotOptions _botOptions;
+        private readonly EmailAuthOptions _emailAuthOptions;
         private readonly ILogger<AuthenticationMutations> _logger;
 
         /// <summary>
@@ -47,14 +48,84 @@ namespace Christofel.Api.GraphQL.Authentication
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="botOptions">The options of the bot.</param>
+        /// <param name="emailAuthOptions">The options for email authentication.</param>
         public AuthenticationMutations
         (
             ILogger<AuthenticationMutations> logger,
-            IOptions<BotOptions> botOptions
+            IOptions<BotOptions> botOptions,
+            IOptionsSnapshot<EmailAuthOptions> emailAuthOptions
         )
         {
             _botOptions = botOptions.Value;
             _logger = logger;
+            _emailAuthOptions = emailAuthOptions.Value;
+        }
+
+        /// <summary>
+        /// Register using a code from e-mail.
+        /// This is a separate registration, this is
+        /// sufficient for full authentication.
+        /// </summary>
+        /// <param name="input">Input of the mutation.</param>
+        /// <param name="dbContext">The database context with user information.</param>
+        /// <param name="ctuAuthProcess">The ctu auth process handler.</param>
+        /// <param name="guildApi">The discord rest guild api.</param>
+        /// <param name="cancellationToken">The cancellation token for the operation.</param>
+        /// <returns>Payload for the user.</returns>
+        [UseChristofelBaseDatabase]
+        public async Task<RegisterCtuPayload> RegisterEmailCodeAsync
+        (
+            RegisterEmailInput input,
+            [ScopedService] ChristofelBaseContext dbContext,
+            [Service] CtuAuthProcess ctuAuthProcess,
+            [Service] IDiscordRestGuildAPI guildApi,
+            CancellationToken cancellationToken
+        )
+        {
+            var dbUser =
+                await GetUserByRegistrationCode(input.RegistrationCode, dbContext.Users, cancellationToken);
+
+            if (dbUser is null)
+            {
+                return new RegisterCtuPayload(UserErrors.InvalidRegistrationCode);
+            }
+
+            var code = await dbContext.UserCodes.FirstOrDefaultAsync(x => x.UserId == dbUser.UserId, cancellationToken);
+
+            if (code is null)
+            {
+                return new RegisterCtuPayload(UserErrors.InvalidRegistrationCode);
+            }
+
+            if (code.Code != input.EmailCode)
+            {
+                return new RegisterCtuPayload(UserErrors.Unspecified);
+            }
+
+            dbContext.Remove(code);
+
+            foreach (var role in _emailAuthOptions.AssignRoles)
+            {
+                var result = await guildApi.AddGuildMemberRoleAsync
+                (
+                    DiscordSnowflake.New(_botOptions.GuildId),
+                    dbUser.DiscordId,
+                    DiscordSnowflake.New(role),
+                    reason: "E-mail authentication",
+                    ct: cancellationToken
+                );
+
+                if (!result.IsSuccess)
+                {
+                    _logger.LogResultError(result, "Could not assign role");
+                }
+            }
+
+            dbUser.AuthenticatedAt = DateTime.Now;
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return new RegisterCtuPayload(dbUser);
         }
 
         /// <summary>
@@ -82,7 +153,8 @@ namespace Christofel.Api.GraphQL.Authentication
         )
         {
             OauthResponse response =
-                await discordOauthHandler.GrantAuthorizationCodeAsync(input.OauthCode, input.RedirectUri, cancellationToken);
+                await discordOauthHandler.GrantAuthorizationCodeAsync
+                    (input.OauthCode, input.RedirectUri, cancellationToken);
 
             if (response.IsError)
             {
@@ -174,7 +246,8 @@ namespace Christofel.Api.GraphQL.Authentication
             }
 
             OauthResponse response =
-                await ctuOauthHandler.GrantAuthorizationCodeAsync(input.OauthCode, input.RedirectUri, cancellationToken);
+                await ctuOauthHandler.GrantAuthorizationCodeAsync
+                    (input.OauthCode, input.RedirectUri, cancellationToken);
 
             if (response.IsError)
             {
