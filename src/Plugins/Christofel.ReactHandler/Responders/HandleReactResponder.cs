@@ -84,12 +84,16 @@ namespace Christofel.ReactHandler.Responders
                 .Where
                 (
                     x => x.ChannelId == gatewayEvent.ChannelID &&
-                        x.MessageId == gatewayEvent.MessageID &&
-                        x.Emoji == emoji
+                         x.MessageId == gatewayEvent.MessageID &&
+                         x.Emoji == emoji
                 )
                 .ToListAsync(ct);
 
             List<IResult> errors = new List<IResult>();
+
+            // Roles take precedence over channel assignments.
+            var anyRoles = matchingHandlers.Any(x => x.Type == HandleReactType.Role);
+
             foreach (var matchingHandler in matchingHandlers)
             {
                 if (matchingHandler.Emoji != emoji)
@@ -102,13 +106,17 @@ namespace Christofel.ReactHandler.Responders
                 switch (matchingHandler.Type)
                 {
                     case HandleReactType.Channel:
-                        result = await AssignChannel
-                        (
-                            guildId,
-                            gatewayEvent.UserID,
-                            matchingHandler.EntityId,
-                            ct
-                        );
+                        if (!anyRoles)
+                        { // Roles take precedence over channels.
+                            result = await AssignChannel
+                            (
+                                guildId,
+                                gatewayEvent.UserID,
+                                matchingHandler.EntityId,
+                                ct
+                            );
+                        }
+
                         break;
                     case HandleReactType.Role:
                         result = await AssignRole
@@ -170,10 +178,14 @@ namespace Christofel.ReactHandler.Responders
                 .Where
                 (
                     x => x.ChannelId == gatewayEvent.ChannelID &&
-                        x.MessageId == gatewayEvent.MessageID &&
-                        x.Emoji == emoji
+                         x.MessageId == gatewayEvent.MessageID &&
+                         x.Emoji == emoji
                 )
                 .ToListAsync(ct);
+
+            // Roles take precedence over channels,
+            // but we want to make sure both are removed
+            // from the user.
 
             List<IResult> errors = new List<IResult>();
             foreach (var matchingHandler in matchingHandlers)
