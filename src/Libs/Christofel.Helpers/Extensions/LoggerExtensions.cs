@@ -114,6 +114,11 @@ public static class LoggerExtensions
             // logTextWriter.Indent++;
             logTextWriter.Write("---> ");
             AppendErrorMessage(logTextWriter, result.Error);
+
+            if (result.Error is RestResultError<RestError> nestedRestError)
+            {
+                AppendRestError(logTextWriter, nestedRestError.Error);
+            }
         }
     }
 
