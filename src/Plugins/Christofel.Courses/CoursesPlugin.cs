@@ -126,6 +126,7 @@ namespace Christofel.Courses
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)
                 .Configure<LocalizationOptions>(State.Configuration.GetSection("Localization"))
                 .Configure<BotOptions>(State.Configuration.GetSection("Bot"))
+                .Configure<CoursesAssignmentOptions>(State.Configuration.GetSection("Courses"))
                 .Configure<KosApiOptions>(State.Configuration.GetSection("Apis:Kos"));
         }
 

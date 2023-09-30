@@ -13,6 +13,7 @@ using Christofel.CoursesLib.Services;
 using Christofel.Helpers.JobQueue;
 using Christofel.Helpers.Localization;
 using Christofel.Plugins.Lifetime;
+using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Commands.Contexts;
@@ -38,6 +39,7 @@ public class CourseMessageInteractivity
     private readonly LocalizedStringLocalizer<CoursesPlugin> _localizer;
     private readonly IJobQueue<RemoveMessageProcessor.RemoveMessage> _queue;
     private readonly ICurrentPluginLifetime _lifetime;
+    private readonly CoursesAssignmentOptions _options;
     private readonly FeedbackData _feedbackData;
 
     /// <summary>
@@ -53,6 +55,7 @@ public class CourseMessageInteractivity
     /// <param name="localizer">The localizer.</param>
     /// <param name="queue">The remove message queue.</param>
     /// <param name="lifetime">The plugin lifetime.</param>
+    /// <param name="options">The options for assignments.</param>
     public CourseMessageInteractivity
     (
         FeedbackService feedbackService,
@@ -64,7 +67,8 @@ public class CourseMessageInteractivity
         InMemoryDataService<Snowflake, CoursesAssignMessage> memoryDataService,
         LocalizedStringLocalizer<CoursesPlugin> localizer,
         IJobQueue<RemoveMessageProcessor.RemoveMessage> queue,
-        ICurrentPluginLifetime lifetime
+        ICurrentPluginLifetime lifetime,
+        IOptionsSnapshot<CoursesAssignmentOptions> options
     )
     {
         _commandContext = commandContext;
@@ -75,6 +79,7 @@ public class CourseMessageInteractivity
         _localizer = localizer;
         _queue = queue;
         _lifetime = lifetime;
+        _options = options.Value;
         _feedbackData = new FeedbackData(commandContext, interactionApi, feedbackService);
     }
 
@@ -207,6 +212,7 @@ public class CourseMessageInteractivity
                 _localizer,
                 coursesAssignmentResult,
                 _feedbackData.FeedbackService,
+                _options,
                 ct
             );
         }
@@ -238,6 +244,7 @@ public class CourseMessageInteractivity
     /// <param name="localizer">The string localizer.</param>
     /// <param name="coursesAssignmentResult">The courses results.</param>
     /// <param name="feedbackService">The feedback service.</param>
+    /// <param name="options">The assignment options.</param>
     /// <param name="ct">The cancellation token.</param>
     /// <returns>A result that may or may not have succeeded.</returns>
     public static async Task<IResult> SendFeedback
@@ -245,14 +252,15 @@ public class CourseMessageInteractivity
         LocalizedStringLocalizer<CoursesPlugin> localizer,
         CoursesAssignmentResult coursesAssignmentResult,
         FeedbackService feedbackService,
+        CoursesAssignmentOptions options,
         CancellationToken ct
     )
     {
         var errors = coursesAssignmentResult.ErrorfulResults.Values.ToList();
 
         if (coursesAssignmentResult.MissingCourses.Count == 0 && coursesAssignmentResult.ErrorfulResults.Count == 0
-            && coursesAssignmentResult.AssignedCourses.Count == 0
-            && coursesAssignmentResult.DeassignedCourses.Count == 0)
+                                                              && coursesAssignmentResult.AssignedCourses.Count == 0
+                                                              && coursesAssignmentResult.DeassignedCourses.Count == 0)
         {
             await feedbackService.SendContextualWarningAsync
                 (localizer.Translate("COURSES_NOT_FOUND"), ct: ct);
@@ -290,7 +298,11 @@ public class CourseMessageInteractivity
             }
         }
 
-        if (coursesAssignmentResult.MissingCourses.Count > 0)
+        var filteredMissingCourses = coursesAssignmentResult.MissingCourses
+            .Except(options.IgnoreCourses)
+            .ToArray();
+
+        if (filteredMissingCourses.Length > 0)
         {
             var feedbackResult = await feedbackService.SendContextualWarningAsync
             (
@@ -298,7 +310,7 @@ public class CourseMessageInteractivity
                 (
                     "COURSES_MISSING",
                     string.Join
-                        (", ", coursesAssignmentResult.MissingCourses)
+                        (", ", filteredMissingCourses)
                 ),
                 options: new FeedbackMessageOptions(MessageFlags: MessageFlags.Ephemeral),
                 ct: ct

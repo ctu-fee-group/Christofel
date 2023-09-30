@@ -16,6 +16,7 @@ using Christofel.Courses.Interactivity;
 using Christofel.CoursesLib.Services;
 using Christofel.Helpers.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
 using Remora.Discord.Commands.Attributes;
@@ -42,6 +43,7 @@ public class CoursesCommands : CommandGroup
     private readonly CourseMessageInteractivity _courseMessageInteractivity;
     private readonly IReadableDbContext<ChristofelBaseContext> _baseContext;
     private readonly LocalizedStringLocalizer<CoursesPlugin> _localizer;
+    private readonly CoursesAssignmentOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CoursesCommands"/> class.
@@ -55,6 +57,7 @@ public class CoursesCommands : CommandGroup
     /// <param name="baseContext">The readable christofel base database context.</param>
     /// <param name="localizer">The string localizer.</param>
     /// <param name="cultureProvider">The culture provider.</param>
+    /// <param name="options">The assignment options.</param>
     public CoursesCommands
     (
         FeedbackService feedbackService,
@@ -65,7 +68,8 @@ public class CoursesCommands : CommandGroup
         CourseMessageInteractivity courseMessageInteractivity,
         IReadableDbContext<ChristofelBaseContext> baseContext,
         LocalizedStringLocalizer<CoursesPlugin> localizer,
-        InteractivityCultureProvider cultureProvider
+        InteractivityCultureProvider cultureProvider,
+        IOptionsSnapshot<CoursesAssignmentOptions> options
     )
     {
         _feedbackService = feedbackService;
@@ -76,6 +80,7 @@ public class CoursesCommands : CommandGroup
         _courseMessageInteractivity = courseMessageInteractivity;
         _baseContext = baseContext;
         _localizer = localizer;
+        _options = options.Value;
 
         cultureProvider.CurrentCulture = "en";
     }
@@ -105,6 +110,7 @@ public class CoursesCommands : CommandGroup
             _localizer,
             coursesAssignmentResult,
             _feedbackService,
+            _options,
             CancellationToken
         );
     }
@@ -134,6 +140,7 @@ public class CoursesCommands : CommandGroup
             _localizer,
             coursesAssignmentResult,
             _feedbackService,
+            _options,
             CancellationToken
         );
     }
@@ -163,6 +170,7 @@ public class CoursesCommands : CommandGroup
             _localizer,
             coursesAssignmentResult,
             _feedbackService,
+            _options,
             CancellationToken
         );
     }
@@ -217,6 +225,7 @@ public class CoursesCommands : CommandGroup
         private readonly CoursesInteractivityFormatter _coursesInteractivityFormatter;
         private readonly IReadableDbContext<ChristofelBaseContext> _baseContext;
         private readonly LocalizedStringLocalizer<CoursesPlugin> _localizer;
+        private readonly CoursesAssignmentOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SemesterCommands"/> class.
@@ -229,6 +238,7 @@ public class CoursesCommands : CommandGroup
         /// <param name="coursesInteractivityFormatter">The courses interactivity formatter.</param>
         /// <param name="baseContext">The readable christofel base database context.</param>
         /// <param name="localizer">The string localizer.</param>
+        /// <param name="options">The optcourse assignment options.</param>
         public SemesterCommands
         (
             FeedbackService feedbackService,
@@ -238,7 +248,8 @@ public class CoursesCommands : CommandGroup
             CurrentSemesterCache currentSemesterCache,
             CoursesInteractivityFormatter coursesInteractivityFormatter,
             IReadableDbContext<ChristofelBaseContext> baseContext,
-            LocalizedStringLocalizer<CoursesPlugin> localizer
+            LocalizedStringLocalizer<CoursesPlugin> localizer,
+            IOptionsSnapshot<CoursesAssignmentOptions> options
         )
         {
             _feedbackService = feedbackService;
@@ -249,6 +260,7 @@ public class CoursesCommands : CommandGroup
             _coursesInteractivityFormatter = coursesInteractivityFormatter;
             _baseContext = baseContext;
             _localizer = localizer;
+            _options = options.Value;
         }
 
         /// <summary>
@@ -293,6 +305,7 @@ public class CoursesCommands : CommandGroup
                 _localizer,
                 coursesAssignmentResult,
                 _feedbackService,
+                _options,
                 CancellationToken
             );
         }
@@ -339,6 +352,7 @@ public class CoursesCommands : CommandGroup
                 _localizer,
                 coursesAssignmentResult,
                 _feedbackService,
+                _options,
                 CancellationToken
             );
         }
