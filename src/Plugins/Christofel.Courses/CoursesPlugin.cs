@@ -6,6 +6,7 @@
 
 using System.Globalization;
 using System.Reflection;
+using System.Text;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
@@ -134,6 +135,7 @@ namespace Christofel.Courses
         protected override Task InitializeServices
             (IServiceProvider services, CancellationToken token = default)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             _logger = services.GetRequiredService<ILogger<CoursesPlugin>>();
             ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
             return Task.CompletedTask;
