@@ -36,7 +36,7 @@ namespace Christofel.Courses.Commands;
 [Group("coursesadmin")]
 [RequirePermission("courses.coursesadmin")]
 [Ephemeral]
-public class CoursesAdminCommands : CommandGroup
+public partial class CoursesAdminCommands : CommandGroup
 {
     private readonly CoursesChannelCreator _channelCreator;
     private readonly FeedbackService _feedbackService;
@@ -70,6 +70,35 @@ public class CoursesAdminCommands : CommandGroup
     public async Task<IResult> HandleCreateAsync(string courseKey, string? channelName = default)
     {
         var result = await _channelCreator.CreateCourseChannel(courseKey, channelName, CancellationToken);
+
+        if (result.IsSuccess)
+        {
+            return await _feedbackService.SendContextualSuccessAsync("Successfully created a new channel.");
+        }
+
+        await _feedbackService.SendContextualErrorAsync($"Could not create the channel. {result.Error.Message}");
+        return result;
+    }
+
+    /// <summary>
+    /// Creates a channel for a given course.
+    /// </summary>
+    /// <param name="courseKey">The key of the course.</param>
+    /// <param name="courseName">The name of the course.</param>
+    /// <param name="departmentKey">The department key.</param>
+    /// <param name="channelName">The name of the channel to create (otherwise).</param>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    [Command("createmanual")]
+    public async Task<IResult> HandleCreateManualAsync
+    (
+        string courseKey,
+        string courseName,
+        string departmentKey,
+        string? channelName = default
+    )
+    {
+        var result = await _channelCreator.CreateCourseChannel
+            (courseKey, courseName, departmentKey, channelName, CancellationToken);
 
         if (result.IsSuccess)
         {
@@ -487,6 +516,41 @@ public class CoursesAdminCommands : CommandGroup
         }
 
         /// <summary>
+        /// Adds the given link of course-channel.
+        /// </summary>
+        /// <returns>A result that may or may not have succeeded.</returns>
+        /// <param name="courseKey">The key of the course to link.</param>
+        /// <param name="courseName">The name of the course.</param>
+        /// <param name="departmentKey">The department key.</param>
+        /// <param name="channelId">The id of the channel to link the course to.</param>
+        /// <param name="roleId">The role id to assign.</param>
+        [Command("addmanual")]
+        [Description("Adds a link for a course to given channel, info is provided manually.")]
+        public async Task<IResult>? HandleAddManualAsync
+        (
+            string courseKey,
+            [Description("Full name of the course")]
+            string courseName,
+            [Description("The key of the department, ie. 13101")]
+            string departmentKey,
+            [DiscordTypeHint(TypeHint.Channel)] Snowflake channelId,
+            [DiscordTypeHint(TypeHint.Role)] Snowflake? roleId = null
+        )
+        {
+            var additionResult = await _coursesChannelCreator.CreateCourseLink
+                (courseKey, courseName, departmentKey, channelId, roleId, CancellationToken);
+
+            if (!additionResult.IsSuccess)
+            {
+                await _feedbackService.SendContextualErrorAsync
+                    ($"Could not create the given link. {additionResult.Error.Message}");
+                return additionResult;
+            }
+
+            return await _feedbackService.SendContextualSuccessAsync("Successfully created the link.");
+        }
+
+        /// <summary>
         /// Edit the given link of course-channel.
         /// </summary>
         /// <returns>A result that may or may not have succeeded.</returns>
@@ -503,7 +567,7 @@ public class CoursesAdminCommands : CommandGroup
         )
         {
             var additionResult = await _coursesChannelCreator.UpdateCourseLink
-               (courseKey, channelId, roleId, CancellationToken);
+                (courseKey, channelId, roleId, CancellationToken);
 
             if (!additionResult.IsSuccess)
             {

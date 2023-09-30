@@ -61,6 +61,7 @@ public class CoursesChannelCreator
 
     /// <summary>
     /// Creates a channel for the given course.
+    /// Information is obtained from kosapi.
     /// </summary>
     /// <param name="courseKey">The key of the course to add.</param>
     /// <param name="channelName">The name of the channel. If null it will be guessed from the key of the course.</param>
@@ -69,19 +70,48 @@ public class CoursesChannelCreator
     public async Task<Result> CreateCourseChannel
         (string courseKey, string? channelName = default, CancellationToken ct = default)
     {
-        if (await _coursesContext.Set<CourseAssignment>()
-            .AnyAsync(x => x.CourseKey == courseKey, ct))
-        {
-            return new InvalidOperationError("The given course is already linked to a channel.");
-        }
-
         var course = await _coursesApi.GetCourse(courseKey, token: ct);
 
         if (course is null)
         {
             return new NotFoundError("Course with the given key was not found.");
         }
+
         var departmentKey = course.Department.GetKey();
+
+        return await CreateCourseChannel
+        (
+            courseKey,
+            course.Name,
+            course.Department.GetKey(),
+            channelName,
+            ct
+        );
+    }
+
+    /// <summary>
+    /// Creates a channel for the given course, with manual information.
+    /// </summary>
+    /// <param name="courseKey">The key of the course to add.</param>
+    /// <param name="courseName">The name of the course.</param>
+    /// <param name="departmentKey">The department key.</param>
+    /// <param name="channelName">The name of the channel. If null it will be guessed from the key of the course.</param>
+    /// <param name="ct">The cancellation token for cancelling the operation.</param>
+    /// <returns>A result which may or may not have succeeded.</returns>
+    public async Task<Result> CreateCourseChannel
+    (
+        string courseKey,
+        string courseName,
+        string departmentKey,
+        string? channelName = default,
+        CancellationToken ct = default
+    )
+    {
+        if (await _coursesContext.Set<CourseAssignment>()
+                .AnyAsync(x => x.CourseKey == courseKey, ct))
+        {
+            return new InvalidOperationError("The given course is already linked to a channel.");
+        }
 
         // 1. find LAST department category
         // 2. Try to add the course to the category
@@ -114,37 +144,15 @@ public class CoursesChannelCreator
             return Result.FromError(channelResult);
         }
 
-        if (!await _coursesContext.CourseGroupAssignments.AnyAsync(x => x.ChannelId == channel.ID, ct))
-        {
-            var courseGroupAssignment = new CourseGroupAssignment
-            {
-                ChannelId = channel.ID,
-                Name = course.Name
-            };
-
-            _coursesContext.Add(courseGroupAssignment);
-        }
-
-        var courseAssignment = new CourseAssignment
-        {
-            ChannelId = channel.ID,
-            CourseKey = courseKey,
-            CourseName = course.Name,
-            ChannelName = channelName,
-            DepartmentKey = course.Department.GetKey()
-        };
-
-        try
-        {
-            _coursesContext.Add(courseAssignment);
-            await _coursesContext.SaveChangesAsync(ct);
-        }
-        catch (Exception e)
-        {
-            return e;
-        }
-
-        return Result.FromSuccess();
+        return await CreateCourseLink
+        (
+            courseKey,
+            courseName,
+            departmentKey,
+            channel.ID,
+            null,
+            ct
+        );
     }
 
     /// <summary>
@@ -203,7 +211,7 @@ public class CoursesChannelCreator
     )
     {
         if (await _coursesContext.Set<CourseAssignment>()
-            .AnyAsync(x => x.CourseKey == courseKey, ct))
+                .AnyAsync(x => x.CourseKey == courseKey, ct))
         {
             return new InvalidOperationError("The given course is already linked to a channel.");
         }
@@ -215,6 +223,37 @@ public class CoursesChannelCreator
             return new NotFoundError("Course with the given key was not found.");
         }
 
+        return await CreateCourseLink
+        (
+            courseKey,
+            course.Name,
+            course.Department.GetKey(),
+            courseChannelId,
+            roleId,
+            ct
+        );
+    }
+
+    /// <summary>
+    /// Adds a link of a course to already existing channel.
+    /// </summary>
+    /// <param name="courseKey">The key of the course.</param>
+    /// <param name="courseName">The name of the course.</param>
+    /// <param name="courseDepartment">The department key.</param>
+    /// <param name="courseChannelId">The channel id to link course to.</param>
+    /// <param name="roleId">The id of the role that gives the channel.</param>
+    /// <param name="ct">The cancellation token for cancelling the operation.</param>
+    /// <returns>A result that may or may not have succeeded.</returns>
+    public async Task<Result> CreateCourseLink
+    (
+        string courseKey,
+        string courseName,
+        string courseDepartment,
+        Snowflake courseChannelId,
+        Snowflake? roleId = default,
+        CancellationToken ct = default
+    )
+    {
         var channelResult = await _channelApi.GetChannelAsync(courseChannelId, ct);
 
         if (!channelResult.IsDefined(out var channel))
@@ -227,7 +266,7 @@ public class CoursesChannelCreator
             var courseGroupAssignment = new CourseGroupAssignment
             {
                 ChannelId = courseChannelId,
-                Name = course.Name
+                Name = courseName
             };
 
             _coursesContext.Add(courseGroupAssignment);
@@ -238,9 +277,9 @@ public class CoursesChannelCreator
             ChannelId = courseChannelId,
             RoleId = roleId,
             CourseKey = courseKey,
-            CourseName = course.Name,
+            CourseName = courseName,
             ChannelName = channel.Name.HasValue ? channel.Name.Value : null,
-            DepartmentKey = course.Department.GetKey()
+            DepartmentKey = courseDepartment
         };
 
         try
