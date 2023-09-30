@@ -105,11 +105,13 @@ public class CoursesAdminCommands : CommandGroup
         var removeOverwrites = overwrites
             .Where(x => x.Allow.Value == 0 && x.Type == PermissionOverwriteType.Member)
             .ToArray();
-        await _feedbackService.SendContextualInfoAsync($"There is {overwrites.Count}. Will remove {removeOverwrites.Length} overwrites.");
+        await _feedbackService.SendContextualInfoAsync
+            ($"There is {overwrites.Count}. Will remove {removeOverwrites.Length} overwrites.");
 
         foreach (var removeOverwrite in removeOverwrites)
         {
-            var deleteResult = await _channelApi.DeleteChannelPermissionAsync(channelId, removeOverwrite.ID, "Deny overwrite is not useful.");
+            var deleteResult = await _channelApi.DeleteChannelPermissionAsync
+                (channelId, removeOverwrite.ID, "Deny overwrite is not useful.");
             if (!deleteResult.IsSuccess)
             {
                 await _feedbackService.SendContextualErrorAsync($"Could not modify <@{removeOverwrite.ID}>.");
@@ -117,7 +119,8 @@ public class CoursesAdminCommands : CommandGroup
             }
         }
 
-        return await _feedbackService.SendContextualSuccessAsync($"Done. Removed {removeOverwrites.Length} overwrites.");
+        return await _feedbackService.SendContextualSuccessAsync
+            ($"Done. Removed {removeOverwrites.Length} overwrites.");
     }
 
     /// <summary>
@@ -299,8 +302,8 @@ public class CoursesAdminCommands : CommandGroup
                         foreach (var permissionOverwrite in permissions)
                         {
                             var hasViewPermission = permissionOverwrite.Allow.HasPermission
-                                    (DiscordPermission.ViewChannel)
-                                && permissionOverwrite.Type == PermissionOverwriteType.Member;
+                                                        (DiscordPermission.ViewChannel)
+                                                    && permissionOverwrite.Type == PermissionOverwriteType.Member;
 
                             if (hasViewPermission)
                             {
@@ -460,12 +463,18 @@ public class CoursesAdminCommands : CommandGroup
         /// <returns>A result that may or may not have succeeded.</returns>
         /// <param name="courseKey">The key of the course to link.</param>
         /// <param name="channelId">The id of the channel to link the course to.</param>
+        /// <param name="roleId">The role id to assign.</param>
         [Command("add")]
         [Description("Adds a link for a course to given channel.")]
         public async Task<IResult> HandleAddAsync
-            (string courseKey, [DiscordTypeHint(TypeHint.Channel)] Snowflake channelId)
+        (
+            string courseKey,
+            [DiscordTypeHint(TypeHint.Channel)] Snowflake channelId,
+            [DiscordTypeHint(TypeHint.Role)] Snowflake? roleId = null
+        )
         {
-            var additionResult = await _coursesChannelCreator.CreateCourseLink(courseKey, channelId, CancellationToken);
+            var additionResult = await _coursesChannelCreator.CreateCourseLink
+                (courseKey, channelId, roleId, CancellationToken);
 
             if (!additionResult.IsSuccess)
             {
@@ -478,60 +487,32 @@ public class CoursesAdminCommands : CommandGroup
         }
 
         /// <summary>
-        /// Adds the given links of course-channel.
+        /// Edit the given link of course-channel.
         /// </summary>
         /// <returns>A result that may or may not have succeeded.</returns>
-        /// <param name="courseLinks">The links to create formatted such as #channel1:course1Key #channel2:course2Key.</param>
-        [Command("addlist")]
-        [Description("Adds multiple links in one command, for format see description of courseKeys argument.")]
-        public async Task<IResult> HandleAddListAsync
+        /// <param name="courseKey">The key of the course to link.</param>
+        /// <param name="channelId">The id of the channel to link the course to.</param>
+        /// <param name="roleId">The id of the role to link the course to.</param>
+        [Command("edit")]
+        [Description("Adds a link for a course to given channel.")]
+        public async Task<IResult> HandleEditAsync
         (
-            [Description
-                ("The courses to link in format: #channel1:course1Key #channel2:course2Key ...")]
-            string courseLinks
+            string courseKey,
+            [DiscordTypeHint(TypeHint.Channel)] Snowflake channelId,
+            [DiscordTypeHint(TypeHint.Role)] Snowflake? roleId = null
         )
         {
-            var errors = new List<IResult>();
+            var additionResult = await _coursesChannelCreator.UpdateCourseLink
+               (courseKey, channelId, roleId, CancellationToken);
 
-            foreach (var courseLink in courseLinks.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            if (!additionResult.IsSuccess)
             {
-                var splitted = courseLink.Split(':');
-                if (splitted.Length != 2)
-                {
-                    await _feedbackService.SendContextualWarningAsync($"Could not parse a link: {courseLink}");
-                    continue;
-                }
-
-                var channelIdString = splitted[0].Trim('<', '>').Trim('#');
-                var courseKey = splitted[1];
-
-                if (!DiscordSnowflake.TryParse(channelIdString, out var channelId))
-                {
-                    await _feedbackService.SendContextualWarningAsync
-                        ($"Could not parse the id of the channel {channelIdString}");
-                    continue;
-                }
-
-                var additionResult = await _coursesChannelCreator.CreateCourseLink
-                    (courseKey, channelId.Value, CancellationToken);
-
-                if (!additionResult.IsSuccess)
-                {
-                    errors.Add(additionResult);
-                    await _feedbackService.SendContextualErrorAsync
-                        ($"Could not create the given link {courseLink}. {additionResult.Error.Message}");
-                }
-
-                await _feedbackService.SendContextualSuccessAsync
-                    ($"Successfully created the link {courseLink}.");
+                await _feedbackService.SendContextualErrorAsync
+                    ($"Could not create the given link. {additionResult.Error.Message}");
+                return additionResult;
             }
 
-            return errors.Count switch
-            {
-                0 => Result.FromSuccess(),
-                1 => errors[0],
-                _ => Result.FromError(new AggregateError(errors))
-            };
+            return await _feedbackService.SendContextualSuccessAsync("Successfully created the link.");
         }
 
         /// <summary>

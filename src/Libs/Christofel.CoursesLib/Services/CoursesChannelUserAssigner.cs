@@ -15,6 +15,7 @@ using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.CoursesLib.Services;
@@ -95,7 +96,24 @@ public class CoursesChannelUserAssigner
     /// <returns>Information about what courses have been added, what have not been found and what errors.</returns>
     public async Task<CoursesAssignmentResult> ToggleCourses
         (IDiscordUser user, IEnumerable<string> courseKeys, CancellationToken ct = default)
-        => await DoCoursesOperationAsync
+    {
+        var discordUserResult = await _guildApi.GetGuildMemberAsync
+            (DiscordSnowflake.New(_botOptions.GuildId), user.DiscordId, ct);
+        if (!discordUserResult.IsDefined(out var discordUser))
+        {
+            var errorDictionary = new Dictionary<string, Result>();
+            errorDictionary.Add("user", Result.FromError(discordUserResult));
+
+            return new CoursesAssignmentResult
+            (
+                new List<CourseAssignment>(),
+                new List<CourseAssignment>(),
+                new List<string>(),
+                errorDictionary
+            );
+        }
+
+        return await DoCoursesOperationAsync
         (
             courseKeys,
             async (course, ct) =>
@@ -116,7 +134,9 @@ public class CoursesChannelUserAssigner
                         (DiscordPermission.ViewChannel) ?? false;
                 }
 
-                IResult permissionsResult = hasViewPermission
+                var hasRole = course.RoleId is not null && discordUser.Roles.Contains(course.RoleId.Value);
+
+                IResult permissionsResult = (hasViewPermission || hasRole)
                     ? await InternalDeassignCourse(user, course, ct)
                     : await InternalAssignCourse(user, course, ct);
 
@@ -125,10 +145,11 @@ public class CoursesChannelUserAssigner
                     return Result<bool>.FromError(permissionsResult.Error);
                 }
 
-                return !hasViewPermission;
+                return !(hasViewPermission || hasRole);
             },
             ct
         );
+    }
 
     /// <summary>
     /// Assigns course channels based on semester.
@@ -173,7 +194,7 @@ public class CoursesChannelUserAssigner
     private async Task AddCourseUsers(IDiscordUser user, CourseAssignment course, CancellationToken ct)
     {
         if (!await _coursesContext.CourseUsers.AnyAsync
-            (x => x.CourseKey == course.CourseKey && x.UserDiscordId == user.DiscordId, ct))
+                (x => x.CourseKey == course.CourseKey && x.UserDiscordId == user.DiscordId, ct))
         {
             _coursesContext.Add
             (
@@ -344,7 +365,7 @@ public class CoursesChannelUserAssigner
                 DiscordSnowflake.New(_botOptions.GuildId),
                 user.DiscordId,
                 course.RoleId.Value,
-                reason: "Course assignment",
+                reason: "Course deassignment",
                 ct: ct
             );
 
@@ -353,20 +374,18 @@ public class CoursesChannelUserAssigner
                 return Result<bool>.FromError(deassignResult);
             }
         }
-        else
-        {
-            var permissionsResult = await _channelApi.DeleteChannelPermissionAsync
-            (
-                course.ChannelId,
-                user.DiscordId,
-                reason: "Course assignment",
-                ct: ct
-            );
 
-            if (!permissionsResult.IsSuccess)
-            {
-                return Result<bool>.FromError(permissionsResult);
-            }
+        var permissionsResult = await _channelApi.DeleteChannelPermissionAsync
+        (
+            course.ChannelId,
+            user.DiscordId,
+            reason: "Course deassignment",
+            ct: ct
+        );
+
+        if (!permissionsResult.IsSuccess)
+        {
+            return Result<bool>.FromError(permissionsResult);
         }
 
         return false;
