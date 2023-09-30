@@ -5,6 +5,7 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.ComponentModel;
+using System.Xml.Linq;
 using Christofel.CoursesLib.Services;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -187,7 +188,14 @@ public partial class CoursesAdminCommands
             return await _feedbackService.SendContextualInfoAsync
             (
                 "The following courses are linked with the given channel:\n" +
-                string.Join('\n', courses.Select(x => $"  {x.CourseName} ({x.CourseKey})"))
+                string.Join
+                (
+                    '\n',
+                    courses.Select
+                    (
+                        x => $"- {x.CourseName} ({x.CourseKey})" + (x.RoleId is not null ? $" <@&{x.RoleId}>" : string.Empty)
+                    )
+                )
             );
         }
     }
