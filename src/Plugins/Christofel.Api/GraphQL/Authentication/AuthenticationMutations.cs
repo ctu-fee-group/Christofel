@@ -155,7 +155,7 @@ namespace Christofel.Api.GraphQL.Authentication
         /// <param name="cancellationToken">The cancellation token for the operation.</param>
         /// <returns>Payload for the user.</returns>
         [UseChristofelBaseDatabase]
-        public async Task<RegisterCtuPayload> RegisterCtuAsync
+        public async Task<RegisterCtuPayload> RegisterCtuFelAsync
         (
             RegisterCtuInput input,
             [ScopedService] ChristofelBaseContext dbContext,

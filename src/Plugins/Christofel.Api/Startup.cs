@@ -98,7 +98,7 @@ namespace Christofel.Api
             services
                 .AddScoped<CtuOauthHandler>()
                 .AddScoped<DiscordOauthHandler>()
-                .Configure<CtuOauthOptions>("Ctu", _configuration.GetSection("Oauth:Ctu"))
+                .Configure<CtuOauthOptions>("CtuFel", _configuration.GetSection("Oauth:CtuFel"))
                 .Configure<OauthOptions>("Discord", _configuration.GetSection("Oauth:Discord"));
 
             // Apis used for auth

@@ -17,8 +17,7 @@ namespace Christofel.OAuth
         /// Checks the token using oauth service.
         /// </summary>
         /// <param name="accessToken">The access token to check.</param>
-        /// <param name="token">The cancellation token of the operation.</param>
         /// <returns>The retrieved user information.</returns>
-        public Task<ICtuUser> CheckTokenAsync(string accessToken, CancellationToken token = default);
+        public ICtuUser GetUser(string accessToken);
     }
 }

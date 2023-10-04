@@ -11,6 +11,7 @@
       <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
       <PackageReference Include="RestSharp" Version="108.0.3" />
       <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="108.0.3" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.2" />
       <PackageReference Include="System.Text.Json" Version="7.0.2" />
     </ItemGroup>
 

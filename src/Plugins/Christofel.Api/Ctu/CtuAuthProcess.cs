@@ -82,7 +82,7 @@ namespace Christofel.Api.Ctu
             ICtuUser loadedUser;
             try
             {
-                loadedUser = await ctuOauthHandler.CheckTokenAsync(accessToken, ct);
+                loadedUser = ctuOauthHandler.GetUser(accessToken);
             }
             catch (Exception e)
             {
