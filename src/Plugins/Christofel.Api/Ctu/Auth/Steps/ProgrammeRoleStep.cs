@@ -67,19 +67,22 @@ namespace Christofel.Api.Ctu.Auth.Steps
                 return Result.FromSuccess();
             }
 
-            var roles = await data.DbContext.ProgrammeRoleAssignments
+            var assignments = await data.DbContext.ProgrammeRoleAssignments
                 .AsNoTracking()
                 .Where(x => x.Programme == programmeTitle)
                 .Include(x => x.Assignment)
-                .Select(x => new CtuAuthRole { RoleId = x.Assignment.RoleId, Type = x.Assignment.RoleType })
+                .Select(x => x.Assignment)
                 .ToListAsync(ct);
 
-            if (roles.Count == 0)
+            if (assignments.Count == 0)
             {
                 _logger.LogWarning
                     ($"Could not find mapping for programme {programmeTitle} for user {data.GuildUser}");
             }
 
+            var roles = assignments
+                .Where(x => x is not null)
+                .Select(x => new CtuAuthRole { RoleId = x!.RoleId, Type = x.RoleType });
             data.Roles.AddRange(roles);
 
             return Result.FromSuccess();
