@@ -80,27 +80,25 @@ namespace Christofel.ReactHandler.Responders
             }
 
             string emoji = EmojiFormatter.GetEmojiString(gatewayEvent.Emoji);
-            var matchingHandlers = await _dbContext.Set<HandleReact>()
+            IEnumerable<HandleReact> matchingHandlers = await _dbContext.Set<HandleReact>()
                 .Where
                 (
                     x => x.ChannelId == gatewayEvent.ChannelID &&
                          x.MessageId == gatewayEvent.MessageID &&
                          x.Emoji == emoji
                 )
-                .ToListAsync(ct);
+                .ToArrayAsync(ct);
+            matchingHandlers = matchingHandlers
+                .Where(x => x.Emoji == emoji)
+                .ToList();
 
-            List<IResult> errors = new List<IResult>();
+            var errors = new List<IResult>();
 
             // Roles take precedence over channel assignments.
             var anyRoles = matchingHandlers.Any(x => x.Type == HandleReactType.Role);
 
             foreach (var matchingHandler in matchingHandlers)
             {
-                if (matchingHandler.Emoji != emoji)
-                {
-                    continue;
-                }
-
                 Result result;
 
                 switch (matchingHandler.Type)
