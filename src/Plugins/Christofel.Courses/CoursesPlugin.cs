@@ -104,7 +104,7 @@ namespace Christofel.Courses
                 .AddJsonLocalization()
                 .AddSingleton<PluginResponder>()
                 .AddSingleton<CtuOauthHandler>()
-                .Configure<CtuOauthOptions>("Ctu", State.Configuration.GetSection("Oauth:CtuClient"))
+                .Configure<CtuOauthOptions>("CtuFel", State.Configuration.GetSection("Oauth:CtuClient"))
                 .AddSingleton<ClientCredentialsToken>()
                 .AddKosApi
                 (
