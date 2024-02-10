@@ -187,7 +187,7 @@ namespace Christofel.Management.Commands
                     try
                     {
                         var commandUserIdentity =
-                            await _identityResolver.GetFirstIdentity(executingUserId.Value);
+                            await _identityResolver.GetFirstIdentity(executingUserId);
                         var dmFeedbackResult = await _feedbackService.SendPrivateNeutralAsync
                         (
                             userId,

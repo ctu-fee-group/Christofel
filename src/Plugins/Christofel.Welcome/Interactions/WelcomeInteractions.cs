@@ -87,7 +87,7 @@ public class WelcomeInteractions
         {
             dbUser = new DbUser
             {
-                DiscordId = userId.Value,
+                DiscordId = userId,
                 RegistrationCode = Guid.NewGuid().ToString(),
                 InteractionToken = _context.Interaction.Token,
             };

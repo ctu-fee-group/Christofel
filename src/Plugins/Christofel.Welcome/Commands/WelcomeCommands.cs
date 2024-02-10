@@ -78,7 +78,7 @@ public class WelcomeCommands : CommandGroup
         }
 
         var messageResult = await _welcomeMessage.SendWelcomeMessage
-            (channel ?? channelId.Value, language, CancellationToken);
+            (channel ?? channelId, language, CancellationToken);
         if (messageResult.IsSuccess)
         {
             var feedbackResult = await _feedbackService.SendContextualSuccessAsync
@@ -140,7 +140,7 @@ public class WelcomeCommands : CommandGroup
 
         var messageResult = await _channelApi.EditMessageAsync
         (
-            channel ?? channelId.Value,
+            channel ?? channelId,
             messageId,
             embeds: new[] { embed },
             components: WelcomeMessageHelper.CreateWelcomeComponents(_options, language),

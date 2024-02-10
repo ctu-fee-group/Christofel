@@ -79,7 +79,7 @@ namespace Christofel.Messages.Commands
             }
 
             var messageResult = await _channelApi.CreateMessageAsync
-                (channelId.Value, text, allowedMentions: AllowedMentionsHelper.None, ct: CancellationToken);
+                (channelId, text, allowedMentions: AllowedMentionsHelper.None, ct: CancellationToken);
             if (!messageResult.IsSuccess)
             {
                 // Ignore as message not sent is more critical
@@ -124,7 +124,7 @@ namespace Christofel.Messages.Commands
             }
 
             var messageResult =
-                await _channelApi.GetChannelMessageAsync(channelId.Value, messageId, CancellationToken);
+                await _channelApi.GetChannelMessageAsync(channelId, messageId, CancellationToken);
             if (!messageResult.IsSuccess)
             {
                 // Ignore as message not loaded is more critical
@@ -134,7 +134,7 @@ namespace Christofel.Messages.Commands
 
             var editResult = await _channelApi.EditMessageAsync
             (
-                channelId.Value,
+                channelId,
                 messageId,
                 text,
                 allowedMentions: AllowedMentionsHelper.None,
@@ -195,7 +195,7 @@ namespace Christofel.Messages.Commands
 
             var createdMessageResult = await _channelApi.CreateMessageAsync
             (
-                executingChannelId.Value,
+                executingChannelId,
                 "```\n" + fetchedMessage.Content.Replace("```", "\\`\\`\\`") + "\n```",
                 ct: CancellationToken
             );

@@ -24,10 +24,11 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
         /// <returns>GuildMember representing the <paramref name="user"/>.</returns>
         public static GuildMember CreateDummyGuildMember(DbUser user) => new GuildMember
         (
-            new User(user.DiscordId, "DummyUser", 1234, default),
+            new User(user.DiscordId, "DummyUser", 1234, default, default),
             default,
             default,
             new List<Snowflake>(),
+            default,
             default,
             default,
             default,

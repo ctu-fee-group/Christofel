@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using RestSharp;
 using RestSharp.Authenticators;
 using RestSharp.Authenticators.OAuth2;
+using RestSharp.Serializers.Json;
 using RestSharp.Serializers.NewtonsoftJson;
 
 namespace Christofel.Api.Discord
@@ -29,11 +30,16 @@ namespace Christofel.Api.Discord
         /// <param name="options">The options of the discord api.</param>
         internal AuthorizedDiscordApi(string accessToken, DiscordApiOptions options)
         {
-            _client = new RestClient(options.BaseUrl)
+            var restOptions = new RestClientOptions(options.BaseUrl)
             {
-                Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(accessToken, "Bearer"),
+                Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(accessToken, "Bearer")
             };
-            _client.UseNewtonsoftJson();
+
+            _client = new RestClient
+            (
+                options: restOptions,
+                configureSerialization: s => s.UseSystemTextJson()
+            );
 
             _accessToken = accessToken;
         }

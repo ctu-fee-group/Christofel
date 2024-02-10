@@ -100,7 +100,7 @@ public class CoursesCommands : CommandGroup
             return (Result)new GenericError("Could not get user id from context.");
         }
 
-        var discordUser = new DiscordUser(userId.Value);
+        var discordUser = new DiscordUser(userId);
 
         var coursesAssignmentResult = await _channelUserAssigner.AssignCourses
             (discordUser, courses.Split(' '), CancellationToken);
@@ -130,7 +130,7 @@ public class CoursesCommands : CommandGroup
             return (Result)new GenericError("Could not get user id from context.");
         }
 
-        var discordUser = new DiscordUser(userId.Value);
+        var discordUser = new DiscordUser(userId);
 
         var coursesAssignmentResult = await _channelUserAssigner.DeassignCourses
             (discordUser, courses.Split(' '), CancellationToken);
@@ -160,7 +160,7 @@ public class CoursesCommands : CommandGroup
             return (Result)new GenericError("Could not get user id from context.");
         }
 
-        var discordUser = new DiscordUser(userId.Value);
+        var discordUser = new DiscordUser(userId);
 
         var coursesAssignmentResult = await _channelUserAssigner.ToggleCourses
             (discordUser, courses.Split(' '), CancellationToken);
@@ -400,7 +400,7 @@ public class CoursesCommands : CommandGroup
             }
 
             var joinedCoursesResult = await _coursesRepository.JoinWithUserData
-                (courseAssignments, userId.Value, CancellationToken);
+                (courseAssignments, userId, CancellationToken);
 
             if (!joinedCoursesResult.IsDefined(out var joinedCourses))
             {

@@ -76,7 +76,7 @@ public class CustomVoiceCommandGroup : CommandGroup
             return (Result)new GenericError("Could not get user id from context.");
         }
 
-        var customVoice = _customVoiceService.GetChannelUserIsConnectedTo(userId.Value);
+        var customVoice = _customVoiceService.GetChannelUserIsConnectedTo(userId);
         var validationResult = new CommandValidator()
             .MakeSure("voice", customVoice is null ? string.Empty : "notempty", o => o.NotEmpty())
             .MakeSure("name", name, o => o.MaximumLength(100))
@@ -128,7 +128,7 @@ public class CustomVoiceCommandGroup : CommandGroup
         }
 
         var permissionResult = await customVoiceService.IsPermittedToChangeChannel
-            (userId.Value, customVoice, ct);
+            (userId, customVoice, ct);
         if (!permissionResult.IsDefined(out var permission))
         {
             return Result.FromError(permissionResult);
@@ -156,7 +156,7 @@ public class CustomVoiceCommandGroup : CommandGroup
             return new GenericError("Could not get user id from context.");
         }
 
-        var customVoice = customVoiceService.GetChannelUserIsConnectedTo(userId.Value);
+        var customVoice = customVoiceService.GetChannelUserIsConnectedTo(userId);
         var validationResult = new CommandValidator()
             .MakeSure("voice", customVoice is null ? string.Empty : "notempty", o => o.NotEmpty())
             .Validate()

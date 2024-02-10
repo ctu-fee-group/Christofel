@@ -75,7 +75,7 @@ namespace Christofel.CommandsLib.Permissions
 
             var result = await _permissionResolver.HasPermissionAsync
             (
-                userId.Value,
+                userId,
                 roles.Value ?? Array.Empty<Snowflake>(),
                 attribute.Permission,
                 ct
@@ -129,7 +129,7 @@ namespace Christofel.CommandsLib.Permissions
 
             if (_context is MessageContext && _context.TryGetGuildID(out var guildId))
             {
-                var memberResult = await _guildApi.GetGuildMemberAsync(guildId.Value, userId.Value, ct);
+                var memberResult = await _guildApi.GetGuildMemberAsync(guildId, userId, ct);
                 if (!memberResult.IsDefined(out var member))
                 {
                     return Result<Optional<IReadOnlyList<Snowflake>>>.FromError(memberResult);

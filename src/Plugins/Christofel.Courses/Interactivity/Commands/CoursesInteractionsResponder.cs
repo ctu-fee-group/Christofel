@@ -304,7 +304,7 @@ public class CoursesInteractionsResponder : CommandGroup
         }
 
         var joinedCoursesResult = await _coursesRepository.JoinWithUserData
-            (courseAssignments, userId.Value, CancellationToken);
+            (courseAssignments, userId, CancellationToken);
 
         if (!joinedCoursesResult.IsDefined(out var joinedCourses))
         {

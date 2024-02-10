@@ -124,9 +124,9 @@ namespace Christofel.Management.Commands
                 return validationResult;
             }
 
-            if (channel is null)
+            if (channel is null && _context.TryGetChannelID(out var foundChannelId))
             {
-                _context.TryGetChannelID(out channel);
+                channel = foundChannelId;
             }
 
             if (channel is null)
@@ -166,7 +166,7 @@ namespace Christofel.Management.Commands
             try
             {
                 temporalSlowmode = await _slowmodeService.RegisterTemporalSlowmodeAsync
-                    (channel.Value, userId.Value, interval, (TimeSpan)returnInterval, duration);
+                    (channel.Value, userId, interval, (TimeSpan)returnInterval, duration);
             }
             catch (Exception e)
             {
@@ -248,9 +248,9 @@ namespace Christofel.Management.Commands
                 return validationResult;
             }
 
-            if (channel is null)
+            if (channel is null && _context.TryGetChannelID(out var foundChannel))
             {
-                _context.TryGetChannelID(out channel);
+                channel = foundChannel;
             }
 
             if (channel is null)
@@ -292,9 +292,9 @@ namespace Christofel.Management.Commands
             Snowflake? channel = null
         )
         {
-            if (channel is null)
+            if (channel is null && _context.TryGetChannelID(out var foundChannel))
             {
-                _context.TryGetChannelID(out channel);
+                channel = foundChannel;
             }
 
             if (channel is null)

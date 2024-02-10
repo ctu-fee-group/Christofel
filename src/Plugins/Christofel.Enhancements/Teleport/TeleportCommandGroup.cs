@@ -117,10 +117,10 @@ public class TeleportCommandGroup : CommandGroup
         // Done.
         var messageInTargetResult = await SendMessageAsync
         (
-            guildId.Value,
-            userId.Value,
+            guildId,
+            userId,
             channel,
-            channelId.Value,
+            channelId,
             null,
             _options.MessageFrom,
             CancellationToken
@@ -134,9 +134,9 @@ public class TeleportCommandGroup : CommandGroup
 
         var messageInCurrentResult = await SendMessageAsync
         (
-            guildId.Value,
-            userId.Value,
-            channelId.Value,
+            guildId,
+            userId,
+            channelId,
             channel,
             messageInTarget,
             _options.MessageTo,
@@ -151,11 +151,11 @@ public class TeleportCommandGroup : CommandGroup
 
         messageInTargetResult = await EditMessageAsync
         (
-            guildId.Value,
-            userId.Value,
+            guildId,
+            userId,
             channel,
             messageInTarget,
-            channelId.Value,
+            channelId,
             messageInCurrent,
             _options.MessageFrom,
             CancellationToken
@@ -175,8 +175,8 @@ public class TeleportCommandGroup : CommandGroup
             "Created a teleport from <#{ChannelFrom}> to <#{ChannelTo}>. See:\n{MessageFrom}\n{MessageTo}",
             channelId.Value,
             channel,
-            GetMessageUrl(guildId.Value, channelId.Value, messageInCurrent),
-            GetMessageUrl(guildId.Value, channel, messageInTarget)
+            GetMessageUrl(guildId, channelId, messageInCurrent),
+            GetMessageUrl(guildId, channel, messageInTarget)
         );
 
         return feedbackResult.IsSuccess ? Result.FromSuccess() : Result.FromError(feedbackResult);
@@ -272,7 +272,7 @@ public class TeleportCommandGroup : CommandGroup
         }
 
         var overridePermissionResult = await _permissionsResolver.HasPermissionAsync
-            ("enhancements.teleport.override", userId.Value, guildId.Value, ct: ct);
+            ("enhancements.teleport.override", userId, guildId, ct: ct);
         if (!overridePermissionResult.IsDefined(out var overridePermission))
         {
             return Result.FromError(overridePermissionResult);
@@ -283,7 +283,7 @@ public class TeleportCommandGroup : CommandGroup
             return Result.FromSuccess();
         }
 
-        var rolesResult = await _guildApi.GetGuildRolesAsync(guildId.Value, ct);
+        var rolesResult = await _guildApi.GetGuildRolesAsync(guildId, ct);
         if (!rolesResult.IsDefined(out var roles))
         {
             return Result.FromError(rolesResult);
@@ -295,7 +295,7 @@ public class TeleportCommandGroup : CommandGroup
             return Result.FromError(channelResult);
         }
 
-        var memberResult = await _guildApi.GetGuildMemberAsync(guildId.Value, userId.Value, ct);
+        var memberResult = await _guildApi.GetGuildMemberAsync(guildId, userId, ct);
         if (!memberResult.IsDefined(out var member))
         {
             return Result.FromError(memberResult);
@@ -306,7 +306,7 @@ public class TeleportCommandGroup : CommandGroup
         var overwrites = channel.PermissionOverwrites.HasValue ? channel.PermissionOverwrites.Value : null;
 
         var permissions = DiscordPermissionSet.ComputePermissions
-            (userId.Value, everyoneRole, memberRoles, overwrites);
+            (userId, everyoneRole, memberRoles, overwrites);
         return permissions.HasPermission(DiscordPermission.SendMessages)
             ? Result.FromSuccess()
             : new InvalidOperationError

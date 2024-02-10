@@ -7,6 +7,7 @@
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Authenticators;
+using RestSharp.Serializers.Json;
 using RestSharp.Serializers.NewtonsoftJson;
 
 namespace Christofel.OAuth
@@ -24,15 +25,21 @@ namespace Christofel.OAuth
         /// <param name="options">The options of the oauth handler.</param>
         protected OauthHandler(TOptions options)
         {
-            Client = new RestClient();
-            Client.UseNewtonsoftJson();
-
             Options = options;
-            Client.Authenticator = new HttpBasicAuthenticator
+
+            var restOptions = new RestClientOptions();
+            restOptions.Authenticator = new HttpBasicAuthenticator
             (
                 Options.ApplicationId ?? throw new InvalidOperationException("ApplicationId is null"),
                 Options.SecretKey ?? throw new InvalidOperationException("SecretKey is null")
             );
+
+            Client = new RestClient
+            (
+                options: restOptions,
+                configureSerialization: s => s.UseSystemTextJson()
+            );
+
         }
 
         /// <summary>
@@ -93,7 +100,8 @@ namespace Christofel.OAuth
             return await ExchangeTokenAsync(tokenRequestParameters, token);
         }
 
-        private async Task<OauthResponse> ExchangeTokenAsync(Dictionary<string, string> parameters, CancellationToken token)
+        private async Task<OauthResponse> ExchangeTokenAsync
+            (Dictionary<string, string> parameters, CancellationToken token)
         {
             var request = new RestRequest
                 (Options.TokenEndpoint ?? throw new InvalidOperationException("TokenEndpoint is null"), Method.Post);
@@ -123,9 +131,8 @@ namespace Christofel.OAuth
             }
             else
             {
-                errorResponse = JsonConvert.DeserializeObject<OauthErrorResponse>
-                        (response.Content ?? string.Empty) ??
-                    new OauthErrorResponse("Unknown", "Unknown");
+                errorResponse = JsonConvert.DeserializeObject<OauthErrorResponse>(response.Content ?? string.Empty) ??
+                                new OauthErrorResponse("Unknown", "Unknown");
                 errorResponse.Body = response.Content ?? string.Empty;
                 errorResponse.Headers = string.Join("; ", response.Headers ?? Array.Empty<HeaderParameter>());
                 errorResponse.StatusCode = (int)response.StatusCode;

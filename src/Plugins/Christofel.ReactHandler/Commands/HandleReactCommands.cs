@@ -93,7 +93,7 @@ namespace Christofel.ReactHandler.Commands
                 return new GenericError("Could not find channel id in context.");
             }
 
-            var channelId = channel ?? executingChannelId.Value;
+            var channelId = channel ?? executingChannelId;
 
             List<HandleReact> matchingHandlers;
             try
@@ -156,7 +156,7 @@ namespace Christofel.ReactHandler.Commands
                 return new GenericError("Could not find channel id in context.");
             }
 
-            var channelId = channel ?? executingChannelId.Value;
+            var channelId = channel ?? executingChannelId;
 
             // 1. react to the message
             var reactionResult =
@@ -237,7 +237,7 @@ namespace Christofel.ReactHandler.Commands
             {
                 return new GenericError("Could not find channel id in context.");
             }
-            var channelId = channel ?? executingChannelId.Value;
+            var channelId = channel ?? executingChannelId;
 
             List<HandleReact> matchingHandlers;
             try

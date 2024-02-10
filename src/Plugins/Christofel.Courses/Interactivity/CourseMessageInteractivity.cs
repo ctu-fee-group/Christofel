@@ -99,7 +99,7 @@ public class CourseMessageInteractivity
         }
 
         var joinedCoursesResult = await _coursesRepository.JoinWithUserData
-            (courseAssignments, userId.Value, ct);
+            (courseAssignments, userId, ct);
 
         if (!joinedCoursesResult.IsDefined(out var joinedCourses))
         {
@@ -173,7 +173,7 @@ public class CourseMessageInteractivity
             return (Result)new GenericError("Could not get user id from context.");
         }
 
-        var discordUser = new DiscordUser(userId.Value);
+        var discordUser = new DiscordUser(userId);
         CoursesAssignmentResult coursesAssignmentResult;
 
         switch (commandType)
@@ -226,7 +226,7 @@ public class CourseMessageInteractivity
         }
 
         var joinedCoursesResult = await _coursesRepository.JoinWithUserData
-            (courseAssignments, userId.Value, ct);
+            (courseAssignments, userId, ct);
 
         if (!joinedCoursesResult.IsDefined(out var joinedCourses))
         {

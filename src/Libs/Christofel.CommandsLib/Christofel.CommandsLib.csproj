@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <WarningsAsErrors>nullable</WarningsAsErrors>
 
@@ -20,9 +20,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentValidation" Version="11.5.0" />
-        <PackageReference Include="Remora.Discord.API.Abstractions" Version="76.0.0" />
-        <PackageReference Include="Remora.Discord.Commands" Version="26.2.2" />
+        <PackageReference Include="FluentValidation" Version="11.9.0" />
+        <PackageReference Include="Remora.Discord.API.Abstractions" Version="81.0.0" />
+        <PackageReference Include="Remora.Discord.Commands" Version="28.0.2" />
     </ItemGroup>
 
 </Project>

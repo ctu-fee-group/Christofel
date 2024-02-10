@@ -80,7 +80,7 @@ namespace Christofel.Messages.Commands
             }
 
             emoji = emoji.TrimStart('<').TrimEnd('>').TrimStart(':');
-            var channelId = channel ?? executingChannelId.Value;
+            var channelId = channel ?? executingChannelId;
             var result =
                 await _channelApi.CreateReactionAsync(channelId, messageId, emoji, CancellationToken);
 

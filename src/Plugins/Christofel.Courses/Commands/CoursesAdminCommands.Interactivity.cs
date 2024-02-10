@@ -95,9 +95,9 @@ public partial class CoursesAdminCommands
         )
         {
             _cultureProvider.CurrentCulture = language;
-            if (channel is null)
+            if (channel is null && _commandContext.TryGetChannelID(out var foundChannel))
             {
-                _commandContext.TryGetChannelID(out channel);
+                channel = foundChannel;
             }
 
             if (channel is null)
@@ -146,9 +146,9 @@ public partial class CoursesAdminCommands
         {
             _cultureProvider.CurrentCulture = language;
             var channelId = channel ?? null;
-            if (channelId is null)
+            if (channelId is null && _commandContext.TryGetChannelID(out var foundChannel))
             {
-                _commandContext.TryGetChannelID(out channelId);
+                channelId = foundChannel;
             }
 
             if (channelId is null)

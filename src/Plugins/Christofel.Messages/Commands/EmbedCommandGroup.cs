@@ -187,7 +187,7 @@ namespace Christofel.Messages.Commands
                 (
                     _feedbackService,
                     _channelApi,
-                    channel ?? channelId.Value,
+                    channel ?? channelId,
                     messageId,
                     parseResult.Entity,
                     CancellationToken
@@ -229,7 +229,7 @@ namespace Christofel.Messages.Commands
                 (
                     _feedbackService,
                     _channelApi,
-                    channel ?? channelId.Value,
+                    channel ?? channelId,
                     parseResult.Entity,
                     CancellationToken
                 );
@@ -327,7 +327,7 @@ namespace Christofel.Messages.Commands
                 (
                     _feedbackService,
                     _channelApi,
-                    channel ?? channelId.Value,
+                    channel ?? channelId,
                     messageId,
                     parseResult.Entity,
                     CancellationToken
@@ -366,7 +366,7 @@ namespace Christofel.Messages.Commands
                 (
                     _feedbackService,
                     _channelApi,
-                    channel ?? channelId.Value,
+                    channel ?? channelId,
                     parseResult.Entity,
                     CancellationToken
                 );

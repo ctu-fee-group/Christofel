@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentValidation" Version="11.5.0" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
+        <PackageReference Include="FluentValidation" Version="11.9.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup>
