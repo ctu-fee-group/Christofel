@@ -20,10 +20,12 @@ using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
 using Christofel.Management.ResendRule;
 using Christofel.Management.Slowmode;
+using Christofel.OAuth;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Christofel.Remora.Responders;
+using Kos.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -106,6 +108,28 @@ namespace Christofel.Management
                     ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
                 .AddTransient<SlowmodeService>()
                 .AddStateful<SlowmodeAutorestore>(ServiceLifetime.Transient)
+
+                // Oauth client
+                .AddSingleton<CtuOauthHandler>()
+                .Configure<CtuOauthOptions>("CtuFel", State.Configuration.GetSection("Oauth:CtuClient"))
+                .AddSingleton<ClientCredentialsToken>()
+                .AddKosApi
+                (
+                    async (p, ct) =>
+                    {
+                        var credentialsToken = p.GetRequiredService<ClientCredentialsToken>();
+
+                        await credentialsToken.MakeSureTokenValid(ct);
+
+                        if (credentialsToken.AccessToken is null)
+                        {
+                            throw new InvalidOperationException("The client credentials token is null.");
+                        }
+
+                        return credentialsToken.AccessToken;
+                    },
+                    lifetime: ServiceLifetime.Scoped
+                )
 
                 // Misc
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)

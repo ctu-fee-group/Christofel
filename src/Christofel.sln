@@ -62,6 +62,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.OAuth", "Libs\Ch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.LGPLicensed", "Libs\Christofel.LGPLicensed\Christofel.LGPLicensed.csproj", "{F90F5BA9-A210-4FED-98ED-1791022F88B5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.CtuAuth", "Libs\Christofel.CtuAuth\Christofel.CtuAuth.csproj", "{F5991AF1-FE00-4148-84E5-82B1319156AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,7 @@ Global
 		{60717ACF-7399-46C3-91AF-BE3C7F56646A} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
 		{6E60F8CB-6EE8-4B6B-9C9F-C9CD201C1506} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
 		{F90F5BA9-A210-4FED-98ED-1791022F88B5} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
+		{F5991AF1-FE00-4148-84E5-82B1319156AA} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B8630DDB-0533-4BDE-84DA-3BF5D18968B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -181,5 +184,9 @@ Global
 		{F90F5BA9-A210-4FED-98ED-1791022F88B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F90F5BA9-A210-4FED-98ED-1791022F88B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F90F5BA9-A210-4FED-98ED-1791022F88B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5991AF1-FE00-4148-84E5-82B1319156AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5991AF1-FE00-4148-84E5-82B1319156AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5991AF1-FE00-4148-84E5-82B1319156AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5991AF1-FE00-4148-84E5-82B1319156AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

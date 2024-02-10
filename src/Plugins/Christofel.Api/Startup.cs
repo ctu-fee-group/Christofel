@@ -5,11 +5,6 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Auth.Tasks.Options;
-using Christofel.Api.Ctu.Database;
-using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Ctu.JobQueue;
 using Christofel.Api.Discord;
 using Christofel.Api.GraphQL.Authentication;
 using Christofel.Api.GraphQL.Diagnostics;
@@ -17,6 +12,11 @@ using Christofel.Api.GraphQL.Types;
 using Christofel.Api.Services;
 using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
+using Christofel.CtuAuth;
+using Christofel.CtuAuth.Auth.Tasks.Options;
+using Christofel.CtuAuth.Database;
+using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.JobQueue;
 using Christofel.Helpers.JobQueue;
 using Christofel.OAuth;
 using Kos;
