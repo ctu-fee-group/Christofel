@@ -7,7 +7,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
+using Christofel.CtuAuth;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 

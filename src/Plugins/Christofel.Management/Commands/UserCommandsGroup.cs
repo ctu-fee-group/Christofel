@@ -7,16 +7,22 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
+using Christofel.Common.User;
+using Christofel.CtuAuth;
 using Christofel.Management.CtuUtils;
+using Christofel.OAuth;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Commands.Attributes;
@@ -44,6 +50,7 @@ namespace Christofel.Management.Commands
     public class UserCommandsGroup : CommandGroup
     {
         private readonly ICommandContext _context;
+        private readonly IServiceProvider _services;
         private readonly ChristofelBaseContext _dbContext;
         private readonly FeedbackService _feedbackService;
 
@@ -59,21 +66,105 @@ namespace Christofel.Management.Commands
         /// <param name="identityResolver">The identity resolver.</param>
         /// <param name="dbContext">The christofel base database context.</param>
         /// <param name="context">The context of the current command.</param>
+        /// <param name="services">The service provider.</param>
         public UserCommandsGroup
         (
             FeedbackService feedbackService,
             ILogger<UserCommandsGroup> logger,
             CtuIdentityResolver identityResolver,
             ChristofelBaseContext dbContext,
-            ICommandContext context
+            ICommandContext context,
+            IServiceProvider services
         )
         {
             _context = context;
+            _services = services;
             _feedbackService = feedbackService;
             _identityResolver = identityResolver;
             _logger = logger;
             _dbContext = dbContext;
         }
+
+        /// <summary>
+        /// Handles /users auth.
+        /// </summary>
+        /// <param name="user">The user to authenticate.</param>
+        /// <param name="ctuUsername">The username of the link user.</param>
+        /// <returns>A result that may not have succeeded.</returns>
+        [Command("auth")]
+        [Description("Trigger authentication of the given user.")]
+        [RequirePermission("management.users.auth")]
+        public async Task<Result> HandleAuthUser
+        (
+            [Description("The discord user to authenticate")] [DiscordTypeHint(TypeHint.User)]
+            Snowflake user,
+            [Description("CTU username of the user to add")]
+            string ctuUsername
+        )
+        {
+            var auth = _services.GetRequiredService<CtuAuthProcess>();
+            var guildApi = _services.GetRequiredService<IDiscordRestGuildAPI>();
+            var options = _services.GetRequiredService<IOptionsSnapshot<BotOptions>>().Value;
+            var ctuUser = new CtuUser(ctuUsername);
+
+            var memberResult = await guildApi.GetGuildMemberAsync
+            (
+                new Snowflake(options.GuildId, Constants.DiscordEpoch),
+                user,
+                CancellationToken
+            );
+
+            if (!memberResult.IsDefined(out var member))
+            {
+                var feedbackResponse = await _feedbackService.SendContextualSuccessAsync
+                    ("There was an error while retrieving the guild member from Discord API.");
+
+                return feedbackResponse.IsSuccess
+                    ? Result.FromSuccess()
+                    : Result.FromError(feedbackResponse);
+            }
+
+            var dbUser = new DbUser
+            {
+                CtuUsername = ctuUsername,
+                DiscordId = user,
+                AuthenticatedAt = DateTime.Now
+            };
+
+            try
+            {
+                _dbContext.Add(dbUser);
+                await _dbContext.SaveChangesAsync(CancellationToken);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "There was an error while saving data to the database");
+
+                var feedbackResponse = await _feedbackService.SendContextualSuccessAsync
+                    ("There was an error while saving data to the database");
+
+                return feedbackResponse.IsSuccess
+                    ? Result.FromSuccess()
+                    : Result.FromError(feedbackResponse);
+            }
+
+            var authResult = await auth.FinishAuthAsync
+                (ctuUser, _dbContext, options.GuildId, dbUser, member, CancellationToken);
+
+            if (!authResult.IsSuccess)
+            {
+                await _feedbackService.SendContextualErrorAsync("There was an error during the authentication: " + authResult.Error);
+                return authResult;
+            }
+
+            var feedbackResult = await _feedbackService.SendContextualInfoAsync("Successfully authenticated the user!");
+
+            return feedbackResult.IsSuccess
+                ? Result.FromSuccess()
+                : Result.FromError(feedbackResult);
+        }
+
+        private record CtuUser(string CtuUsername) : ICtuUser;
 
         /// <summary>
         /// Handles /users add.

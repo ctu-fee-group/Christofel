@@ -8,7 +8,6 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 using RestSharp;
-using RestSharp.Authenticators;
 using RestSharp.Authenticators.OAuth2;
 using RestSharp.Serializers.Json;
 using RestSharp.Serializers.NewtonsoftJson;

@@ -12,9 +12,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Libs\Christofel.CtuAuth\Christofel.CtuAuth.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.Helpers\Christofel.Helpers.csproj" />
         <ProjectReference Include="..\..\Core\Christofel.Common\Christofel.Common.csproj" />
         <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
+        <ProjectReference Include="..\..\Libs\Christofel.OAuth\Christofel.OAuth.csproj" />
     </ItemGroup>
 
     <ItemGroup>

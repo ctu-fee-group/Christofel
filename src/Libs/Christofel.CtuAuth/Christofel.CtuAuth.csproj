@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Core\Christofel.Common\Christofel.Common.csproj" />
+      <ProjectReference Include="..\Christofel.Helpers\Christofel.Helpers.csproj" />
+      <ProjectReference Include="..\Christofel.OAuth\Christofel.OAuth.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="KosApi" Version="1.3.1" />
+      <PackageReference Include="Remora.Results" Version="7.4.1" />
+      <PackageReference Include="UsermapApi" Version="1.0.3" />
+    </ItemGroup>
+
+</Project>

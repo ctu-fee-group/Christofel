@@ -13,6 +13,8 @@ using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
+using Christofel.CtuAuth;
+using Christofel.CtuAuth.Extensions;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Christofel.Helpers.Storages;
 using Christofel.Management.Commands;
@@ -20,15 +22,21 @@ using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
 using Christofel.Management.ResendRule;
 using Christofel.Management.Slowmode;
+using Christofel.OAuth;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
 using Christofel.Plugins.Runtime;
 using Christofel.Remora.Responders;
+using Kos;
+using Kos.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Remora.Commands.Extensions;
 using Remora.Discord.Gateway.Extensions;
+using Remora.Extensions.Options.Immutable;
+using Usermap;
+using Usermap.Extensions;
 
 namespace Christofel.Management
 {
@@ -106,6 +114,53 @@ namespace Christofel.Management
                     ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
                 .AddTransient<SlowmodeService>()
                 .AddStateful<SlowmodeAutorestore>(ServiceLifetime.Transient)
+
+                // Ctu auth
+                .AddCtuAuthProcess()
+                .AddDefaultCtuAuthProcess()
+
+                // Oauth client
+                .AddSingleton<CtuOauthHandler>()
+                .Configure<CtuOauthOptions>("CtuFel", State.Configuration.GetSection("Oauth:CtuClient"))
+                .AddSingleton<ClientCredentialsToken>()
+
+                // kos api, usermap api
+                .AddKosApi
+                (
+                    async (p, ct) =>
+                    {
+                        var credentialsToken = p.GetRequiredService<ClientCredentialsToken>();
+
+                        await credentialsToken.MakeSureTokenValid(ct);
+
+                        if (credentialsToken.AccessToken is null)
+                        {
+                            throw new InvalidOperationException("The client credentials token is null.");
+                        }
+
+                        return credentialsToken.AccessToken;
+                    },
+                    lifetime: ServiceLifetime.Scoped
+                )
+                .AddUsermapApi
+                (
+                    p =>
+                    {
+                        var credentialsToken = p.GetRequiredService<ClientCredentialsToken>();
+
+                        credentialsToken.MakeSureTokenValid().Wait();
+
+                        if (credentialsToken.AccessToken is null)
+                        {
+                            throw new InvalidOperationException("The client credentials token is null.");
+                        }
+
+                        return credentialsToken.AccessToken;
+                    },
+                    lifetime: ServiceLifetime.Scoped
+                )
+                .Configure<UsermapApiOptions>(State.Configuration.GetSection("Apis:Usermap"))
+                .Configure<KosApiOptions>(State.Configuration.GetSection("Apis:Kos"))
 
                 // Misc
                 .AddSingleton(_lifetimeHandler.LifetimeSpecific)

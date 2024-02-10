@@ -8,8 +8,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Auth;
 using Christofel.Api.Discord;
 using Christofel.Api.GraphQL.Attributes;
 using Christofel.Api.GraphQL.Common;
@@ -17,6 +15,9 @@ using Christofel.BaseLib.Configuration;
 using Christofel.BaseLib.Extensions;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
+using Christofel.CtuAuth;
+using Christofel.CtuAuth.Auth;
+using Christofel.CtuAuth.Errors;
 using Christofel.OAuth;
 using HotChocolate;
 using HotChocolate.Types;
@@ -340,7 +341,14 @@ namespace Christofel.Api.GraphQL.Authentication
 
                     if (!authResult.IsSuccess)
                     {
-                        switch (authResult.Error)
+                        var error = authResult.Error;
+
+                        if (error is DuplicateError)
+                        {
+                            error = UserErrors.RejectedDuplicateUser;
+                        }
+
+                        switch (error)
                         {
                             case UserError userError:
                                 _logger.LogResultError
