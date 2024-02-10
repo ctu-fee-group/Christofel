@@ -4,6 +4,7 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Christofel.CtuAuth.Errors;
 using Christofel.CtuAuth.Resolvers;
 using Microsoft.Extensions.Logging;
 using Remora.Results;
@@ -77,7 +78,7 @@ namespace Christofel.CtuAuth.Auth.Conditions
             }
 
             return duplicates.Discord?.Users.Count > 0
-                ? UserErrors.RejectedDuplicateUser
+                ? new DuplicateError()
                 : Result.FromSuccess();
         }
     }

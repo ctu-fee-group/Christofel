@@ -84,10 +84,33 @@ namespace Christofel.CtuAuth
                 return e;
             }
 
+            return await FinishAuthAsync(loadedUser, dbContext, guildId, dbUser, guildUser, ct);
+        }
+
+        /// <summary>
+        /// Proceed to do all the steps
+        /// If step fails, exception will be thrown.
+        /// </summary>
+        /// <param name="user">The ctu user information.</param>
+        /// <param name="dbContext">Context monitoring dbUser.</param>
+        /// <param name="guildId">Id of the guild we are workikng in.</param>
+        /// <param name="dbUser">Database user to be edited and saved.</param>
+        /// <param name="guildUser">Discord user used for auth purposes. Should be user with the id of dbUser.</param>
+        /// <param name="ct">Cancellation token in case the request is cancelled.</param>
+        /// <returns>A result that may not have succeeded.</returns>
+        public async Task<Result> FinishAuthAsync
+        (
+            ICtuUser user,
+            ChristofelBaseContext dbContext,
+            ulong guildId,
+            DbUser dbUser,
+            IGuildMember guildUser,
+            CancellationToken ct = default
+        )
+        {
             var authData = new CtuAuthProcessData
             (
-                accessToken,
-                new LinkUser(0, loadedUser.CtuUsername, dbUser.DiscordId),
+                new LinkUser(0, user.CtuUsername, dbUser.DiscordId),
                 new Snowflake(guildId, Constants.DiscordEpoch),
                 dbContext,
                 dbUser,
@@ -96,9 +119,9 @@ namespace Christofel.CtuAuth
             );
 
             // 3. run conditions (if any failed, abort)
-            var conditionsResult = await ExecuteConditionsAsync(services, authData, ct);
+            var conditionsResult = await ExecuteConditionsAsync(_services, authData, ct);
 
-            dbUser.CtuUsername ??= loadedUser.CtuUsername;
+            dbUser.CtuUsername ??= user.CtuUsername;
             var databaseResult = await SaveToDatabase(dbContext, authData, ct);
 
             if (!conditionsResult.IsSuccess)
@@ -113,7 +136,7 @@ namespace Christofel.CtuAuth
             }
 
             // 4. run steps (if any failed, abort)
-            var stepsResult = await ExecuteStepsAsync(services, authData, ct);
+            var stepsResult = await ExecuteStepsAsync(_services, authData, ct);
             if (!stepsResult.IsSuccess)
             {
                 return stepsResult;
@@ -127,7 +150,7 @@ namespace Christofel.CtuAuth
             }
 
             // 6. run tasks (if any failed, log it, but continue)
-            var tasksResult = await ExecuteTasks(services, authData, ct);
+            var tasksResult = await ExecuteTasks(_services, authData, ct);
             if (!tasksResult.IsSuccess)
             {
                 return new SoftAuthError(tasksResult.Error);

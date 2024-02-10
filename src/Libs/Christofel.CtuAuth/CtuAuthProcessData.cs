@@ -15,7 +15,6 @@ namespace Christofel.CtuAuth
     /// <inheritdoc cref="IAuthData"/>
     public record CtuAuthProcessData
         (
-            string AccessToken,
             ILinkUser LoadedUser,
             Snowflake GuildId,
             ChristofelBaseContext DbContext,
@@ -45,12 +44,6 @@ namespace Christofel.CtuAuth
     /// </summary>
     public interface IAuthData
     {
-        /// <summary>
-        /// Gets access token that can be used to provide access to ctu services.
-        /// </summary>
-        [Obsolete("Use injection of authorized apis instead")]
-        string AccessToken { get; }
-
         /// <summary>
         /// Gets loaded user from oauth check token.
         /// </summary>

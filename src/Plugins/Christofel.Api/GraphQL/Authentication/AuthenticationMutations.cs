@@ -17,6 +17,7 @@ using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
 using Christofel.CtuAuth;
 using Christofel.CtuAuth.Auth;
+using Christofel.CtuAuth.Errors;
 using Christofel.OAuth;
 using HotChocolate;
 using HotChocolate.Types;
@@ -340,7 +341,14 @@ namespace Christofel.Api.GraphQL.Authentication
 
                     if (!authResult.IsSuccess)
                     {
-                        switch (authResult.Error)
+                        var error = authResult.Error;
+
+                        if (error is DuplicateError)
+                        {
+                            error = UserErrors.RejectedDuplicateUser;
+                        }
+
+                        switch (error)
                         {
                             case UserError userError:
                                 _logger.LogResultError

@@ -118,7 +118,7 @@ public class CoursesInteractionsResponder : CommandGroup
         _cultureProvider.CurrentCulture = language;
         var dbUser = await _baseContext.Set<DbUser>()
             .Authenticated()
-            .Where(x => x.DiscordId == userId.Value)
+            .Where(x => x.DiscordId == userId)
             .FirstOrDefaultAsync(CancellationToken);
 
         if (dbUser is null)
