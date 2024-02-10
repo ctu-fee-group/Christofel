@@ -30,11 +30,11 @@ namespace Christofel.Common.Database.Models
         /// <summary>
         /// Gets or sets id of the assignment.
         /// </summary>
-        public int AssignmentId { get; set; }
+        public int? AssignmentId { get; set; }
 
         /// <summary>
         /// Gets or sets the assignment.
         /// </summary>
-        public RoleAssignment Assignment { get; set; } = null!;
+        public RoleAssignment? Assignment { get; set; } = null!;
     }
 }
