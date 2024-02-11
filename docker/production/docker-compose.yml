@@ -11,6 +11,7 @@ services:
       - db-data:/var/lib/mysql
   christofel:
     restart: unless-stopped
+    image: ${IMAGE_NAME}:${TAG}
     build:
       dockerfile: docker/production/Dockerfile
       context: ../../

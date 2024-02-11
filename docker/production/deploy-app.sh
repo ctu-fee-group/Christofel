@@ -1,7 +1,19 @@
 #!/usr/bin/env sh
+#
 
 source ./.env && export $(cut -d= -f1 < .env)
-export IMAGE_TAG=christofel-backend
+
+if [[ ! $TAG ]]; then
+	echo "Could not find the TAG variable."
+	exit 1
+fi
+
+if [[ ! $REMOTE_URI ]]; then
+	echo "REMOTE_URI environment variable not set!"
+	exit 1
+fi
+
+echo "Building image $IMAGE_NAME:$TAG"
 
 read -p "Build? (y/n) " yn
 
@@ -14,4 +26,6 @@ case $yn in
 		exit 1;;
 esac
 
-docker save $IMAGE_TAG:$TAG | xz | pv | ssh $REMOTE_URI docker load
+echo "Pushing the image to $REMOTE_URI"
+
+docker save $IMAGE_NAME:$TAG | xz | pv | ssh $REMOTE_URI docker load

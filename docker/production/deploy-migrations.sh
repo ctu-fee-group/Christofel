@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
+if [[ ! $REMOTE_URI ]]; then
+	echo "REMOTE_URI environment variable not set!"
+	exit 1
+fi
+
 PROJECTS=("Core/Christofel.Common" "Libs/Christofel.CoursesLib" "" "Plugins/Christofel.ReactHandler" "")
 CONTEXTS=("ChristofelBaseContext" "CoursesContext" "ApiCacheContext" "ReactHandlerContext" "ManagementContext")
 

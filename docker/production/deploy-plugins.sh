@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
+if [[ ! $REMOTE_URI ]]; then
+	echo "REMOTE_URI environment variable not set!"
+	exit 1
+fi
+
 if [[ $# -gt 0  ]]
 then
 read -p "Build? (y/n) " yn

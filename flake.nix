@@ -23,6 +23,7 @@
 
       buildInputs = with pkgs; [
         self.packages.x86_64-linux.dotnet-runtime
+        pkgs.pv
       ];
 
       shellHook = ''
