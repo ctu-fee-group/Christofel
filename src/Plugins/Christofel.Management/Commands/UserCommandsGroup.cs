@@ -128,7 +128,7 @@ namespace Christofel.Management.Commands
             {
                 CtuUsername = ctuUsername,
                 DiscordId = user,
-                AuthenticatedAt = DateTime.Now
+                AuthenticatedAt = null
             };
 
             try
