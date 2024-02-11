@@ -14,7 +14,11 @@ using Christofel.BaseLib.Plugins;
 using Christofel.CommandsLib;
 using Christofel.CommandsLib.Extensions;
 using Christofel.CtuAuth;
+using Christofel.CtuAuth.Auth.Tasks.Options;
+using Christofel.CtuAuth.Database;
 using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.JobQueue;
+using Christofel.Helpers.JobQueue;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Christofel.Helpers.Storages;
 using Christofel.Management.Commands;
@@ -118,6 +122,15 @@ namespace Christofel.Management
                 // Ctu auth
                 .AddCtuAuthProcess()
                 .AddDefaultCtuAuthProcess()
+
+                .AddChristofelDbContextFactory<ApiCacheContext>(State.Configuration)
+                .Configure<WarnOptions>(State.Configuration.GetSection("Auth"))
+                .Configure<EditInteractionOptions>(State.Configuration.GetSection("Auth"))
+                .AddSingleton<IJobQueue<CtuAuthRoleAssign>, CtuAuthRoleAssignProcessor>()
+                .AddSingleton<IJobQueue<CtuAuthNicknameSet>, CtuAuthNicknameSetProcessor>()
+                .AddSingleton<IJobQueue<CtuAuthWarnMessage>, CtuAuthWarnMessageProcessor>()
+                .AddSingleton<IJobQueue<CtuAuthInteractionEdit>, CtuAuthInteractionProcessor>()
+                .AddSingleton<CtuAuthRoleAssignService>()
 
                 // Oauth client
                 .AddSingleton<CtuOauthHandler>()
