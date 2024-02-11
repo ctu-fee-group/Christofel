@@ -290,7 +290,7 @@ public class CustomVoiceCommandGroup : CommandGroup
                 return (Result)new GenericError("Could not get user id from context.");
             }
 
-            if (userOrRole.IsT0 && userOrRole.AsT0.User.IsDefined(out var user) && user.ID == userId.Value)
+            if (userOrRole.IsT0 && userOrRole.AsT0.User.IsDefined(out var user) && user.ID == userId)
             {
                 return Result.FromSuccess();
             }
