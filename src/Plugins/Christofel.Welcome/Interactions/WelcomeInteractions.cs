@@ -80,7 +80,7 @@ public class WelcomeInteractions
             .Users
             .FirstOrDefaultAsync
             (
-                x => x.AuthenticatedAt == null && x.DiscordId == userId.Value && x.RegistrationCode != null,
+                x => x.AuthenticatedAt == null && x.DiscordId == userId && x.RegistrationCode != null,
                 ct
             );
         if (dbUser is null)
