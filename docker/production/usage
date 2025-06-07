@@ -1,0 +1,11 @@
+deploy
+  all --remote-uri [ssh uri] --no-build
+  plugins [all|name of plugin] --remote-uri [ssh uri] --no-build
+  migrations [context name|choose|all] --remote-uri --no-build
+  docker-image --remote-uri
+
+build
+  all
+  plugins
+  migrations
+  docker-image

@@ -1,0 +1,10 @@
+Table AuthUser {
+  UserId id [pk, ref: - User.UserId]
+  AuthCode string
+}
+
+Table User {
+  UserId id [pk, unique]
+  
+  Note: "Table located in base"
+}

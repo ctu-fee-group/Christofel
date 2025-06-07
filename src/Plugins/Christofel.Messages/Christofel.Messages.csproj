@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <LangVersion>10</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Libs\Christofel.Helpers\Christofel.Helpers.csproj" />
+        <ProjectReference Include="..\..\Core\Christofel.Common\Christofel.Common.csproj" />
+        <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    </ItemGroup>
+
+</Project>

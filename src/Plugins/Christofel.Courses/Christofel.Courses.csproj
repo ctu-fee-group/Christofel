@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\Libs\Christofel.CommandsLib\Christofel.CommandsLib.csproj" />
+      <ProjectReference Include="..\..\Libs\Christofel.CoursesLib\Christofel.CoursesLib.csproj" />
+      <ProjectReference Include="..\..\Libs\Christofel.Helpers\Christofel.Helpers.csproj" />
+      <ProjectReference Include="..\..\Libs\Christofel.LGPLicensed\Christofel.LGPLicensed.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.6" />
+      <PackageReference Include="Remora.Discord.Interactivity" Version="4.5.4" />
+      <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Resources\CoursesPlugin.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>CoursesPlugin.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+</Project>

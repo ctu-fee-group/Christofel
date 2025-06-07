@@ -1,0 +1,28 @@
+Project christofel_base {
+  database_type: 'MySQL'
+  Note: 'Database shared between all modules of christofel'
+}
+
+Table MessageRoles {
+  MessageId string
+  EmojiId string
+  RoleId string
+  
+  indexes {
+    (MessageId, EmojiId) [pk]
+  }
+  
+  Note: "Assign role on reaction on particular message"
+}
+
+Table MessageChannels {
+  MessageId string
+  EmojiId string
+  ChannelId string
+  
+  indexes {
+    (MessageId, EmojiId) [pk]
+  }
+  
+  Note: "Assign channel on reaction on particular message"
+}
