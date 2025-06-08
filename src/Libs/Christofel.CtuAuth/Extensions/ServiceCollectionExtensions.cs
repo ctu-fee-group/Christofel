@@ -56,6 +56,7 @@ namespace Christofel.CtuAuth.Extensions
                 .AddAuthStep<YearRoleStep>()
                 .AddAuthStep<DuplicateAssignStep>()
                 .AddAuthStep<RemoveOldRolesStep>()
+                .AddAuthStep<UsernameRolesStep>()
                 .AddAuthTask<AssignRolesAuthTask>()
                 .AddAuthTask<SetNicknameAuthTask>()
                 .AddAuthTask<SendNoRolesMessageAuthTask>()
