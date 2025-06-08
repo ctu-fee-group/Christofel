@@ -72,6 +72,11 @@ namespace Christofel.Common.Database
         /// </summary>
         public DbSet<TitleRoleAssignment> TitleRoleAssignment => Set<TitleRoleAssignment>();
 
+        /// <summary>
+        /// Gets username role assignments set.
+        /// </summary>
+        public DbSet<UsernameRoleAssignment> UsernameRoleAssignment => Set<UsernameRoleAssignment>();
+
         /// <inheritdoc/>
         IQueryable<TEntity> IReadableDbContext.Set<TEntity>()
             where TEntity : class => Set<TEntity>().AsNoTracking();
@@ -112,6 +117,12 @@ namespace Christofel.Common.Database
             modelBuilder.Entity<SpecificRoleAssignment>()
                 .HasOne(x => x.Assignment)
                 .WithMany(x => x.SpecificRoleAssignments)
+                .HasForeignKey(x => x.AssignmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UsernameRoleAssignment>()
+                .HasOne(x => x.Assignment)
+                .WithMany(x => x.UsernameRoleAssignments)
                 .HasForeignKey(x => x.AssignmentId)
                 .OnDelete(DeleteBehavior.Restrict);
 

@@ -58,5 +58,10 @@ namespace Christofel.Common.Database.Models
         /// Gets or sets usermap role assignments that reference this assignment.
         /// </summary>
         public virtual ICollection<UsermapRoleAssignment>? UsermapRoleAssignments { get; set; }
+
+        /// <summary>
+        /// Gets or sets usermap role assignments that reference this assignment.
+        /// </summary>
+        public virtual ICollection<UsernameRoleAssignment>? UsernameRoleAssignments { get; set; }
     }
 }
