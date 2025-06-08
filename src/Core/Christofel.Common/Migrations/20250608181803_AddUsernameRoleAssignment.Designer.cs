@@ -4,6 +4,7 @@ using Christofel.Common.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Christofel.Common.Migrations
 {
     [DbContext(typeof(ChristofelBaseContext))]
-    partial class ChristofelBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250608181803_AddUsernameRoleAssignment")]
+    partial class AddUsernameRoleAssignment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
