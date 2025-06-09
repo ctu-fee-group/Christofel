@@ -11,9 +11,11 @@ using System.Threading.Tasks;
 using Christofel.BaseLib.Extensions;
 using Christofel.BaseLib.Plugins;
 using Christofel.Common;
+using Christofel.Helpers.Scheduler;
 using Christofel.Plugins;
 using Christofel.Plugins.Lifetime;
-using Christofel.Remora;
+using Christofel.Scheduling;
+using Christofel.Scheduling.Extensions;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -74,6 +76,7 @@ namespace Christofel.Api
                     _host = CreateHostBuilder(state).Build();
                     _aspLifetime = _host.Services.GetRequiredService<IHostApplicationLifetime>();
                     _logger = _host.Services.GetRequiredService<ILogger<ApiPlugin>>();
+                    Context.SchedulerJobExecutor = _host.Services.GetRequiredService<IJobExecutor>();
 
 #if DEBUG
                     var schemaPath = state.Configuration.GetValue<string?>("Debug:SchemaFile", null);
@@ -136,7 +139,8 @@ namespace Christofel.Api
 
                         services
                             .AddDiscordState(state)
-                            .AddChristofelDatabase(state);
+                            .AddChristofelDatabase(state)
+                            .AddPluginScheduler(state.Scheduler);
                     }
                 )
                 .ConfigureWebHostDefaults

@@ -72,7 +72,7 @@ namespace Christofel.CtuAuth.Auth.Steps
                     (
                         "Could not find mapping for programme {programmeTitle} for user {GuildUser}",
                         programmeTitle,
-                        data.GuildUser
+                        data.LoadedUser.DiscordId
                     );
             }
 

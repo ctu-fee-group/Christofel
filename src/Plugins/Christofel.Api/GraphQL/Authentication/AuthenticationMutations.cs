@@ -19,6 +19,7 @@ using Christofel.CtuAuth;
 using Christofel.CtuAuth.Auth;
 using Christofel.CtuAuth.Errors;
 using Christofel.OAuth;
+using Christofel.Scheduling.Extensions;
 using HotChocolate;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -417,6 +418,7 @@ namespace Christofel.Api.GraphQL.Authentication
                         }
                     }
 
+                    _logger.LogInformation("User successfully authenticated");
                     return new RegisterCtuPayload(dbUser);
                 }
                 catch (Exception e)

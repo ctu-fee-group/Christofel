@@ -4,9 +4,15 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Christofel.CtuAuth.Auth.Tasks.Options;
-using Christofel.CtuAuth.JobQueue;
-using Christofel.Helpers.JobQueue;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Christofel.Api.Ctu.Auth.Tasks.Options;
+using Christofel.Api.Ctu.Jobs;
+using Christofel.Scheduling;
+using Christofel.Scheduling.Triggers;
+using Kos;
 using Kos.Abstractions;
 using Kos.Data;
 using Microsoft.Extensions.Options;
@@ -19,9 +25,10 @@ namespace Christofel.CtuAuth.Auth.Tasks
     /// </summary>
     public class SendNoRolesMessageAuthTask : IAuthTask
     {
+        private readonly NonConcurrentTrigger.State _ncState;
         private readonly IKosPeopleApi _kosPeopleApi;
         private readonly IKosStudentsApi _kosStudentsApi;
-        private readonly IJobQueue<CtuAuthWarnMessage> _jobQueue;
+        private readonly IScheduler _scheduler;
         private readonly WarnOptions _options;
 
         /// <summary>
@@ -29,18 +36,21 @@ namespace Christofel.CtuAuth.Auth.Tasks
         /// </summary>
         /// <param name="kosPeopleApi">The kos people api.</param>
         /// <param name="kosStudentsApi">The kos students api.</param>
-        /// <param name="jobQueue">The job queue.</param>
+        /// <param name="scheduler">The scheduler.</param>
         /// <param name="options">The options.</param>
+        /// <param name="ncState">The state of the non concurrency.</param>
         public SendNoRolesMessageAuthTask
         (
             IKosPeopleApi kosPeopleApi,
             IKosStudentsApi kosStudentsApi,
-            IJobQueue<CtuAuthWarnMessage> jobQueue,
-            IOptionsSnapshot<WarnOptions> options
+            IOptionsSnapshot<WarnOptions> options,
+            IScheduler scheduler
         )
         {
             _options = options.Value;
-            _jobQueue = jobQueue;
+            _options = options.Value;
+            _scheduler = scheduler;
+            _ncState = ncState;
             _kosPeopleApi = kosPeopleApi;
             _kosStudentsApi = kosStudentsApi;
         }
@@ -60,7 +70,16 @@ namespace Christofel.CtuAuth.Auth.Tasks
             if (data.Roles.AddRoles.Count == 1 &&
                 (kosStudent is null || kosStudent.StartDate > DateTime.Now.Subtract(TimeSpan.FromDays(5))))
             {
-                _jobQueue.EnqueueJob(new CtuAuthWarnMessage(data.LoadedUser.DiscordId, _options.NoRolesMessage));
+                var jobData = new TypedJobData<CtuAuthWarnMessageJob>
+                        (new JobKey("Auth", $"Send warn message to <{data.LoadedUser.DiscordId.ToString()}>"))
+                    .AddData("Data", new CtuAuthWarnMessage(data.LoadedUser.DiscordId, _options.NoRolesMessage));
+
+                var scheduleResult = await _scheduler.ScheduleOrUpdateAsync
+                    (jobData, new NonConcurrentTrigger(new SimpleTrigger(), _ncState), ct);
+                if (!scheduleResult.IsSuccess)
+                {
+                    return Result.FromError(scheduleResult);
+                }
             }
 
             return Result.FromSuccess();
