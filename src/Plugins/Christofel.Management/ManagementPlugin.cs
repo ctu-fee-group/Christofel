@@ -21,6 +21,7 @@ using Christofel.Helpers.Localization;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Christofel.Helpers.Storages;
 using Christofel.Management.Commands;
+using Christofel.Management.Crons;
 using Christofel.Management.CtuUtils;
 using Christofel.Management.Database;
 using Christofel.Management.ResendRule;
@@ -124,6 +125,9 @@ namespace Christofel.Management
                     ThreadSafeListStorage<RegisteredTemporalSlowmode>>()
                 .AddTransient<SlowmodeService>()
                 .AddStateful<SlowmodeAutorestore>(ServiceLifetime.Transient)
+
+                // Crons
+                .AddStateful<RemoveOldUsersCron>()
 
                 // Ctu auth
                 .AddCtuAuthProcess()
