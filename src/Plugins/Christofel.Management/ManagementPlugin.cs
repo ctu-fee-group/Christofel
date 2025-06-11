@@ -128,6 +128,8 @@ namespace Christofel.Management
 
                 // Crons
                 .AddStateful<RemoveOldUsersCron>()
+                .AddStateful<ScrapePRCron>()
+                .Configure<PRScrapingOptions>(State.Configuration.GetSection("Crons:PRScraping"))
 
                 // Ctu auth
                 .AddCtuAuthProcess()
