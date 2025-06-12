@@ -108,6 +108,7 @@ namespace Christofel.Management
                     .WithCommandGroup<UserCommandsGroup>()
                     .WithCommandGroup<ResendRuleCommandsGroup>()
                     .WithCommandGroup<SelfManagementCommands>()
+                    .WithCommandGroup<CronCommands>()
                 .Finish()
 
                 // Localization
