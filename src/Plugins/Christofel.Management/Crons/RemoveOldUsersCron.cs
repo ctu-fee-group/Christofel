@@ -22,7 +22,7 @@ namespace Christofel.Management.Crons;
 /// has passed since their creation.
 /// This task is intended to run weekly.
 /// </summary>
-public class RemoveOldUsersCron : SimpleCronJob
+public class RemoveOldUsersCron : SimpleCronJob, ICronJob
 {
     private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
     private readonly ILogger<RemoveOldUsersCron> _logger;
@@ -47,6 +47,9 @@ public class RemoveOldUsersCron : SimpleCronJob
         _dbContextFactory = dbContextFactory;
         _logger = logger;
     }
+
+    /// <inheritdoc cref="ICronJob" />
+    static string ICronJob.Name => "RemoveOldUsers";
 
     /// <inheritdoc/>
     protected override async Task<IResult> ProcessAsync(bool manual)

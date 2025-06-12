@@ -23,7 +23,7 @@ namespace Christofel.Management.Crons;
 /// Scrapes PR usernames from the website, and populates
 /// <see cref="UsernameRoleAssignment"/>.
 /// </summary>
-public class ScrapePRCron : SimpleCronJob, IDisposable
+public class ScrapePRCron : SimpleCronJob, IDisposable, ICronJob
 {
     private readonly IDbContextFactory<ChristofelBaseContext> _dbContextFactory;
     private readonly ILogger _logger;
@@ -54,6 +54,9 @@ public class ScrapePRCron : SimpleCronJob, IDisposable
         _options = options.CurrentValue;
         _onChangeToken = options.OnChange(o => _options = o);
     }
+
+    /// <inheritdoc cref="ICronJob" />
+    static string ICronJob.Name => "ScrapePRCron";
 
     /// <inheritdoc/>
     public void Dispose()

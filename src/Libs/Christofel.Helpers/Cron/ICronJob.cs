@@ -17,6 +17,11 @@ namespace Christofel.Helpers.Cron;
 public interface ICronJob : IStartable, IStoppable
 {
     /// <summary>
+    /// Gets the name of the cron job.
+    /// </summary>
+    static virtual string Name => throw new Exception();
+
+    /// <summary>
     /// Trigger the cron job, now, without waiting.
     /// </summary>
     /// <returns>A task representing the job.</returns>
