@@ -10,7 +10,9 @@ using System.Text.Json.Serialization;
 using Christofel.Common;
 using Christofel.Common.Database;
 using Christofel.Helpers;
+using Christofel.Helpers.Cron;
 using Christofel.Helpers.ReadOnlyDatabase;
+using Christofel.Plugins;
 using Christofel.Remora;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -367,6 +369,32 @@ namespace Christofel.BaseLib.Extensions
                         optionsAction?.Invoke(provider, optionsBuilder);
                     }
                 );
+        }
+
+        /// <summary>
+        /// Adds CronRepository and the given TCron to it.
+        /// The cron is also added as stateful to be started on application start and stopped on application exit.
+        /// </summary>
+        /// <param name="services">The collection to be configured.</param>
+        /// <typeparam name="TCron">The cron type to register.</typeparam>
+        /// <returns>The passed service collection.</returns>
+        public static IServiceCollection AddCron<TCron>
+            (this IServiceCollection services)
+            where TCron : ICronJob
+        {
+            services.AddStateful<TCron>(ServiceLifetime.Singleton);
+
+            services.TryAddSingleton<CronRepository>
+                (
+                    s => s.GetRequiredService<IOptions<CronRepository>>().Value
+                );
+
+            services.Configure<CronRepository>
+                (
+                    r => r.RegisterCron<TCron>()
+                );
+
+            return services;
         }
     }
 }

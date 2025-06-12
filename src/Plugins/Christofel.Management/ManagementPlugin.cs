@@ -127,8 +127,8 @@ namespace Christofel.Management
                 .AddStateful<SlowmodeAutorestore>(ServiceLifetime.Transient)
 
                 // Crons
-                .AddStateful<RemoveOldUsersCron>()
-                .AddStateful<ScrapePRCron>()
+                .AddCron<RemoveOldUsersCron>()
+                .AddCron<ScrapePRCron>()
                 .Configure<PRScrapingOptions>(State.Configuration.GetSection("Crons:PRScraping"))
 
                 // Ctu auth
