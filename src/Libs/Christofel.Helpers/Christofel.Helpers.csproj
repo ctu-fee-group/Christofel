@@ -6,7 +6,7 @@
 
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-        <LangVersion>10</LangVersion>
+        <LangVersion>11</LangVersion>
 
         <PackageVersion>1.0.2</PackageVersion>
 
