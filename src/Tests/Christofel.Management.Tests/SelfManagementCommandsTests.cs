@@ -36,7 +36,7 @@ public class SelfManagementCommandsTests
         [
             new DateTimeOffset(new DateTime(2025, 6, 11, 6, 0, 0), TimeSpan.FromHours(2)),
             new DateTimeOffset(new DateTime(2025, 6, 10, 13, 30, 0), TimeSpan.FromHours(2)),
-            TimeoutUntilSpecification.TomorrowMorning
+            TimeoutUntilSpecification.FollowingMorning
         ],
         [
             new DateTimeOffset(new DateTime(2025, 6, 16, 0, 0, 0), TimeSpan.FromHours(2)),
@@ -71,20 +71,20 @@ public class SelfManagementCommandsTests
             TimeoutUntilSpecification.EndOfDay
         ],
 
-        // Edge cases for Tomorrow Morning
+        // Edge cases for Following Morning
 
         // 3 AM
         [
-            new DateTimeOffset(new DateTime(2025, 6, 11, 6, 0, 0), TimeSpan.FromHours(2)),
+            new DateTimeOffset(new DateTime(2025, 6, 10, 6, 0, 0), TimeSpan.FromHours(2)),
             new DateTimeOffset(new DateTime(2025, 6, 10, 3, 0, 0), TimeSpan.FromHours(2)),
-            TimeoutUntilSpecification.TomorrowMorning
+            TimeoutUntilSpecification.FollowingMorning
         ],
 
         // 7 AM
         [
             new DateTimeOffset(new DateTime(2025, 6, 11, 6, 0, 0), TimeSpan.FromHours(2)),
             new DateTimeOffset(new DateTime(2025, 6, 10, 7, 0, 0), TimeSpan.FromHours(2)),
-            TimeoutUntilSpecification.TomorrowMorning
+            TimeoutUntilSpecification.FollowingMorning
         ],
 
         // Edge cases for EndOfWorkWeek
@@ -189,19 +189,4 @@ public class SelfManagementCommandsTests
         var result = selfManagementCommands.SpecificationToDateTimeOffset(specification);
         Assert.Equal(expected, result);
     }
-
-    // /// <summary>
-    // /// Just simple test.
-    // /// </summary>
-    // [Fact]
-    // public void TTTT()
-    // {
-    //     Assert.Equal(new DateTime(2024, 3, 1, 0, 0, 0), new DateTime(2024, 2, 1, 0, 0, 0).AddDays(29));
-    //     Assert.Equal
-    //         (
-    //             new DateTimeOffset(new DateTime(2024, 3, 1, 0, 0, 0), TimeSpan.FromHours(2)),
-    //             new DateTimeOffset(new DateTime(2024, 2, 1, 0, 0, 0), TimeSpan.FromHours(2)).AddDays(29)
-    //         );
-    // }
-
 }
