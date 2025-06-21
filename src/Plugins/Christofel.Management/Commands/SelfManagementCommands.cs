@@ -29,6 +29,8 @@ using Remora.Discord.Commands.Feedback.Services;
 using Remora.Discord.Extensions.Formatting;
 using Remora.Results;
 
+namespace Christofel.Management.Commands;
+
 /// <summary>
 /// A class for commands applied only to self, ie. /selftimeout.
 /// This means these commands can be used even by non-moderators.
@@ -37,7 +39,7 @@ using Remora.Results;
 public class SelfManagementCommands : CommandGroup
 {
     private readonly IOperationContext _context;
-    private readonly FeedbackService _feedback;
+    private readonly IFeedbackService _feedback;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly LocalizedStringLocalizer<ManagementPlugin> _localizer;
     private readonly IDateTimeProvider _dateTimeProvider;
@@ -52,7 +54,7 @@ public class SelfManagementCommands : CommandGroup
     /// <param name="localizer">The localizer for localizing textual user messages.</param>
     public SelfManagementCommands(
         IOperationContext context,
-        FeedbackService feedback,
+        IFeedbackService feedback,
         IDiscordRestGuildAPI guildApi,
         IDateTimeProvider dateTimeProvider,
         LocalizedStringLocalizer<ManagementPlugin> localizer
@@ -64,6 +66,8 @@ public class SelfManagementCommands : CommandGroup
         _localizer = localizer;
         _dateTimeProvider = dateTimeProvider;
     }
+
+    // TODO: extract the specifications and conversion into a separate class.
 
     /// <summary>
     /// Specification used in selftimeoutuntil command.
@@ -96,14 +100,20 @@ public class SelfManagementCommands : CommandGroup
         EndOfMonth,
     }
 
-    private DateTimeOffset SpecificationToDateTimeOffset(TimeoutUntilSpecification specification)
+    /// <summary>
+    /// Convert <see cref="TimeoutUntilSpecification" /> into <see cref="DateTimeOffset" />,
+    /// based on current time. The method respects the preferred time of users.
+    /// </summary>
+    /// <param name="specification">The specification to convert into DateTimeOffset.</param>
+    /// <returns>The date time in future that the specification corresponds to.</returns>
+    public DateTimeOffset SpecificationToDateTimeOffset(TimeoutUntilSpecification specification)
     {
         var now = _dateTimeProvider.PreferredNow;
-        var today = now.Date;
+        var today = new DateTimeOffset(now.Date, now.Offset);
 
         int dayOfWeek = ((int)today.DayOfWeek + 6) % 7; // start with monday
         var startOfWeek = today.AddDays(-dayOfWeek);
-        var startOfMonth = today.AddDays(-(int)today.Day);
+        var startOfMonth = today.AddDays(-(int)today.Day + 1);
         switch (specification)
         {
             case TimeoutUntilSpecification.EndOfDay:
