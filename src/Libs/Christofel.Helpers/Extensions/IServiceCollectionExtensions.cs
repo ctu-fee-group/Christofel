@@ -11,6 +11,7 @@ using Christofel.Common;
 using Christofel.Common.Database;
 using Christofel.Helpers;
 using Christofel.Helpers.Cron;
+using Christofel.Helpers.Date;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Christofel.Plugins;
 using Christofel.Remora;
@@ -395,6 +396,18 @@ namespace Christofel.BaseLib.Extensions
                 );
 
             return services;
+        }
+
+        /// <summary>
+        /// Adds default <see cref="IDateTimeBaseProvider" /> and <see cref="IDateTimeProvider" />.
+        /// </summary>
+        /// <param name="services">The collection to be configured.</param>
+        /// <returns>The passed service collection.</returns>
+        public static IServiceCollection AddDateTimeProvider(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<IDateTimeBaseProvider, DateTimeBaseProvider>()
+                .AddSingleton<IDateTimeProvider, DateTimeProvider>();
         }
     }
 }
