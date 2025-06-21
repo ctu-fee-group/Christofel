@@ -1,12 +1,13 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{EA0A70F1-E1C9-4D5D-950F-CB2FD26888CB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{B79E41F4-B461-4179-AC85-07C1AA6CBE02}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{674A0FCA-7522-495B-8C94-7270FD8CBA65}"
-ProjectSection(SolutionItems) = preProject
-	Plugins\Directory.Build.props = Plugins\Directory.Build.props
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		Plugins\Directory.Build.props = Plugins\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{9D7EB95F-6F09-4F8C-BEDD-EC43794A5E34}"
 EndProject
@@ -37,11 +38,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Remora.Plugins", "Core\Christofel.Remora.Plugins\Christofel.Remora.Plugins.csproj", "{8329B543-5FBC-4C0B-8326-C4B382138D56}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".metadata", ".metadata", "{C8C090FF-E03A-4319-B3CD-57BB3C2F0AE7}"
-ProjectSection(SolutionItems) = preProject
-	stylecop.json = stylecop.json
-	stylecop.ruleset = stylecop.ruleset
-	Directory.Build.props = Directory.Build.props
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		stylecop.json = stylecop.json
+		stylecop.ruleset = stylecop.ruleset
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Helpers", "Libs\Christofel.Helpers\Christofel.Helpers.csproj", "{7B48205B-361A-40F1-B449-53E63CAD549F}"
 EndProject
@@ -58,6 +59,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.LGPLicensed", "Libs\Christofel.LGPLicensed\Christofel.LGPLicensed.csproj", "{F90F5BA9-A210-4FED-98ED-1791022F88B5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.CtuAuth", "Libs\Christofel.CtuAuth\Christofel.CtuAuth.csproj", "{F5991AF1-FE00-4148-84E5-82B1319156AA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{60849210-DE12-406A-8629-3A4818015EC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Helpers.Tests", "Tests\Christofel.Helpers.Tests\Christofel.Helpers.Tests.csproj", "{08C93727-77A3-4BEB-8C46-97AE45583826}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Management.Tests", "Tests\Christofel.Management.Tests\Christofel.Management.Tests.csproj", "{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +91,8 @@ Global
 		{6E60F8CB-6EE8-4B6B-9C9F-C9CD201C1506} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
 		{F90F5BA9-A210-4FED-98ED-1791022F88B5} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
 		{F5991AF1-FE00-4148-84E5-82B1319156AA} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
+		{08C93727-77A3-4BEB-8C46-97AE45583826} = {60849210-DE12-406A-8629-3A4818015EC6}
+		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22} = {60849210-DE12-406A-8629-3A4818015EC6}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B8630DDB-0533-4BDE-84DA-3BF5D18968B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -182,5 +191,13 @@ Global
 		{F5991AF1-FE00-4148-84E5-82B1319156AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5991AF1-FE00-4148-84E5-82B1319156AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5991AF1-FE00-4148-84E5-82B1319156AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08C93727-77A3-4BEB-8C46-97AE45583826}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08C93727-77A3-4BEB-8C46-97AE45583826}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08C93727-77A3-4BEB-8C46-97AE45583826}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08C93727-77A3-4BEB-8C46-97AE45583826}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
