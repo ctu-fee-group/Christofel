@@ -80,9 +80,9 @@ public class SelfManagementCommands : CommandGroup
         EndOfDay,
 
         /// <summary>
-        /// Till the tomorrow's morning - 6 AM.
+        /// Till the next morning - 6 AM today if it is before 6 AM, otherwise 6 AM tomorrow.
         /// </summary>
-        TomorrowMorning,
+        FollowingMorning,
 
         /// <summary>
         /// Till the end of week (start of week + 7 days).
@@ -118,8 +118,14 @@ public class SelfManagementCommands : CommandGroup
         {
             case TimeoutUntilSpecification.EndOfDay:
                 return today.AddDays(1);
-            case TimeoutUntilSpecification.TomorrowMorning:
-                return today.AddDays(1).AddHours(6);
+            case TimeoutUntilSpecification.FollowingMorning:
+                var morning = today.AddHours(6);
+                if (morning < now)
+                {
+                    morning = morning.AddDays(1);
+                }
+
+                return morning;
             case TimeoutUntilSpecification.EndOfWeek:
                 return startOfWeek.AddDays(7);
             case TimeoutUntilSpecification.EndOfWorkWeek:
