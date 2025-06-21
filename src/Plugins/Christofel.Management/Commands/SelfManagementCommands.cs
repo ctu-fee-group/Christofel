@@ -77,26 +77,31 @@ public class SelfManagementCommands : CommandGroup
         /// <summary>
         /// Till the end of today. (midnight).
         /// </summary>
+        // [Description("Next midnight 00:00")]
         EndOfDay,
 
         /// <summary>
         /// Till the next morning - 6 AM today if it is before 6 AM, otherwise 6 AM tomorrow.
         /// </summary>
+        // [Description("Next morning (06:00). If currently 0 - 6, this morning. Otherwise tomorrow's.")]
         FollowingMorning,
 
         /// <summary>
         /// Till the end of week (start of week + 7 days).
         /// </summary>
+        // [Description("Until next Monday at 00:00.")]
         EndOfWeek,
 
         /// <summary>
         /// Till the end of work week (start of week + 5 days).
         /// </summary>
+        // [Description("Until next Saturday at 00:00. If between Monday and Friday, this week Saturday, otherwise the next.")]
         EndOfWorkWeek,
 
         /// <summary>
         /// Till the end of current month.
         /// </summary>
+        // [Description("Until start of next month at 00:00. If that is more than 28 days in the future, only 28 days.")]
         EndOfMonth,
     }
 
