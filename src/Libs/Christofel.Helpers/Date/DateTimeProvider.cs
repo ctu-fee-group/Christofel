@@ -52,7 +52,7 @@ public class DateTimeProvider : IDateTimeProvider, IDisposable
             var utcNow = UtcNow;
             var offset = systemNow - utcNow;
 
-            return new DateTimeOffset(utcNow, offset);
+            return new DateTimeOffset(systemNow, offset);
         }
     }
 

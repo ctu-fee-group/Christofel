@@ -16,6 +16,7 @@ using Christofel.CtuAuth.Auth.Tasks.Options;
 using Christofel.CtuAuth.Database;
 using Christofel.CtuAuth.Extensions;
 using Christofel.CtuAuth.JobQueue;
+using Christofel.Helpers.Date;
 using Christofel.Helpers.JobQueue;
 using Christofel.Helpers.Localization;
 using Christofel.Helpers.ReadOnlyDatabase;
@@ -112,6 +113,7 @@ namespace Christofel.Management
                     .WithCommandGroup<ManageCommands>()
                 .Finish()
 
+                .AddDateTimeProvider()
                 .Configure<TimeOptions>(State.Configuration.GetSection("Time"))
 
                 // Localization

@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.CommandsLib.Permissions;
 using Christofel.CommandsLib.Validator;
+using Christofel.Helpers.Date;
 using Christofel.Helpers.Errors;
 using Christofel.Helpers.Localization;
 using Christofel.Management;
@@ -39,7 +40,7 @@ public class SelfManagementCommands : CommandGroup
     private readonly FeedbackService _feedback;
     private readonly IDiscordRestGuildAPI _guildApi;
     private readonly LocalizedStringLocalizer<ManagementPlugin> _localizer;
-    private readonly TimeOptions _options;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SelfManagementCommands"/> class.
@@ -47,21 +48,21 @@ public class SelfManagementCommands : CommandGroup
     /// <param name="context">Context the command is executed in.</param>
     /// <param name="feedback">The feedback service.</param>
     /// <param name="guildApi">The discord guild api.</param>
+    /// <param name="dateTimeProvider">The date time provider.</param>
     /// <param name="localizer">The localizer for localizing textual user messages.</param>
-    /// <param name="options">The options for time, like timezone.</param>
     public SelfManagementCommands(
         IOperationContext context,
         FeedbackService feedback,
         IDiscordRestGuildAPI guildApi,
-        LocalizedStringLocalizer<ManagementPlugin> localizer,
-        IOptionsSnapshot<TimeOptions> options
+        IDateTimeProvider dateTimeProvider,
+        LocalizedStringLocalizer<ManagementPlugin> localizer
     )
     {
         _context = context;
         _feedback = feedback;
         _guildApi = guildApi;
         _localizer = localizer;
-        _options = options.Value;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     /// <summary>
@@ -97,12 +98,9 @@ public class SelfManagementCommands : CommandGroup
 
     private DateTimeOffset SpecificationToDateTimeOffset(TimeoutUntilSpecification specification)
     {
-        TimeZoneInfo tz = TimeZoneInfo.FindSystemTimeZoneById(_options.TimeZone);
+        var now = _dateTimeProvider.PreferredNow;
+        var today = now.Date;
 
-        DateTime now = DateTime.UtcNow;
-        var convertedNow = TimeZoneInfo.ConvertTimeFromUtc(now, tz);
-
-        var today = new DateTimeOffset(convertedNow.Date, tz.GetUtcOffset(convertedNow));
         int dayOfWeek = ((int)today.DayOfWeek + 6) % 7; // start with monday
         var startOfWeek = today.AddDays(-dayOfWeek);
         var startOfMonth = today.AddDays(-(int)today.Day);
@@ -118,7 +116,7 @@ public class SelfManagementCommands : CommandGroup
                 var endOfWorkWeek = startOfWeek.AddDays(5);
 
                 // already past Friday, next week.
-                if (endOfWorkWeek < DateTime.Now)
+                if (endOfWorkWeek < now)
                 {
                     endOfWorkWeek = endOfWorkWeek.AddDays(7);
                 }
@@ -148,15 +146,15 @@ public class SelfManagementCommands : CommandGroup
     {
         DateTimeOffset timeoutUntil = SpecificationToDateTimeOffset(until);
 
-        if (timeoutUntil < DateTime.Now)
+        if (timeoutUntil < _dateTimeProvider.UtcNow)
         {
             return await _feedback.SendContextualErrorAsync("The specified time has already passed.");
         }
 
         // Maximum reached, round.
-        if ((timeoutUntil - DateTime.Now).TotalDays > 28)
+        if ((timeoutUntil - _dateTimeProvider.UtcNow).TotalDays > 28)
         {
-            timeoutUntil = DateTime.Now.AddDays(28);
+            timeoutUntil = _dateTimeProvider.UtcNow.AddDays(28);
         }
 
         return await SelfTimeout(timeoutUntil);
