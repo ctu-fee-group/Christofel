@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+      <ProjectReference Include="..\..\Libs\Christofel.Helpers\Christofel.Helpers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 
