@@ -1,11 +1,19 @@
 # Plugins
 
-Plugins are important concept of Christofel.
-They can be loaded or unloaded at any time wished.
+Plugins are an important concept in Christofel.
+They can be loaded or unloaded during runtime of Christofel application.
+Additionally, at the start of application the plugins specified in config
+are automatically loaded. After that, user can request load of a plugin
+through a command in Discord. Christofel doesn't support any other managing
+way, only through Discord.
 
 Plugins have to implement [lifetime](lifetime)
 for the Application to be able to handle their
 state like error or stop and successfully detaching them.
+
+All runtime plugins are required to have a [lifetime](lifetime).
+Currently only runtime plugins (`IRuntimePlugin`) are supported in Christofel,
+through `RuntimePluginService` class.
 
 ```{note}
 When plugin's lifetime Cancels `Stopped` CancellationToken,
@@ -13,33 +21,69 @@ automatic detach sequence will be initiated and the plugin
 will be unloaded from memory.
 ```
 
-For assembly to be counted as Plugin it must
-have public class that implements `IPlugin` interface
-from `Christofel.Plugins.Abstractions`. Implementation of this plugin
-can be whatever the programmer wants. Christofel contains
-some useful classes to get started faster. These are located
+For assembly to be counted as a Plugin, it must
+have a public class that implements `IPlugin` interface
+from `Christofel.Plugins.Abstractions`. Additionally it
+should actually be `IRuntimePlugin` that it implements
+as other types of plugins aren't supported in the application.
+Christofel contains
+some useful helper classes to get started faster. These are located
 in `Christofel.Helpers` and `Christofel.Plugins`. The most important ones
 are `DIPlugin` and `PluginLifetimeHandler`. Both of these are demonstrated
 below.
 
+## Runtime plugins
+
+Runtime plugins are the kinds of plugins that have their own lifetime.
+That means they can be attached and detached. You can see the interface
+of every runtime plugin in `IRuntimePlugin`.
+
+Such plugin has its own `Lifetime`, method `RunAsync` that is called upon start of the plugin,
+and method `RefereshAsync` that should look for configuration changes that cannot be captured
+automatically, and refresh respective parts of the plugin so that.
+
+Additionally a runtime plugin can have its own context, that is what `IRuntimePlugin<TState, TContext>` is about.
+The state is the state of the application, given to the plugin upon initialization. That is what the `InitAsync`
+method is for. This state is shared between all plugins. In Christofel, it (`IChristofelState`) holds information about the
+discord bot (gateway connection, discord apis http client), the base context configuration, configuration from `config.json`,
+logger factory, permission service and lifetime of the application. Then, the plugin has its own `Context` property,
+the context may be used by the application.
+In Christofel, the context is used for responding to gateway events, specifically
+`PluginResopnder` is called whenever a new event is received by the base application that is connected to the gateway.
+There is an abstract implementation of a runtime plugin available, `DIRuntimePlugin<TState, TContext>`.
+This is an implementation relying on the dependency injection from `Microsoft.Extensions.DependencyInjection`.
+
+### Services
+
+In Christofel, to run code on start of a plugin, on refresh of a plugin and on stop of a plugin,
+special interfaces have been made - `IStartable`, `IRefreshable` and `IStoppable`. Those interfaces
+have methods similar to methods of a runtime plugin. It is responsibility of a runtime plugin to call
+such methods from its startable, refreshable and stoppable services.
+
+With the DI runtime plugin, this is done automatically when you register a service under one of those
+interfaces. An extension method `AdStateful<TStateful>` might be used for this, so if you make
+a class that should do something on start, like register slash commands, you implement `IStartable`,
+and then add it to the service collection using `.AddStateful<SlashCommandRegistration>()`.
+
 ## How to create a simple plugin
 
-
 ### Dependency Injection plugin
-Creating plugin with dependency injection is quite easy, because
-class `DIPlugin` was prepared in `Christofel.Helpers`.
-This class handles lifetime state of the plugin by itself. 
+Creating plugin with a service collection using dependency injection
+from `Microsoft.Extensions.DependencyInjection` should be quite easy, thanks
+to the class `DIRuntimePlugin` that has been prepared in `Christofel.Helpers`.
+This class handles lifetime state of the plugin by itself.
+The plugin has to only implement configuration of services.
 
 Working plugin class is presented below along with some comments
 to better explain the code.
 
 ```{code-block} csharp
 :lineno-start: 1
-public class MyPlugin : DIPlugin
+public class MyPlugin : DIRuntimePlugin<State, Context>
 {
     // LifetimeHandler stores lifetime and exposes
     // methods that can change Lifetime state
-    private PluginLifetimeHandler _lifetimeHandler;
+    private readonly PluginLifetimeHandler _lifetimeHandler;
 
     // Hold the application logger
     private ILogger<HelloworldPlugin>? _logger;
@@ -48,7 +92,7 @@ public class MyPlugin : DIPlugin
     {
         // Create LifetimeHandler passing it default action handlers
         _lifetimeHandler = new PluginLifetimeHandler(
-            // Error Handler that is called when Errored state is set 
+            // Error Handler that is called when Errored state is set
             // This default one exposed by DIPlugin
             // logs the contents to _logger and requests a stop
             DefaultHandleError(() => _logger),
@@ -63,16 +107,7 @@ public class MyPlugin : DIPlugin
     public override string Description => "Just an example"; // Short description of the plugin do be displayed to user if he wishes
     public override string Version => "v1.0.0"; // Version of the plugin for verification purposes. Can expose the assembly version
 
-    // Refreshable, Stoppable and Startable should return services that are used
-    // We are not using any services here, so they return empty Enumerables.
-    // Any services exposed from here will get their methods called on RunAsync, RefreshAsync, StopAsync respectively
-
-    protected override IEnumerable<IStartable> Startable => Enumerable.Empty<IStartable>(); // Calls StartAsync on them when RunASync is called on this plugin
-    protected override IEnumerable<IRefreshable> Refreshable => Enumerable.Empty<IRefreshable>(); // Calls RefreshAsync on them when RefreshAsync is called on this plugin
-    protected override IEnumerable<IStoppable> Stoppable => Enumerable.Empty<IStoppable>(); // Calls StopAsync on them when StopAsync is called on this plugin
-
-
-    // This one is used in DIPlugin to manage lifetime
+    // This one is used in DIRuntimePlugin to manage lifetime
     protected override LifetimeHandler LifetimeHandler => _lifetimeHandler;
 
     // Called during Init when configuring ServiceCollection before building ServiceProvider
@@ -81,12 +116,18 @@ public class MyPlugin : DIPlugin
         return serviceCollection
             // Registers all classes that are needed for the plugin
             // namely: IChristofelState, IConfiguration, IPermissionService, IPermissionResolver, IBot, DiscordSocketClient, IApplicationLifetime, ILoggerFactory, ILogger<>
+            // and Discord api services
             .AddDiscordState(State)
             .AddSingleton<ICurrentPluginLifetime>(_lifetimeHandler.LifetimeSpecific)
-            // All services can be registered here
-            //.AddSingleton<MyService>
+            // All services can be registered here.
+            //.AddStateful<MyService>() // Let's say MyService is IStartable, then it should be registered with AddStateful.
+            //.AddTransient<DatabaseChecker>()
             // Configure may be used to register options and to get a section from configuration
-            // State.Configuration can be used
+            // State.Configuration can be used, this is state from the base application
+            // Respond to gateway events.
+            .AddSingleton<PluginResponder>()
+            // Register other services that respond to events, see Remora.Discord documentation.
+            //.AddResponder<MyMessageResponder>()
             //.Configure<SomeOptions>(State.Configuration.GetSection("MySection"));
             ;
     }
@@ -96,16 +137,25 @@ public class MyPlugin : DIPlugin
     {
         // set _logger for handling of errors or stopped state
         _logger = services.GetRequiredService<ILogger<HelloworldPlugin>>();
+        // Respond to gateway events - this will be called by the base application when it receives an event.
+        ((PluginContext)Context).PluginResponder = services.GetRequiredService<PluginResponder>();
         return Task.CompletedTask;
     }
 }
 ```
 
-For more information, look at `DIPlugin` methods and check out plugins already existing in the library.
+For more information, look at `DIRuntimePlugin` methods and check out plugins already existing in the library.
 
 ### Custom plugin
 
-For custom plugin, interface `IPlugin` must be implemented.
+```{note}
+Plugins other than runtime plugins are not supported by Christofel. Christofel
+will try to instantiate the plugin class, but it will fail as it won't be able
+to find the handler for other types of plugins. Additionally,
+only the `IRuntimePlugin<IChristofelState, IPluginContext>` type of runtime plugins is supported.
+```
+
+For custom plugin, interface `IRuntimePlugin<IChristofelState, IPluginContext>` must be implemented.
 Lifetime support must be provided.
 
 This example provides basic implementation.
@@ -118,7 +168,7 @@ are observed.
 
 ```{code-block} csharp
 :lineno-start: 1
-public class CustomPlugin : IPlugin
+public class CustomPlugin : IRuntimePlugin<IChristofelState, IPluginContext>
 {
     private readonly PluginLifetimeHandler _lifetimeHandler;
     private IChristofelState? _state;
@@ -196,9 +246,3 @@ public class CustomPlugin : IPlugin
     }
 }
 ```
-
-### Command handlers
-
-Christofel contains helpers for handling slash commands in `Christofel.CommandsLib` assembly.
-More information will follow as this library will settle.
-

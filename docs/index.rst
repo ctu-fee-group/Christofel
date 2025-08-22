@@ -28,10 +28,11 @@ Documentation
    base/permissions
    base/lifetime
    base/plugins
+   base/gotchas
+   base/db
 
 .. toctree::
    :caption: Maintenance
    :maxdepth: 2
 
    maintenance/commits
-

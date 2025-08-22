@@ -1,11 +1,14 @@
 # Configuration
 For configuration, `Microsoft.Extensions.Configuration` is used.
-The configuration is stored in `config.json` and `config.{environment}.json`
-in the same directory where executable is. Variable `environment` is retrieved
-from environment variable `ENV`.
+The configuration is stored in `config.json` and `config.{environment}.json`.
+The file is loaded from PWD. Variable `environment` is retrieved from environment variable `ENV`.
 
 Support for changing the configuration at runtime should be added where it's possible.
-This support is not added for changing the main guild id or bot token.
+That means using either `IOptionsSnapshot` for scoped and transient services,
+or `IOptionsMonitor` with proper implementation for updating the config, for singleton services.
+It is not expected the main guild id or bot token could change during runtime.
+There might also be other options that are too convoluted with the app's internal state
+so that it is not possible to change them without restarting the application.
 
 ## Usage in code
 In plugins, where DI is used, the configuration can be added using

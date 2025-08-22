@@ -9,7 +9,7 @@ The base library has features used in the whole application.
   - [permissions](permissions)
   - [configuration](configuration)
   - application shared state
-  
+
 ## Shared state
 Shared state is exposed using `IChristofelState`.
 Each plugin will obtain instance of state on initialization.

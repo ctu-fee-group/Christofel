@@ -20,7 +20,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'Christofel'
-copyright = '2021, FEL discord crew'
+copyright = '2025, FEL discord crew'
 author = 'FEL discord crew'
 
 
