@@ -5,7 +5,7 @@ Conventional commits **MUST** be used, see [reference of v1.0.0](https://www.con
 Generally scope should be added as well depending on what library or plugin the change was made at.
 It should be named like the plugin/lib.
 
-So for example when making change to `Christofel.BaseLib`, `feat(base): description of the change`
+So for example when making change to `Christofel.Common`, `feat(common): description of the change`
 should be used.
 
 # PR policy

@@ -15,10 +15,10 @@ will be unloaded from memory.
 
 For assembly to be counted as Plugin it must
 have public class that implements `IPlugin` interface
-from `Christofel.BaseLib`. Implementation of this plugin
+from `Christofel.Plugins.Abstractions`. Implementation of this plugin
 can be whatever the programmer wants. Christofel contains
 some useful classes to get started faster. These are located
-in `Christofel.BaseLib.Implementations`. The most important ones
+in `Christofel.Helpers` and `Christofel.Plugins`. The most important ones
 are `DIPlugin` and `PluginLifetimeHandler`. Both of these are demonstrated
 below.
 
@@ -27,7 +27,7 @@ below.
 
 ### Dependency Injection plugin
 Creating plugin with dependency injection is quite easy, because
-class `DIPlugin` was prepared in `Christofel.BaseLib.Implementations`.
+class `DIPlugin` was prepared in `Christofel.Helpers`.
 This class handles lifetime state of the plugin by itself. 
 
 Working plugin class is presented below along with some comments

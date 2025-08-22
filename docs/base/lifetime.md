@@ -4,7 +4,7 @@ Lifetime in Christofel must be used for the whole application and for each plugi
 It can be used for checking on the state of the plugin, registering callbacks
 after starting, before stopping, after stopped, after errored.
 
-Lifetime interfaces are located in `Christofel.BaseLib`, the main interface
+Lifetime interfaces are located in `Christofel.Plugins.Abstractions`, the main interface
 is `ILifetime` and there are a few others for helping to distinguish use-cases.
 That can be useful in DI for example. These are `ILifetime<T>`, `IApplicationLifetime`, `ICurrentPluginLifetime`.
 They expose the same interface as `ILifetime`, so they don't have any special features other than identifying
@@ -23,7 +23,7 @@ the plugin will hang in memory forever.
 
 ## Lifetime handler
 `LifetimeHandler<T>` can be used for managing lifetime easily. It is located in
-`Christofel.BaseLib.Implementations`. `PluginLifetimeHandler` can be used as a default
+`Christofel.Plugins`. `PluginLifetimeHandler` can be used as a default
 handler for `ICurrentPluginLifetime`.
 
 Handler should be thread-safe, it holds the lifetime and triggers CancellationToken Cancels when needed.
