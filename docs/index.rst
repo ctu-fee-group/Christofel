@@ -32,6 +32,13 @@ Documentation
    base/db
 
 .. toctree::
+   :caption: Libraries
+   :maxdepth: 2
+
+   libs/helpers
+   libs/commandslib
+
+.. toctree::
    :caption: Maintenance
    :maxdepth: 2
 
