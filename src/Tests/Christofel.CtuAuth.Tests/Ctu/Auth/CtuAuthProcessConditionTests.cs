@@ -74,7 +74,9 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         /// <returns>Service provider with ctu auth services.</returns>
         protected virtual IServiceProvider SetupConditionServices(Action<IServiceCollection>? configure = default)
         {
-            var services = new ServiceCollection()
+            var services = new ServiceCollection();
+            configure?.Invoke(services);
+            services
                 .AddCtuAuthProcess()
                 .AddAuthCondition<T>()
                 .AddTransient(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext())
@@ -82,8 +84,6 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
                     (p => new ChristofelBaseContextFactory(OptionsDisposable))
                 .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
                 .AddLogging(b => b.ClearProviders());
-
-            configure?.Invoke(services);
 
             return services
                 .BuildServiceProvider();
