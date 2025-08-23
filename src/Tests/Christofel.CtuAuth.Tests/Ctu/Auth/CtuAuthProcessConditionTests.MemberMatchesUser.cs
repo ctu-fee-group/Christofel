@@ -11,6 +11,7 @@ using Christofel.CtuAuth.Auth.Conditions;
 using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Discord.API;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
 using Remora.Rest.Core;
 using Xunit;
@@ -36,19 +37,12 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
 
             var user = await DbContext
                 .SetupUserToAuthenticateAsync();
-            var dummyGuildMember = new GuildMember
-            (
-                default,
-                default,
-                default,
-                default,
-                new List<Snowflake>(),
-                DateTimeOffset.Now,
-                default,
-                default,
-                default,
-                default
-            );
+            var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user)
+            with
+            {
+                User = default
+            };
+
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, DummyUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
@@ -76,19 +70,12 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
 
             var user = await DbContext
                 .SetupUserToAuthenticateAsync();
-            var dummyGuildMember = new GuildMember
-            (
-                new User(new Snowflake(111, Constants.DiscordEpoch), DummyUsername, 124, default, default),
-                default,
-                default,
-                default,
-                new List<Snowflake>(),
-                DateTimeOffset.Now,
-                default,
-                default,
-                default,
-                default
-            );
+
+            var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user)
+            with
+            {
+                User = new User(new Snowflake(111, Constants.DiscordEpoch), DummyUsername, 0, default, default)
+            };
 
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, DummyUsername);
 
@@ -117,19 +104,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
 
             var user = await DbContext
                 .SetupUserToAuthenticateAsync();
-            var dummyGuildMember = new GuildMember
-            (
-                new User(user.DiscordId, DummyUsername, 124, default, default),
-                default,
-                default,
-                default,
-                new List<Snowflake>(),
-                DateTimeOffset.Now,
-                default,
-                default,
-                default,
-                default
-            );
+            var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user);
 
             var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, DummyUsername);
 
