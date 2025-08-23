@@ -8,6 +8,12 @@ There is the bot and then there is the library that allows usage
 of plugins that have their own runtime. Those plugins live inside
 the same process as the base application.
 
+## Documentation
+
+The code should be documented with enough information about given classes, methods etc.
+In addition to that, for high level overviews there is markdown documentation under [docs](docs),
+available online [here](https://christofel.readthedocs.io/en/latest/).
+
 ## How to run locally
 
 To run Christofel application locally, first database has to be started.
