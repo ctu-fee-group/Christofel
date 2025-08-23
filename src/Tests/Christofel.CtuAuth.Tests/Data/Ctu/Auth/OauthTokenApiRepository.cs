@@ -4,12 +4,11 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System.Threading;
 using Christofel.Common.Database.Models;
 using Christofel.OAuth;
 using Moq;
 
-namespace Christofel.Api.Tests.Data.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
 {
     /// <summary>
     /// Repository for creating <see cref="ICtuTokenApi"/>.
@@ -26,7 +25,7 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
         {
             var successfulOauthHandler = new Mock<ICtuTokenApi>();
             successfulOauthHandler
-                .Setup(tokenApi => tokenApi.CheckTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()).Result)
+                .Setup(tokenApi => tokenApi.GetUser(It.IsAny<string>()))
                 .Returns(new CtuUser(user.UserId, username));
 
             return successfulOauthHandler;

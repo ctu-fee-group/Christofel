@@ -11,7 +11,7 @@ using Christofel.Common.Database.Models;
 using Remora.Discord.API;
 using Remora.Rest.Core;
 
-namespace Christofel.Api.Tests.Data.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
 {
     /// <summary>
     /// Class containing extensions for <see cref="ChristofelBaseContext"/>.

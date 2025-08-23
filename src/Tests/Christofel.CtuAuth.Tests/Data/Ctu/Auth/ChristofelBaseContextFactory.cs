@@ -8,7 +8,7 @@ using Christofel.Common.Database;
 using Microsoft.EntityFrameworkCore;
 using TestSupport.EfHelpers;
 
-namespace Christofel.Api.Tests.Data.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
 {
     /// <summary>
     /// Dummy factory of <see cref="ChristofelBaseContext"/> that will create in-memory database.

@@ -7,14 +7,13 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Auth.Conditions;
-using Christofel.Api.Ctu.Auth.Steps;
-using Christofel.Api.Ctu.Auth.Tasks;
-using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Tests.Data.Ctu.Auth;
 using Christofel.Common.Database;
 using Christofel.Common.Database.Models;
+using Christofel.CtuAuth.Auth.Conditions;
+using Christofel.CtuAuth.Auth.Steps;
+using Christofel.CtuAuth.Auth.Tasks;
+using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Christofel.OAuth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,7 +22,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using TestSupport.EfHelpers;
 using Xunit;
 
-namespace Christofel.Api.Tests.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
     /// <summary>
     /// Tests logic of ctu auth process using mock, custom data.

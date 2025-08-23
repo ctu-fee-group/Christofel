@@ -7,16 +7,15 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Auth.Conditions;
-using Christofel.Api.Tests.Data.Ctu.Auth;
+using Christofel.CtuAuth.Auth.Conditions;
+using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using Remora.Discord.API;
 using Remora.Discord.API.Objects;
 using Remora.Rest.Core;
 using Xunit;
 
-namespace Christofel.Api.Tests.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
     /// <summary>
     /// Tests for condition <see cref="MemberMatchesUserCondition"/>.
@@ -42,8 +41,10 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 default,
                 default,
                 default,
+                default,
                 new List<Snowflake>(),
                 DateTimeOffset.Now,
+                default,
                 default,
                 default,
                 default
@@ -77,11 +78,13 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = new GuildMember
             (
-                new User(new Snowflake(111, Constants.DiscordEpoch), DummyUsername, 124, default),
+                new User(new Snowflake(111, Constants.DiscordEpoch), DummyUsername, 124, default, default),
+                default,
                 default,
                 default,
                 new List<Snowflake>(),
                 DateTimeOffset.Now,
+                default,
                 default,
                 default,
                 default
@@ -116,11 +119,13 @@ namespace Christofel.Api.Tests.Ctu.Auth
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = new GuildMember
             (
-                new User(user.DiscordId, DummyUsername, 124, default),
+                new User(user.DiscordId, DummyUsername, 124, default, default),
+                default,
                 default,
                 default,
                 new List<Snowflake>(),
                 DateTimeOffset.Now,
+                default,
                 default,
                 default,
                 default

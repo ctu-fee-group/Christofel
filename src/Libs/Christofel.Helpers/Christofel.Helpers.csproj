@@ -19,10 +19,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.6" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
         <PackageReference Include="Remora.Discord.Commands" Version="30.0.0" />
         <PackageReference Include="Remora.Discord.Gateway" Version="13.0.1" />
-        <PackageReference Include="System.Text.Json" Version="9.0.6" />
+        <PackageReference Include="System.Text.Json" Version="9.0.8" />
     </ItemGroup>
 
     <ItemGroup>
