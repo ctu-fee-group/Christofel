@@ -13,6 +13,7 @@ using Christofel.CtuAuth.Auth.Conditions;
 using Christofel.CtuAuth.Auth.Steps;
 using Christofel.CtuAuth.Auth.Tasks;
 using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Tests.Data;
 using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Christofel.OAuth;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,7 +60,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         /// </summary>
         public CtuAuthProcessLogicTests()
         {
-            var options = SqliteInMemory.CreateOptions<ChristofelBaseContext>();
+            var options = Data.SqliteInMemory.CreateOptions<ChristofelBaseContext>();
             OptionsDisposable = options;
 
             DbContext = new ChristofelBaseContext(options);
