@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Christofel.CtuAuth;
 using Christofel.CtuAuth.Auth.Conditions;
+using Christofel.CtuAuth.Errors;
 using Christofel.CtuAuth.Resolvers;
 using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +52,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
             );
 
             Assert.False(result.IsSuccess);
+            Assert.IsType<DuplicateError>(result.Error);
         }
 
         /// <summary>
@@ -82,6 +84,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
             );
 
             Assert.False(result.IsSuccess);
+            Assert.IsType<DuplicateError>(result.Error);
         }
 
         /// <summary>
