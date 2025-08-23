@@ -66,6 +66,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Helpers.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.Management.Tests", "Tests\Christofel.Management.Tests\Christofel.Management.Tests.csproj", "{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Christofel.CtuAuth.Tests", "Tests\Christofel.CtuAuth.Tests\Christofel.CtuAuth.Tests.csproj", "{843F0066-666C-4CA1-8F03-4192A8B9AFA8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,7 @@ Global
 		{F5991AF1-FE00-4148-84E5-82B1319156AA} = {B79E41F4-B461-4179-AC85-07C1AA6CBE02}
 		{08C93727-77A3-4BEB-8C46-97AE45583826} = {60849210-DE12-406A-8629-3A4818015EC6}
 		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22} = {60849210-DE12-406A-8629-3A4818015EC6}
+		{843F0066-666C-4CA1-8F03-4192A8B9AFA8} = {60849210-DE12-406A-8629-3A4818015EC6}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B8630DDB-0533-4BDE-84DA-3BF5D18968B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -199,5 +202,9 @@ Global
 		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA5E4543-7260-4FA5-9A5C-92A60D2AAC22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{843F0066-666C-4CA1-8F03-4192A8B9AFA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{843F0066-666C-4CA1-8F03-4192A8B9AFA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{843F0066-666C-4CA1-8F03-4192A8B9AFA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{843F0066-666C-4CA1-8F03-4192A8B9AFA8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

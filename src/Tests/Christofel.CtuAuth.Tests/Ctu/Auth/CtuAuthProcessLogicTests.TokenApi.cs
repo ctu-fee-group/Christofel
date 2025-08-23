@@ -5,18 +5,16 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Tests.Data.Ctu.Auth;
+using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Christofel.OAuth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace Christofel.Api.Tests.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
     /// <summary>
     /// Tests that ctu auth process correctly handles response of <see cref="ICtuTokenApi"/>.
@@ -45,7 +43,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
 
             var failingOauthHandler = new Mock<ICtuTokenApi>();
             failingOauthHandler
-                .Setup(tokenApi => tokenApi.CheckTokenAsync(DummyAccessToken, It.IsAny<CancellationToken>()))
+                .Setup(tokenApi => tokenApi.GetUser(DummyAccessToken))
                 .Throws<InvalidOperationException>();
 
             var result =

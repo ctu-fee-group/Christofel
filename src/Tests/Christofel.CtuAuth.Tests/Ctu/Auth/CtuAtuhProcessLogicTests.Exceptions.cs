@@ -5,18 +5,16 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Tests.Data.Ctu.Auth;
+using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Christofel.OAuth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace Christofel.Api.Tests.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
     /// <summary>
     /// Tests propagation of exception of auth process.
@@ -140,7 +138,7 @@ namespace Christofel.Api.Tests.Ctu.Auth
             successfulOauthHandler.Setup
                 (
                     handler =>
-                        handler.CheckTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())
+                        handler.GetUser(It.IsAny<string>())
                 )
                 .Throws<InvalidOperationException>();
 

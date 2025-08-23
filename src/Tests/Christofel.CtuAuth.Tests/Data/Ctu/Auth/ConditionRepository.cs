@@ -7,11 +7,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Auth.Conditions;
+using Christofel.CtuAuth;
+using Christofel.CtuAuth.Auth.Conditions;
 using Remora.Results;
 
-namespace Christofel.Api.Tests.Data.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
 {
     /// <summary>
     /// Class containing common <see cref="IPreAuthCondition"/>s.

@@ -8,16 +8,16 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Auth.Tasks;
-using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Tests.Data.Ctu.Auth;
+using Christofel.CtuAuth;
+using Christofel.CtuAuth.Auth.Tasks;
+using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace Christofel.Api.Tests.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
     /// <summary>
     /// Tests that the ctu auth process sets correct data and saves to the database.

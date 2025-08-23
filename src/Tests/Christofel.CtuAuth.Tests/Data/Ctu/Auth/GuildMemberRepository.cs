@@ -10,7 +10,7 @@ using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Objects;
 using Remora.Rest.Core;
 
-namespace Christofel.Api.Tests.Data.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
 {
     /// <summary>
     /// Repository for creating <see cref="IGuildMember"/>.
@@ -22,17 +22,18 @@ namespace Christofel.Api.Tests.Data.Ctu.Auth
         /// </summary>
         /// <param name="user">The user to be set.</param>
         /// <returns>GuildMember representing the <paramref name="user"/>.</returns>
-        public static GuildMember CreateDummyGuildMember(DbUser user) => new GuildMember
-        (
-            new User(user.DiscordId, "DummyUser", 1234, default, default),
-            default,
-            default,
-            new List<Snowflake>(),
-            default,
-            default,
-            default,
-            default,
-            default
-        );
+        public static GuildMember CreateDummyGuildMember(DbUser user) => new
+            (
+                new User(user.DiscordId, "DummyUser", 1234, default, default),
+                default,
+                default,
+                default,
+                new List<Snowflake>(),
+                default,
+                default,
+                default,
+                default,
+                default
+            );
     }
 }

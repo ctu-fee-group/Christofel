@@ -5,17 +5,17 @@
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using Christofel.Api.Ctu.Auth.Conditions;
-using Christofel.Api.Ctu.Extensions;
-using Christofel.Api.Tests.Data.Ctu.Auth;
 using Christofel.Common.Database;
+using Christofel.CtuAuth.Auth.Conditions;
+using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TestSupport.EfHelpers;
 
-namespace Christofel.Api.Tests.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
     /// <summary>
     /// Tests of real conditions of the ctu auth process.

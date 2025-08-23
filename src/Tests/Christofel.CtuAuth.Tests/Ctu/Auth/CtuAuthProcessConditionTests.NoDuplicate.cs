@@ -6,14 +6,14 @@
 
 using System;
 using System.Threading.Tasks;
-using Christofel.Api.Ctu;
-using Christofel.Api.Ctu.Auth.Conditions;
-using Christofel.Api.Ctu.Resolvers;
-using Christofel.Api.Tests.Data.Ctu.Auth;
+using Christofel.CtuAuth;
+using Christofel.CtuAuth.Auth.Conditions;
+using Christofel.CtuAuth.Resolvers;
+using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Christofel.Api.Tests.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
     /// <summary>
     /// Tests condition <see cref="AllowsNoDuplicate"/>.

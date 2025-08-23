@@ -6,7 +6,7 @@
 
 using Christofel.Common.User;
 
-namespace Christofel.Api.Tests.Data.Ctu.Auth
+namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
 {
     /// <summary>
     /// Ctu user implementation for testing purposes.
