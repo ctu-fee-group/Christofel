@@ -23,17 +23,24 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         /// <summary>
         /// Tests that the condition does not allow non matching filled username.
         /// </summary>
+        /// <param name="dbUsername">The username saved in database.</param>
+        /// <param name="authUsername">The username used for authentication.</param>
         /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
-        [Fact]
-        public async Task DoesNotAllowNonMatchingFilledUsername()
+        [Theory]
+        [InlineData("db", "auth")]
+        [InlineData("db", "db1")]
+        [InlineData("db", "1db")]
+        [InlineData("1db", "db")]
+        [InlineData("db1", "db")]
+        public async Task DoesNotAllowNonMatchingFilledUsername(string dbUsername, string authUsername)
         {
             var services = SetupConditionServices();
 
             var user = await DbContext
-                .SetupUserToAuthenticateAsync("non matching username");
+                .SetupUserToAuthenticateAsync(dbUsername);
             var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user);
 
-            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, "real username");
+            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, authUsername);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result = await process.FinishAuthAsync
@@ -52,17 +59,23 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         /// <summary>
         /// Tests that the condition allows matching username.
         /// </summary>
+        /// <param name="username">The username to use for auth.</param>
         /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
-        [Fact]
-        public async Task AllowsMatchingUsername()
+        [Theory]
+        [InlineData("username")]
+        [InlineData("user")]
+        [InlineData("user123")]
+        [InlineData("123user")]
+        [InlineData("_")]
+        public async Task AllowsMatchingUsername(string username)
         {
             var services = SetupConditionServices();
 
             var user = await DbContext
-                .SetupUserToAuthenticateAsync(DummyUsername);
+                .SetupUserToAuthenticateAsync(username);
             var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user);
 
-            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, DummyUsername);
+            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, username);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result = await process.FinishAuthAsync
@@ -91,7 +104,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
                 .SetupUserToAuthenticateAsync();
             var dummyGuildMember = GuildMemberRepository.CreateDummyGuildMember(user);
 
-            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, DummyUsername);
+            var successfulOauthHandler = OauthTokenApiRepository.GetMockedTokenApi(user, string.Empty);
 
             var process = services.GetRequiredService<CtuAuthProcess>();
             var result = await process.FinishAuthAsync
