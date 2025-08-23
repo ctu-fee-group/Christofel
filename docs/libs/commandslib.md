@@ -40,14 +40,14 @@ commands are removed and registered again. This isn't done if the whole applicat
 public async Task<Result> HandleManageAsync() { ... }
 ```
 
-will be used to check if user has permission for executing the given command.
-Every parent node of a command is checked for permissions as well, so user has
-to have all the permissions required. For example if a class `AdminCommands` has
-`[RequirePermission("admin")]`, and then a command has `RequirePermission("admin.manage")`,
-the user has to have both `admin` and `admin.manage` permissions.
+Checks if user has permission for executing the given command.
+Every parent node of a command is checked for permissions as well, so users must
+have all required permissions. For example, if a class `AdminCommands` has
+`[RequirePermission("admin")]`, and then a command has `[RequirePermission("admin.manage")]`,
+the user must have both `admin` and `admin.manage` permissions.
 
 **Permission Resolution Flow**:
-1. `RequirePermissionCondition` checks if user has required Christofel permission (there isn't a response to users who do not have permissions deliberately, to not let them be aware of valid commands)
+1. `RequirePermissionCondition` checks if user has required Christofel permission (users without permissions receive no response to avoid revealing valid commands)
 2. `ChristofelCommandPermissionResolver` queries the database for user/role assignments
 
 ### Validation Framework
@@ -99,7 +99,7 @@ protected override IServiceCollection ConfigureServices(IServiceCollection servi
 
 ### Creating Command Groups
 
-Command groups hold commands. A command group has to be registered to plugin's
+Command groups hold commands. A command group has to be registered in the plugin's
 service collection.
 
 ```csharp
@@ -168,8 +168,12 @@ public class MyCommandGroup : CommandGroup
 ### Error Handling
 - Let the execution events handle logging and user feedback
 - Return `Result` types for consistent error handling
-- Return validation error from the christofel validator itself so that a message is made for the user with validation errors
-- Use `FeedbackService` for informing users about errors, but don't give too many information about the internal state. All errors are logged, so provide enough information in the returned error itself. If the user is administrator, they can check the log. So even for commands for administrators, do not include any stack traces and such
+- Return validation errors from the Christofel validator to display user-friendly error messages
+- Use `FeedbackService` for user error messages:
+  - Avoid exposing internal application state
+  - Provide sufficient error details for troubleshooting
+  - Administrators can check logs for full error information
+  - Never include stack traces in user-facing messages
 - Use `FeedbackService` for success messages
 
 ### Permissions

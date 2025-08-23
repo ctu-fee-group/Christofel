@@ -14,16 +14,41 @@ Permissions can only be granted, they can't be revoked, so using more specific p
 is preferred to having general permissions, because you cannot revoke a more specific permission
 when it is already granted, even with wildcards.
 
-## Slash command permissions
+## Discord Integration
 
-When using slash commands, or interactions in general,
-an attribute `RequirePermission` can be used for requiring a given permission.
-This attribute should be used on the group itself and on every command/subcommand.
-Additionally to make Discord automatically give people access to the command,
-`DiscordDefaultMemberPermissions` attribute can be used. This should then be used
-based on the predicted permission that will have access to the commands.
-Still, when the user doesn't have Christofel permissions, they won't be able
-to use the command.
+Christofel implements a dual permission system that works alongside Discord's native permissions:
+
+### Two-Layer Permission System
+
+1. **Discord Native Permissions** - Built-in Discord role/channel permissions
+2. **Christofel Permissions** - Database-backed granular permission system
+
+### How They Work Together
+
+**Command Visibility**: Discord's `DiscordDefaultMemberPermissions` attribute controls who can *see* slash commands in Discord's interface.
+
+**Command Execution**: Christofel's `RequirePermission` attribute controls who can *actually execute* commands.
+
+```csharp
+[DiscordDefaultMemberPermissions(DiscordPermission.ManageMessages)]  // Discord: Who sees the command
+[RequirePermission("management.messages.slowmode")]                  // Christofel: Who can use it
+public async Task<Result> SlowmodeCommand() { ... }
+```
+
+### Permission Flow
+1. User types slash command
+2. Discord checks if user has Discord permissions → Shows/hides command
+3. User executes command
+4. Christofel checks database permissions → Allows/denies execution
+
+**Important**: Even if a user has Discord permissions to see a command, they still need Christofel permissions to execute it. Users without Christofel permissions will receive no response (to avoid revealing valid commands).
+
+## Slash Command Permissions
+
+Use `RequirePermission` attribute on command groups and individual commands:
+- Apply to command groups for inherited permissions
+- Apply to individual commands for specific permissions
+- All parent permissions must be granted (hierarchical checking)
 
 The permissions generally follow `<plugin>.<group>.<command>` schema.
 
@@ -32,16 +57,42 @@ For permissions `IPermissionService` and `IPermissionResolver` are exposed
 in the shared state (`IChristofelState`). The purpose of permission service
 is to hold state of permission so they can be listed by administrator.
 Each permission has its name, display name and description.
-NOTE that this is not really used throught the plugins, at least not yet.
+NOTE that this is not really used throughout the plugins, at least not yet.
 
 Permission resolver is used for checking whether a target has permissions
 or for getting all targets for specified permission.
 
-## (Incomplete) list of permissions
-- `application` - Permissions for base application
-  - `quit` - Permission for `/quit` command
-  - `refresh` - Permission for `/refresh` command
-  - `plugins`
-    - `control` - Permission for `/plugin` command allowing attaching, detaching and listing plugins
-- `helloworld` - Permissions for Helloworld plugin
-  - `ping` - Permission for `/ping` command
+## Permission Hierarchy Best Practices
+
+### Naming Convention
+Follow the standard pattern: `<plugin>.<group>.<command>`
+
+### Design Principles
+
+**Least Privilege**: Start with specific permissions, use wildcards carefully
+- Prefer `management.users.ban` over `management.*`
+- Wildcards grant all current and future permissions in that namespace
+
+**Logical Grouping**: Group related functionality
+- `management.users.*` for user management
+- `management.messages.*` for message management
+
+**Scalable Structure**:
+```
+plugin.feature.action     # Specific action
+plugin.feature.*          # All actions in feature
+plugin.*                  # Everything (use carefully)
+```
+
+### Permission Assignment
+- **Discord Roles**: Assign broader permissions to trusted roles
+- **Individual Users**: Use for exceptions and temporary access
+- **Remember**: Permissions can only be granted, not revoked
+
+## List of Permissions
+- `application` - Base application controls
+  - `quit` - Shutdown bot
+  - `refresh` - Reload configuration
+  - `plugins.control` - Manage plugin loading/unloading
+- `helloworld` - Example plugin
+  - `ping` - Basic ping command

@@ -1,46 +1,54 @@
 # Configuration
-For configuration, `Microsoft.Extensions.Configuration` is used.
-The configuration is stored in `config.json` and `config.{environment}.json`.
-The file is loaded from PWD. Variable `environment` is retrieved from environment variable `ENV`.
 
-Support for changing the configuration at runtime should be added where it's possible.
-That means using either `IOptionsSnapshot` for scoped and transient services,
-or `IOptionsMonitor` with proper implementation for updating the config, for singleton services.
-It is not expected the main guild id or bot token could change during runtime.
-There might also be other options that are too convoluted with the app's internal state
-so that it is not possible to change them without restarting the application.
+Christofel uses `Microsoft.Extensions.Configuration` for configuration management.
+Configuration is loaded from `config.json` and environment-specific `config.{environment}.json` files.
+The files are loaded from the current working directory (PWD), with the environment determined by the `ENV` environment variable.
 
-## Usage in code
-In plugins, where DI is used, the configuration can be added using
-`Configure` extension methods for `IServiceCollection`. The
-configuration that should be used is located in `IChristofelState.Configuration`.
-More information about how options work can be found [here](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options?view=aspnetcore-5.0)
+## Runtime Configuration Updates
 
-## Documented Fields
+Support for changing configuration at runtime should be added where possible:
+- Use `IOptionsSnapshot<T>` for scoped and transient services
+- Use `IOptionsMonitor<T>` with proper update handling for singleton services
 
-- `ConnectionStrings`
-  - `ChristofelBase` - Connection string for `ChristofelBaseContext`
-- `Bot`
-  - `GuildId` - main guild id where the bot should be used
-  - `Token` - application token
-  `DiscordNet` - direct configuration of `DiscordSocketClientOptions`
-    - see `DiscordSocketClientOptions` in Discord.NET
-    - if ephemeral responses are needed, `AlwaysAcknowledgeInteractions` have to be `false`.
-- `Plugins`
-  - `Folder` - folder relative to the executable where plugins reside
-    - `AutoLoad` - array of strings that controls what plugins will be loaded on startup automatically.
-- `Logging`
-  - this is a configuration of `Microsoft.Extensions.Logging`, for more information try [this](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line)
-  - `File`
-    - Configuration of `Karambolo.Extensions.Logging.File` provider
-    - documentation is located [here](https://github.com/adams85/filelogger)
-  - `Console`
-    - default `Console` logger provider configuration
-  - `Discord`
-    - custom Discord logger provider
-    - `MaxQueueSize` - maximum number of messages in queue for processing
-    - `Channels` - specifies array of channels that the bot should log into
-      - entry example
-        - `GuildId` - specifies in which guild the channel is located
-        - `ChannelId` - specifies which channel to log into
-        - `MinLevel` - minimal log level, can be used to separate channels for logging info and only errors
+```{note}
+Some settings like guild ID and bot token cannot be changed at runtime due to deep integration with application state.
+```
+
+## Usage in Code
+
+In plugins using dependency injection, configure options using `Configure` extension methods on `IServiceCollection`.
+Access configuration through `IChristofelState.Configuration`.
+
+For more information about the options pattern, see the [official documentation](https://docs.microsoft.com/en-us/dotnet/core/extensions/options).
+
+## Configuration Structure
+
+For a complete example configuration file, see [config.json](https://github.com/ctu-fee-group/Christofel/blob/dev/src/config.json) in the repository.
+
+## Configuration Fields
+
+### ConnectionStrings
+- `ChristofelBase` - Connection string for `ChristofelBaseContext` database
+
+### Bot
+- `GuildId` - Main guild ID where the bot operates
+- `Token` - Discord application token
+- `DiscordNet` - Direct configuration of `DiscordSocketClientOptions`
+  - See `DiscordSocketClientOptions` in Discord.NET documentation
+  - Set `AlwaysAcknowledgeInteractions` to `false` if ephemeral responses are needed
+
+### Plugins
+- `Folder` - Directory relative to executable containing plugin assemblies
+- `AutoLoad` - Array of plugin names to load automatically on startup
+
+### Logging
+Standard `Microsoft.Extensions.Logging` configuration. See [.NET logging documentation](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging) for details.
+
+- `File` - File logging provider configuration ([Karambolo.Extensions.Logging.File](https://github.com/adams85/filelogger))
+- `Console` - Console logger provider configuration
+- `Discord` - Custom Discord channel logging
+  - `MaxQueueSize` - Maximum queued log messages
+  - `Channels` - Array of Discord channels for log output
+    - `GuildId` - Target guild ID
+    - `ChannelId` - Target channel ID
+    - `MinLevel` - Minimum log level for this channel
