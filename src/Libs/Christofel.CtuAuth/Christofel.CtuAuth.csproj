@@ -17,6 +17,7 @@
     <ItemGroup>
       <PackageReference Include="KosApi" Version="1.4.0" />
       <PackageReference Include="Remora.Results" Version="8.0.0" />
+      <PackageReference Include="System.Linq.Async" Version="6.0.3" />
       <PackageReference Include="UsermapApi" Version="1.1.0" />
     </ItemGroup>
 
