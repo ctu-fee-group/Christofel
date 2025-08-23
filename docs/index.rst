@@ -37,6 +37,7 @@ Documentation
 
    libs/helpers
    libs/commandslib
+   libs/ctuauth
 
 .. toctree::
    :caption: Maintenance
