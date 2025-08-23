@@ -54,10 +54,9 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         /// </summary>
         public CtuAuthProcessConditionTests()
         {
-            var options = SqliteInMemory.CreateOptions<ChristofelBaseContext>();
-            OptionsDisposable = options;
+            OptionsDisposable = Data.SqliteInMemory.CreateOptions<ChristofelBaseContext>();
 
-            DbContext = new ChristofelBaseContext(options);
+            DbContext = new ChristofelBaseContext(OptionsDisposable);
             DbContext.Database.EnsureCreated();
         }
 
