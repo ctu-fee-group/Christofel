@@ -21,13 +21,13 @@
     <ItemGroup>
         <PackageReference Include="Karambolo.Extensions.Logging.File" Version="3.6.3" />
         <PackageReference Include="KosApi" Version="1.4.0" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.6" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="9.0.6" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.6" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.6" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.6" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.8" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="9.0.8" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.8" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.8" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
         <PackageReference Include="Remora.Commands" Version="11.0.2" />
-        <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.6" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.8" />
     </ItemGroup>
 
 </Project>

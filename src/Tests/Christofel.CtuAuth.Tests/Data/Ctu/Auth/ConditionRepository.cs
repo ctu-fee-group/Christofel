@@ -7,7 +7,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.CtuAuth;
 using Christofel.CtuAuth.Auth.Conditions;
 using Remora.Results;
 

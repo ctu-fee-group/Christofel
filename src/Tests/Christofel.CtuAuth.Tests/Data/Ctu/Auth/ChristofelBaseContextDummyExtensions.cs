@@ -19,7 +19,7 @@ namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
     public static class ChristofelBaseContextDummyExtensions
     {
         /// <summary>
-        /// Adds user with AuthenticatedAt set to now.
+        /// Adds user with AuthenticatedAt set to null.
         /// </summary>
         /// <param name="ctx">The base database context.</param>
         /// <param name="username">The username to set to the user.</param>
@@ -49,7 +49,7 @@ namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
         }
 
         /// <summary>
-        /// Adds user with AuthenticatedAt set to null.
+        /// Adds user with AuthenticatedAt set to now.
         /// </summary>
         /// <param name="ctx">The base database context.</param>
         /// <param name="username">The username to set to the user.</param>
