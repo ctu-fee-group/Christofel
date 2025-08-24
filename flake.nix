@@ -75,14 +75,20 @@
           '';
         };
 
-        devShells.default = pkgs.mkShell {
-          name = "christofel-dev";
-          packages = [
-            # Dotnet deps
-            (with pkgs.dotnetCorePackages; combinePackages [
+        devShells.default = let
+            dotnet = (with pkgs.dotnetCorePackages; combinePackages [
               runtime_9_0
               sdk_8_0
-            ])
+              runtime_8_0
+            ]);
+        in pkgs.mkShell {
+          name = "christofel-dev";
+
+          DOTNET_ROOT = "${dotnet}/share/dotnet";
+
+          packages = [
+            # Dotnet deps
+            dotnet
 
             # Services
             pkgs.mysql80
