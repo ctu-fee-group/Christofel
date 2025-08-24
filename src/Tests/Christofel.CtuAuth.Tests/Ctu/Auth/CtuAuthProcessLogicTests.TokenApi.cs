@@ -12,6 +12,7 @@ using Christofel.OAuth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Remora.Results;
 using Xunit;
 
 namespace Christofel.CtuAuth.Tests.Ctu.Auth
@@ -58,6 +59,8 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
                 );
 
             Assert.False(result.IsSuccess);
+            Assert.IsType<ExceptionError>(result.Error);
+            Assert.IsType<InvalidOperationException>(((ExceptionError)result.Error).Exception);
         }
 
         /// <summary>
