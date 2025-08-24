@@ -22,10 +22,21 @@ namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
         /// </summary>
         public class FailingCondition : IPreAuthCondition
         {
+            private readonly ResultError _error;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="FailingCondition"/> class.
+            /// </summary>
+            /// <param name="error">The error to return.</param>
+            public FailingCondition(ResultError? error = null)
+            {
+                _error = error ?? new InvalidOperationError();
+            }
+
             /// <inheritdoc />
             public ValueTask<Result> CheckPreAsync
-                (IAuthData authData, CancellationToken ct = default) => ValueTask.FromResult<Result>
-                (new InvalidOperationError());
+                (IAuthData authData, CancellationToken ct = default)
+                => ValueTask.FromResult<Result>(_error);
         }
 
         /// <summary>
