@@ -8,7 +8,6 @@ using System;
 using System.Linq;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using TestSupport.EfHelpers;
 
 namespace Christofel.CtuAuth.Tests.Data;
 

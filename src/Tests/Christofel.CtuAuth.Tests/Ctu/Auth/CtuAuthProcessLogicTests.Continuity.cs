@@ -144,5 +144,9 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
                 Times.Never
             );
         }
+
+        // TODO: failed task still completes other tasks
+
+        // TODO: failed task returns soft auth error
     }
 }

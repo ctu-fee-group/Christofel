@@ -6,7 +6,6 @@
 
 using Christofel.Common.Database;
 using Microsoft.EntityFrameworkCore;
-using TestSupport.EfHelpers;
 
 namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
 {
