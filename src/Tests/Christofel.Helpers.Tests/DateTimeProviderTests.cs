@@ -7,6 +7,7 @@
 using Christofel.Helpers.Date;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Xunit;
 
 namespace Christofel.Helpers.Tests;
 

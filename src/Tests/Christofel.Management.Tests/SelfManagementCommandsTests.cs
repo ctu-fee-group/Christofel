@@ -6,6 +6,7 @@
 
 using Christofel.Helpers.Date;
 using Christofel.Management.Commands;
+using Xunit;
 using static Christofel.Management.Commands.SelfManagementCommands;
 
 namespace Christofel.Management.Tests;

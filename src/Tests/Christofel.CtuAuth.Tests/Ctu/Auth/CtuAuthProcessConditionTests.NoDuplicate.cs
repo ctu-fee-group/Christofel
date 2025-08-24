@@ -58,7 +58,6 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         [Fact]
         public async Task AllowsAuthenticatedCtuDuplicate()
         {
-            // TODO: add a step that will check the data has duplicate listed
             var services = SetupConditionServices();
 
             var user = await DbContext

@@ -20,7 +20,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Remora.Discord.API.Abstractions.Objects;
-using TestSupport.EfHelpers;
 using Xunit;
 
 namespace Christofel.CtuAuth.Tests.Ctu.Auth
@@ -60,7 +59,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         /// </summary>
         public CtuAuthProcessLogicTests()
         {
-            var options = Data.SqliteInMemory.CreateOptions<ChristofelBaseContext>();
+            var options = SqliteInMemory.CreateOptions<ChristofelBaseContext>();
             OptionsDisposable = options;
 
             DbContext = new ChristofelBaseContext(options);

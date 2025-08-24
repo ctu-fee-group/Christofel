@@ -8,12 +8,12 @@ using System;
 using Christofel.Common.Database;
 using Christofel.CtuAuth.Auth.Conditions;
 using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Tests.Data;
 using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
 using Christofel.Helpers.ReadOnlyDatabase;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using TestSupport.EfHelpers;
 
 namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
@@ -54,7 +54,8 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         /// </summary>
         public CtuAuthProcessConditionTests()
         {
-            OptionsDisposable = Data.SqliteInMemory.CreateOptions<ChristofelBaseContext>();
+            OptionsDisposable = SqliteInMemory.CreateOptions<ChristofelBaseContext>();
+            OptionsDisposable.PreventDispose();
 
             DbContext = new ChristofelBaseContext(OptionsDisposable);
             DbContext.Database.EnsureCreated();
@@ -64,7 +65,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         public void Dispose()
         {
             DbContext?.Dispose();
-            OptionsDisposable?.Dispose();
+            OptionsDisposable?.ManualDispose();
         }
 
         /// <summary>
