@@ -7,7 +7,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Christofel.CtuAuth;
 using Christofel.CtuAuth.Auth.Tasks;
 using Remora.Results;
 
@@ -23,9 +22,20 @@ namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
         /// </summary>
         public class FailingTask : IAuthTask
         {
+            private readonly ResultError _error;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="FailingTask"/> class.
+            /// </summary>
+            /// <param name="error">The error to return.</param>
+            public FailingTask(ResultError? error = null)
+            {
+                _error = error ?? new InvalidOperationError();
+            }
+
             /// <inheritdoc />
-            public Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default) => Task.FromResult<Result>
-                (new InvalidOperationError());
+            public Task<Result> ExecuteAsync(IAuthData data, CancellationToken ct = default)
+                => Task.FromResult<Result>(_error);
         }
 
         /// <summary>

@@ -23,9 +23,20 @@ namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth
         /// </summary>
         public class FailingStep : IAuthStep
         {
+            private readonly ResultError _error;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="FailingStep"/> class.
+            /// </summary>
+            /// <param name="error">The error to return.</param>
+            public FailingStep(ResultError? error = null)
+            {
+                _error = error ?? new InvalidOperationError();
+            }
+
             /// <inheritdoc />
             public Task<Result> FillDataAsync(IAuthData data, CancellationToken ct = default) => Task.FromResult<Result>
-                (new InvalidOperationError());
+                (_error);
         }
 
         /// <summary>
