@@ -7,7 +7,7 @@
 
         <Nullable>enable</Nullable>
 
-        <LangVersion>11</LangVersion>
+        <LangVersion>12</LangVersion>
         <IsTestProject>true</IsTestProject>
     </PropertyGroup>
 
