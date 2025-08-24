@@ -12,7 +12,6 @@ using Christofel.OAuth;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace Christofel.CtuAuth.Tests.Ctu.Auth
 {
@@ -33,6 +32,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddAuthCondition<ConditionRepository.ExceptionThrowingCondition>()
+                .AddCtuSuccessfulCST()
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
@@ -65,6 +65,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddAuthStep<StepRepository.ExceptionThrowingStep>()
+                .AddCtuSuccessfulCST()
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
@@ -97,6 +98,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
                 .AddAuthTask<TaskRepository.ExceptionThrowingTask>()
+                .AddCtuSuccessfulCST()
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
@@ -128,6 +130,7 @@ namespace Christofel.CtuAuth.Tests.Ctu.Auth
         {
             IServiceProvider services = new ServiceCollection()
                 .AddCtuAuthProcess()
+                .AddCtuSuccessfulCST()
                 .AddLogging(b => b.ClearProviders())
                 .BuildServiceProvider();
 
