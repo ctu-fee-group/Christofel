@@ -157,7 +157,7 @@ namespace Christofel.CtuAuth
             var tasksResult = await ExecuteTasks(services, authData, ct);
             if (!tasksResult.IsSuccess)
             {
-                return new SoftAuthError(tasksResult.Error);
+                return Result.FromError(new SoftAuthError(), tasksResult);
             }
 
             return tasksResult;
@@ -231,7 +231,7 @@ namespace Christofel.CtuAuth
             var tasks = services
                 .GetServices<IAuthTask>();
 
-            var errors = new List<IResult>();
+            var errors = new List<Result>();
             foreach (var task in tasks)
             {
                 Result taskResult;
@@ -251,9 +251,12 @@ namespace Christofel.CtuAuth
                 }
             }
 
-            return errors.Count > 0
-                ? new AggregateError(errors)
-                : Result.FromSuccess();
+            return errors.Count switch
+            {
+                0 => Result.FromSuccess(),
+                1 => errors[0],
+                _ => new AggregateError(errors.Cast<IResult>().ToArray())
+            };
         }
 
         private async Task<Result> SaveToDatabase

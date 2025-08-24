@@ -17,7 +17,6 @@ namespace Christofel.CtuAuth.Auth
     /// go through the whole authentication again to try to go around
     /// this error.
     /// </remarks>
-    /// <param name="Error"></param>
-    public record SoftAuthError(IResultError Error)
-        : ResultError(Error.Message);
+    public record SoftAuthError()
+        : ResultError("An error has occurred during authentication, but it should be ignored and carried on. The state has already been updated, tasks scheduled. Impossible  to abort!");
 }
