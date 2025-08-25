@@ -64,7 +64,12 @@ namespace Christofel.CtuAuth.Auth.Steps
         private async Task<Titles?> GetKosTitles(string username, CancellationToken token)
         {
             var person = await _kosPeopleApi.GetPersonAsync(username, token);
-            return CreateTitles(person?.TitlesPre, person?.TitlesPost);
+            if (person is null)
+            {
+                return null;
+            }
+
+            return CreateTitles(person.TitlesPre, person.TitlesPost);
         }
 
         private async Task<Titles?> GetUsermapTitles(string username, CancellationToken token)
