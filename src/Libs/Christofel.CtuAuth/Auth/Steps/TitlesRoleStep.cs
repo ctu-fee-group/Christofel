@@ -83,14 +83,14 @@ namespace Christofel.CtuAuth.Auth.Steps
 
             var firstNameIndex = person.FullName.IndexOf(person.FirstName, StringComparison.InvariantCulture);
             var lastNameIndex = person.FullName.LastIndexOf(person.LastName, StringComparison.InvariantCulture) +
-                                person.LastName.Length;
+                                person.LastName.Length + 1;
 
             string titlesPre = firstNameIndex <= 0
                 ? string.Empty
                 : person.FullName.Substring(0, firstNameIndex);
             string titlesPost = lastNameIndex >= person.FullName.Length
                 ? string.Empty
-                : person.FullName.Substring(0, firstNameIndex);
+                : person.FullName.Substring(lastNameIndex);
 
             return CreateTitles(titlesPre, titlesPost);
         }
