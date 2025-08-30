@@ -205,6 +205,152 @@ public class CtuAuthProcessRolesTests
         );
 
     /// <summary>
+    /// Tests a regular master's user from FEE that is studying master, going from a different programme from bachelor's.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
+    [Fact]
+    public async Task BachelorTransferToOtherFacultyHasAllRoles()
+        => await CtuAuthTestRunner.BuildAndTestSteps(
+            "anotherusername",
+            builder => builder
+                    .AddFaculty("13000")
+                      .WithName("Faculty of electrical engineering")
+                      .WithAbbreviation("FEE")
+                    .Finish()
+                    .AddFaculty("12000")
+                      .WithName("Faculty of something, I guess")
+                      .WithAbbreviation("FSIG")
+                    .Finish()
+                    .AddProgramme("EK-B")
+                      .WithName("Programme1")
+                      .WithType(ProgrammeType.Bachelor)
+                    .Finish()
+                    .AddProgramme("A-B")
+                      .WithName("Another faculty programme")
+                      .WithType(ProgrammeType.Bachelor)
+                    .Finish()
+                    .AddPerson("anotherusername")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
+                      .WithUsermapRole("A_USERMAP_ROLE")
+                      .AddStudentRole()
+                        .WithStartDate(2020, 06, 30)
+                        .WithEndDate(2024, 06, 15)
+                        .WithFaculty("13000")
+                        .WithProgramme("EK-B")
+                        .Withdrew()
+                      .Finish()
+                      .AddStudentRole()
+                        .WithStartDate(2024, 06, 30)
+                        .WithFaculty("12000")
+                        .WithProgramme("A-B")
+                        .Studying()
+                      .Finish()
+                    .Finish(),
+            new RoleAssignmentInfo
+            (
+                "anotherusername",
+                Years: [2020],
+                ProgrammeTypes: [ProgrammeType.Bachelor],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"]
+            )
+        );
+
+    /// <summary>
+    /// Tests a regular master's user from FEE that is studying master, going from a different programme from bachelor's.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
+    [Fact]
+    public async Task BachelorTransferFromOtherFacultyHasAllRoles()
+        => await CtuAuthTestRunner.BuildAndTestSteps(
+            "anotherusername",
+            builder => builder
+                    .AddFaculty("13000")
+                      .WithName("Faculty of electrical engineering")
+                      .WithAbbreviation("FEE")
+                    .Finish()
+                    .AddFaculty("12000")
+                      .WithName("Faculty of something, I guess")
+                      .WithAbbreviation("FSIG")
+                    .Finish()
+                    .AddProgramme("EK-B")
+                      .WithName("Programme1")
+                      .WithType(ProgrammeType.Bachelor)
+                    .Finish()
+                    .AddProgramme("A-B")
+                      .WithName("Another faculty programme")
+                      .WithType(ProgrammeType.Bachelor)
+                    .Finish()
+                    .AddPerson("anotherusername")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
+                      .WithUsermapRole("A_USERMAP_ROLE")
+                      .AddStudentRole()
+                        .WithStartDate(2020, 06, 30)
+                        .WithEndDate(2024, 06, 15)
+                        .WithFaculty("12000")
+                        .WithProgramme("A-B")
+                        .Withdrew()
+                      .Finish()
+                      .AddStudentRole()
+                        .WithStartDate(2024, 06, 30)
+                        .WithFaculty("13000")
+                        .WithProgramme("EK-B")
+                        .Studying()
+                      .Finish()
+                    .Finish(),
+            new RoleAssignmentInfo
+            (
+                "anotherusername",
+                Years: [2024],
+                ProgrammeTypes: [ProgrammeType.Bachelor],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"],
+                ActiveProgrammes: ["Programme1"]
+            )
+        );
+
+    /// <summary>
+    /// Tests a regular master's user from FEE that is studying master, going from a different programme from bachelor's.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
+    [Fact]
+    public async Task BachelorFromOtherFacultyHasAllRoles()
+        => await CtuAuthTestRunner.BuildAndTestSteps(
+            "anotherusername",
+            builder => builder
+                    .AddFaculty("13000")
+                      .WithName("Faculty of electrical engineering")
+                      .WithAbbreviation("FEE")
+                    .Finish()
+                    .AddFaculty("12000")
+                      .WithName("Faculty of something, I guess")
+                      .WithAbbreviation("FSIG")
+                    .Finish()
+                    .AddProgramme("EK-B")
+                      .WithName("Programme1")
+                      .WithType(ProgrammeType.Bachelor)
+                    .Finish()
+                    .AddProgramme("A-B")
+                      .WithName("Another faculty programme")
+                      .WithType(ProgrammeType.Bachelor)
+                    .Finish()
+                    .AddPerson("anotherusername")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
+                      .WithUsermapRole("A_USERMAP_ROLE")
+                      .AddStudentRole()
+                        .WithStartDate(2020, 06, 30)
+                        .WithFaculty("12000")
+                        .WithProgramme("A-B")
+                        .Studying()
+                      .Finish()
+                    .Finish(),
+            new RoleAssignmentInfo
+            (
+                "anotherusername",
+                ProgrammeTypes: [ProgrammeType.Bachelor],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"]
+            )
+        );
+
+    /// <summary>
     /// Student continued same programme on master, but then switched to another.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
