@@ -127,6 +127,7 @@ namespace Christofel.Api
             // processors of queues
             services.Configure<WarnOptions>(_configuration.GetSection("Auth"));
             services.Configure<EditInteractionOptions>(_configuration.GetSection("Auth"));
+            services.Configure<AuthOptions>(_configuration.GetSection("Auth"));
             services
                 .AddSingleton<IJobQueue<CtuAuthRoleAssign>, CtuAuthRoleAssignProcessor>()
                 .AddSingleton<IJobQueue<CtuAuthNicknameSet>, CtuAuthNicknameSetProcessor>()

@@ -4,12 +4,14 @@
 //   Copyright (c) Christofel authors. All rights reserved.
 //   Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using Christofel.CtuAuth.Auth.Tasks.Options;
 using Christofel.CtuAuth.Extensions;
 using Kos.Abstractions;
 using Kos.Data;
 using Kos.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Remora.Rest.Core;
 using Remora.Results;
 
@@ -29,6 +31,7 @@ namespace Christofel.CtuAuth.Auth.Steps
         private readonly IKosPeopleApi _kosPeopleApi;
         private readonly IKosAtomApi _kosApi;
         private readonly ILogger _logger;
+        private readonly AuthOptions _options;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="YearRoleStep"/> class.
@@ -36,11 +39,19 @@ namespace Christofel.CtuAuth.Auth.Steps
         /// <param name="logger">The logger.</param>
         /// <param name="kosPeopleApi">The kos people api.</param>
         /// <param name="kosApi">The kos api.</param>
-        public YearRoleStep(ILogger<YearRoleStep> logger, IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi)
+        /// <param name="options">The options configuration for faculty.</param>
+        public YearRoleStep
+        (
+            ILogger<YearRoleStep> logger,
+            IKosPeopleApi kosPeopleApi,
+            IKosAtomApi kosApi,
+            IOptionsSnapshot<AuthOptions> options
+        )
         {
             _kosPeopleApi = kosPeopleApi;
             _kosApi = kosApi;
             _logger = logger;
+            _options = options.Value;
         }
 
         /// <inheritdoc />
@@ -52,13 +63,18 @@ namespace Christofel.CtuAuth.Auth.Steps
                 return Result.FromSuccess();
             }
 
+            if (_options.FacultyCode is null)
+            {
+                throw new InvalidOperationException("FacultyCode not supplied in config!");
+            }
+
             // Get student roles that are under FEE faculty
             Student[] feeStudentRoles = await kosPerson.Roles.Students
                 .ToAsyncEnumerable()
                 .SelectAwaitWithCancellation(async (sl, ct) => await _kosApi.LoadEntityContentAsync(sl, token: ct))
                 .Where(x => x is not null)
                 .Select(x => x!)
-                .Where(s => s.Faculty?.GetKey() == "13000") // TODO: configurable faculty code
+                .Where(s => s.Faculty?.GetKey() == _options.FacultyCode)
                 .ToArrayAsync(ct);
 
             var initialStudent = feeStudentRoles.MinBy(student => student.StartDate ?? DateTime.Now);

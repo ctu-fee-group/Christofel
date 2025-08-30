@@ -144,6 +144,7 @@ namespace Christofel.Management
                 .AddChristofelDbContextFactory<ApiCacheContext>(State.Configuration)
                 .Configure<WarnOptions>(State.Configuration.GetSection("Auth"))
                 .Configure<EditInteractionOptions>(State.Configuration.GetSection("Auth"))
+                .Configure<AuthOptions>(State.Configuration.GetSection("Auth"))
                 .AddSingleton<IJobQueue<CtuAuthRoleAssign>, CtuAuthRoleAssignProcessor>()
                 .AddSingleton<IJobQueue<CtuAuthNicknameSet>, CtuAuthNicknameSetProcessor>()
                 .AddSingleton<IJobQueue<CtuAuthWarnMessage>, CtuAuthWarnMessageProcessor>()
