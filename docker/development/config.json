@@ -11,7 +11,8 @@
   },
   "Auth": {
     "NoRolesMessage": "Ověření proběhlo v pořádku, avšak nebyly vám zatím přiřazené žádné role navíc. Pokud jste se právě zapsali ke studiu, zkuste se za pár dní ověřit znovu, až budou informace v systému, a měli byste dostat i roli oboru, fakulty a ročníku.",
-    "EditedMessage": "Ověření proběhlo v pořádku, nyní můžeš procházet zbytek serveru. Pokud se budeš chtít ověřit znovu (pro aktualizaci rolí), můžeš znovu použít tlačítko na zprávě výše."
+    "EditedMessage": "Ověření proběhlo v pořádku, nyní můžeš procházet zbytek serveru. Pokud se budeš chtít ověřit znovu (pro aktualizaci rolí), můžeš znovu použít tlačítko na zprávě výše.",
+    "FacultyCode": "13000"
   },
   "Oauth": {
     "Discord": {

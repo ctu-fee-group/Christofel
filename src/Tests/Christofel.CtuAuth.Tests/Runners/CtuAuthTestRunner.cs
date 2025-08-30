@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Christofel.Common.Database;
 using Christofel.CtuAuth.Auth.Tasks;
+using Christofel.CtuAuth.Auth.Tasks.Options;
 using Christofel.CtuAuth.Extensions;
 using Christofel.CtuAuth.Tests.Data;
 using Christofel.CtuAuth.Tests.Data.Ctu.Auth;
@@ -69,6 +70,9 @@ public class CtuAuthTestRunner
             // CtuAuth
             .AddCtuAuthProcess()
             .AddDefaultCtuAuthProcess()
+
+            // Configs
+            .Configure<AuthOptions>(o => o.FacultyCode = "13000")
 
             // Database
             .AddTransient(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext())
