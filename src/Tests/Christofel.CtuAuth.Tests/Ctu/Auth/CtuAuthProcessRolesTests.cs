@@ -77,7 +77,7 @@ public class CtuAuthProcessRolesTests
                       .WithType(ProgrammeType.Master)
                     .Finish()
                     .AddPerson("user1")
-                      .WithUsermapRole("ANOTHER_USERMAP_ROLE")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
                       .AddStudentRole()
                         .WithStartDate(2020, 06, 30)
                         .WithEndDate(2024, 06, 15)
@@ -97,7 +97,7 @@ public class CtuAuthProcessRolesTests
                 "user1",
                 Years: [2020],
                 ProgrammeTypes: [ProgrammeType.Master],
-                UsermapRoles: ["ANOTHER_USERMAP_ROLE"],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE"],
                 ActiveProgrammes: ["Programme1"],
                 GraduatedProgrammes: []
             )
@@ -129,7 +129,7 @@ public class CtuAuthProcessRolesTests
                       .WithType(ProgrammeType.Master)
                     .Finish()
                     .AddPerson("user1")
-                      .WithUsermapRole("ANOTHER_USERMAP_ROLE")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
                       .WithUsermapRole("A_USERMAP_ROLE")
                       .AddStudentRole()
                         .WithStartDate(2020, 06, 30)
@@ -150,7 +150,7 @@ public class CtuAuthProcessRolesTests
                 "user1",
                 Years: [2020],
                 ProgrammeTypes: [ProgrammeType.Master],
-                UsermapRoles: ["ANOTHER_USERMAP_ROLE", "A_USERMAP_ROLE"],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"],
                 ActiveProgrammes: ["Programme2"],
                 GraduatedProgrammes: ["Programme1"]
             )
@@ -178,7 +178,7 @@ public class CtuAuthProcessRolesTests
                       .WithType(ProgrammeType.Bachelor)
                     .Finish()
                     .AddPerson("anotherusername")
-                      .WithUsermapRole("ANOTHER_USERMAP_ROLE")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
                       .WithUsermapRole("A_USERMAP_ROLE")
                       .AddStudentRole()
                         .WithStartDate(2020, 06, 30)
@@ -197,9 +197,9 @@ public class CtuAuthProcessRolesTests
             new RoleAssignmentInfo
             (
                 "anotherusername",
-                Years: [2020],
+                Years: [2020, 2024],
                 ProgrammeTypes: [ProgrammeType.Bachelor],
-                UsermapRoles: ["ANOTHER_USERMAP_ROLE", "A_USERMAP_ROLE"],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"],
                 ActiveProgrammes: ["Programme2"]
             )
         );
@@ -234,7 +234,7 @@ public class CtuAuthProcessRolesTests
                       .WithType(ProgrammeType.Master)
                     .Finish()
                     .AddPerson("anotherusername")
-                      .WithUsermapRole("ANOTHER_USERMAP_ROLE")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
                       .WithUsermapRole("A_USERMAP_ROLE")
                       .AddStudentRole()
                         .WithStartDate(2020, 06, 30)
@@ -261,7 +261,7 @@ public class CtuAuthProcessRolesTests
                 "anotherusername",
                 Years: [2020],
                 ProgrammeTypes: [ProgrammeType.Master],
-                UsermapRoles: ["ANOTHER_USERMAP_ROLE", "A_USERMAP_ROLE"],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"],
                 ActiveProgrammes: ["Programme1"],
                 GraduatedProgrammes: ["Programme2"]
             )
@@ -297,7 +297,7 @@ public class CtuAuthProcessRolesTests
                       .WithType(ProgrammeType.Master)
                     .Finish()
                     .AddPerson("anotherusername")
-                      .WithUsermapRole("ANOTHER_USERMAP_ROLE")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
                       .WithUsermapRole("A_USERMAP_ROLE")
                       .AddStudentRole()
                         .WithStartDate(2020, 06, 30)
@@ -327,7 +327,7 @@ public class CtuAuthProcessRolesTests
                 "anotherusername",
                 Years: [2020],
                 ProgrammeTypes: [ProgrammeType.Master],
-                UsermapRoles: ["ANOTHER_USERMAP_ROLE", "A_USERMAP_ROLE"],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"],
                 ActiveProgrammes: ["Programme1"],
                 GraduatedProgrammes: ["Programme2"], // Programme1 not in graduated roles as still active
                 Teacher: true
@@ -364,7 +364,7 @@ public class CtuAuthProcessRolesTests
                       .WithType(ProgrammeType.Master)
                     .Finish()
                     .AddPerson("anotherusername")
-                      .WithUsermapRole("ANOTHER_USERMAP_ROLE")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
                       .WithUsermapRole("A_USERMAP_ROLE")
                       .AddStudentRole()
                         .WithStartDate(2020, 06, 30)
@@ -398,7 +398,7 @@ public class CtuAuthProcessRolesTests
                 "anotherusername",
                 Years: [2020],
                 ProgrammeTypes: [ProgrammeType.Master],
-                UsermapRoles: ["ANOTHER_USERMAP_ROLE", "A_USERMAP_ROLE"],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"],
                 ActiveProgrammes: ["Programme3", "Programme4"],
                 GraduatedProgrammes: ["Programme1", "Programme2"]
             )
