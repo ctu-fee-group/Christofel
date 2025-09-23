@@ -149,7 +149,7 @@ namespace Christofel.CtuAuth.Auth.Steps
                 {
                     _logger.LogWarning
                         (
-                            "Could not find mapping for programme {programmeTitle} for user {GuildUser}",
+                            "Could not find mapping for programme '{programmeTitle}' for user {GuildUser}",
                             programmeTitle,
                             data.GuildUser
                         );
