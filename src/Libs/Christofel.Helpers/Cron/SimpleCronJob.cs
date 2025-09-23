@@ -85,7 +85,7 @@ public abstract class SimpleCronJob : ICronJob
         _run = true;
         _ctsource = new CancellationTokenSource();
         _stopSource = new CancellationTokenSource();
-        _runTask = Task.Run(RunTask);
+        _runTask = Task.Run(async () => await RunTask());
         return Task.CompletedTask;
     }
 
