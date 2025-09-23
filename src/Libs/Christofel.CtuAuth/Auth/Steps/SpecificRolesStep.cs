@@ -25,18 +25,27 @@ namespace Christofel.CtuAuth.Auth.Steps
     {
         private readonly IKosAtomApi _kosApi;
         private readonly IKosPeopleApi _kosPeopleApi;
+        private readonly IKosProgrammesApi _kosProgrammesApi;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SpecificRolesStep"/> class.
         /// </summary>
         /// <param name="kosPeopleApi">The kos people api.</param>
+        /// <param name="kosProgrammesApi">The kos programmes api.</param>
         /// <param name="kosApi">The kos api.</param>
         /// <param name="logger">The logger.</param>
-        public SpecificRolesStep(IKosPeopleApi kosPeopleApi, IKosAtomApi kosApi, ILogger<SpecificRolesStep> logger)
+        public SpecificRolesStep
+        (
+            IKosPeopleApi kosPeopleApi,
+            IKosProgrammesApi kosProgrammesApi,
+            IKosAtomApi kosApi,
+            ILogger<SpecificRolesStep> logger
+        )
         {
             _logger = logger;
             _kosPeopleApi = kosPeopleApi;
+            _kosProgrammesApi = kosProgrammesApi;
             _kosApi = kosApi;
         }
 
@@ -113,15 +122,27 @@ namespace Christofel.CtuAuth.Auth.Steps
             {
                 try
                 {
-                    var programme = await _kosApi
-                        .LoadEntryAsync(student.Programme, token: token);
-
-                    if (programme is null)
+                    if (student.Programme is null)
                     {
+                        _logger.LogWarning($"Student role doesn't have a programme, skipping programme type role assignment.");
                         continue;
                     }
 
-                    var programType = programme.Content.ProgrammeType switch
+                    var (programme, unique) = await _kosProgrammesApi
+                        .GetNonUniqueProgramme(student.Programme, ct: token);
+
+                    if (!unique)
+                    {
+                        _logger.LogWarning($"Programme {student.Programme?.Title} ({student.Programme!.GetKey()}) is not unique, assuming first one is the correct one.");
+                    }
+
+                    if (programme is null)
+                    {
+                        _logger.LogWarning($"Programme {student.Programme?.Title} ({student.Programme!.GetKey()}) not found, cannot assign programme type role.");
+                        continue;
+                    }
+
+                    var programType = programme.ProgrammeType switch
                     {
                         ProgrammeType.Bachelor => "BachelorProgramme",
                         ProgrammeType.Master => "MasterProgramme",

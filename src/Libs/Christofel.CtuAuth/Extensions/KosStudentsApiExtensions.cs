@@ -34,6 +34,46 @@ public static class KosStudentsApiExtensions
         => api.GetExtremeStudentRole(studentRoles, true, ct: ct);
 
     /// <summary>
+    /// Obtain the programme, taking into account that the programme doesn't have to be unique.
+    /// </summary>
+    /// <param name="api">The kos api.</param>
+    /// <param name="programme">The programme to load.</param>
+    /// <param name="ct">The cancellation token for the operation.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public static async Task<(Programme? Programme, bool Unique)> GetNonUniqueProgramme
+    (
+        this IKosProgrammesApi api,
+        AtomLoadableEntity<Programme> programme,
+        CancellationToken ct = default
+    )
+    {
+        var programmes = await api.GetProgrammes(
+            query: $"code=='{programme.GetKey()}'",
+            limit: 20,
+            token: ct
+        );
+
+        // Normally, ignore name of the programme. But if there are more,
+        // also filter based on the name. This is a fail safe mechanism,
+        // where if for whatever reason the title didn't match the programme,
+        // programme is going to be matched anyway. For that reason, do not
+        // filter by name if only one programme matched. (ie. it's omitted from the query)
+        if (programmes.Count > 1)
+        {
+            var newProgrammes = programmes
+                .Where(p => p.Name == programme.Title)
+                .ToArray();
+
+            if (newProgrammes.Length >= 1)
+            {
+                programmes = newProgrammes;
+            }
+        }
+
+        return (programmes.FirstOrDefault(), programmes.Count <= 1);
+    }
+
+    /// <summary>
     /// Obtain the role that has the oldest start date.
     /// </summary>
     /// <param name="api">The kos api.</param>

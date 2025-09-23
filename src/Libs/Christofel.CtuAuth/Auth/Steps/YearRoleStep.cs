@@ -12,7 +12,6 @@ using Kos.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Remora.Rest.Core;
 using Remora.Results;
 
 namespace Christofel.CtuAuth.Auth.Steps
@@ -29,6 +28,7 @@ namespace Christofel.CtuAuth.Auth.Steps
     public class YearRoleStep : IAuthStep
     {
         private readonly IKosPeopleApi _kosPeopleApi;
+        private readonly IKosProgrammesApi _kosProgrammesApi;
         private readonly IKosAtomApi _kosApi;
         private readonly ILogger _logger;
         private readonly AuthOptions _options;
@@ -38,17 +38,20 @@ namespace Christofel.CtuAuth.Auth.Steps
         /// </summary>
         /// <param name="logger">The logger.</param>
         /// <param name="kosPeopleApi">The kos people api.</param>
+        /// <param name="kosProgrammesApi">The kos programmes api.</param>
         /// <param name="kosApi">The kos api.</param>
         /// <param name="options">The options configuration for faculty.</param>
         public YearRoleStep
         (
             ILogger<YearRoleStep> logger,
             IKosPeopleApi kosPeopleApi,
+            IKosProgrammesApi kosProgrammesApi,
             IKosAtomApi kosApi,
             IOptionsSnapshot<AuthOptions> options
         )
         {
             _kosPeopleApi = kosPeopleApi;
+            _kosProgrammesApi = kosProgrammesApi;
             _kosApi = kosApi;
             _logger = logger;
             _options = options.Value;
@@ -87,8 +90,23 @@ namespace Christofel.CtuAuth.Auth.Steps
 
             if (initialStudent.Programme is not null)
             {
-                var programme = await _kosApi.LoadEntityContentAsync(initialStudent.Programme, token: ct);
+                var (programme, unique) = await _kosProgrammesApi
+                    .GetNonUniqueProgramme(initialStudent.Programme, ct: ct);
                 programmeType = programme?.ProgrammeType;
+
+                if (!unique)
+                {
+                    _logger.LogWarning($"Programme {initialStudent.Programme?.Title} ({initialStudent.Programme!.GetKey()}) is not unique, assuming first one is the correct one.");
+                }
+
+                if (programme is null)
+                {
+                    _logger.LogWarning($"Programme {initialStudent.Programme?.Title} ({initialStudent.Programme!.GetKey()}) not found, assigning only first year role.");
+                }
+            }
+            else
+            {
+                _logger.LogWarning($"Student doesn't have any programme, assigning only first year role.");
             }
 
             Student[] studentRoles;
@@ -108,7 +126,19 @@ namespace Christofel.CtuAuth.Auth.Steps
                             return false;
                         }
 
-                        var programme = await _kosApi.LoadEntityContentAsync(student.Programme, token: ct);
+                        var (programme, unique) = await _kosProgrammesApi
+                            .GetNonUniqueProgramme(student.Programme, ct: ct);
+
+                        if (!unique)
+                        {
+                            _logger.LogWarning($"Programme {student.Programme?.Title} ({student.Programme!.GetKey()}) is not unique, assuming first one is the correct one.");
+                        }
+
+                        if (programme is null)
+                        {
+                            _logger.LogWarning($"Programme {student.Programme?.Title} ({student.Programme!.GetKey()}) not found, cannot determine if to assign year role, skipping. (the user might be missing {student.StartDate?.Year} role)");
+                        }
+
                         return programme?.ProgrammeType == programmeType;
                     })
                     .ToArrayAsync(ct);
