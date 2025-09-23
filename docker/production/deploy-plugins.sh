@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -euxo pipefail
+
 if [[ ! $REMOTE_URI ]]; then
 	echo "REMOTE_URI environment variable not set!"
 	exit 1
@@ -20,9 +22,14 @@ esac
 
    if [ $1 = "all" ]
    then
-    scp -C -r ./Plugins $REMOTE_URI:~/docker/christofel/
+    tar czv ./Plugins | ssh $REMOTE_URI -- tar xzv -C '~/docker/christofel'
    else
-    scp -C -r ./Plugins/Christofel.$1 $REMOTE_URI:~/docker/christofel/Plugins/
+    tar czv ./Plugins/Christofel.$1 | ssh $REMOTE_URI -- tar xzv -C '~/docker/christofel'
+   fi
+   err=$?
+   if [[ $err -ne 0 ]]; then
+     echo "There was an error when deploying!"
+     exit "$err"
    fi
 else
   echo "Not enough arguments."
