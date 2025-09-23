@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 #
 
-source ./.env && export $(cut -d= -f1 < .env)
+. ./.env && export $(cut -d= -f1 < .env)
 
 if [[ ! $TAG ]]; then
 	echo "Could not find the TAG variable."
