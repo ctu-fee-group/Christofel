@@ -95,7 +95,8 @@ public abstract class SimpleCronJob : ICronJob
         {
             try
             {
-                if (DateTime.Now > NextScheduledTime)
+                var nextScheduledDelay = NextScheduledTime - DateTime.Now;
+                if (nextScheduledDelay <= TimeSpan.FromSeconds(1))
                 {
                     var result = await ProcessAsync(false);
 
@@ -113,6 +114,7 @@ public abstract class SimpleCronJob : ICronJob
                     }
 
                     NextScheduledTime = DateTime.Now + Interval;
+                    nextScheduledDelay = Interval;
                 }
 
                 try
@@ -122,7 +124,7 @@ public abstract class SimpleCronJob : ICronJob
                         _ctsource = new CancellationTokenSource();
                     }
 
-                    await Task.Delay(NextScheduledTime - DateTime.Now, _ctsource.Token);
+                    await Task.Delay(nextScheduledDelay, _ctsource.Token);
                 }
                 catch (TaskCanceledException)
                 {
