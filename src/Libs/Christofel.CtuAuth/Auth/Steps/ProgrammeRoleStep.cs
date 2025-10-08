@@ -6,6 +6,7 @@
 
 using Christofel.Common.Database.Models;
 using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Resolvers;
 using Kos.Abstractions;
 using Kos.Data;
 using Microsoft.EntityFrameworkCore;
@@ -40,8 +41,6 @@ namespace Christofel.CtuAuth.Auth.Steps
             _kosApi = kosApi;
             _logger = logger;
         }
-
-        private record ProgrammeAssignmentSpec(string programme, bool graduated, bool active);
 
         private async Task<Dictionary<string, ProgrammeAssignmentSpec>> GetSpecs(Person? kosPerson, CancellationToken ct = default)
         {
@@ -90,13 +89,13 @@ namespace Christofel.CtuAuth.Auth.Steps
                 (
                     activeStudents,
                     assignmentSpecs,
-                    assignmentSpec => assignmentSpec with { active = true }
+                    assignmentSpec => assignmentSpec with { Active = true }
                 );
             updateAssignmentSpecs
                 (
                     graduatedStudents,
                     assignmentSpecs,
-                    assignmentSpec => assignmentSpec with { graduated = true }
+                    assignmentSpec => assignmentSpec with { Graduated = true }
                 );
 
             return assignmentSpecs;
@@ -122,7 +121,7 @@ namespace Christofel.CtuAuth.Auth.Steps
             // so it should be fine.
             foreach (var (programmeTitle, assignmentSpec) in assignmentSpecs)
             {
-                var graduationRole = !assignmentSpec.active && assignmentSpec.graduated;
+                var graduationRole = !assignmentSpec.Active && assignmentSpec.Graduated;
 
                 var query = data.DbContext.ProgrammeRoleAssignments
                     .AsNoTracking()

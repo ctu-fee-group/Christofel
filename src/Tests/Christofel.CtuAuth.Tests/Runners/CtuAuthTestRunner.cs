@@ -78,7 +78,7 @@ public class CtuAuthTestRunner
             .AddTransient(p => p.GetRequiredService<IDbContextFactory<ChristofelBaseContext>>().CreateDbContext())
             .AddSingleton<IDbContextFactory<ChristofelBaseContext>, ChristofelBaseContextFactory>
                 (p => new ChristofelBaseContextFactory(dbOptions))
-            .AddSingleton<ReadonlyDbContextFactory<ChristofelBaseContext>>()
+            .AddReadOnlyDbContext<ChristofelBaseContext>()
 
             // Apis
             .AddSingleton<IKosAtomApi>(_ => new TestKosAtomApi(kosApiSource))

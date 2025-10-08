@@ -6,6 +6,7 @@
 
 using Christofel.CtuAuth.Auth.Tasks.Options;
 using Christofel.CtuAuth.Extensions;
+using Christofel.CtuAuth.Resolvers;
 using Kos.Abstractions;
 using Kos.Data;
 using Kos.Extensions;
@@ -30,6 +31,7 @@ namespace Christofel.CtuAuth.Auth.Steps
         private readonly IKosPeopleApi _kosPeopleApi;
         private readonly IKosProgrammesApi _kosProgrammesApi;
         private readonly IKosAtomApi _kosApi;
+        private readonly ProgrammeRoleResolver _programmeResolver;
         private readonly ILogger _logger;
         private readonly AuthOptions _options;
 
@@ -40,6 +42,7 @@ namespace Christofel.CtuAuth.Auth.Steps
         /// <param name="kosPeopleApi">The kos people api.</param>
         /// <param name="kosProgrammesApi">The kos programmes api.</param>
         /// <param name="kosApi">The kos api.</param>
+        /// <param name="programmeResolver">The resolver of programmes to get programme for a Student.</param>
         /// <param name="options">The options configuration for faculty.</param>
         public YearRoleStep
         (
@@ -47,12 +50,14 @@ namespace Christofel.CtuAuth.Auth.Steps
             IKosPeopleApi kosPeopleApi,
             IKosProgrammesApi kosProgrammesApi,
             IKosAtomApi kosApi,
+            ProgrammeRoleResolver programmeResolver,
             IOptionsSnapshot<AuthOptions> options
         )
         {
             _kosPeopleApi = kosPeopleApi;
             _kosProgrammesApi = kosProgrammesApi;
             _kosApi = kosApi;
+            _programmeResolver = programmeResolver;
             _logger = logger;
             _options = options.Value;
         }
@@ -71,13 +76,13 @@ namespace Christofel.CtuAuth.Auth.Steps
                 throw new InvalidOperationException("FacultyCode not supplied in config!");
             }
 
-            // Get student roles that are under FEE faculty
+            // Get student roles that are under FEE faculty or that get a role assigned
             Student[] feeStudentRoles = await kosPerson.Roles.Students
                 .ToAsyncEnumerable()
                 .SelectAwaitWithCancellation(async (sl, ct) => await _kosApi.LoadEntityContentAsync(sl, token: ct))
                 .Where(x => x is not null)
                 .Select(x => x!)
-                .Where(s => s.Faculty?.GetKey() == _options.FacultyCode)
+                .WhereAwaitWithCancellation(async (s, ct) => (s.Faculty?.GetKey() == _options.FacultyCode) || await _programmeResolver.AssignsProgrammeRoleAsync(s, ct))
                 .ToArrayAsync(ct);
 
             var initialStudent = feeStudentRoles.MinBy(student => student.StartDate ?? DateTime.Now);
