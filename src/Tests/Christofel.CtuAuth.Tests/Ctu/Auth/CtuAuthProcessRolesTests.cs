@@ -351,6 +351,51 @@ public class CtuAuthProcessRolesTests
         );
 
     /// <summary>
+    /// Tests a regular bachelor's student on other faculty will get a year role if the programme has a role assignable.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>
+    [Fact]
+    public async Task BachelorFromOtherFacultyWithProgrammeHasAllRoles()
+        => await CtuAuthTestRunner.BuildAndTestSteps(
+            "anotherusername",
+            builder => builder
+                    .AddFaculty("13000")
+                      .WithName("Faculty of electrical engineering")
+                      .WithAbbreviation("FEE")
+                    .Finish()
+                    .AddFaculty("12000")
+                      .WithName("Faculty of something, I guess")
+                      .WithAbbreviation("FSIG")
+                    .Finish()
+                    .AddProgramme("EK-B")
+                      .WithName("Programme1")
+                      .WithType(ProgrammeType.Bachelor)
+                    .Finish()
+                    .AddProgramme("A-B")
+                      .WithName("Programme3")
+                      .WithType(ProgrammeType.Bachelor)
+                    .Finish()
+                    .AddPerson("anotherusername")
+                      .WithUsermapRole("ANOTHER_UMAPI_ROLE")
+                      .WithUsermapRole("A_USERMAP_ROLE")
+                      .AddStudentRole()
+                        .WithStartDate(2020, 06, 30)
+                        .WithFaculty("12000")
+                        .WithProgramme("A-B")
+                        .Studying()
+                      .Finish()
+                    .Finish(),
+            new RoleAssignmentInfo
+            (
+                "anotherusername",
+                ProgrammeTypes: [ProgrammeType.Bachelor],
+                ActiveProgrammes: ["Programme3"],
+                Years: [2020],
+                UsermapRoles: ["ANOTHER_UMAPI_ROLE", "A_USERMAP_ROLE"]
+            )
+        );
+
+    /// <summary>
     /// Student continued same programme on master, but then switched to another.
     /// </summary>
     /// <returns>A <see cref="Task"/> that represents the asynchronous operations.</returns>

@@ -44,6 +44,7 @@ namespace Christofel.CtuAuth.Extensions
             services
                 .AddScoped<DuplicateResolver>()
                 .AddScoped<NicknameResolver>()
+                .AddScoped<ProgrammeRoleResolver>()
                 .AddAuthCondition<CtuUsernameFilledCondition>()
                 .AddAuthCondition<MemberMatchesUserCondition>()
                 .AddAuthCondition<NoDuplicateCondition>()
