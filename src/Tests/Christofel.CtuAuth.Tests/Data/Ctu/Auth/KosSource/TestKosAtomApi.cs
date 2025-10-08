@@ -7,11 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Kos.Abstractions;
 using Kos.Atom;
 using Kos.Data;
+using Moq;
 
 namespace Christofel.CtuAuth.Tests.Data.Ctu.Auth.KosSource;
 
@@ -134,7 +137,7 @@ public class TestKosAtomApi : IKosAtomApi
         where T : class, new()
     {
         // Parse endpoint to get entity type (e.g., "/divisions", "/programmes", etc.)
-        var entityType = endpoint[1..].ToLowerInvariant();
+        var entityType = endpoint.Trim('/').ToLowerInvariant();
 
         // Get all entities based on URL entity type and validate against TContent
         var entities = entityType switch
@@ -146,6 +149,24 @@ public class TestKosAtomApi : IKosAtomApi
             "teachers" => _source.Teachers.Select(x => (x.Key.ToString(), x.Value as T)).ToList(),
             _ => throw new ArgumentException($"Unknown feed endpoint: {endpoint}")
         };
+
+        // Support query for programme. This is the only time query is used for now.
+        // TODO: better support for queries in general. Basically implementing RSQL handling here.
+        var builder = new AtomFeedQueryBuilder("https://example.com/", HttpMethod.Get);
+        configureRequest?.Invoke(builder);
+        var uriQuery = HttpUtility.ParseQueryString(builder.Build().RequestUri?.Query ?? string.Empty);
+        var query = uriQuery.Get("query") ?? string.Empty;
+
+        if (!string.IsNullOrEmpty(query) &&
+            entityType == "programmes" &&
+            query.StartsWith("code"))
+        {
+            var splitted = query.Split("==", 2);
+            var code = splitted[1].Trim('\'').Trim('*');
+
+            Console.WriteLine($"Removing entities not matching {code}");
+            entities.RemoveAll(entity => entity.Item1 != code);
+        }
 
         // Create AtomEntry for each entity with proper IDs
         var entries = entities.Select(x =>
